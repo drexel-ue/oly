@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:oly/models/lift_model.dart';
 import 'package:oly/models/program_model.dart';
 
 void main() {
@@ -60,6 +61,17 @@ void main() {
       final maxes = {'clean_and_jerk': 100.0};
       // Previewing Week 3 -> 80% of 100kg = 80kg
       expect(exercise.calculateTargetWeight(week: 3, currentMaxes: maxes), equals(80.0));
+    });
+
+    test('LiftModel calculates correct 1RM suggestion for variation lift (Hang Snatch from Snatch)', () {
+      final lifts = LiftModel.defaultLifts();
+      final snatch = lifts.firstWhere((l) => l.id == 'snatch');
+      final hangSnatch = lifts.firstWhere((l) => l.id == 'hang_snatch');
+
+      snatch.currentMax = 100.0;
+      // Hang Snatch target ratio is 0.88 (88%)
+      final expectedSuggested = snatch.currentMax * hangSnatch.targetRatio;
+      expect(expectedSuggested, equals(88.0));
     });
   });
 }

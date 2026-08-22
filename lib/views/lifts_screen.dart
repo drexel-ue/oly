@@ -30,6 +30,9 @@ class _LiftsScreenState extends State<LiftsScreen> with SingleTickerProviderStat
   }
 
   void _showUpdateMaxDialog(BuildContext context, LiftModel lift, SettingsProvider settings) {
+    final provider = Provider.of<LiftProvider>(context, listen: false);
+    final suggestion = provider.getSuggestion(lift.id);
+
     final controller = TextEditingController(
       text: settings.toDisplayWeight(lift.currentMax).toStringAsFixed(1),
     );
@@ -46,6 +49,7 @@ class _LiftsScreenState extends State<LiftsScreen> with SingleTickerProviderStat
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             TextField(
               controller: controller,
@@ -59,6 +63,52 @@ class _LiftsScreenState extends State<LiftsScreen> with SingleTickerProviderStat
                 ),
               ),
             ),
+            if (suggestion != null) ...[
+              const SizedBox(height: 12),
+              InkWell(
+                onTap: () {
+                  final displayVal = settings.toDisplayWeight(suggestion.suggestedMaxKg);
+                  controller.text = displayVal.toStringAsFixed(1);
+                },
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppTheme.secondaryCyan.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppTheme.secondaryCyan.withValues(alpha: 0.5)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.lightbulb_outline, color: AppTheme.secondaryCyan, size: 18),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Suggested: ${settings.formatWeight(suggestion.suggestedMaxKg)}',
+                              style: GoogleFonts.outfit(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: AppTheme.secondaryCyan,
+                              ),
+                            ),
+                            Text(
+                              '${suggestion.reason} • Tap to apply',
+                              style: GoogleFonts.inter(
+                                fontSize: 11,
+                                color: AppTheme.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
             const SizedBox(height: 12),
             TextField(
               controller: notesController,

@@ -22,6 +22,16 @@ class LiftRatioAnalysis {
   });
 }
 
+class LiftSuggestion {
+  final double suggestedMaxKg;
+  final String reason;
+
+  LiftSuggestion({
+    required this.suggestedMaxKg,
+    required this.reason,
+  });
+}
+
 class LiftProvider extends ChangeNotifier {
   final StorageService _storage;
   final _uuid = const Uuid();
@@ -122,5 +132,37 @@ class LiftProvider extends ChangeNotifier {
     }
 
     return results;
+  }
+
+  LiftSuggestion? getSuggestion(String liftId) {
+    final lift = getLift(liftId);
+    if (lift == null) return null;
+
+    // 1. Direct anchor check (e.g., Hang Snatch -> 88% of Snatch)
+    if (lift.anchorLiftId != null && lift.anchorLiftId!.isNotEmpty) {
+      final anchor = getLift(lift.anchorLiftId!);
+      if (anchor != null && anchor.currentMax > 0) {
+        final calculatedKg = anchor.currentMax * lift.targetRatio;
+        final pctStr = (lift.targetRatio * 100).toStringAsFixed(0);
+        return LiftSuggestion(
+          suggestedMaxKg: calculatedKg,
+          reason: '$pctStr% of ${anchor.name}',
+        );
+      }
+    }
+
+    // 2. Reverse anchor check (e.g., Snatch estimated from Hang Snatch)
+    final dependents = _lifts.where((l) => l.anchorLiftId == liftId && l.currentMax > 0).toList();
+    if (dependents.isNotEmpty) {
+      final primaryDep = dependents.first;
+      final calculatedKg = primaryDep.currentMax / primaryDep.targetRatio;
+      final pctStr = (primaryDep.targetRatio * 100).toStringAsFixed(0);
+      return LiftSuggestion(
+        suggestedMaxKg: calculatedKg,
+        reason: 'Estimated from ${primaryDep.name} ($pctStr% ratio)',
+      );
+    }
+
+    return null;
   }
 }
