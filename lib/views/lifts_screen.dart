@@ -117,25 +117,27 @@ class _LiftsScreenState extends State<LiftsScreen> with SingleTickerProviderStat
           ],
         ),
       ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          // TAB 1: Maxes & Percentage Table
-          ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: lifts.lifts.length,
-            itemBuilder: (context, index) {
-              final lift = lifts.lifts[index];
-              return _buildLiftCard(context, lift, lifts, settings);
-            },
-          ),
+      body: SafeArea(
+        child: TabBarView(
+          controller: _tabController,
+          children: [
+            // TAB 1: Maxes & Percentage Table
+            ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: lifts.lifts.length,
+              itemBuilder: (context, index) {
+                final lift = lifts.lifts[index];
+                return _buildLiftCard(context, lift, lifts, settings);
+              },
+            ),
 
-          // TAB 2: Ratio Analysis
-          SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: RatioChartWidget(ratios: lifts.getRatioAnalysis()),
-          ),
-        ],
+            // TAB 2: Ratio Analysis
+            SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: RatioChartWidget(ratios: lifts.getRatioAnalysis()),
+            ),
+          ],
+        ),
       ),
     );
   }

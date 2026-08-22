@@ -56,9 +56,10 @@ class _PlateCalculatorScreenState extends State<PlateCalculatorScreen> {
       appBar: AppBar(
         title: Text('Barbell Plate Loader', style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Bar & Collar Settings Bar
@@ -311,8 +312,9 @@ class _PlateCalculatorScreenState extends State<PlateCalculatorScreen> {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildPresetChip(String label, double valKg) {
     return ActionChip(

@@ -32,8 +32,9 @@ class AnalyticsScreen extends StatelessWidget {
             ],
           ),
         ),
-        body: TabBarView(
-          children: [
+        body: SafeArea(
+          child: TabBarView(
+            children: [
             // TAB 1: Session History Log
             sessions.isEmpty
                 ? Center(
@@ -119,6 +120,7 @@ class AnalyticsScreen extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }

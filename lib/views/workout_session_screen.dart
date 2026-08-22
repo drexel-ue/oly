@@ -166,65 +166,67 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
         ),
 
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Phases & Exercises
-                  ...widget.dayTemplate.phases.map((phase) {
-                    return _buildPhaseCard(context, phase, settings);
-                  }).toList(),
+      body: SafeArea(
+        child: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Phases & Exercises
+                    ...widget.dayTemplate.phases.map((phase) {
+                      return _buildPhaseCard(context, phase, settings);
+                    }).toList(),
 
-                  const SizedBox(height: 16),
+                    const SizedBox(height: 16),
 
-                  // Session Notes input
-                  TextField(
-                    controller: _notesController,
-                    maxLines: 2,
-                    style: GoogleFonts.inter(color: AppTheme.textPrimary),
-                    decoration: InputDecoration(
-                      hintText: 'Workout Notes (RPE, feel, fatigue)...',
-                      hintStyle: GoogleFonts.inter(color: AppTheme.textSecondary),
-                      filled: true,
-                      fillColor: AppTheme.surfaceCard,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        borderSide: const BorderSide(color: AppTheme.borderColor),
+                    // Session Notes input
+                    TextField(
+                      controller: _notesController,
+                      maxLines: 2,
+                      style: GoogleFonts.inter(color: AppTheme.textPrimary),
+                      decoration: InputDecoration(
+                        hintText: 'Workout Notes (RPE, feel, fatigue)...',
+                        hintStyle: GoogleFonts.inter(color: AppTheme.textSecondary),
+                        filled: true,
+                        fillColor: AppTheme.surfaceCard,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: const BorderSide(color: AppTheme.borderColor),
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 24),
+                    const SizedBox(height: 24),
 
-                  // Finish Workout Button
-                  SizedBox(
-                    width: double.infinity,
-                    height: 52,
-                    child: ElevatedButton.icon(
-                      onPressed: _finishWorkout,
-                      icon: const Icon(Icons.check_circle_outline, color: Colors.black),
-                      label: Text(
-                        'Complete & Save Session',
-                        style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.bold),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.primaryAmber,
-                        foregroundColor: Colors.black,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    // Finish Workout Button
+                    SizedBox(
+                      width: double.infinity,
+                      height: 52,
+                      child: ElevatedButton.icon(
+                        onPressed: _finishWorkout,
+                        icon: const Icon(Icons.check_circle_outline, color: Colors.black),
+                        label: Text(
+                          'Complete & Save Session',
+                          style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.primaryAmber,
+                          foregroundColor: Colors.black,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 24),
-                ],
+                    const SizedBox(height: 24),
+                  ],
+                ),
               ),
             ),
-          ),
-          // Embedded Rest Timer at bottom
-          const RestTimerWidget(),
-        ],
+            // Embedded Rest Timer at bottom
+            const RestTimerWidget(),
+          ],
+        ),
       ),
     );
   }

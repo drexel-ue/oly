@@ -1,6 +1,8 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+
 import '../theme/app_theme.dart';
 
 class WarmupSheet extends StatefulWidget {
@@ -78,8 +80,9 @@ class _WarmupSheetState extends State<WarmupSheet> {
         color: AppTheme.darkBackground,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      child: SingleChildScrollView(
-        child: Column(
+      child: SafeArea(
+        child: SingleChildScrollView(
+          child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -103,7 +106,10 @@ class _WarmupSheetState extends State<WarmupSheet> {
             const SizedBox(height: 16),
 
             // Step 1: General Warm Up
-            _buildSectionHeader('1. General Warm Up (Cardio)', Icons.directions_bike),
+            _buildSectionHeader(
+              '1. General Warm Up (Cardio)',
+              Icons.directions_bike,
+            ),
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -135,7 +141,9 @@ class _WarmupSheetState extends State<WarmupSheet> {
                     children: [
                       ElevatedButton.icon(
                         onPressed: _toggleTimer,
-                        icon: Icon(_isTimerRunning ? Icons.pause : Icons.play_arrow),
+                        icon: Icon(
+                          _isTimerRunning ? Icons.pause : Icons.play_arrow,
+                        ),
                         label: Text(_isTimerRunning ? 'Pause' : 'Start'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppTheme.primaryAmber,
@@ -180,7 +188,10 @@ class _WarmupSheetState extends State<WarmupSheet> {
                         ),
                         Text(
                           '8-10 passes per muscle group',
-                          style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textSecondary),
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            color: AppTheme.textSecondary,
+                          ),
                         ),
                       ],
                     ),
@@ -188,15 +199,26 @@ class _WarmupSheetState extends State<WarmupSheet> {
                   Row(
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.remove_circle_outline, color: AppTheme.primaryAmber),
-                        onPressed: _foamPasses > 0 ? () => setState(() => _foamPasses--) : null,
+                        icon: const Icon(
+                          Icons.remove_circle_outline,
+                          color: AppTheme.primaryAmber,
+                        ),
+                        onPressed: _foamPasses > 0
+                            ? () => setState(() => _foamPasses--)
+                            : null,
                       ),
                       Text(
                         '$_foamPasses / 10',
-                        style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.bold),
+                        style: GoogleFonts.outfit(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.add_circle_outline, color: AppTheme.primaryAmber),
+                        icon: const Icon(
+                          Icons.add_circle_outline,
+                          color: AppTheme.primaryAmber,
+                        ),
                         onPressed: () => setState(() => _foamPasses++),
                       ),
                     ],
@@ -207,7 +229,10 @@ class _WarmupSheetState extends State<WarmupSheet> {
             const SizedBox(height: 16),
 
             // Step 3: DROMs
-            _buildSectionHeader('3. Dynamic Mobility (DROMs)', Icons.accessibility_new),
+            _buildSectionHeader(
+              '3. Dynamic Mobility (DROMs)',
+              Icons.accessibility_new,
+            ),
             Container(
               decoration: BoxDecoration(
                 color: AppTheme.surfaceCard,
@@ -225,7 +250,8 @@ class _WarmupSheetState extends State<WarmupSheet> {
                       value: _droms[key],
                       activeColor: AppTheme.primaryAmber,
                       checkColor: Colors.black,
-                      onChanged: (val) => setState(() => _droms[key] = val ?? false),
+                      onChanged: (val) =>
+                          setState(() => _droms[key] = val ?? false),
                     );
                   }).toList(),
                 ),
@@ -248,18 +274,26 @@ class _WarmupSheetState extends State<WarmupSheet> {
                 child: Column(
                   children: [
                     CheckboxListTile(
-                      title: Text('Shoulders (30s hold per side)', style: GoogleFonts.inter(fontSize: 14)),
+                      title: Text(
+                        'Shoulders (30s hold per side)',
+                        style: GoogleFonts.inter(fontSize: 14),
+                      ),
                       value: _stretchShoulders,
                       activeColor: AppTheme.primaryAmber,
                       checkColor: Colors.black,
-                      onChanged: (val) => setState(() => _stretchShoulders = val ?? false),
+                      onChanged: (val) =>
+                          setState(() => _stretchShoulders = val ?? false),
                     ),
                     CheckboxListTile(
-                      title: Text('Ankles (Dorsiflexion 30s per leg)', style: GoogleFonts.inter(fontSize: 14)),
+                      title: Text(
+                        'Ankles (Dorsiflexion 30s per leg)',
+                        style: GoogleFonts.inter(fontSize: 14),
+                      ),
                       value: _stretchAnkles,
                       activeColor: AppTheme.primaryAmber,
                       checkColor: Colors.black,
-                      onChanged: (val) => setState(() => _stretchAnkles = val ?? false),
+                      onChanged: (val) =>
+                          setState(() => _stretchAnkles = val ?? false),
                     ),
                   ],
                 ),
@@ -274,20 +308,37 @@ class _WarmupSheetState extends State<WarmupSheet> {
               decoration: BoxDecoration(
                 color: AppTheme.surfaceElevated,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppTheme.primaryAmber.withOpacity(0.4)),
+                border: Border.all(
+                  color: AppTheme.primaryAmber.withOpacity(0.4),
+                ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     'Empty Barbell Specific Prep:',
-                    style: GoogleFonts.inter(fontWeight: FontWeight.bold, color: AppTheme.primaryAmber),
+                    style: GoogleFonts.inter(
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.primaryAmber,
+                    ),
                   ),
                   const SizedBox(height: 8),
-                  Text('• 5 Tall Muscle Snatches / Cleans', style: GoogleFonts.inter(fontSize: 13)),
-                  Text('• 5 Overhead Squats / Front Squats', style: GoogleFonts.inter(fontSize: 13)),
-                  Text('• 5 Press in Snatch / Push Press', style: GoogleFonts.inter(fontSize: 13)),
-                  Text('• 3 Warmup Sets with progressive weight loading', style: GoogleFonts.inter(fontSize: 13)),
+                  Text(
+                    '• 5 Tall Muscle Snatches / Cleans',
+                    style: GoogleFonts.inter(fontSize: 13),
+                  ),
+                  Text(
+                    '• 5 Overhead Squats / Front Squats',
+                    style: GoogleFonts.inter(fontSize: 13),
+                  ),
+                  Text(
+                    '• 5 Press in Snatch / Push Press',
+                    style: GoogleFonts.inter(fontSize: 13),
+                  ),
+                  Text(
+                    '• 3 Warmup Sets with progressive weight loading',
+                    style: GoogleFonts.inter(fontSize: 13),
+                  ),
                 ],
               ),
             ),
@@ -301,18 +352,24 @@ class _WarmupSheetState extends State<WarmupSheet> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.primaryAmber,
                   foregroundColor: Colors.black,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                 ),
                 child: Text(
                   'Complete Warm-Up & Start Workout',
-                  style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.bold),
+                  style: GoogleFonts.outfit(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),
           ],
         ),
       ),
-    );
+    ),
+  );
   }
 
   Widget _buildSectionHeader(String title, IconData icon) {

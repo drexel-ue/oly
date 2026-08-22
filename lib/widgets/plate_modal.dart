@@ -59,8 +59,9 @@ class _PlateModalState extends State<PlateModal> {
         color: AppTheme.darkBackground,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      child: SingleChildScrollView(
-        child: Column(
+      child: SafeArea(
+        child: SingleChildScrollView(
+          child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -322,7 +323,8 @@ class _PlateModalState extends State<PlateModal> {
           ],
         ),
       ),
-    );
+    ),
+  );
   }
 
   List<MapEntry<PlateSpec, int>> _groupPlates(List<PlateSpec> plates) {
