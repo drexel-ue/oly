@@ -74,7 +74,7 @@ class DashboardScreen extends StatelessWidget {
             const SizedBox(height: 16),
 
             // Olympic Total & Primary PRs
-            _buildOlympicTotalCard(context, lifts, settings, snatchKg, cjKg, olyTotalKg),
+            _buildOlympicTotalCard(context, program, lifts, settings, snatchKg, cjKg, olyTotalKg),
             const SizedBox(height: 16),
 
             // Quick Actions (Warmup & Plate Loader)
@@ -425,7 +425,7 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildOlympicTotalCard(BuildContext context, LiftProvider lifts, SettingsProvider settings,
+  Widget _buildOlympicTotalCard(BuildContext context, ProgramProvider program, LiftProvider lifts, SettingsProvider settings,
       double snatch, double cj, double total) {
     return Container(
       padding: const EdgeInsets.all(18),
@@ -492,6 +492,32 @@ class DashboardScreen extends StatelessWidget {
                       ),
                     ],
                   ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          const Divider(color: AppTheme.borderColor),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.fitness_center, color: AppTheme.secondaryCyan, size: 16),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Lifetime Weight Moved',
+                    style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textSecondary),
+                  ),
+                ],
+              ),
+              Text(
+                program.formatTotalTons(isLbs: settings.isLbs),
+                style: GoogleFonts.outfit(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.secondaryCyan,
                 ),
               ),
             ],

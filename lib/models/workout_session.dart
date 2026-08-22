@@ -15,6 +15,8 @@ class CompletedSet {
     this.completedAt,
   });
 
+  double get totalVolumeKg => isCompleted ? weight * reps : 0.0;
+
   Map<String, dynamic> toJson() {
     return {
       'setIndex': setIndex,
@@ -50,6 +52,10 @@ class ExerciseLog {
     required this.liftId,
     required this.sets,
   });
+
+  double get totalVolumeKg => sets.fold(0.0, (sum, s) => sum + s.totalVolumeKg);
+  int get totalReps => sets.fold(0, (sum, s) => sum + (s.isCompleted ? s.reps : 0));
+  int get totalSets => sets.where((s) => s.isCompleted).length;
 
   Map<String, dynamic> toJson() {
     return {
@@ -90,6 +96,12 @@ class WorkoutSession {
     this.notes,
     required this.logs,
   });
+
+  double get totalVolumeKg => logs.fold(0.0, (sum, l) => sum + l.totalVolumeKg);
+  double get totalTonsMetric => totalVolumeKg / 1000.0;
+  double get totalTonsUs => (totalVolumeKg * 2.20462) / 2000.0;
+  int get totalSets => logs.fold(0, (sum, l) => sum + l.totalSets);
+  int get totalReps => logs.fold(0, (sum, l) => sum + l.totalReps);
 
   Map<String, dynamic> toJson() {
     return {

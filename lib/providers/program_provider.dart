@@ -25,6 +25,29 @@ class ProgramProvider extends ChangeNotifier {
   int get currentCycle => _cycle.currentCycle;
   bool get isRetestWeek => _cycle.currentWeek == 5;
 
+  double get totalVolumeKg => _sessions.fold(0.0, (sum, s) => sum + s.totalVolumeKg);
+  double get totalTonsMetric => totalVolumeKg / 1000.0;
+  double get totalTonsUs => (totalVolumeKg * 2.20462) / 2000.0;
+  int get totalCompletedSets => _sessions.fold(0, (sum, s) => sum + s.totalSets);
+  int get totalCompletedReps => _sessions.fold(0, (sum, s) => sum + s.totalReps);
+
+  String formatTotalTons({required bool isLbs}) {
+    if (isLbs) {
+      final tons = totalTonsUs;
+      if (tons < 1.0) {
+        final lbs = totalVolumeKg * 2.20462;
+        return '${lbs.toStringAsFixed(0)} lbs';
+      }
+      return '${tons.toStringAsFixed(2)} Tons';
+    } else {
+      final tons = totalTonsMetric;
+      if (tons < 1.0) {
+        return '${totalVolumeKg.toStringAsFixed(0)} kg';
+      }
+      return '${tons.toStringAsFixed(2)} Tonnes';
+    }
+  }
+
   DayTemplate get currentDayTemplate {
     return _days.firstWhere(
       (d) => d.dayNumber == _cycle.currentDay,
