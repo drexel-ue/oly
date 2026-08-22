@@ -227,6 +227,34 @@ class DashboardScreen extends StatelessWidget {
               );
             }),
           ),
+          const SizedBox(height: 14),
+          InkWell(
+            onTap: () => _showRoutineExplorerSheet(context, program),
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: AppTheme.secondaryCyan.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppTheme.secondaryCyan.withOpacity(0.5)),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.explore, color: AppTheme.secondaryCyan, size: 18),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Explore Any Week or Routine (Preview Mode)',
+                    style: GoogleFonts.outfit(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.secondaryCyan,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -291,29 +319,58 @@ class DashboardScreen extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 16),
-          SizedBox(
-            width: double.infinity,
-            height: 46,
-            child: ElevatedButton.icon(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => WorkoutSessionScreen(dayTemplate: day),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => WorkoutSessionScreen(
+                          dayTemplate: day,
+                          isPreviewMode: true,
+                        ),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.explore, color: AppTheme.secondaryCyan, size: 18),
+                  label: Text(
+                    'Preview Day',
+                    style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.bold, color: AppTheme.secondaryCyan),
                   ),
-                );
-              },
-              icon: const Icon(Icons.play_arrow_rounded, color: Colors.black),
-              label: Text(
-                'Start ${day.title.split(':').first}',
-                style: GoogleFonts.outfit(fontSize: 15, fontWeight: FontWeight.bold),
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size(0, 46),
+                    side: const BorderSide(color: AppTheme.secondaryCyan),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
               ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primaryAmber,
-                foregroundColor: Colors.black,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              const SizedBox(width: 10),
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => WorkoutSessionScreen(dayTemplate: day),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.play_arrow_rounded, color: Colors.black, size: 20),
+                  label: Text(
+                    'Start Live',
+                    style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.bold),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size(0, 46),
+                    backgroundColor: AppTheme.primaryAmber,
+                    foregroundColor: Colors.black,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
               ),
-            ),
+            ],
           ),
         ],
       ),
@@ -506,6 +563,216 @@ class DashboardScreen extends StatelessWidget {
             }).toList(),
         ],
       ),
+    );
+  }
+
+  void _showRoutineExplorerSheet(BuildContext context, ProgramProvider program) {
+    int selectedWeek = program.currentWeek;
+    int selectedDayNum = program.currentDay;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setStateModal) {
+            final day = program.days.firstWhere(
+              (d) => d.dayNumber == selectedDayNum,
+              orElse: () => program.days.first,
+            );
+
+            return Container(
+              padding: const EdgeInsets.all(20),
+              decoration: const BoxDecoration(
+                color: AppTheme.darkBackground,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              child: SafeArea(
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Center(
+                        child: Container(
+                          width: 40,
+                          height: 4,
+                          margin: const EdgeInsets.only(bottom: 16),
+                          decoration: BoxDecoration(
+                            color: AppTheme.borderColor,
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Routine Explorer',
+                            style: GoogleFonts.outfit(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: AppTheme.textPrimary,
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.close, color: AppTheme.textSecondary),
+                            onPressed: () => Navigator.pop(ctx),
+                          ),
+                        ],
+                      ),
+                      Text(
+                        'Preview any week and routine day without affecting your history or analytics.',
+                        style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textSecondary),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Select Week Pills
+                      Text('SELECT WEEK TO PREVIEW:', style: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.textSecondary)),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: List.generate(5, (i) {
+                          final w = i + 1;
+                          final isSel = selectedWeek == w;
+                          return InkWell(
+                            onTap: () => setStateModal(() => selectedWeek = w),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: isSel ? AppTheme.secondaryCyan : AppTheme.surfaceCard,
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(color: isSel ? Colors.white : AppTheme.borderColor),
+                              ),
+                              child: Text(
+                                w == 5 ? 'Retest' : 'W$w',
+                                style: GoogleFonts.outfit(
+                                  fontWeight: FontWeight.bold,
+                                  color: isSel ? Colors.black : AppTheme.textSecondary,
+                                ),
+                              ),
+                            ),
+                          );
+                        }),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Select Day Pills
+                      Text('SELECT ROUTINE DAY:', style: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.textSecondary)),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: program.days.map((d) {
+                          final isSel = selectedDayNum == d.dayNumber;
+                          return Expanded(
+                            child: GestureDetector(
+                              onTap: () => setStateModal(() => selectedDayNum = d.dayNumber),
+                              child: Container(
+                                margin: const EdgeInsets.only(right: 6),
+                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: isSel ? AppTheme.primaryAmber : AppTheme.surfaceCard,
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(color: isSel ? Colors.white : AppTheme.borderColor),
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    'Day ${d.dayNumber}',
+                                    style: GoogleFonts.outfit(
+                                      fontWeight: FontWeight.bold,
+                                      color: isSel ? Colors.black : AppTheme.textSecondary,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                      const SizedBox(height: 20),
+
+                      // Selected Routine Overview
+                      Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: AppTheme.surfaceCard,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: AppTheme.borderColor),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(day.title, style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 4),
+                            Text(day.subtitle, style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textSecondary)),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+
+                      // Action buttons: Preview vs Live
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              onPressed: () {
+                                Navigator.pop(ctx);
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => WorkoutSessionScreen(
+                                      dayTemplate: day,
+                                      isPreviewMode: true,
+                                      previewWeek: selectedWeek,
+                                    ),
+                                  ),
+                                );
+                              },
+                              icon: const Icon(Icons.explore, color: AppTheme.secondaryCyan),
+                              label: Text('Preview', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: AppTheme.secondaryCyan)),
+                              style: OutlinedButton.styleFrom(
+                                minimumSize: const Size(0, 48),
+                                side: const BorderSide(color: AppTheme.secondaryCyan),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              onPressed: () {
+                                Navigator.pop(ctx);
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => WorkoutSessionScreen(
+                                      dayTemplate: day,
+                                      isPreviewMode: false,
+                                    ),
+                                  ),
+                                );
+                              },
+                              icon: const Icon(Icons.play_arrow, color: Colors.black),
+                              label: Text('Start Live Log', style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
+                              style: ElevatedButton.styleFrom(
+                                minimumSize: const Size(0, 48),
+                                backgroundColor: AppTheme.primaryAmber,
+                                foregroundColor: Colors.black,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }

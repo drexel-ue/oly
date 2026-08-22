@@ -46,5 +46,18 @@ void main() {
       expect(day4.isActiveRecovery, isTrue);
       expect(day4.title, contains('In-Between Day'));
     });
+
+    test('ExerciseTemplate correctly calculates weights for previewed peak weeks (e.g. Week 3)', () {
+      final exercise = ExerciseTemplate(
+        name: 'Block Clean',
+        liftId: 'clean_and_jerk',
+        setScheme: '4 Sets of 2-3 Reps',
+        weekPercentages: {1: 70.0, 2: 75.0, 3: 80.0, 4: 75.0},
+      );
+
+      final maxes = {'clean_and_jerk': 100.0};
+      // Previewing Week 3 -> 80% of 100kg = 80kg
+      expect(exercise.calculateTargetWeight(week: 3, currentMaxes: maxes), equals(80.0));
+    });
   });
 }

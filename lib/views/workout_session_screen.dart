@@ -13,8 +13,15 @@ import '../widgets/rest_timer_widget.dart';
 
 class WorkoutSessionScreen extends StatefulWidget {
   final DayTemplate dayTemplate;
+  final bool isPreviewMode;
+  final int? previewWeek;
 
-  const WorkoutSessionScreen({super.key, required this.dayTemplate});
+  const WorkoutSessionScreen({
+    super.key,
+    required this.dayTemplate,
+    this.isPreviewMode = false,
+    this.previewWeek,
+  });
 
   @override
   State<WorkoutSessionScreen> createState() => _WorkoutSessionScreenState();
@@ -27,17 +34,19 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
   final TextEditingController _notesController = TextEditingController();
 
   DateTime _startTime = DateTime.now();
+  late bool _isLiveMode;
 
   @override
   void initState() {
     super.initState();
     _startTime = DateTime.now();
+    _isLiveMode = !widget.isPreviewMode;
 
     // Initialize set entries for exercises
     final liftProvider = Provider.of<LiftProvider>(context, listen: false);
     final programProvider = Provider.of<ProgramProvider>(context, listen: false);
 
-    final week = programProvider.currentWeek;
+    final week = widget.previewWeek ?? programProvider.currentWeek;
     final maxes = liftProvider.currentMaxes;
 
     for (var phase in widget.dayTemplate.phases) {
@@ -169,6 +178,31 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
       body: SafeArea(
         child: Column(
           children: [
+            if (!_isLiveMode)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                decoration: BoxDecoration(
+                  color: AppTheme.secondaryCyan.withOpacity(0.15),
+                  border: const Border(bottom: BorderSide(color: AppTheme.secondaryCyan, width: 1)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.explore, color: AppTheme.secondaryCyan, size: 20),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        'PREVIEW / EXPLORER MODE • Week ${widget.previewWeek ?? program.currentWeek} (Does not save to history)',
+                        style: GoogleFonts.outfit(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.secondaryCyan,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(16),
@@ -200,24 +234,66 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                     ),
                     const SizedBox(height: 24),
 
-                    // Finish Workout Button
-                    SizedBox(
-                      width: double.infinity,
-                      height: 52,
-                      child: ElevatedButton.icon(
-                        onPressed: _finishWorkout,
-                        icon: const Icon(Icons.check_circle_outline, color: Colors.black),
-                        label: Text(
-                          'Complete & Save Session',
-                          style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.bold),
+                    // Action Buttons (Live Mode vs Preview Mode)
+                    if (_isLiveMode)
+                      SizedBox(
+                        width: double.infinity,
+                        height: 52,
+                        child: ElevatedButton.icon(
+                          onPressed: _finishWorkout,
+                          icon: const Icon(Icons.check_circle_outline, color: Colors.black),
+                          label: Text(
+                            'Complete & Save Session',
+                            style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.bold),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppTheme.primaryAmber,
+                            foregroundColor: Colors.black,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          ),
                         ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppTheme.primaryAmber,
-                          foregroundColor: Colors.black,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                        ),
+                      )
+                    else
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: () => Navigator.pop(context),
+                              style: OutlinedButton.styleFrom(
+                                minimumSize: const Size(0, 50),
+                                foregroundColor: AppTheme.textSecondary,
+                                side: const BorderSide(color: AppTheme.borderColor),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                              ),
+                              child: Text('Exit Preview', style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              onPressed: () {
+                                setState(() {
+                                  _isLiveMode = true;
+                                });
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Switched to Live Workout! You can now log your sets.'),
+                                    backgroundColor: AppTheme.primaryAmber,
+                                  ),
+                                );
+                              },
+                              icon: const Icon(Icons.play_arrow, color: Colors.black),
+                              label: Text('Start Live Log', style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
+                              style: ElevatedButton.styleFrom(
+                                minimumSize: const Size(0, 50),
+                                backgroundColor: AppTheme.primaryAmber,
+                                foregroundColor: Colors.black,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
                     const SizedBox(height: 24),
                   ],
                 ),
