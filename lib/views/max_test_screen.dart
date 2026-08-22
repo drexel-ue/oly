@@ -275,6 +275,7 @@ class _MaxTestScreenState extends State<MaxTestScreen> {
                   showModalBottomSheet(
                     context: context,
                     isScrollControlled: true,
+                    useSafeArea: true,
                     backgroundColor: Colors.transparent,
                     builder: (_) => PlateModal(initialWeightKg: weightKg),
                   );

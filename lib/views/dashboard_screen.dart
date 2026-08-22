@@ -91,6 +91,7 @@ class DashboardScreen extends StatelessWidget {
                       showModalBottomSheet(
                         context: context,
                         isScrollControlled: true,
+                        useSafeArea: true,
                         backgroundColor: Colors.transparent,
                         builder: (_) => const WarmupSheet(),
                       );
@@ -109,6 +110,7 @@ class DashboardScreen extends StatelessWidget {
                       showModalBottomSheet(
                         context: context,
                         isScrollControlled: true,
+                        useSafeArea: true,
                         backgroundColor: Colors.transparent,
                         builder: (_) => const PlateModal(initialWeightKg: 100.0),
                       );
