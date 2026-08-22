@@ -45,22 +45,32 @@ class OlyApp extends StatelessWidget {
           child: child,
         );
       },
-      home: const SplashScreen(
-        child: MainNavigationContainer(),
+      home: SplashScreen(
+        child: MainNavigationContainer(
+          initialIndex: const int.fromEnvironment('TAB', defaultValue: 0),
+        ),
       ),
     );
   }
 }
 
 class MainNavigationContainer extends StatefulWidget {
-  const MainNavigationContainer({super.key});
+  final int initialIndex;
+
+  const MainNavigationContainer({super.key, this.initialIndex = 0});
 
   @override
   State<MainNavigationContainer> createState() => _MainNavigationContainerState();
 }
 
 class _MainNavigationContainerState extends State<MainNavigationContainer> {
-  int _currentIndex = 0;
+  late int _currentIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentIndex = widget.initialIndex;
+  }
 
   final List<Widget> _screens = [
     const DashboardScreen(),
