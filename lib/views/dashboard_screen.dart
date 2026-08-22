@@ -302,7 +302,55 @@ class DashboardScreen extends StatelessWidget {
                 ),
             ],
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 12),
+          // Day Selector Override Pills
+          Row(
+            children: program.days.map((d) {
+              final isSelected = program.currentDay == d.dayNumber;
+              String label;
+              if (d.dayNumber == 1) {
+                label = 'Day 1';
+              } else if (d.dayNumber == 2) {
+                label = 'Recovery';
+              } else if (d.dayNumber == 3) {
+                label = 'Day 2';
+              } else if (d.dayNumber == 4) {
+                label = 'Recovery';
+              } else {
+                label = 'Day 3';
+              }
+
+              return Expanded(
+                child: GestureDetector(
+                  onTap: () => program.selectDay(d.dayNumber),
+                  child: Container(
+                    margin: const EdgeInsets.only(right: 4),
+                    padding: const EdgeInsets.symmetric(vertical: 6),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? (d.isActiveRecovery ? AppTheme.secondaryCyan : AppTheme.primaryAmber)
+                          : AppTheme.surfaceElevated,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: isSelected ? Colors.white : AppTheme.borderColor,
+                      ),
+                    ),
+                    child: Center(
+                      child: Text(
+                        label,
+                        style: GoogleFonts.outfit(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: isSelected ? Colors.black : AppTheme.textSecondary,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 12),
           Text(
             day.title,
             style: GoogleFonts.outfit(
@@ -665,21 +713,37 @@ class DashboardScreen extends StatelessWidget {
                       Row(
                         children: program.days.map((d) {
                           final isSel = selectedDayNum == d.dayNumber;
+                          String label;
+                          if (d.dayNumber == 1) {
+                            label = 'Day 1';
+                          } else if (d.dayNumber == 2) {
+                            label = 'Recovery';
+                          } else if (d.dayNumber == 3) {
+                            label = 'Day 2';
+                          } else if (d.dayNumber == 4) {
+                            label = 'Recovery';
+                          } else {
+                            label = 'Day 3';
+                          }
+
                           return Expanded(
                             child: GestureDetector(
                               onTap: () => setStateModal(() => selectedDayNum = d.dayNumber),
                               child: Container(
-                                margin: const EdgeInsets.only(right: 6),
+                                margin: const EdgeInsets.only(right: 4),
                                 padding: const EdgeInsets.symmetric(vertical: 8),
                                 decoration: BoxDecoration(
-                                  color: isSel ? AppTheme.primaryAmber : AppTheme.surfaceCard,
+                                  color: isSel
+                                      ? (d.isActiveRecovery ? AppTheme.secondaryCyan : AppTheme.primaryAmber)
+                                      : AppTheme.surfaceCard,
                                   borderRadius: BorderRadius.circular(10),
                                   border: Border.all(color: isSel ? Colors.white : AppTheme.borderColor),
                                 ),
                                 child: Center(
                                   child: Text(
-                                    'Day ${d.dayNumber}',
+                                    label,
                                     style: GoogleFonts.outfit(
+                                      fontSize: 11,
                                       fontWeight: FontWeight.bold,
                                       color: isSel ? Colors.black : AppTheme.textSecondary,
                                     ),

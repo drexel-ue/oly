@@ -38,13 +38,15 @@ void main() {
       expect(exercise.calculateTargetWeight(week: 1, currentMaxes: maxes), equals(75.0));
     });
 
-    test('Built-in program contains 4 days including Active Recovery Day 4', () {
+    test('Built-in program contains 5 days (Day 1 -> Recovery -> Day 2 -> Recovery -> Day 3)', () {
       final days = ProgramCycle.getBuiltInProgram();
-      expect(days.length, equals(4));
+      expect(days.length, equals(5));
 
-      final day4 = days[3];
-      expect(day4.isActiveRecovery, isTrue);
-      expect(day4.title, contains('In-Between Day'));
+      expect(days[0].isActiveRecovery, isFalse);
+      expect(days[1].isActiveRecovery, isTrue); // Recovery Day 2
+      expect(days[2].isActiveRecovery, isFalse);
+      expect(days[3].isActiveRecovery, isTrue); // Recovery Day 4
+      expect(days[4].isActiveRecovery, isFalse);
     });
 
     test('ExerciseTemplate correctly calculates weights for previewed peak weeks (e.g. Week 3)', () {

@@ -75,9 +75,19 @@ class ProgramProvider extends ChangeNotifier {
       _cycle.completedSessionIds.add(session.id);
     }
 
-    // Auto advance day after logging a workout
+    // Auto advance day & week after logging a live workout
     if (_cycle.currentDay < _days.length) {
       _cycle.currentDay++;
+    } else {
+      // Completed Day 5 -> Roll over to Week + 1, Day 1
+      _cycle.currentDay = 1;
+      if (_cycle.currentWeek < 5) {
+        _cycle.currentWeek++;
+      } else {
+        // Completed Week 5 Retest -> Advance to Cycle + 1, Week 1
+        _cycle.currentCycle++;
+        _cycle.currentWeek = 1;
+      }
     }
 
     await _storage.saveWorkoutSessions(_sessions);
