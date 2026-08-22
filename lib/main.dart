@@ -11,6 +11,8 @@ import 'views/lifts_screen.dart';
 import 'views/max_test_screen.dart';
 import 'views/plate_calculator_screen.dart';
 
+import 'views/splash_screen.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final storageService = await StorageService.init();
@@ -43,7 +45,9 @@ class OlyApp extends StatelessWidget {
           child: child,
         );
       },
-      home: const MainNavigationContainer(),
+      home: const SplashScreen(
+        child: MainNavigationContainer(),
+      ),
     );
   }
 }
