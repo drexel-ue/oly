@@ -36,6 +36,13 @@ class OlyApp extends StatelessWidget {
       title: 'Oly - Olympic Weightlifting',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.darkTheme,
+      builder: (context, child) {
+        return GestureDetector(
+          onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+          behavior: HitTestBehavior.translucent,
+          child: child,
+        );
+      },
       home: const MainNavigationContainer(),
     );
   }
