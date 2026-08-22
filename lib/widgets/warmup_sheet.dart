@@ -214,16 +214,21 @@ class _WarmupSheetState extends State<WarmupSheet> {
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: AppTheme.borderColor),
               ),
-              child: Column(
-                children: _droms.keys.map((key) {
-                  return CheckboxListTile(
-                    title: Text(key, style: GoogleFonts.inter(fontSize: 14)),
-                    value: _droms[key],
-                    activeColor: AppTheme.primaryAmber,
-                    checkColor: Colors.black,
-                    onChanged: (val) => setState(() => _droms[key] = val ?? false),
-                  );
-                }).toList(),
+              child: Material(
+                color: Colors.transparent,
+                borderRadius: BorderRadius.circular(16),
+                clipBehavior: Clip.antiAlias,
+                child: Column(
+                  children: _droms.keys.map((key) {
+                    return CheckboxListTile(
+                      title: Text(key, style: GoogleFonts.inter(fontSize: 14)),
+                      value: _droms[key],
+                      activeColor: AppTheme.primaryAmber,
+                      checkColor: Colors.black,
+                      onChanged: (val) => setState(() => _droms[key] = val ?? false),
+                    );
+                  }).toList(),
+                ),
               ),
             ),
             const SizedBox(height: 16),
@@ -236,23 +241,28 @@ class _WarmupSheetState extends State<WarmupSheet> {
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: AppTheme.borderColor),
               ),
-              child: Column(
-                children: [
-                  CheckboxListTile(
-                    title: Text('Shoulders (30s hold per side)', style: GoogleFonts.inter(fontSize: 14)),
-                    value: _stretchShoulders,
-                    activeColor: AppTheme.primaryAmber,
-                    checkColor: Colors.black,
-                    onChanged: (val) => setState(() => _stretchShoulders = val ?? false),
-                  ),
-                  CheckboxListTile(
-                    title: Text('Ankles (Dorsiflexion 30s per leg)', style: GoogleFonts.inter(fontSize: 14)),
-                    value: _stretchAnkles,
-                    activeColor: AppTheme.primaryAmber,
-                    checkColor: Colors.black,
-                    onChanged: (val) => setState(() => _stretchAnkles = val ?? false),
-                  ),
-                ],
+              child: Material(
+                color: Colors.transparent,
+                borderRadius: BorderRadius.circular(16),
+                clipBehavior: Clip.antiAlias,
+                child: Column(
+                  children: [
+                    CheckboxListTile(
+                      title: Text('Shoulders (30s hold per side)', style: GoogleFonts.inter(fontSize: 14)),
+                      value: _stretchShoulders,
+                      activeColor: AppTheme.primaryAmber,
+                      checkColor: Colors.black,
+                      onChanged: (val) => setState(() => _stretchShoulders = val ?? false),
+                    ),
+                    CheckboxListTile(
+                      title: Text('Ankles (Dorsiflexion 30s per leg)', style: GoogleFonts.inter(fontSize: 14)),
+                      value: _stretchAnkles,
+                      activeColor: AppTheme.primaryAmber,
+                      checkColor: Colors.black,
+                      onChanged: (val) => setState(() => _stretchAnkles = val ?? false),
+                    ),
+                  ],
+                ),
               ),
             ),
             const SizedBox(height: 16),
