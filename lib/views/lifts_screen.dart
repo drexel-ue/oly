@@ -7,6 +7,8 @@ import '../providers/settings_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ratio_chart_widget.dart';
 
+import '../widgets/standard_ratios_sheet.dart';
+
 class LiftsScreen extends StatefulWidget {
   const LiftsScreen({super.key});
 
@@ -156,6 +158,21 @@ class _LiftsScreenState extends State<LiftsScreen> with SingleTickerProviderStat
     return Scaffold(
       appBar: AppBar(
         title: Text('Lift Catalog & Ratios', style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.table_chart_outlined, color: AppTheme.secondaryCyan),
+            tooltip: 'Olympic Ratio Standards Chart',
+            onPressed: () {
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                useSafeArea: true,
+                backgroundColor: Colors.transparent,
+                builder: (_) => const StandardRatiosSheet(),
+              );
+            },
+          ),
+        ],
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: AppTheme.primaryAmber,

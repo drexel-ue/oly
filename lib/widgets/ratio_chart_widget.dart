@@ -3,6 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 import '../providers/lift_provider.dart';
 import '../theme/app_theme.dart';
 
+import 'standard_ratios_sheet.dart';
+
 class RatioChartWidget extends StatelessWidget {
   final List<LiftRatioAnalysis> ratios;
 
@@ -10,23 +12,73 @@ class RatioChartWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (ratios.isEmpty) {
-      return Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: AppTheme.surfaceCard,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppTheme.borderColor),
-        ),
-        child: Text(
-          'Log 1RMs to generate lift variation ratio analysis.',
-          style: GoogleFonts.inter(color: AppTheme.textSecondary),
-        ),
-      );
-    }
-
     return Column(
-      children: ratios.map((analysis) {
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Standard Ratios Reference Chart Launcher Card
+        InkWell(
+          onTap: () {
+            showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              useSafeArea: true,
+              backgroundColor: Colors.transparent,
+              builder: (_) => const StandardRatiosSheet(),
+            );
+          },
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            margin: const EdgeInsets.only(bottom: 16),
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: AppTheme.secondaryCyan.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppTheme.secondaryCyan.withValues(alpha: 0.4)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.table_chart_outlined, color: AppTheme.secondaryCyan, size: 22),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Olympic Ratio Standards Reference Chart',
+                        style: GoogleFonts.outfit(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.secondaryCyan,
+                        ),
+                      ),
+                      Text(
+                        'View full standard ratio percentages & ideal targets',
+                        style: GoogleFonts.inter(fontSize: 11, color: AppTheme.textSecondary),
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(Icons.chevron_right, color: AppTheme.secondaryCyan),
+              ],
+            ),
+          ),
+        ),
+
+        if (ratios.isEmpty)
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppTheme.surfaceCard,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppTheme.borderColor),
+            ),
+            child: Text(
+              'Log 1RMs to generate lift variation ratio analysis.',
+              style: GoogleFonts.inter(color: AppTheme.textSecondary),
+            ),
+          )
+        else
+          ...ratios.map((analysis) {
         final pct = (analysis.ratioPercentage / 100.0).clamp(0.0, 1.5);
         Color statusColor = AppTheme.successGreen;
         if (analysis.status == 'Underdeveloped') {
@@ -102,7 +154,8 @@ class RatioChartWidget extends StatelessWidget {
             ],
           ),
         );
-      }).toList(),
-    );
-  }
+      }),
+    ],
+  );
+}
 }
