@@ -90,14 +90,31 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
   }
 
   Future<void> _launchVideoUrl() async {
-    final Uri url = Uri.parse(widget.exercise.videoUrl);
-    if (await canLaunchUrl(url)) {
-      await launchUrl(url, mode: LaunchMode.externalApplication);
-    } else {
-      if (mounted) {
+    Uri? primaryUri;
+    if (widget.exercise.videoUrl.isNotEmpty) {
+      primaryUri = Uri.tryParse(widget.exercise.videoUrl);
+    }
+
+    bool launched = false;
+    if (primaryUri != null && await canLaunchUrl(primaryUri)) {
+      try {
+        launched = await launchUrl(primaryUri, mode: LaunchMode.externalApplication);
+      } catch (_) {
+        launched = false;
+      }
+    }
+
+    if (!launched) {
+      // Fallback: Launch a targeted YouTube search for the exercise tutorial
+      final query = '${widget.exercise.name} Catalyst Athletics weightlifting tutorial';
+      final searchUri = Uri.parse('https://www.youtube.com/results?search_query=${Uri.encodeComponent(query)}');
+
+      if (await canLaunchUrl(searchUri)) {
+        await launchUrl(searchUri, mode: LaunchMode.externalApplication);
+      } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Could not open video URL: ${widget.exercise.videoUrl}'),
+            content: Text('Could not open video for ${widget.exercise.name}'),
             backgroundColor: Colors.redAccent,
           ),
         );

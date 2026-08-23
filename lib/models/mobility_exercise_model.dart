@@ -107,7 +107,7 @@ class MobilityExerciseModel {
           'Gradually increase stroke rate during the final minute.'
         ],
         durationSeconds: 180, // 3 mins
-        videoUrl: 'https://www.youtube.com/watch?v=H0r_Zp1m7rY',
+        videoUrl: 'https://www.youtube.com/watch?v=eqVmMd7U5p0',
         isYoutube: true,
       ),
 
@@ -155,7 +155,7 @@ class MobilityExerciseModel {
           'Stretch wrists back against floor in all-fours position.'
         ],
         durationSeconds: 60,
-        videoUrl: 'https://www.youtube.com/watch?v=g38U-JqB-v0',
+        videoUrl: 'https://www.youtube.com/watch?v=mSZWSQSSEjE',
         isYoutube: true,
       ),
       MobilityExerciseModel(
@@ -170,7 +170,7 @@ class MobilityExerciseModel {
           'Keep core braced and avoid arching your lower back.'
         ],
         durationSeconds: 60,
-        videoUrl: 'https://www.youtube.com/watch?v=0k5u1_Xq-F0',
+        videoUrl: 'https://www.youtube.com/watch?v=33P5AI27eiU',
         isYoutube: true,
       ),
       MobilityExerciseModel(
@@ -185,7 +185,7 @@ class MobilityExerciseModel {
           'Keep chest tall and avoid leaning far back.'
         ],
         durationSeconds: 90,
-        videoUrl: 'https://www.youtube.com/watch?v=t5J5iZ1rPCo',
+        videoUrl: 'https://www.youtube.com/watch?v=0_n5c_Wv8nU',
         isYoutube: true,
       ),
       MobilityExerciseModel(
@@ -219,7 +219,7 @@ class MobilityExerciseModel {
         ],
         defaultSets: 1,
         defaultReps: 5,
-        videoUrl: 'https://www.youtube.com/watch?v=mWfRBMTj_Lg',
+        videoUrl: 'https://www.youtube.com/watch?v=12-349fJ70w',
         isYoutube: true,
       ),
       MobilityExerciseModel(
@@ -235,7 +235,7 @@ class MobilityExerciseModel {
         ],
         defaultSets: 2,
         defaultReps: 5,
-        videoUrl: 'https://www.youtube.com/watch?v=2r1H_vS29lE',
+        videoUrl: 'https://www.youtube.com/watch?v=gJ3vL_8xX1U',
         isYoutube: true,
       ),
 
@@ -254,7 +254,7 @@ class MobilityExerciseModel {
         ],
         defaultSets: 1,
         defaultReps: 5,
-        videoUrl: 'https://www.youtube.com/watch?v=vUXtD-88wEU',
+        videoUrl: 'https://www.youtube.com/watch?v=PjY1rrr6hJk',
         isYoutube: true,
       ),
 
@@ -306,7 +306,7 @@ class MobilityExerciseModel {
         ],
         defaultSets: 3,
         defaultReps: 8,
-        videoUrl: 'https://www.youtube.com/watch?v=tpU1U4V9nNo',
+        videoUrl: 'https://www.youtube.com/watch?v=84_U2T855h8',
         isYoutube: true,
       ),
       MobilityExerciseModel(
@@ -436,7 +436,7 @@ class MobilityExerciseModel {
         durationSeconds: 45,
         defaultSets: 3,
         defaultReps: 1,
-        videoUrl: 'https://www.youtube.com/watch?v=W-L596Y_G68',
+        videoUrl: 'https://www.youtube.com/watch?v=1uR42jlyN0U',
         isYoutube: true,
       ),
     ];
