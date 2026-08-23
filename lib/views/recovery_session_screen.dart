@@ -25,6 +25,57 @@ class _RecoverySessionScreenState extends State<RecoverySessionScreen> {
   final Set<String> _completedExerciseIds = {};
   int _readinessRating = 4; // Default 4 stars (Fresh)
 
+  final ScrollController _phaseScrollController = ScrollController();
+  final List<GlobalKey> _phaseKeys = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _phaseKeys.addAll(
+      List.generate(widget.routine.phaseGroups.length, (_) => GlobalKey()),
+    );
+    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToCurrentPhase());
+  }
+
+  @override
+  void dispose() {
+    _phaseScrollController.dispose();
+    super.dispose();
+  }
+
+  void _scrollToCurrentPhase() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final currentEx = widget.routine.exercises[_currentIndex];
+      int currentPhaseIndex = -1;
+      for (int i = 0; i < widget.routine.phaseGroups.length; i++) {
+        if (widget.routine.phaseGroups[i].exercises.contains(currentEx)) {
+          currentPhaseIndex = i;
+          break;
+        }
+      }
+
+      if (currentPhaseIndex != -1 && currentPhaseIndex < _phaseKeys.length) {
+        final keyContext = _phaseKeys[currentPhaseIndex].currentContext;
+        if (keyContext != null) {
+          Scrollable.ensureVisible(
+            keyContext,
+            duration: const Duration(milliseconds: 350),
+            curve: Curves.easeInOut,
+            alignment: 0.5,
+          );
+        }
+      }
+    });
+  }
+
+  void _setExerciseIndex(int newIndex) {
+    setState(() {
+      _currentIndex = newIndex;
+    });
+    _scrollToCurrentPhase();
+  }
+
   void _markExerciseCompleted(String id) {
     setState(() {
       _completedExerciseIds.add(id);
@@ -33,7 +84,7 @@ class _RecoverySessionScreenState extends State<RecoverySessionScreen> {
 
   void _nextExercise() {
     if (_currentIndex < widget.routine.exercises.length - 1) {
-      setState(() => _currentIndex++);
+      _setExerciseIndex(_currentIndex + 1);
     } else {
       _showCompletionDialog();
     }
@@ -41,7 +92,7 @@ class _RecoverySessionScreenState extends State<RecoverySessionScreen> {
 
   void _prevExercise() {
     if (_currentIndex > 0) {
-      setState(() => _currentIndex--);
+      _setExerciseIndex(_currentIndex - 1);
     }
   }
 
@@ -282,17 +333,20 @@ class _RecoverySessionScreenState extends State<RecoverySessionScreen> {
                   ),
                 ),
               ],
-              // 5-Phase Indicator Pill Bar
+              // 5-Phase Indicator Pill Bar (Auto-scrolls to active phase)
               SingleChildScrollView(
+                controller: _phaseScrollController,
                 scrollDirection: Axis.horizontal,
                 child: Row(
-                  children: widget.routine.phaseGroups.map((group) {
+                  children: List.generate(widget.routine.phaseGroups.length, (index) {
+                    final group = widget.routine.phaseGroups[index];
                     final isCurrentGroup = group.exercises.contains(currentEx);
                     return GestureDetector(
+                      key: index < _phaseKeys.length ? _phaseKeys[index] : null,
                       onTap: () {
                         final firstIndex = exercises.indexOf(group.exercises.first);
                         if (firstIndex != -1) {
-                          setState(() => _currentIndex = firstIndex);
+                          _setExerciseIndex(firstIndex);
                         }
                       },
                       child: Container(
@@ -313,7 +367,7 @@ class _RecoverySessionScreenState extends State<RecoverySessionScreen> {
                         ),
                       ),
                     );
-                  }).toList(),
+                  }),
                 ),
               ),
               const SizedBox(height: 14),
