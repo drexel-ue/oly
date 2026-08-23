@@ -1,15 +1,10 @@
 import 'dart:async';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
-import 'package:vibration/vibration.dart';
-
-@pragma('vm:entry-point')
-void notificationTapBackground(NotificationResponse notificationResponse) {
-  debugPrint('Notification tapped in background: ${notificationResponse.payload}');
-}
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
@@ -23,7 +18,33 @@ class NotificationService {
   Future<void> init() async {
     if (_initialized) return;
 
-    tz.initializeTimeZones();
+    try {
+      tz.initializeTimeZones();
+    } catch (e) {
+      debugPrint('Timezone init error: $e');
+    }
+
+    // Configure AVAudioSession category once at app startup (prevents iOS AVAudioSession thread crash)
+    try {
+      await _audioPlayer.setAudioContext(
+        AudioContext(
+          iOS: AudioContextIOS(
+            category: AVAudioSessionCategory.playback,
+            options: {
+              AVAudioSessionOptions.mixWithOthers,
+              AVAudioSessionOptions.duckOthers,
+            },
+          ),
+          android: AudioContextAndroid(
+            usageType: AndroidUsageType.alarm,
+            contentType: AndroidContentType.sonification,
+            audioFocus: AndroidAudioFocus.gainTransientMayDuck,
+          ),
+        ),
+      );
+    } catch (e) {
+      debugPrint('AudioContext init error: $e');
+    }
 
     const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
     const iosSettings = DarwinInitializationSettings(
@@ -43,7 +64,6 @@ class NotificationService {
         onDidReceiveNotificationResponse: (NotificationResponse response) {
           debugPrint('Notification tapped: ${response.payload}');
         },
-        onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
       );
       _initialized = true;
     } catch (e) {
@@ -51,26 +71,10 @@ class NotificationService {
     }
   }
 
-  /// Play high-volume double-beep audio alert (overrides silent switch via playback AudioContext)
+  /// Play high-volume double-beep audio alert safely
   Future<void> playTimerBeepSound() async {
     try {
       await _audioPlayer.stop();
-      await _audioPlayer.setAudioContext(
-        AudioContext(
-          iOS: AudioContextIOS(
-            category: AVAudioSessionCategory.playback,
-            options: {
-              AVAudioSessionOptions.mixWithOthers,
-              AVAudioSessionOptions.duckOthers,
-            },
-          ),
-          android: AudioContextAndroid(
-            usageType: AndroidUsageType.alarm,
-            contentType: AndroidContentType.sonification,
-            audioFocus: AndroidAudioFocus.gainTransientMayDuck,
-          ),
-        ),
-      );
       await _audioPlayer.play(AssetSource('sounds/timer_beep.wav'));
     } catch (e) {
       debugPrint('Audio playback error: $e');
@@ -105,7 +109,6 @@ class NotificationService {
         presentAlert: true,
         presentSound: true,
         presentBadge: true,
-        interruptionLevel: InterruptionLevel.timeSensitive,
       );
 
       const details = NotificationDetails(
@@ -135,21 +138,12 @@ class NotificationService {
     } catch (_) {}
   }
 
-  /// Trigger prominent, repeating vibration pattern (3-5 intense bursts to get athlete's attention)
+  /// Trigger prominent haptic feedback loop on iOS & Android
   Future<void> triggerIntenseVibration() async {
     try {
-      final hasVibrator = await Vibration.hasVibrator();
-      if (hasVibrator == true) {
-        final hasCustom = await Vibration.hasCustomVibrationsSupport();
-        if (hasCustom == true) {
-          // Pattern: wait 0ms, vibrate 600ms, pause 300ms, vibrate 600ms, pause 300ms, vibrate 800ms
-          await Vibration.vibrate(
-            pattern: [0, 600, 300, 600, 300, 800, 300, 1000],
-            intensities: [0, 255, 0, 255, 0, 255, 0, 255],
-          );
-        } else {
-          await Vibration.vibrate(duration: 1500);
-        }
+      for (int i = 0; i < 4; i++) {
+        await HapticFeedback.heavyImpact();
+        await Future.delayed(const Duration(milliseconds: 200));
       }
     } catch (e) {
       debugPrint('Vibration error: $e');
