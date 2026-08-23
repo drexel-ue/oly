@@ -117,6 +117,7 @@ class NotificationService {
         presentAlert: true,
         presentSound: true,
         presentBadge: true,
+        sound: 'default',
       );
 
       const details = NotificationDetails(
