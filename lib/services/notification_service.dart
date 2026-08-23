@@ -19,16 +19,20 @@ class NotificationService {
   Future<void> init() async {
     if (_initialized) return;
 
-    // Detect actual native device timezone to prevent iOS NSInvalidArgumentException
+    // Detect actual native device timezone with safe fallback
     try {
       tz.initializeTimeZones();
-      final timeZoneName = await FlutterTimezone.getLocalTimezone();
-      tz.setLocalLocation(tz.getLocation(timeZoneName));
+      try {
+        final timeZoneName = await FlutterTimezone.getLocalTimezone();
+        tz.setLocalLocation(tz.getLocation(timeZoneName));
+      } catch (e) {
+        debugPrint('Timezone lookup fallback: $e');
+      }
     } catch (e) {
       debugPrint('Timezone init error: $e');
     }
 
-    // Configure AVAudioSession category once at app startup (prevents iOS AVAudioSession thread crash)
+    // Configure AVAudioSession category once at app startup
     try {
       await _audioPlayer.setAudioContext(
         AudioContext(
@@ -128,7 +132,7 @@ class NotificationService {
         details,
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
         uiLocalNotificationDateInterpretation:
-            UILocalNotificationDateInterpretation.wallClockTime,
+            UILocalNotificationDateInterpretation.absoluteTime,
       );
     } catch (e) {
       debugPrint('Error scheduling notification: $e');
