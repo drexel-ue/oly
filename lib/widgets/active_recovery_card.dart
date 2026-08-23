@@ -126,21 +126,25 @@ class ActiveRecoveryCard extends StatelessWidget {
 
           const SizedBox(height: 16),
 
-          // Exercise Badges Pill Preview
+          // 5-Phase Preview Pills
           Wrap(
             spacing: 6,
             runSpacing: 6,
-            children: routine.exercises.map((ex) {
+            children: routine.phaseGroups.map((group) {
               return Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: AppTheme.surfaceCard,
+                  color: AppTheme.surfaceElevated,
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(color: AppTheme.borderColor),
                 ),
                 child: Text(
-                  ex.name,
-                  style: GoogleFonts.inter(fontSize: 11, color: AppTheme.textPrimary),
+                  group.title,
+                  style: GoogleFonts.outfit(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.textPrimary,
+                  ),
                 ),
               );
             }).toList(),

@@ -3,12 +3,28 @@ import '../models/mobility_exercise_model.dart';
 import '../models/workout_session.dart';
 import '../providers/lift_provider.dart';
 
+class RecoveryPhaseGroup {
+  final int phaseNumber;
+  final String title;
+  final String subtitle;
+  final List<MobilityExerciseModel> exercises;
+
+  RecoveryPhaseGroup({
+    required this.phaseNumber,
+    required this.title,
+    required this.subtitle,
+    required this.exercises,
+  });
+}
+
 class GeneratedRecoveryRoutine {
+  final List<RecoveryPhaseGroup> phaseGroups;
   final List<MobilityExerciseModel> exercises;
   final List<String> diagnosticReasons;
   final int totalEstimatedMinutes;
 
   GeneratedRecoveryRoutine({
+    required this.phaseGroups,
     required this.exercises,
     required this.diagnosticReasons,
     required this.totalEstimatedMinutes,
@@ -118,7 +134,12 @@ class RecoveryEngineService {
       );
     }
 
-    // 3. Select 3 Mobility Drills and 2 Lifting Accessories matching targetFocusAreas
+    // --- BUILD THE 5 PHASES ---
+
+    // Phase 1: Zone 2 Cardio
+    final phase1Exercises = catalog.where((ex) => ex.focusArea == MobilityFocusArea.cardio).toList();
+
+    // Phase 2: Dynamic Mobility & Weak-Point Accessories
     final selectedMobility = catalog
         .where((ex) =>
             ex.category == MobilityCategory.mobilityDrill &&
@@ -126,7 +147,6 @@ class RecoveryEngineService {
         .take(3)
         .toList();
 
-    // Fallback if not enough matching mobility drills
     if (selectedMobility.length < 3) {
       final remaining = catalog
           .where((ex) =>
@@ -143,7 +163,6 @@ class RecoveryEngineService {
         .take(2)
         .toList();
 
-    // Fallback if not enough matching accessories
     if (selectedAccessories.length < 2) {
       final remaining = catalog
           .where((ex) =>
@@ -153,23 +172,57 @@ class RecoveryEngineService {
       selectedAccessories.addAll(remaining);
     }
 
-    final finalExercises = [...selectedMobility, ...selectedAccessories];
+    final phase2Exercises = [...selectedMobility, ...selectedAccessories];
 
-    // Estimate total time (mobility duration + 3 sets * 45s per accessory set)
-    int totalSecs = 0;
-    for (var ex in finalExercises) {
-      if (ex.category == MobilityCategory.mobilityDrill) {
-        totalSecs += ex.durationSeconds;
-      } else {
-        totalSecs += (ex.defaultSets * 45);
-      }
-    }
-    final estMinutes = (totalSecs / 60).ceil();
+    // Phase 3: Arms & Upper Hypertrophy
+    final phase3Exercises = catalog.where((ex) => ex.focusArea == MobilityFocusArea.arms).toList();
+
+    // Phase 4: Abs & Core Stability
+    final phase4Exercises = catalog.where((ex) => ex.focusArea == MobilityFocusArea.absCore).toList();
+
+    // Phase 5: Grip Strength
+    final phase5Exercises = catalog.where((ex) => ex.focusArea == MobilityFocusArea.gripStrength).toList();
+
+    final phaseGroups = [
+      RecoveryPhaseGroup(
+        phaseNumber: 1,
+        title: 'Phase 1: Zone 2 Cardio',
+        subtitle: '15 Mins Aerobic Flush Pace',
+        exercises: phase1Exercises,
+      ),
+      RecoveryPhaseGroup(
+        phaseNumber: 2,
+        title: 'Phase 2: Mobility & Joint Health',
+        subtitle: 'Tailored for balance gaps & fatigue',
+        exercises: phase2Exercises,
+      ),
+      RecoveryPhaseGroup(
+        phaseNumber: 3,
+        title: 'Phase 3: Arms & Upper Body',
+        subtitle: 'Bicep & tricep tendon resilience',
+        exercises: phase3Exercises,
+      ),
+      RecoveryPhaseGroup(
+        phaseNumber: 4,
+        title: 'Phase 4: Abs & Core Stability',
+        subtitle: 'Anti-extension & hollow body bracing',
+        exercises: phase4Exercises,
+      ),
+      RecoveryPhaseGroup(
+        phaseNumber: 5,
+        title: 'Phase 5: Grip Strength',
+        subtitle: 'Crush grip & spine decompression',
+        exercises: phase5Exercises,
+      ),
+    ];
+
+    final allExercises = phaseGroups.expand((g) => g.exercises).toList();
 
     return GeneratedRecoveryRoutine(
-      exercises: finalExercises,
-      diagnosticReasons: diagnosticReasons.toSet().toList(), // Remove duplicates
-      totalEstimatedMinutes: estMinutes > 0 ? estMinutes : 12,
+      phaseGroups: phaseGroups,
+      exercises: allExercises,
+      diagnosticReasons: diagnosticReasons.toSet().toList(),
+      totalEstimatedMinutes: 35, // 15m cardio + 10m mobility + 10m arms/abs/grip
     );
   }
 }

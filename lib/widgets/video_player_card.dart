@@ -146,7 +146,7 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
                   ),
                 ),
                 child: Text(
-                  isMobility ? 'MOBILITY DRILL' : 'LIFTING ACCESSORY',
+                  _categoryLabel(ex.category),
                   style: GoogleFonts.outfit(
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
@@ -461,6 +461,27 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
         return 'Posterior Chain';
       case MobilityFocusArea.quadriceps:
         return 'Quads & Glutes';
+      case MobilityFocusArea.cardio:
+        return 'Aerobic Recovery';
+      case MobilityFocusArea.arms:
+        return 'Arms & Upper';
+      case MobilityFocusArea.absCore:
+        return 'Abs & Core';
+      case MobilityFocusArea.gripStrength:
+        return 'Grip Strength';
+    }
+  }
+
+  String _categoryLabel(MobilityCategory category) {
+    switch (category) {
+      case MobilityCategory.mobilityDrill:
+        return 'MOBILITY DRILL';
+      case MobilityCategory.liftingAccessory:
+        return 'WEAK-POINT ACCESSORY';
+      case MobilityCategory.cardioConditioning:
+        return 'ZONE 2 CARDIO';
+      case MobilityCategory.hypertrophyCore:
+        return 'HYPERTROPHY & CORE';
     }
   }
 }

@@ -5,11 +5,17 @@ enum MobilityFocusArea {
   ankleDorsiflexion,
   posteriorChain,
   quadriceps,
+  cardio,
+  arms,
+  absCore,
+  gripStrength,
 }
 
 enum MobilityCategory {
   mobilityDrill,
   liftingAccessory,
+  cardioConditioning,
+  hypertrophyCore,
 }
 
 class MobilityExerciseModel {
@@ -83,7 +89,24 @@ class MobilityExerciseModel {
 
   static List<MobilityExerciseModel> defaultExercises() {
     return [
-      // 1. Thoracic Spine Mobility
+      // PHASE 1: Zone 2 Cardio & Conditioning
+      MobilityExerciseModel(
+        id: 'zone2_cardio_row',
+        name: 'Ergometer Row / Bike (Zone 2 Cardio)',
+        focusArea: MobilityFocusArea.cardio,
+        category: MobilityCategory.cardioConditioning,
+        description: 'Promotes aerobic recovery and flushes metabolic waste without stressing joint tissue.',
+        cues: [
+          'Maintain a steady, conversational pace (60-70% max heart rate).',
+          'Focus on smooth leg drive and long, controlled breathing.',
+          'Keep stroke rate at 22-26 sdm on rower or 85+ rpm on bike.'
+        ],
+        durationSeconds: 900, // 15 mins
+        videoUrl: 'https://www.youtube.com/watch?v=H0r_Zp1m7rY',
+        isYoutube: true,
+      ),
+
+      // PHASE 2: Thoracic Spine Mobility
       MobilityExerciseModel(
         id: 'thoracic_foam_roll',
         name: 'Thoracic Extension on Foam Roller',
@@ -115,7 +138,7 @@ class MobilityExerciseModel {
         isYoutube: true,
       ),
 
-      // 2. Shoulder & Overhead Stability
+      // Shoulder & Overhead Stability
       MobilityExerciseModel(
         id: 'banded_shoulder_dislocates',
         name: 'PVC / Banded Shoulder Pass-Throughs',
@@ -164,7 +187,7 @@ class MobilityExerciseModel {
         isYoutube: true,
       ),
 
-      // 3. Hip Capsule & Flexor Opener
+      // Hip Capsule & Flexor Opener
       MobilityExerciseModel(
         id: 'hip_90_90_switches',
         name: '90/90 Hip Mobility Switches',
@@ -197,7 +220,7 @@ class MobilityExerciseModel {
         isYoutube: true,
       ),
 
-      // 4. Ankle Dorsiflexion
+      // Ankle Dorsiflexion
       MobilityExerciseModel(
         id: 'banded_ankle_distraction',
         name: 'Banded Ankle Dorsiflexion Mobilization',
@@ -229,7 +252,7 @@ class MobilityExerciseModel {
         isYoutube: true,
       ),
 
-      // 5. Posterior Chain & Hamstrings
+      // Posterior Chain & Hamstrings
       MobilityExerciseModel(
         id: 'jefferson_curl',
         name: 'Jefferson Curls (Weighted Segmented Hinge)',
@@ -263,7 +286,7 @@ class MobilityExerciseModel {
         isYoutube: true,
       ),
 
-      // 6. Quadriceps & Glute Flush
+      // Quadriceps & Glute Flush
       MobilityExerciseModel(
         id: 'couch_stretch',
         name: 'Couch Stretch (Quad & Hip Flexor)',
@@ -279,20 +302,109 @@ class MobilityExerciseModel {
         videoUrl: 'https://www.youtube.com/watch?v=JmF02wHjRik',
         isYoutube: true,
       ),
+
+      // PHASE 3: Arms & Upper Hypertrophy
       MobilityExerciseModel(
-        id: 'segmented_snatch_pull',
-        name: 'Segmented Snatch Pull w/ Pause',
-        focusArea: MobilityFocusArea.posteriorChain,
-        category: MobilityCategory.liftingAccessory,
-        description: 'Reinforces proper pull trajectory, lats engagement, and balance over midfoot.',
+        id: 'db_bicep_curls',
+        name: 'Dumbbell Bicep Curls',
+        focusArea: MobilityFocusArea.arms,
+        category: MobilityCategory.hypertrophyCore,
+        description: 'Builds elbow flexor strength and bicep tendon resilience for heavy clean catches.',
         cues: [
-          'Pause 2 seconds at off-floor, knee, and hip positions.',
-          'Keep bar brushed close to body with long arms.',
-          'Drive tall onto toes at extension.'
+          'Stand tall with dumbbells at sides, palms facing forward.',
+          'Curl weights up keeping elbows pinned to your ribs.',
+          'Squeeze biceps hard at top contraction, then lower with a 2-second tempo.'
         ],
         defaultSets: 3,
-        defaultReps: 3,
-        videoUrl: 'https://www.youtube.com/watch?v=4y58g-d6s4k',
+        defaultReps: 12,
+        videoUrl: 'https://www.youtube.com/watch?v=in7PaeYlhrM',
+        isYoutube: true,
+      ),
+      MobilityExerciseModel(
+        id: 'overhead_tricep_ext',
+        name: 'Overhead DB Tricep Extension',
+        focusArea: MobilityFocusArea.arms,
+        category: MobilityCategory.hypertrophyCore,
+        description: 'Strengthens tricep long-head for punch-out power in snatch & jerk lockouts.',
+        cues: [
+          'Hold dumbbell overhead with both hands supporting top plate.',
+          'Lower weight behind head keeping elbows pointed straight forward.',
+          'Extend arms fully overhead to lockout without flaring elbows.'
+        ],
+        defaultSets: 3,
+        defaultReps: 12,
+        videoUrl: 'https://www.youtube.com/watch?v=_gsUck-7M74',
+        isYoutube: true,
+      ),
+
+      // PHASE 4: Abs & Core Stability
+      MobilityExerciseModel(
+        id: 'hanging_leg_raises',
+        name: 'Hanging Leg Raises',
+        focusArea: MobilityFocusArea.absCore,
+        category: MobilityCategory.hypertrophyCore,
+        description: 'Strengthens lower abs and hip flexors for bracing under heavy squat & pull loads.',
+        cues: [
+          'Hang from pull-up bar with straight active shoulders.',
+          'Raise legs up to parallel (or toes to bar) without swinging body.',
+          'Lower legs under control to prevent momentum.'
+        ],
+        defaultSets: 3,
+        defaultReps: 12,
+        videoUrl: 'https://www.youtube.com/watch?v=hdng3Nm1x_E',
+        isYoutube: true,
+      ),
+      MobilityExerciseModel(
+        id: 'ab_wheel_rollout',
+        name: 'Ab Wheel Rollout / Plank Hold',
+        focusArea: MobilityFocusArea.absCore,
+        category: MobilityCategory.hypertrophyCore,
+        description: 'Develops anti-extension core strength to prevent lumbar arching under heavy overhead loads.',
+        cues: [
+          'Kneel on pad and roll wheel out keeping spine slightly rounded (hollow body).',
+          'Squeeze abs hard at full extension before pulling back to knees.',
+          'Alternatively hold a forearm plank for 60 seconds.'
+        ],
+        durationSeconds: 60,
+        defaultSets: 3,
+        defaultReps: 10,
+        videoUrl: 'https://www.youtube.com/watch?v=rqiTPdK2j9A',
+        isYoutube: true,
+      ),
+
+      // PHASE 5: Grip Strength
+      MobilityExerciseModel(
+        id: 'farmers_carries',
+        name: 'Heavy Farmer\'s Carries',
+        focusArea: MobilityFocusArea.gripStrength,
+        category: MobilityCategory.hypertrophyCore,
+        description: 'Builds crushed grip, trap, and oblique stability required for heavy pulling volume.',
+        cues: [
+          'Pick up heavy dumbbells or kettlebells with flat back.',
+          'Walk 30-40 meters with tall posture, shoulders pulled back.',
+          'Do not let weights bounce against your legs.'
+        ],
+        durationSeconds: 45,
+        defaultSets: 3,
+        defaultReps: 1,
+        videoUrl: 'https://www.youtube.com/watch?v=p5M575x4lY0',
+        isYoutube: true,
+      ),
+      MobilityExerciseModel(
+        id: 'barbell_dead_hang',
+        name: 'Barbell / Rig Dead Hangs',
+        focusArea: MobilityFocusArea.gripStrength,
+        category: MobilityCategory.hypertrophyCore,
+        description: 'Decompresses spine after heavy squatting while building forearm grip endurance.',
+        cues: [
+          'Grip pull-up bar with overhand hook or double overhand grip.',
+          'Relax lower body completely and let spine stretch out.',
+          'Hold grip firmly for 45-60 seconds per set.'
+        ],
+        durationSeconds: 60,
+        defaultSets: 3,
+        defaultReps: 1,
+        videoUrl: 'https://www.youtube.com/watch?v=W-L596Y_G68',
         isYoutube: true,
       ),
     ];

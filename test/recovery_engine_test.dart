@@ -43,7 +43,8 @@ void main() {
         lastSession: null,
       );
 
-      expect(routine.exercises.length, equals(5));
+      expect(routine.phaseGroups.length, equals(5));
+      expect(routine.exercises.length, equals(12));
       expect(routine.diagnosticReasons.any((r) => r.contains('Military Press')), isTrue);
       expect(
         routine.exercises.any((e) =>
@@ -77,7 +78,8 @@ void main() {
         lastSession: lastSession,
       );
 
-      expect(routine.exercises.length, equals(5));
+      expect(routine.phaseGroups.length, equals(5));
+      expect(routine.exercises.length, equals(12));
       expect(routine.diagnosticReasons.any((r) => r.contains('Squat volume')), isTrue);
       expect(
         routine.exercises.any((e) =>

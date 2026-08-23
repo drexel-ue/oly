@@ -282,17 +282,60 @@ class _RecoverySessionScreenState extends State<RecoverySessionScreen> {
                   ),
                 ),
               ],
+              // 5-Phase Indicator Pill Bar
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: widget.routine.phaseGroups.map((group) {
+                    final isCurrentGroup = group.exercises.contains(currentEx);
+                    return GestureDetector(
+                      onTap: () {
+                        final firstIndex = exercises.indexOf(group.exercises.first);
+                        if (firstIndex != -1) {
+                          setState(() => _currentIndex = firstIndex);
+                        }
+                      },
+                      child: Container(
+                        margin: const EdgeInsets.only(right: 8),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: isCurrentGroup ? AppTheme.accentBlue : AppTheme.surfaceElevated,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: isCurrentGroup ? Colors.white : AppTheme.borderColor),
+                        ),
+                        child: Text(
+                          'P${group.phaseNumber}: ${group.title.replaceAll("Phase ${group.phaseNumber}: ", "")}',
+                          style: GoogleFonts.outfit(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: isCurrentGroup ? Colors.black : AppTheme.textSecondary,
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+              const SizedBox(height: 14),
+
               // Stepper Header Bar
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    'EXERCISE ${_currentIndex + 1} OF ${exercises.length}',
-                    style: GoogleFonts.outfit(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.accentBlue,
-                      letterSpacing: 1.0,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'EXERCISE ${_currentIndex + 1} OF ${exercises.length}',
+                          style: GoogleFonts.outfit(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.accentBlue,
+                            letterSpacing: 1.0,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   Row(
