@@ -34,6 +34,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
   final Map<String, TextEditingController> _weightControllers = {};
   final Map<String, String> _swappedExerciseNames = {};
   final TextEditingController _notesController = TextEditingController();
+  final FocusNode _notesFocusNode = FocusNode();
 
   DateTime _startTime = DateTime.now();
   late bool _isLiveMode;
@@ -92,6 +93,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
   @override
   void dispose() {
     _notesController.dispose();
+    _notesFocusNode.dispose();
     for (var controller in _weightControllers.values) {
       controller.dispose();
     }
@@ -422,6 +424,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                     // Session Notes input
                     TextField(
                       controller: _notesController,
+                      focusNode: _notesFocusNode,
                       maxLines: 2,
                       style: GoogleFonts.inter(color: AppTheme.textPrimary),
                       decoration: InputDecoration(
@@ -503,7 +506,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
               ),
             ),
             // Embedded Rest Timer at bottom
-            const RestTimerWidget(),
+            RestTimerWidget(notesFocusNode: _notesFocusNode),
           ],
         ),
       ),
