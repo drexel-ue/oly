@@ -6,6 +6,11 @@ import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:vibration/vibration.dart';
 
+@pragma('vm:entry-point')
+void notificationTapBackground(NotificationResponse notificationResponse) {
+  debugPrint('Notification tapped in background: ${notificationResponse.payload}');
+}
+
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
   factory NotificationService() => _instance;
@@ -33,7 +38,13 @@ class NotificationService {
     );
 
     try {
-      await _notifications.initialize(initSettings);
+      await _notifications.initialize(
+        initSettings,
+        onDidReceiveNotificationResponse: (NotificationResponse response) {
+          debugPrint('Notification tapped: ${response.payload}');
+        },
+        onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
+      );
       _initialized = true;
     } catch (e) {
       debugPrint('Notification init error: $e');
