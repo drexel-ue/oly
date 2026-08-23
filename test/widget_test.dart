@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:oly/main.dart';
 import 'package:oly/providers/lift_provider.dart';
 import 'package:oly/providers/program_provider.dart';
+import 'package:oly/providers/recovery_provider.dart';
 import 'package:oly/providers/settings_provider.dart';
 import 'package:oly/services/storage_service.dart';
 
@@ -19,6 +20,7 @@ void main() {
           ChangeNotifierProvider(create: (_) => SettingsProvider(storage)),
           ChangeNotifierProvider(create: (_) => LiftProvider(storage)),
           ChangeNotifierProvider(create: (_) => ProgramProvider(storage)),
+          ChangeNotifierProvider(create: (_) => RecoveryProvider(storage)),
         ],
         child: const OlyApp(),
       ),

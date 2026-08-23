@@ -43,6 +43,30 @@ class SettingsProvider extends ChangeNotifier {
     return includeUnit ? '$str $unitLabel' : str;
   }
 
+  /// Converts any inline metric weight references (e.g. "2.5kg" or "8-16kg")
+  /// in prose text according to the user's active unit preference (lbs vs kg).
+  String formatTextUnits(String text) {
+    if (!_isLbs) return text;
+
+    return text.replaceAllMapped(
+      RegExp(r'(\d+(?:\.\d+)?)(?:\s*-\s*(\d+(?:\.\d+)?))?\s*kg', caseSensitive: false),
+      (match) {
+        final val1Kg = double.tryParse(match.group(1)!) ?? 0.0;
+        final val1Lbs = (kgToLbs(val1Kg) / 0.5).round() * 0.5;
+        final str1 = val1Lbs % 1 == 0 ? val1Lbs.toInt().toString() : val1Lbs.toStringAsFixed(1);
+
+        if (match.group(2) != null) {
+          final val2Kg = double.tryParse(match.group(2)!) ?? 0.0;
+          final val2Lbs = (kgToLbs(val2Kg) / 0.5).round() * 0.5;
+          final str2 = val2Lbs % 1 == 0 ? val2Lbs.toInt().toString() : val2Lbs.toStringAsFixed(1);
+          return '$str1-$str2 lbs';
+        }
+
+        return '$str1 lbs';
+      },
+    );
+  }
+
   void toggleUnit() {
     _isLbs = !_isLbs;
     _storage.saveIsLbs(_isLbs);

@@ -9,6 +9,7 @@ class AppTheme {
 
   static const Color primaryAmber = Color(0xFFFF9F0A); // Neon Amber
   static const Color secondaryCyan = Color(0xFF00D2FF); // Neon Cyan
+  static const Color accentBlue = Color(0xFF00D2FF); // Neon Cyan / Accent Blue
   static const Color successGreen = Color(0xFF30D158); // Neon Green
   static const Color warningOrange = Color(0xFFFF5E00);
   static const Color textPrimary = Color(0xFFF2F4F8);

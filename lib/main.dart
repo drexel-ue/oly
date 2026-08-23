@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/lift_provider.dart';
 import 'providers/program_provider.dart';
+import 'providers/recovery_provider.dart';
 import 'providers/settings_provider.dart';
 import 'services/storage_service.dart';
 import 'theme/app_theme.dart';
@@ -23,6 +24,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => SettingsProvider(storageService)),
         ChangeNotifierProvider(create: (_) => LiftProvider(storageService)),
         ChangeNotifierProvider(create: (_) => ProgramProvider(storageService)),
+        ChangeNotifierProvider(create: (_) => RecoveryProvider(storageService)),
       ],
       child: const OlyApp(),
     ),

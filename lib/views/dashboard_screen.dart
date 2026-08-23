@@ -3,10 +3,13 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../providers/lift_provider.dart';
 import '../providers/program_provider.dart';
+import '../providers/recovery_provider.dart';
 import '../providers/settings_provider.dart';
 import '../theme/app_theme.dart';
+import '../widgets/active_recovery_card.dart';
 import '../widgets/plate_modal.dart';
 import '../widgets/warmup_sheet.dart';
+import 'recovery_session_screen.dart';
 import 'workout_session_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
@@ -71,6 +74,10 @@ class DashboardScreen extends StatelessWidget {
 
             // Today's Scheduled Workout Card
             _buildTodayWorkoutCard(context, program, currentDay),
+            const SizedBox(height: 16),
+
+            // Active Recovery & Mobility Routine
+            const ActiveRecoveryCard(),
             const SizedBox(height: 16),
 
             // Olympic Total & Primary PRs
@@ -372,15 +379,33 @@ class DashboardScreen extends StatelessWidget {
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => WorkoutSessionScreen(
-                          dayTemplate: day,
-                          isPreviewMode: true,
+                    if (day.isActiveRecovery) {
+                      final lifts = Provider.of<LiftProvider>(context, listen: false);
+                      final rec = Provider.of<RecoveryProvider>(context, listen: false);
+                      final routine = rec.getRoutine(
+                        ratioAnalyses: lifts.getRatioAnalysis(),
+                        lastSession: program.sessions.isNotEmpty ? program.sessions.first : null,
+                      );
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => RecoverySessionScreen(
+                            routine: routine,
+                            isPreviewMode: true,
+                          ),
                         ),
-                      ),
-                    );
+                      );
+                    } else {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => WorkoutSessionScreen(
+                            dayTemplate: day,
+                            isPreviewMode: true,
+                          ),
+                        ),
+                      );
+                    }
                   },
                   icon: const Icon(Icons.explore, color: AppTheme.secondaryCyan, size: 18),
                   label: Text(
@@ -398,12 +423,27 @@ class DashboardScreen extends StatelessWidget {
               Expanded(
                 child: ElevatedButton.icon(
                   onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => WorkoutSessionScreen(dayTemplate: day),
-                      ),
-                    );
+                    if (day.isActiveRecovery) {
+                      final lifts = Provider.of<LiftProvider>(context, listen: false);
+                      final rec = Provider.of<RecoveryProvider>(context, listen: false);
+                      final routine = rec.getRoutine(
+                        ratioAnalyses: lifts.getRatioAnalysis(),
+                        lastSession: program.sessions.isNotEmpty ? program.sessions.first : null,
+                      );
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => RecoverySessionScreen(routine: routine),
+                        ),
+                      );
+                    } else {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => WorkoutSessionScreen(dayTemplate: day),
+                        ),
+                      );
+                    }
                   },
                   icon: const Icon(Icons.play_arrow_rounded, color: Colors.black, size: 20),
                   label: Text(
@@ -412,7 +452,7 @@ class DashboardScreen extends StatelessWidget {
                   ),
                   style: ElevatedButton.styleFrom(
                     minimumSize: const Size(0, 46),
-                    backgroundColor: AppTheme.primaryAmber,
+                    backgroundColor: day.isActiveRecovery ? AppTheme.secondaryCyan : AppTheme.primaryAmber,
                     foregroundColor: Colors.black,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
@@ -808,16 +848,34 @@ class DashboardScreen extends StatelessWidget {
                             child: OutlinedButton.icon(
                               onPressed: () {
                                 Navigator.pop(ctx);
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => WorkoutSessionScreen(
-                                      dayTemplate: day,
-                                      isPreviewMode: true,
-                                      previewWeek: selectedWeek,
+                                if (day.isActiveRecovery) {
+                                  final lifts = Provider.of<LiftProvider>(context, listen: false);
+                                  final rec = Provider.of<RecoveryProvider>(context, listen: false);
+                                  final routine = rec.getRoutine(
+                                    ratioAnalyses: lifts.getRatioAnalysis(),
+                                    lastSession: program.sessions.isNotEmpty ? program.sessions.first : null,
+                                  );
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => RecoverySessionScreen(
+                                        routine: routine,
+                                        isPreviewMode: true,
+                                      ),
                                     ),
-                                  ),
-                                );
+                                  );
+                                } else {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => WorkoutSessionScreen(
+                                        dayTemplate: day,
+                                        isPreviewMode: true,
+                                        previewWeek: selectedWeek,
+                                      ),
+                                    ),
+                                  );
+                                }
                               },
                               icon: const Icon(Icons.explore, color: AppTheme.secondaryCyan),
                               label: Text('Preview', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: AppTheme.secondaryCyan)),
@@ -833,21 +891,36 @@ class DashboardScreen extends StatelessWidget {
                             child: ElevatedButton.icon(
                               onPressed: () {
                                 Navigator.pop(ctx);
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => WorkoutSessionScreen(
-                                      dayTemplate: day,
-                                      isPreviewMode: false,
+                                if (day.isActiveRecovery) {
+                                  final lifts = Provider.of<LiftProvider>(context, listen: false);
+                                  final rec = Provider.of<RecoveryProvider>(context, listen: false);
+                                  final routine = rec.getRoutine(
+                                    ratioAnalyses: lifts.getRatioAnalysis(),
+                                    lastSession: program.sessions.isNotEmpty ? program.sessions.first : null,
+                                  );
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => RecoverySessionScreen(routine: routine),
                                     ),
-                                  ),
-                                );
+                                  );
+                                } else {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => WorkoutSessionScreen(
+                                        dayTemplate: day,
+                                        isPreviewMode: false,
+                                      ),
+                                    ),
+                                  );
+                                }
                               },
                               icon: const Icon(Icons.play_arrow, color: Colors.black),
                               label: Text('Start Live Log', style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
                               style: ElevatedButton.styleFrom(
                                 minimumSize: const Size(0, 48),
-                                backgroundColor: AppTheme.primaryAmber,
+                                backgroundColor: day.isActiveRecovery ? AppTheme.secondaryCyan : AppTheme.primaryAmber,
                                 foregroundColor: Colors.black,
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                               ),

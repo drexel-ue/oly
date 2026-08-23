@@ -11,6 +11,7 @@ class StorageService {
   static const String _keyUnit = 'oly_unit_v1';
   static const String _keyBarWeight = 'oly_bar_weight_v1';
   static const String _keyCollarWeight = 'oly_collar_weight_v1';
+  static const String _keyRecoveryLogs = 'oly_recovery_logs_v1';
 
   final SharedPreferences _prefs;
 
@@ -87,4 +88,21 @@ class StorageService {
 
   double loadCollarWeight() => _prefs.getDouble(_keyCollarWeight) ?? 2.5;
   Future<void> saveCollarWeight(double weight) async => await _prefs.setDouble(_keyCollarWeight, weight);
+
+  // --- RECOVERY LOGS STORAGE ---
+  List<Map<String, dynamic>> loadRawRecoveryLogs() {
+    final jsonStr = _prefs.getString(_keyRecoveryLogs);
+    if (jsonStr == null || jsonStr.isEmpty) return [];
+    try {
+      final List<dynamic> list = jsonDecode(jsonStr);
+      return list.cast<Map<String, dynamic>>();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  Future<void> saveRawRecoveryLogs(List<Map<String, dynamic>> logs) async {
+    final jsonStr = jsonEncode(logs);
+    await _prefs.setString(_keyRecoveryLogs, jsonStr);
+  }
 }
