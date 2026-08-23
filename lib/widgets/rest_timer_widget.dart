@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../providers/settings_provider.dart';
@@ -130,7 +129,7 @@ class _RestTimerWidgetState extends State<RestTimerWidget> with WidgetsBindingOb
     }
 
     if (settings.soundAlertsEnabled) {
-      SystemSound.play(SystemSoundType.alert);
+      NotificationService().playTimerBeepSound();
     }
 
     if (mounted) {

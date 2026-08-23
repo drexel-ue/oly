@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
@@ -11,6 +12,7 @@ class NotificationService {
   NotificationService._internal();
 
   final FlutterLocalNotificationsPlugin _notifications = FlutterLocalNotificationsPlugin();
+  final AudioPlayer _audioPlayer = AudioPlayer();
   bool _initialized = false;
 
   Future<void> init() async {
@@ -35,6 +37,32 @@ class NotificationService {
       _initialized = true;
     } catch (e) {
       debugPrint('Notification init error: $e');
+    }
+  }
+
+  /// Play high-volume double-beep audio alert (overrides silent switch via playback AudioContext)
+  Future<void> playTimerBeepSound() async {
+    try {
+      await _audioPlayer.stop();
+      await _audioPlayer.setAudioContext(
+        AudioContext(
+          iOS: AudioContextIOS(
+            category: AVAudioSessionCategory.playback,
+            options: {
+              AVAudioSessionOptions.mixWithOthers,
+              AVAudioSessionOptions.duckOthers,
+            },
+          ),
+          android: AudioContextAndroid(
+            usageType: AndroidUsageType.alarm,
+            contentType: AndroidContentType.sonification,
+            audioFocus: AndroidAudioFocus.gainTransientMayDuck,
+          ),
+        ),
+      );
+      await _audioPlayer.play(AssetSource('sounds/timer_beep.wav'));
+    } catch (e) {
+      debugPrint('Audio playback error: $e');
     }
   }
 

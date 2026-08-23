@@ -45,6 +45,7 @@ dependencies:
   flutter_local_notifications: ^18.0.1
   vibration: ^2.0.1
   timezone: ^0.10.1
+  audioplayers: ^6.1.0
 
 dev_dependencies:
   flutter_test:
@@ -72,6 +73,7 @@ flutter:
   assets:
     - assets/icon/icon.jpg
     - assets/icon/splash.jpg
+    - assets/sounds/timer_beep.wav
 
   # To add assets to your application, add an assets section, like this:
   # assets:
