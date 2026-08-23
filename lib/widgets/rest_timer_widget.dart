@@ -325,14 +325,18 @@ class _RestTimerWidgetState extends State<RestTimerWidget> {
             // Left: Timer Icon + Time Readout + Mini Progress Indicator
             Row(
               children: [
-                SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(
-                    value: progress,
-                    strokeWidth: 3,
-                    backgroundColor: AppTheme.surfaceElevated,
-                    valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryAmber),
+                const SizedBox(width: 4),
+                Padding(
+                  padding: const EdgeInsets.all(2),
+                  child: SizedBox(
+                    width: 22,
+                    height: 22,
+                    child: CircularProgressIndicator(
+                      value: progress,
+                      strokeWidth: 3,
+                      backgroundColor: AppTheme.surfaceElevated,
+                      valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryAmber),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
