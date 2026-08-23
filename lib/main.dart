@@ -16,6 +16,7 @@ import 'views/max_test_screen.dart';
 import 'views/plate_calculator_screen.dart';
 import 'views/recovery_session_screen.dart';
 import 'views/splash_screen.dart';
+import 'views/warmup_session_screen.dart';
 import 'views/workout_session_screen.dart';
 
 void main() async {
@@ -51,6 +52,18 @@ class OlyApp extends StatelessWidget {
           behavior: HitTestBehavior.translucent,
           child: child,
         );
+      },
+      onGenerateRoute: (settings) {
+        if (settings.name == '/warmup') {
+          final dayTemplate = settings.arguments as DayTemplate?;
+          final defaultDay = ProgramCycle.getBuiltInProgram().first;
+          return MaterialPageRoute(
+            builder: (_) => WarmupSessionScreen(
+              dayTemplate: dayTemplate ?? defaultDay,
+            ),
+          );
+        }
+        return null;
       },
       home: SplashScreen(
         child: _buildHomeScreen(),

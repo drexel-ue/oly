@@ -12,6 +12,7 @@ import '../providers/settings_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/plate_modal.dart';
 import '../widgets/rest_timer_widget.dart';
+import 'warmup_session_screen.dart';
 
 class WorkoutSessionScreen extends StatefulWidget {
   final DayTemplate dayTemplate;
@@ -614,10 +615,13 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
             ),
             tooltip: 'Guided Warm-Up',
             onPressed: () {
-              Navigator.pushNamed(
+              Navigator.push(
                 context,
-                '/warmup',
-                arguments: widget.dayTemplate,
+                MaterialPageRoute(
+                  builder: (_) => WarmupSessionScreen(
+                    dayTemplate: widget.dayTemplate,
+                  ),
+                ),
               );
             },
           ),
