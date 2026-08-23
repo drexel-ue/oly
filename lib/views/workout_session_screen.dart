@@ -564,7 +564,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Left: Exercise Title & Set Scheme Subtitle
                       Expanded(
@@ -589,16 +589,22 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                       ),
                       const SizedBox(width: 4),
 
-                      // Right: Aligned Action Buttons (Swap + Plate Loader)
+                      // Right: Top-Aligned Action Buttons (Swap + Plate Loader)
                       Row(
                         mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           IconButton(
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
                             icon: const Icon(Icons.swap_horiz, size: 22, color: AppTheme.accentBlue),
                             tooltip: 'Swap Movement Variation',
                             onPressed: () => _showSwapVariationDialog(exercise.name, exercise.liftId),
                           ),
+                          const SizedBox(width: 4),
                           IconButton(
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
                             icon: const Icon(Icons.pie_chart_outline, size: 22, color: AppTheme.primaryAmber),
                             tooltip: 'Plate Loader',
                             onPressed: () {
