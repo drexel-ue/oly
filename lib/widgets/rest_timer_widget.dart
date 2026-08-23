@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../providers/settings_provider.dart';
+import '../services/notification_service.dart';
 import '../theme/app_theme.dart';
 
 class RestTimerWidget extends StatefulWidget {
@@ -22,16 +23,18 @@ class RestTimerWidget extends StatefulWidget {
   State<RestTimerWidget> createState() => _RestTimerWidgetState();
 }
 
-class _RestTimerWidgetState extends State<RestTimerWidget> {
+class _RestTimerWidgetState extends State<RestTimerWidget> with WidgetsBindingObserver {
   Timer? _timer;
   late int _totalSeconds;
   late int _secondsRemaining;
+  DateTime? _targetEndTime;
   bool _isRunning = false;
   bool _isMinimized = false;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _totalSeconds = widget.initialSeconds;
     _secondsRemaining = widget.initialSeconds;
     widget.notesFocusNode?.addListener(_handleFocusChange);
@@ -39,9 +42,30 @@ class _RestTimerWidgetState extends State<RestTimerWidget> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     widget.notesFocusNode?.removeListener(_handleFocusChange);
     _timer?.cancel();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && _isRunning && _targetEndTime != null) {
+      final diff = _targetEndTime!.difference(DateTime.now()).inSeconds;
+      setState(() {
+        if (diff > 0) {
+          _secondsRemaining = diff;
+        } else {
+          _secondsRemaining = 0;
+          _isRunning = false;
+          _timer?.cancel();
+          _triggerFinishAlerts();
+          if (widget.onFinished != null) {
+            widget.onFinished!();
+          }
+        }
+      });
+    }
   }
 
   void _handleFocusChange() {
@@ -55,35 +79,54 @@ class _RestTimerWidgetState extends State<RestTimerWidget> {
   void _toggleTimer() {
     if (_isRunning) {
       _timer?.cancel();
+      NotificationService().cancelTimerNotification();
       setState(() => _isRunning = false);
     } else {
       if (_secondsRemaining <= 0) {
         _secondsRemaining = _totalSeconds;
       }
-      setState(() => _isRunning = true);
-      _timer = Timer.periodic(const Duration(seconds: 1), (t) {
-        if (_secondsRemaining > 1) {
-          setState(() => _secondsRemaining--);
-        } else {
-          t.cancel();
-          setState(() {
-            _secondsRemaining = 0;
-            _isRunning = false;
-          });
-          _triggerFinishAlerts();
-          if (widget.onFinished != null) {
-            widget.onFinished!();
-          }
-        }
-      });
+      _startTimer();
     }
+  }
+
+  void _startTimer() {
+    _timer?.cancel();
+    _targetEndTime = DateTime.now().add(Duration(seconds: _secondsRemaining));
+    setState(() => _isRunning = true);
+
+    NotificationService().scheduleTimerNotification(
+      secondsRemaining: _secondsRemaining,
+      title: '⏰ Rest Timer Expired!',
+      body: 'Time for your next set! Keep pushing.',
+    );
+
+    _timer = Timer.periodic(const Duration(seconds: 1), (t) {
+      if (_targetEndTime == null) return;
+      final remaining = _targetEndTime!.difference(DateTime.now()).inSeconds;
+
+      if (remaining > 0) {
+        setState(() => _secondsRemaining = remaining);
+      } else {
+        t.cancel();
+        setState(() {
+          _secondsRemaining = 0;
+          _isRunning = false;
+        });
+        _triggerFinishAlerts();
+        if (widget.onFinished != null) {
+          widget.onFinished!();
+        }
+      }
+    });
   }
 
   void _triggerFinishAlerts() {
     final settings = Provider.of<SettingsProvider>(context, listen: false);
 
+    NotificationService().cancelTimerNotification();
+
     if (settings.hapticsEnabled) {
-      HapticFeedback.heavyImpact();
+      NotificationService().triggerIntenseVibration();
     }
 
     if (settings.soundAlertsEnabled) {
@@ -95,7 +138,7 @@ class _RestTimerWidgetState extends State<RestTimerWidget> {
         const SnackBar(
           content: Text('⏰ Rest Timer Expired! Ready for your next set.'),
           backgroundColor: AppTheme.primaryAmber,
-          duration: Duration(seconds: 3),
+          duration: Duration(seconds: 4),
         ),
       );
     }
@@ -108,11 +151,15 @@ class _RestTimerWidgetState extends State<RestTimerWidget> {
       if (_secondsRemaining > _totalSeconds) {
         _totalSeconds = _secondsRemaining;
       }
+      if (_isRunning) {
+        _startTimer();
+      }
     });
   }
 
   void _setDuration(int seconds) {
     _timer?.cancel();
+    NotificationService().cancelTimerNotification();
     setState(() {
       _totalSeconds = seconds;
       _secondsRemaining = seconds;

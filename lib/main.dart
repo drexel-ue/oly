@@ -4,6 +4,7 @@ import 'providers/lift_provider.dart';
 import 'providers/program_provider.dart';
 import 'providers/recovery_provider.dart';
 import 'providers/settings_provider.dart';
+import 'services/notification_service.dart';
 import 'services/storage_service.dart';
 import 'theme/app_theme.dart';
 import 'views/analytics_screen.dart';
@@ -17,6 +18,7 @@ import 'views/splash_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final storageService = await StorageService.init();
+  await NotificationService().init();
 
   runApp(
     MultiProvider(
