@@ -58,7 +58,7 @@ class _RestTimerWidgetState extends State<RestTimerWidget> with WidgetsBindingOb
           _secondsRemaining = 0;
           _isRunning = false;
           _timer?.cancel();
-          _triggerFinishAlerts();
+          _triggerFinishAlerts(isForeground: false);
           if (widget.onFinished != null) {
             widget.onFinished!();
           }
@@ -111,7 +111,7 @@ class _RestTimerWidgetState extends State<RestTimerWidget> with WidgetsBindingOb
           _secondsRemaining = 0;
           _isRunning = false;
         });
-        _triggerFinishAlerts();
+        _triggerFinishAlerts(isForeground: true);
         if (widget.onFinished != null) {
           widget.onFinished!();
         }
@@ -119,17 +119,19 @@ class _RestTimerWidgetState extends State<RestTimerWidget> with WidgetsBindingOb
     });
   }
 
-  void _triggerFinishAlerts() {
+  void _triggerFinishAlerts({bool isForeground = true}) {
     final settings = Provider.of<SettingsProvider>(context, listen: false);
 
     NotificationService().cancelTimerNotification();
 
-    if (settings.hapticsEnabled) {
-      NotificationService().triggerIntenseVibration();
-    }
+    if (isForeground) {
+      if (settings.hapticsEnabled) {
+        NotificationService().triggerIntenseVibration();
+      }
 
-    if (settings.soundAlertsEnabled) {
-      NotificationService().playTimerBeepSound();
+      if (settings.soundAlertsEnabled) {
+        NotificationService().playTimerBeepSound();
+      }
     }
 
     if (mounted) {
