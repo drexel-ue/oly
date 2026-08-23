@@ -564,31 +564,22 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
+                      // Left: Exercise Title & Set Scheme Subtitle
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    displayName,
-                                    style: GoogleFonts.outfit(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppTheme.textPrimary,
-                                    ),
-                                  ),
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.swap_horiz, size: 20, color: AppTheme.accentBlue),
-                                  tooltip: 'Swap Movement Variation',
-                                  onPressed: () => _showSwapVariationDialog(exercise.name, exercise.liftId),
-                                ),
-                              ],
+                            Text(
+                              displayName,
+                              style: GoogleFonts.outfit(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: AppTheme.textPrimary,
+                              ),
                             ),
+                            const SizedBox(height: 2),
                             Text(
                               exercise.setScheme,
                               style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textSecondary),
@@ -596,20 +587,32 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                           ],
                         ),
                       ),
-                      // Plate Calculator Button
-                      IconButton(
-                        icon: const Icon(Icons.pie_chart_outline, color: AppTheme.primaryAmber),
-                        tooltip: 'Plate Loader',
-                        onPressed: () {
-                          final currentKg = double.tryParse(weightCtrl?.text ?? '100') ?? 100.0;
-                          showModalBottomSheet(
-                            context: context,
-                            isScrollControlled: true,
-                            useSafeArea: true,
-                            backgroundColor: Colors.transparent,
-                            builder: (_) => PlateModal(initialWeightKg: currentKg),
-                          );
-                        },
+                      const SizedBox(width: 4),
+
+                      // Right: Aligned Action Buttons (Swap + Plate Loader)
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.swap_horiz, size: 22, color: AppTheme.accentBlue),
+                            tooltip: 'Swap Movement Variation',
+                            onPressed: () => _showSwapVariationDialog(exercise.name, exercise.liftId),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.pie_chart_outline, size: 22, color: AppTheme.primaryAmber),
+                            tooltip: 'Plate Loader',
+                            onPressed: () {
+                              final currentKg = double.tryParse(weightCtrl?.text ?? '100') ?? 100.0;
+                              showModalBottomSheet(
+                                context: context,
+                                isScrollControlled: true,
+                                useSafeArea: true,
+                                backgroundColor: Colors.transparent,
+                                builder: (_) => PlateModal(initialWeightKg: currentKg),
+                              );
+                            },
+                          ),
+                        ],
                       ),
                     ],
                   ),
