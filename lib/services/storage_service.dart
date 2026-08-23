@@ -172,4 +172,45 @@ class StorageService {
       return false;
     }
   }
+
+  Future<bool> importPrsCsv(String csvStr) async {
+    try {
+      final lines = csvStr
+          .split(RegExp(r'\r?\n'))
+          .where((l) => l.trim().isNotEmpty)
+          .toList();
+      if (lines.isEmpty) return false;
+
+      final lifts = loadLifts();
+      bool updated = false;
+
+      final startIndex =
+          lines.first.toLowerCase().contains('lift name') ? 1 : 0;
+
+      for (int i = startIndex; i < lines.length; i++) {
+        final parts = lines[i].split(',').map((p) => p.trim()).toList();
+        if (parts.length < 3) continue;
+
+        final liftName = parts[0];
+        final maxKg = double.tryParse(parts[2]);
+
+        if (maxKg != null && maxKg > 0) {
+          final liftIndex = lifts.indexWhere(
+            (l) => l.name.toLowerCase() == liftName.toLowerCase(),
+          );
+          if (liftIndex != -1) {
+            lifts[liftIndex].currentMax = maxKg;
+            updated = true;
+          }
+        }
+      }
+
+      if (updated) {
+        await saveLifts(lifts);
+      }
+      return updated;
+    } catch (_) {
+      return false;
+    }
+  }
 }

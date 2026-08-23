@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -21,6 +23,79 @@ class _SettingsModalState extends State<SettingsModal> {
   void dispose() {
     _importController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickAndImportFile(BuildContext context) async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['json', 'csv', 'txt'],
+      );
+
+      if (result == null || result.files.isEmpty) return;
+
+      final file = result.files.single;
+      String content = '';
+
+      if (file.bytes != null) {
+        content = String.fromCharCodes(file.bytes!);
+      } else if (file.path != null) {
+        content = await File(file.path!).readAsString();
+      }
+
+      if (content.trim().isEmpty) return;
+
+      if (!context.mounted) return;
+      final settings = Provider.of<SettingsProvider>(context, listen: false);
+      final lifts = Provider.of<LiftProvider>(context, listen: false);
+      final program = Provider.of<ProgramProvider>(context, listen: false);
+
+      final trimmed = content.trim();
+      final isJson = trimmed.startsWith('{') || trimmed.startsWith('[');
+      bool success = false;
+
+      if (isJson) {
+        success = await settings.importDataJson(trimmed);
+      } else {
+        success = await settings.importDataCsv(trimmed);
+      }
+
+      if (success) {
+        await lifts.reload();
+        await program.reload();
+        if (context.mounted) {
+          Navigator.pop(context); // Close modal
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                isJson
+                    ? '✅ App Backup restored from ${file.name}!'
+                    : '✅ PR History imported from ${file.name}!',
+              ),
+              backgroundColor: AppTheme.primaryAmber,
+            ),
+          );
+        }
+      } else {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('⚠️ Could not import ${file.name}. Invalid format.'),
+              backgroundColor: Colors.redAccent,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('⚠️ File import failed: $e'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -167,19 +242,29 @@ class _SettingsModalState extends State<SettingsModal> {
               ),
               const SizedBox(height: 10),
 
-              // Import JSON Button
+              // Import File Button (Native FilePicker for JSON / CSV)
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
-                  onPressed: () => _showImportDialog(context),
-                  icon: const Icon(Icons.upload, color: Colors.black),
-                  label: Text('Import Data Backup (JSON)', style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
+                  onPressed: () => _pickAndImportFile(context),
+                  icon: const Icon(Icons.folder_open, color: Colors.black),
+                  label: Text('Import File (.json / .csv)', style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.primaryAmber,
                     foregroundColor: Colors.black,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
+                ),
+              ),
+              const SizedBox(height: 8),
+
+              // Fallback Paste Dialog Button
+              Center(
+                child: TextButton.icon(
+                  onPressed: () => _showPasteImportDialog(context),
+                  icon: const Icon(Icons.paste, size: 16, color: AppTheme.textSecondary),
+                  label: Text('Paste Raw Text / JSON', style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textSecondary)),
                 ),
               ),
               const SizedBox(height: 16),
@@ -190,7 +275,7 @@ class _SettingsModalState extends State<SettingsModal> {
     );
   }
 
-  void _showImportDialog(BuildContext context) {
+  void _showPasteImportDialog(BuildContext context) {
     final settings = Provider.of<SettingsProvider>(context, listen: false);
     final lifts = Provider.of<LiftProvider>(context, listen: false);
     final program = Provider.of<ProgramProvider>(context, listen: false);
@@ -199,13 +284,13 @@ class _SettingsModalState extends State<SettingsModal> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: AppTheme.darkBackground,
-        title: Text('Import JSON Backup', style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
+        title: Text('Paste JSON or CSV Data', style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Paste JSON data below to restore PRs, workout logs, and settings.',
+              'Paste JSON or CSV data below to restore PRs and workout logs.',
               style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textSecondary),
             ),
             const SizedBox(height: 10),
@@ -214,7 +299,7 @@ class _SettingsModalState extends State<SettingsModal> {
               maxLines: 5,
               style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textPrimary),
               decoration: InputDecoration(
-                hintText: '{"lifts": [...], "workoutSessions": [...]}',
+                hintText: '{"lifts": [...]} or Snatch,Snatch,100,220...',
                 hintStyle: GoogleFonts.inter(fontSize: 12, color: AppTheme.textSecondary),
                 filled: true,
                 fillColor: AppTheme.surfaceCard,
@@ -231,16 +316,21 @@ class _SettingsModalState extends State<SettingsModal> {
               foregroundColor: Colors.black,
             ),
             onPressed: () async {
-              final success = await settings.importDataJson(_importController.text.trim());
+              final raw = _importController.text.trim();
+              final isJson = raw.startsWith('{') || raw.startsWith('[');
+              bool success = isJson
+                  ? await settings.importDataJson(raw)
+                  : await settings.importDataCsv(raw);
+
               if (success) {
                 await lifts.reload();
                 await program.reload();
-                if (ctx.mounted) {
+                if (ctx.mounted && context.mounted) {
                   Navigator.pop(ctx);
                   Navigator.pop(context); // Close settings sheet
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text('✅ App Data Restored Successfully!'),
+                      content: Text('✅ Data Restored Successfully!'),
                       backgroundColor: AppTheme.primaryAmber,
                     ),
                   );
@@ -249,7 +339,7 @@ class _SettingsModalState extends State<SettingsModal> {
                 if (ctx.mounted) {
                   ScaffoldMessenger.of(ctx).showSnackBar(
                     const SnackBar(
-                      content: Text('⚠️ Invalid JSON backup format.'),
+                      content: Text('⚠️ Invalid data format.'),
                       backgroundColor: Colors.redAccent,
                     ),
                   );

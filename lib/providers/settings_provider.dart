@@ -117,4 +117,12 @@ class SettingsProvider extends ChangeNotifier {
     }
     return success;
   }
+
+  Future<bool> importDataCsv(String csvStr) async {
+    final success = await _storage.importPrsCsv(csvStr);
+    if (success) {
+      notifyListeners();
+    }
+    return success;
+  }
 }
