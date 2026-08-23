@@ -118,25 +118,26 @@ class _RestTimerWidgetState extends State<RestTimerWidget> {
     final progress = _totalSeconds > 0 ? _secondsRemaining / _totalSeconds : 0.0;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: AppTheme.surfaceCard,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(24),
         border: Border.all(color: AppTheme.borderColor),
       ),
       child: Column(
         children: [
+          // Header Row
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Row(
                 children: [
-                  const Icon(Icons.timer_outlined, color: AppTheme.primaryAmber),
+                  const Icon(Icons.timer_outlined, color: AppTheme.primaryAmber, size: 22),
                   const SizedBox(width: 8),
                   Text(
                     'Rest Timer',
                     style: GoogleFonts.outfit(
-                      fontSize: 16,
+                      fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: AppTheme.textPrimary,
                     ),
@@ -147,84 +148,83 @@ class _RestTimerWidgetState extends State<RestTimerWidget> {
                 icon: Icon(
                   _isRunning ? Icons.pause_circle_filled : Icons.play_circle_fill,
                   color: AppTheme.primaryAmber,
-                  size: 28,
+                  size: 36,
                 ),
                 onPressed: _toggleTimer,
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
 
-          // Main Timer Row with -10/-5/-1s on left and +1/+5/+10s on right
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          // Central Circular Progress Timer Readout
+          Stack(
+            alignment: Alignment.center,
             children: [
-              // Left side decrease buttons
-              Column(
-                children: [
-                  _buildAdjustmentChip('-10s', -10),
-                  const SizedBox(height: 6),
-                  _buildAdjustmentChip('-5s', -5),
-                  const SizedBox(height: 6),
-                  _buildAdjustmentChip('-1s', -1),
-                ],
+              SizedBox(
+                width: 110,
+                height: 110,
+                child: CircularProgressIndicator(
+                  value: progress,
+                  strokeWidth: 8,
+                  backgroundColor: AppTheme.surfaceElevated,
+                  valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryAmber),
+                ),
               ),
-
-              // Center circular timer
-              Stack(
-                alignment: Alignment.center,
-                children: [
-                  SizedBox(
-                    width: 96,
-                    height: 96,
-                    child: CircularProgressIndicator(
-                      value: progress,
-                      strokeWidth: 6,
-                      backgroundColor: AppTheme.surfaceElevated,
-                      valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryAmber),
-                    ),
-                  ),
-                  Text(
-                    _formattedTime,
-                    style: GoogleFonts.outfit(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.textPrimary,
-                    ),
-                  ),
-                ],
-              ),
-
-              // Right side increase buttons
-              Column(
-                children: [
-                  _buildAdjustmentChip('+10s', 10),
-                  const SizedBox(height: 6),
-                  _buildAdjustmentChip('+5s', 5),
-                  const SizedBox(height: 6),
-                  _buildAdjustmentChip('+1s', 1),
-                ],
+              Text(
+                _formattedTime,
+                style: GoogleFonts.outfit(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.textPrimary,
+                ),
               ),
             ],
           ),
+          const SizedBox(height: 18),
+
+          // Horizontal Quick Adjustment Buttons (-10s -5s -1s | +1s +5s +10s)
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _buildAdjustmentChip('-10s', -10),
+                const SizedBox(width: 8),
+                _buildAdjustmentChip('-5s', -5),
+                const SizedBox(width: 8),
+                _buildAdjustmentChip('-1s', -1),
+                Container(
+                  height: 24,
+                  width: 1,
+                  margin: const EdgeInsets.symmetric(horizontal: 10),
+                  color: AppTheme.borderColor,
+                ),
+                _buildAdjustmentChip('+1s', 1),
+                const SizedBox(width: 8),
+                _buildAdjustmentChip('+5s', 5),
+                const SizedBox(width: 8),
+                _buildAdjustmentChip('+10s', 10),
+              ],
+            ),
+          ),
           const SizedBox(height: 16),
 
-          // Preset duration selectors
+          // Horizontal Preset Duration Selectors (30s, 60s, 90s, 2m, 3m, 5m)
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 _buildPresetChip('30s', 30),
-                const SizedBox(width: 6),
+                const SizedBox(width: 8),
                 _buildPresetChip('60s', 60),
-                const SizedBox(width: 6),
+                const SizedBox(width: 8),
                 _buildPresetChip('90s', 90),
-                const SizedBox(width: 6),
+                const SizedBox(width: 8),
                 _buildPresetChip('2m', 120),
-                const SizedBox(width: 6),
+                const SizedBox(width: 8),
                 _buildPresetChip('3m', 180),
-                const SizedBox(width: 6),
+                const SizedBox(width: 8),
                 _buildPresetChip('5m', 300),
               ],
             ),
@@ -237,18 +237,22 @@ class _RestTimerWidgetState extends State<RestTimerWidget> {
   Widget _buildAdjustmentChip(String label, int deltaSeconds) {
     return InkWell(
       onTap: () => _adjustTime(deltaSeconds),
-      borderRadius: BorderRadius.circular(6),
+      borderRadius: BorderRadius.circular(10),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
           color: AppTheme.surfaceElevated,
-          borderRadius: BorderRadius.circular(6),
-          border: Border.all(color: AppTheme.borderColor),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: deltaSeconds > 0
+                ? AppTheme.primaryAmber.withValues(alpha: 0.4)
+                : AppTheme.borderColor,
+          ),
         ),
         child: Text(
           label,
           style: GoogleFonts.outfit(
-            fontSize: 11,
+            fontSize: 14,
             fontWeight: FontWeight.bold,
             color: deltaSeconds > 0 ? AppTheme.primaryAmber : AppTheme.textSecondary,
           ),
@@ -261,17 +265,20 @@ class _RestTimerWidgetState extends State<RestTimerWidget> {
     final isSelected = _totalSeconds == seconds;
     return InkWell(
       onTap: () => _setDuration(seconds),
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(10),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
           color: isSelected ? AppTheme.primaryAmber : AppTheme.surfaceElevated,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: isSelected ? AppTheme.primaryAmber : AppTheme.borderColor,
+          ),
         ),
         child: Text(
           label,
           style: GoogleFonts.outfit(
-            fontSize: 12,
+            fontSize: 14,
             fontWeight: FontWeight.bold,
             color: isSelected ? Colors.black : AppTheme.textSecondary,
           ),
