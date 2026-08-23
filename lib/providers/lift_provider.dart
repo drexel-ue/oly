@@ -165,4 +165,9 @@ class LiftProvider extends ChangeNotifier {
 
     return null;
   }
+
+  Future<void> reload() async {
+    _lifts = _storage.loadLifts();
+    notifyListeners();
+  }
 }

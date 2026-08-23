@@ -117,4 +117,10 @@ class ProgramProvider extends ChangeNotifier {
     await _storage.saveProgramCycle(_cycle);
     notifyListeners();
   }
+
+  Future<void> reload() async {
+    _cycle = _storage.loadProgramCycle();
+    _sessions = _storage.loadWorkoutSessions();
+    notifyListeners();
+  }
 }

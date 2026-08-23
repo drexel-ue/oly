@@ -97,6 +97,33 @@ class RecoveryEngineService {
         if (name.contains('pull') || name.contains('deadlift') || name.contains('rdl')) hadPulls = true;
       }
 
+      if (lastSession.jointStrainTags != null && lastSession.jointStrainTags!.isNotEmpty) {
+        for (var tag in lastSession.jointStrainTags!) {
+          switch (tag) {
+            case 'Shoulders':
+              targetFocusAreas.add(MobilityFocusArea.shoulderOverhead);
+              targetFocusAreas.add(MobilityFocusArea.thoracicSpine);
+              diagnosticReasons.add('Athlete Feedback: Shoulder strain reported in last check-in.');
+              break;
+            case 'Hips':
+            case 'Knees':
+              targetFocusAreas.add(MobilityFocusArea.hipCapsule);
+              targetFocusAreas.add(MobilityFocusArea.ankleDorsiflexion);
+              targetFocusAreas.add(MobilityFocusArea.quadriceps);
+              diagnosticReasons.add('Athlete Feedback: Lower body joint strain reported in last check-in.');
+              break;
+            case 'Lower Back':
+              targetFocusAreas.add(MobilityFocusArea.posteriorChain);
+              diagnosticReasons.add('Athlete Feedback: Posterior chain strain reported in last check-in.');
+              break;
+            case 'Wrists':
+              targetFocusAreas.add(MobilityFocusArea.shoulderOverhead);
+              diagnosticReasons.add('Athlete Feedback: Wrist & front rack tension targeted.');
+              break;
+          }
+        }
+      }
+
       if (hadSquats) {
         targetFocusAreas.add(MobilityFocusArea.hipCapsule);
         targetFocusAreas.add(MobilityFocusArea.ankleDorsiflexion);

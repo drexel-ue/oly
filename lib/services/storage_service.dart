@@ -12,6 +12,8 @@ class StorageService {
   static const String _keyBarWeight = 'oly_bar_weight_v1';
   static const String _keyCollarWeight = 'oly_collar_weight_v1';
   static const String _keyRecoveryLogs = 'oly_recovery_logs_v1';
+  static const String _keySoundAlerts = 'oly_sound_alerts_v1';
+  static const String _keyHapticsEnabled = 'oly_haptics_enabled_v1';
 
   final SharedPreferences _prefs;
 
@@ -104,5 +106,70 @@ class StorageService {
   Future<void> saveRawRecoveryLogs(List<Map<String, dynamic>> logs) async {
     final jsonStr = jsonEncode(logs);
     await _prefs.setString(_keyRecoveryLogs, jsonStr);
+  }
+
+  bool loadSoundAlerts() => _prefs.getBool(_keySoundAlerts) ?? true;
+  Future<void> saveSoundAlerts(bool value) async => await _prefs.setBool(_keySoundAlerts, value);
+
+  bool loadHapticsEnabled() => _prefs.getBool(_keyHapticsEnabled) ?? true;
+  Future<void> saveHapticsEnabled(bool value) async => await _prefs.setBool(_keyHapticsEnabled, value);
+
+  // --- EXPORT & IMPORT UTILITIES ---
+  String exportFullAppDataJson() {
+    final map = {
+      'exportedAt': DateTime.now().toIso8601String(),
+      'lifts': jsonDecode(_prefs.getString(_keyLifts) ?? '[]'),
+      'cycle': jsonDecode(_prefs.getString(_keyCycle) ?? '{}'),
+      'workoutSessions': jsonDecode(_prefs.getString(_keySessions) ?? '[]'),
+      'recoveryLogs': jsonDecode(_prefs.getString(_keyRecoveryLogs) ?? '[]'),
+      'settings': {
+        'isLbs': loadIsLbs(),
+        'barWeight': loadBarWeight(),
+        'collarWeight': loadCollarWeight(),
+        'soundAlerts': loadSoundAlerts(),
+        'hapticsEnabled': loadHapticsEnabled(),
+      },
+    };
+    return const JsonEncoder.withIndent('  ').convert(map);
+  }
+
+  String exportPrsCsv() {
+    final lifts = loadLifts();
+    final buffer = StringBuffer();
+    buffer.writeln('Lift Name,Category,1RM (KG),1RM (LBS),Target Ratio,Anchor Lift ID');
+    for (var lift in lifts) {
+      final lbs = (lift.currentMax * 2.20462).toStringAsFixed(1);
+      buffer.writeln('${lift.name},${lift.category.name},${lift.currentMax.toStringAsFixed(1)},$lbs,${lift.targetRatio ?? ''},${lift.anchorLiftId ?? ''}');
+    }
+    return buffer.toString();
+  }
+
+  Future<bool> importAppDataJson(String jsonStr) async {
+    try {
+      final map = jsonDecode(jsonStr) as Map<String, dynamic>;
+      if (map.containsKey('lifts')) {
+        await _prefs.setString(_keyLifts, jsonEncode(map['lifts']));
+      }
+      if (map.containsKey('cycle')) {
+        await _prefs.setString(_keyCycle, jsonEncode(map['cycle']));
+      }
+      if (map.containsKey('workoutSessions')) {
+        await _prefs.setString(_keySessions, jsonEncode(map['workoutSessions']));
+      }
+      if (map.containsKey('recoveryLogs')) {
+        await _prefs.setString(_keyRecoveryLogs, jsonEncode(map['recoveryLogs']));
+      }
+      if (map.containsKey('settings')) {
+        final s = map['settings'] as Map<String, dynamic>;
+        if (s.containsKey('isLbs')) await saveIsLbs(s['isLbs'] as bool);
+        if (s.containsKey('barWeight')) await saveBarWeight((s['barWeight'] as num).toDouble());
+        if (s.containsKey('collarWeight')) await saveCollarWeight((s['collarWeight'] as num).toDouble());
+        if (s.containsKey('soundAlerts')) await saveSoundAlerts(s['soundAlerts'] as bool);
+        if (s.containsKey('hapticsEnabled')) await saveHapticsEnabled(s['hapticsEnabled'] as bool);
+      }
+      return true;
+    } catch (_) {
+      return false;
+    }
   }
 }

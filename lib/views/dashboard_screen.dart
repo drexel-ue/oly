@@ -8,6 +8,7 @@ import '../providers/settings_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/active_recovery_card.dart';
 import '../widgets/plate_modal.dart';
+import '../widgets/settings_modal.dart';
 import '../widgets/warmup_sheet.dart';
 import 'recovery_session_screen.dart';
 import 'warmup_session_screen.dart';
@@ -60,6 +61,19 @@ class DashboardScreen extends StatelessWidget {
             ),
             tooltip: 'Toggle KG / LBS',
             onPressed: () => settings.toggleUnit(),
+          ),
+          IconButton(
+            icon: const Icon(Icons.settings_outlined, color: AppTheme.primaryAmber),
+            tooltip: 'Settings & Data Backup',
+            onPressed: () {
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                useSafeArea: true,
+                backgroundColor: Colors.transparent,
+                builder: (_) => const SettingsModal(),
+              );
+            },
           ),
         ],
       ),

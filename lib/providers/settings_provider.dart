@@ -7,16 +7,22 @@ class SettingsProvider extends ChangeNotifier {
   bool _isLbs = false;
   double _barWeight = 20.0;
   double _collarWeight = 2.5;
+  bool _soundAlertsEnabled = true;
+  bool _hapticsEnabled = true;
 
   SettingsProvider(this._storage) {
     _isLbs = _storage.loadIsLbs();
     _barWeight = _storage.loadBarWeight();
     _collarWeight = _storage.loadCollarWeight();
+    _soundAlertsEnabled = _storage.loadSoundAlerts();
+    _hapticsEnabled = _storage.loadHapticsEnabled();
   }
 
   bool get isLbs => _isLbs;
   double get barWeight => _barWeight;
   double get collarWeight => _collarWeight;
+  bool get soundAlertsEnabled => _soundAlertsEnabled;
+  bool get hapticsEnabled => _hapticsEnabled;
   String get unitLabel => _isLbs ? 'lbs' : 'kg';
 
   // Conversion utilities (Base weight stored in DB is ALWAYS KG)
@@ -83,5 +89,32 @@ class SettingsProvider extends ChangeNotifier {
     _collarWeight = weight;
     _storage.saveCollarWeight(_collarWeight);
     notifyListeners();
+  }
+
+  void toggleSoundAlerts() {
+    _soundAlertsEnabled = !_soundAlertsEnabled;
+    _storage.saveSoundAlerts(_soundAlertsEnabled);
+    notifyListeners();
+  }
+
+  void toggleHaptics() {
+    _hapticsEnabled = !_hapticsEnabled;
+    _storage.saveHapticsEnabled(_hapticsEnabled);
+    notifyListeners();
+  }
+
+  String exportFullDataJson() => _storage.exportFullAppDataJson();
+  String exportPrsCsv() => _storage.exportPrsCsv();
+  Future<bool> importDataJson(String jsonStr) async {
+    final success = await _storage.importAppDataJson(jsonStr);
+    if (success) {
+      _isLbs = _storage.loadIsLbs();
+      _barWeight = _storage.loadBarWeight();
+      _collarWeight = _storage.loadCollarWeight();
+      _soundAlertsEnabled = _storage.loadSoundAlerts();
+      _hapticsEnabled = _storage.loadHapticsEnabled();
+      notifyListeners();
+    }
+    return success;
   }
 }

@@ -84,6 +84,8 @@ class WorkoutSession {
   final int cycleNumber;
   final int durationSeconds;
   final String? notes;
+  final int? sessionRpe;
+  final List<String>? jointStrainTags;
   final List<ExerciseLog> logs;
 
   WorkoutSession({
@@ -94,6 +96,8 @@ class WorkoutSession {
     required this.cycleNumber,
     this.durationSeconds = 0,
     this.notes,
+    this.sessionRpe,
+    this.jointStrainTags,
     required this.logs,
   });
 
@@ -112,6 +116,8 @@ class WorkoutSession {
       'cycleNumber': cycleNumber,
       'durationSeconds': durationSeconds,
       'notes': notes,
+      'sessionRpe': sessionRpe,
+      'jointStrainTags': jointStrainTags,
       'logs': logs.map((e) => e.toJson()).toList(),
     };
   }
@@ -125,6 +131,8 @@ class WorkoutSession {
       cycleNumber: json['cycleNumber'] as int,
       durationSeconds: json['durationSeconds'] as int? ?? 0,
       notes: json['notes'] as String?,
+      sessionRpe: json['sessionRpe'] as int?,
+      jointStrainTags: (json['jointStrainTags'] as List<dynamic>?)?.map((e) => e as String).toList(),
       logs: (json['logs'] as List<dynamic>)
           .map((e) => ExerciseLog.fromJson(e as Map<String, dynamic>))
           .toList(),
