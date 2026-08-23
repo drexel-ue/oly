@@ -7,13 +7,16 @@ import 'providers/settings_provider.dart';
 import 'services/notification_service.dart';
 import 'services/storage_service.dart';
 import 'theme/app_theme.dart';
+import 'models/program_model.dart';
+import 'services/recovery_engine_service.dart';
 import 'views/analytics_screen.dart';
 import 'views/dashboard_screen.dart';
 import 'views/lifts_screen.dart';
 import 'views/max_test_screen.dart';
 import 'views/plate_calculator_screen.dart';
-
+import 'views/recovery_session_screen.dart';
 import 'views/splash_screen.dart';
+import 'views/workout_session_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -50,10 +53,27 @@ class OlyApp extends StatelessWidget {
         );
       },
       home: SplashScreen(
-        child: MainNavigationContainer(
-          initialIndex: const int.fromEnvironment('TAB', defaultValue: 0),
-        ),
+        child: _buildHomeScreen(),
       ),
+    );
+  }
+
+  Widget _buildHomeScreen() {
+    const screen = String.fromEnvironment('SCREEN');
+    if (screen == 'workout') {
+      return WorkoutSessionScreen(
+        dayTemplate: ProgramCycle.getBuiltInProgram().first,
+      );
+    } else if (screen == 'recovery') {
+      return RecoverySessionScreen(
+        routine: RecoveryEngineService.generateRoutine(
+          ratioAnalyses: [],
+          lastSession: null,
+        ),
+      );
+    }
+    return const MainNavigationContainer(
+      initialIndex: int.fromEnvironment('TAB', defaultValue: 0),
     );
   }
 }
