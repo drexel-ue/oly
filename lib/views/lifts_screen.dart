@@ -227,7 +227,7 @@ class _LiftsScreenState extends State<LiftsScreen> with SingleTickerProviderStat
         child: ExpansionTile(
         tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         leading: CircleAvatar(
-          backgroundColor: AppTheme.primaryAmber.withOpacity(0.15),
+          backgroundColor: AppTheme.primaryAmber.withValues(alpha: 0.15),
           child: Icon(
             lift.category == LiftCategory.snatch
                 ? Icons.fitness_center
@@ -276,7 +276,7 @@ class _LiftsScreenState extends State<LiftsScreen> with SingleTickerProviderStat
                       padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
                       decoration: BoxDecoration(
                         color: isHighlighted
-                            ? AppTheme.primaryAmber.withOpacity(0.15)
+                            ? AppTheme.primaryAmber.withValues(alpha: 0.15)
                             : AppTheme.surfaceElevated,
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(

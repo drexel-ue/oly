@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:uuid/uuid.dart';
 
-import '../models/lift_model.dart';
 import '../models/program_model.dart';
 import '../models/workout_session.dart';
 import '../providers/lift_provider.dart';
@@ -534,7 +533,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                     // Phases & Exercises
                     ...widget.dayTemplate.phases.map((phase) {
                       return _buildPhaseCard(context, phase, settings);
-                    }).toList(),
+                    }),
 
                     const SizedBox(height: 16),
 
@@ -833,7 +832,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                 ],
               ),
             );
-          }).toList(),
+          }),
         ],
       ),
     );

@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:oly/models/lift_model.dart';
 import 'package:oly/models/workout_session.dart';
 import 'package:oly/providers/settings_provider.dart';
 import 'package:oly/services/recovery_engine_service.dart';

@@ -253,7 +253,7 @@ class _PlateCalculatorScreenState extends State<PlateCalculatorScreen> {
                                 ),
                               ),
                             );
-                          }).toList(),
+                          }),
                         ],
                       ),
                     ),

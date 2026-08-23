@@ -86,7 +86,7 @@ class _SettingsModalState extends State<SettingsModal> {
               // Sound Alerts Toggle
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
-                activeColor: AppTheme.primaryAmber,
+                activeThumbColor: AppTheme.primaryAmber,
                 title: Text('Rest Timer Sound Alerts', style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
                 subtitle: const Text('Plays system audio pulse when rest timer reaches 0s'),
                 value: settings.soundAlertsEnabled,
@@ -96,7 +96,7 @@ class _SettingsModalState extends State<SettingsModal> {
               // Haptic Feedback Toggle
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
-                activeColor: AppTheme.primaryAmber,
+                activeThumbColor: AppTheme.primaryAmber,
                 title: Text('Haptic Vibration Alerts', style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
                 subtitle: const Text('Triggers device vibration when rest timer finishes'),
                 value: settings.hapticsEnabled,

@@ -139,7 +139,7 @@ class StorageService {
     buffer.writeln('Lift Name,Category,1RM (KG),1RM (LBS),Target Ratio,Anchor Lift ID');
     for (var lift in lifts) {
       final lbs = (lift.currentMax * 2.20462).toStringAsFixed(1);
-      buffer.writeln('${lift.name},${lift.category.name},${lift.currentMax.toStringAsFixed(1)},$lbs,${lift.targetRatio ?? ''},${lift.anchorLiftId ?? ''}');
+      buffer.writeln('${lift.name},${lift.category.name},${lift.currentMax.toStringAsFixed(1)},$lbs,${lift.targetRatio},${lift.anchorLiftId ?? ''}');
     }
     return buffer.toString();
   }

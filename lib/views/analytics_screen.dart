@@ -200,7 +200,7 @@ class AnalyticsScreen extends StatelessWidget {
                                           ],
                                         ),
                                       );
-                                    }).toList(),
+                                    }),
                                   ],
                                 ),
                               );

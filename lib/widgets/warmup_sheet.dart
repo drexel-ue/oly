@@ -320,7 +320,7 @@ class _WarmupSheetState extends State<WarmupSheet> {
                 color: AppTheme.surfaceElevated,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: AppTheme.primaryAmber.withOpacity(0.4),
+                  color: AppTheme.primaryAmber.withValues(alpha: 0.4),
                 ),
               ),
               child: Column(

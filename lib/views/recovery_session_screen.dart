@@ -203,6 +203,8 @@ class _RecoverySessionScreenState extends State<RecoverySessionScreen> {
               actions: [
                 ElevatedButton(
                   onPressed: () async {
+                    final nav = Navigator.of(context);
+                    final messenger = ScaffoldMessenger.of(context);
                     if (!widget.isPreviewMode) {
                       final recoveryProvider = Provider.of<RecoveryProvider>(context, listen: false);
                       await recoveryProvider.saveCompletedSession(
@@ -212,10 +214,10 @@ class _RecoverySessionScreenState extends State<RecoverySessionScreen> {
                         diagnosticReasons: widget.routine.diagnosticReasons,
                       );
                     }
-                    if (mounted) {
+                    if (mounted && ctx.mounted) {
                       Navigator.pop(ctx); // Close dialog
-                      Navigator.pop(context); // Exit recovery screen back to dashboard
-                      ScaffoldMessenger.of(context).showSnackBar(
+                      nav.pop(); // Exit recovery screen back to dashboard
+                      messenger.showSnackBar(
                         SnackBar(
                           content: Text(widget.isPreviewMode
                               ? '👁 Recovery Routine preview finished.'

@@ -256,7 +256,7 @@ class _PlateModalState extends State<PlateModal> {
                                 ),
                               ),
                             );
-                          }).toList(),
+                          }),
                         ],
                       ),
                     ),

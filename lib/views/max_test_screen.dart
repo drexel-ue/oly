@@ -229,7 +229,7 @@ class _MaxTestScreenState extends State<MaxTestScreen> {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: isPrAttempt ? AppTheme.primaryAmber.withOpacity(0.15) : AppTheme.surfaceCard,
+        color: isPrAttempt ? AppTheme.primaryAmber.withValues(alpha: 0.15) : AppTheme.surfaceCard,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: isPrAttempt ? AppTheme.primaryAmber : AppTheme.borderColor),
       ),

@@ -9,7 +9,6 @@ import '../theme/app_theme.dart';
 import '../widgets/active_recovery_card.dart';
 import '../widgets/plate_modal.dart';
 import '../widgets/settings_modal.dart';
-import '../widgets/warmup_sheet.dart';
 import 'recovery_session_screen.dart';
 import 'warmup_session_screen.dart';
 import 'workout_session_screen.dart';
@@ -170,7 +169,7 @@ class DashboardScreen extends StatelessWidget {
         ),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: isRetest ? Colors.redAccent : AppTheme.primaryAmber.withOpacity(0.3),
+          color: isRetest ? Colors.redAccent : AppTheme.primaryAmber.withValues(alpha: 0.3),
         ),
       ),
       child: Column(
@@ -255,9 +254,9 @@ class DashboardScreen extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: AppTheme.secondaryCyan.withOpacity(0.15),
+                color: AppTheme.secondaryCyan.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppTheme.secondaryCyan.withOpacity(0.5)),
+                border: Border.all(color: AppTheme.secondaryCyan.withValues(alpha: 0.5)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -309,7 +308,7 @@ class DashboardScreen extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(
-                    color: AppTheme.secondaryCyan.withOpacity(0.2),
+                    color: AppTheme.secondaryCyan.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
@@ -602,7 +601,7 @@ class DashboardScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: accentColor.withOpacity(0.15),
+                color: accentColor.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(icon, color: accentColor, size: 22),
@@ -688,7 +687,7 @@ class DashboardScreen extends StatelessWidget {
                   ],
                 ),
               );
-            }).toList(),
+            }),
         ],
       ),
     );
