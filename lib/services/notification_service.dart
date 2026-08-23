@@ -124,7 +124,7 @@ class NotificationService {
         details,
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
         uiLocalNotificationDateInterpretation:
-            UILocalNotificationDateInterpretation.absoluteTime,
+            UILocalNotificationDateInterpretation.wallClockTime,
       );
     } catch (e) {
       debugPrint('Error scheduling notification: $e');
