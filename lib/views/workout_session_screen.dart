@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:uuid/uuid.dart';
+
 import '../models/lift_model.dart';
 import '../models/program_model.dart';
 import '../models/workout_session.dart';
@@ -49,7 +51,10 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     _isLiveMode = !widget.isPreviewMode;
 
     final liftProvider = Provider.of<LiftProvider>(context, listen: false);
-    final programProvider = Provider.of<ProgramProvider>(context, listen: false);
+    final programProvider = Provider.of<ProgramProvider>(
+      context,
+      listen: false,
+    );
 
     final week = widget.previewWeek ?? programProvider.currentWeek;
     final maxes = liftProvider.currentMaxes;
@@ -117,7 +122,39 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     });
   }
 
-  void _showSwapVariationDialog(String originalExerciseName, String currentLiftId) {
+  Future<void> _launchExerciseVideo(String exerciseName) async {
+    final query = '$exerciseName Catalyst Athletics weightlifting tutorial';
+    final searchUri = Uri.parse(
+      'https://www.youtube.com/results?search_query=${Uri.encodeComponent(query)}',
+    );
+
+    try {
+      if (await canLaunchUrl(searchUri)) {
+        await launchUrl(searchUri, mode: LaunchMode.externalApplication);
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Could not open video for $exerciseName'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Could not open video for $exerciseName'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    }
+  }
+
+  void _showSwapVariationDialog(
+    String originalExerciseName,
+    String currentLiftId,
+  ) {
     final liftProvider = Provider.of<LiftProvider>(context, listen: false);
     final allLifts = liftProvider.lifts;
 
@@ -142,10 +179,16 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                   children: [
                     Text(
                       'Swap Movement Variation',
-                      style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.bold),
+                      style: GoogleFonts.outfit(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.close, color: AppTheme.textSecondary),
+                      icon: const Icon(
+                        Icons.close,
+                        color: AppTheme.textSecondary,
+                      ),
                       onPressed: () => Navigator.pop(ctx),
                     ),
                   ],
@@ -153,57 +196,76 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                 const SizedBox(height: 4),
                 Text(
                   'Replace $originalExerciseName while preserving program periodization percentages.',
-                  style: GoogleFonts.inter(fontSize: 13, color: AppTheme.textSecondary),
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    color: AppTheme.textSecondary,
+                  ),
                 ),
-              const SizedBox(height: 16),
-              Flexible(
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: allLifts.length,
-                  itemBuilder: (context, index) {
-                    final lift = allLifts[index];
-                    return ListTile(
-                      title: Text(lift.name, style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
-                      subtitle: Text(
-                        '1RM: ${lift.currentMax.toStringAsFixed(1)} kg (${lift.category.name})',
-                        style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textSecondary),
-                      ),
-                      trailing: const Icon(Icons.swap_horiz, color: AppTheme.primaryAmber),
-                      onTap: () {
-                        setState(() {
-                          _swappedExerciseNames[originalExerciseName] = lift.name;
-                          // Recalculate weights based on selected lift's 1RM
-                          final sets = _exerciseSets[originalExerciseName];
-                          if (sets != null) {
-                            final targetKg = lift.currentMax * 0.75; // Default 75%
-                            _weightControllers[originalExerciseName]?.text = targetKg.toStringAsFixed(1);
-                            for (int i = 0; i < sets.length; i++) {
-                              sets[i] = CompletedSet(
-                                setIndex: sets[i].setIndex,
-                                weight: targetKg,
-                                reps: sets[i].reps,
-                                isCompleted: sets[i].isCompleted,
-                              );
-                            }
-                          }
-                        });
-                        Navigator.pop(ctx);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Swapped to ${lift.name}! Weights updated.'),
-                            backgroundColor: AppTheme.primaryAmber,
+                const SizedBox(height: 16),
+                Flexible(
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: allLifts.length,
+                    itemBuilder: (context, index) {
+                      final lift = allLifts[index];
+                      return ListTile(
+                        title: Text(
+                          lift.name,
+                          style: GoogleFonts.outfit(
+                            fontWeight: FontWeight.w600,
                           ),
-                        );
-                      },
-                    );
-                  },
+                        ),
+                        subtitle: Text(
+                          '1RM: ${lift.currentMax.toStringAsFixed(1)} kg (${lift.category.name})',
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            color: AppTheme.textSecondary,
+                          ),
+                        ),
+                        trailing: const Icon(
+                          Icons.swap_horiz,
+                          color: AppTheme.primaryAmber,
+                        ),
+                        onTap: () {
+                          setState(() {
+                            _swappedExerciseNames[originalExerciseName] =
+                                lift.name;
+                            // Recalculate weights based on selected lift's 1RM
+                            final sets = _exerciseSets[originalExerciseName];
+                            if (sets != null) {
+                              final targetKg =
+                                  lift.currentMax * 0.75; // Default 75%
+                              _weightControllers[originalExerciseName]?.text =
+                                  targetKg.toStringAsFixed(1);
+                              for (int i = 0; i < sets.length; i++) {
+                                sets[i] = CompletedSet(
+                                  setIndex: sets[i].setIndex,
+                                  weight: targetKg,
+                                  reps: sets[i].reps,
+                                  isCompleted: sets[i].isCompleted,
+                                );
+                              }
+                            }
+                          });
+                          Navigator.pop(ctx);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                'Swapped to ${lift.name}! Weights updated.',
+                              ),
+                              backgroundColor: AppTheme.primaryAmber,
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-      );
-    },
+        );
+      },
     );
   }
 
@@ -214,7 +276,9 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
         builder: (context, setDialogState) {
           return AlertDialog(
             backgroundColor: AppTheme.darkBackground,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
             title: Row(
               children: [
                 const Icon(Icons.insights, color: AppTheme.primaryAmber),
@@ -232,12 +296,18 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                 children: [
                   Text(
                     'Rate Overall Session Intensity (RPE)',
-                    style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.bold),
+                    style: GoogleFonts.outfit(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 6),
                   Text(
                     'RPE $_selectedRpe — ${_rpeDescription(_selectedRpe)}',
-                    style: GoogleFonts.inter(fontSize: 12, color: AppTheme.primaryAmber),
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      color: AppTheme.primaryAmber,
+                    ),
                   ),
                   Slider(
                     value: _selectedRpe.toDouble(),
@@ -255,34 +325,52 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                   const SizedBox(height: 16),
                   Text(
                     'Joint Strain & Fatigue Tags',
-                    style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.bold),
+                    style: GoogleFonts.outfit(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   Text(
                     'Targets tomorrow\'s Active Recovery day routines.',
-                    style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textSecondary),
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      color: AppTheme.textSecondary,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Wrap(
                     spacing: 6,
                     runSpacing: 6,
-                    children: ['Shoulders', 'Hips', 'Lower Back', 'Knees', 'Wrists'].map((tag) {
-                      final isSelected = _selectedJointStrains.contains(tag);
-                      return FilterChip(
-                        selected: isSelected,
-                        label: Text(tag, style: GoogleFonts.inter(fontSize: 12)),
-                        selectedColor: AppTheme.primaryAmber,
-                        backgroundColor: AppTheme.surfaceElevated,
-                        onSelected: (val) {
-                          setDialogState(() {
-                            if (val) {
-                              _selectedJointStrains.add(tag);
-                            } else {
-                              _selectedJointStrains.remove(tag);
-                            }
-                          });
-                        },
-                      );
-                    }).toList(),
+                    children:
+                        [
+                          'Shoulders',
+                          'Hips',
+                          'Lower Back',
+                          'Knees',
+                          'Wrists',
+                        ].map((tag) {
+                          final isSelected = _selectedJointStrains.contains(
+                            tag,
+                          );
+                          return FilterChip(
+                            selected: isSelected,
+                            label: Text(
+                              tag,
+                              style: GoogleFonts.inter(fontSize: 12),
+                            ),
+                            selectedColor: AppTheme.primaryAmber,
+                            backgroundColor: AppTheme.surfaceElevated,
+                            onSelected: (val) {
+                              setDialogState(() {
+                                if (val) {
+                                  _selectedJointStrains.add(tag);
+                                } else {
+                                  _selectedJointStrains.remove(tag);
+                                }
+                              });
+                            },
+                          );
+                        }).toList(),
                   ),
                 ],
               ),
@@ -334,7 +422,10 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
   }
 
   Future<void> _saveWorkoutSession() async {
-    final programProvider = Provider.of<ProgramProvider>(context, listen: false);
+    final programProvider = Provider.of<ProgramProvider>(
+      context,
+      listen: false,
+    );
     final durationSecs = DateTime.now().difference(_startTime).inSeconds;
 
     final logs = <ExerciseLog>[];
@@ -387,10 +478,17 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.directions_run, color: AppTheme.primaryAmber),
+            icon: const Icon(
+              Icons.directions_run,
+              color: AppTheme.primaryAmber,
+            ),
             tooltip: 'Guided Warm-Up',
             onPressed: () {
-              Navigator.pushNamed(context, '/warmup', arguments: widget.dayTemplate);
+              Navigator.pushNamed(
+                context,
+                '/warmup',
+                arguments: widget.dayTemplate,
+              );
             },
           ),
         ],
@@ -401,11 +499,18 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
             if (!_isLiveMode)
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 color: AppTheme.secondaryCyan.withValues(alpha: 0.15),
                 child: Row(
                   children: [
-                    const Icon(Icons.explore, color: AppTheme.secondaryCyan, size: 18),
+                    const Icon(
+                      Icons.explore,
+                      color: AppTheme.secondaryCyan,
+                      size: 18,
+                    ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
@@ -441,12 +546,16 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                       style: GoogleFonts.inter(color: AppTheme.textPrimary),
                       decoration: InputDecoration(
                         hintText: 'Workout Notes (RPE, feel, fatigue)...',
-                        hintStyle: GoogleFonts.inter(color: AppTheme.textSecondary),
+                        hintStyle: GoogleFonts.inter(
+                          color: AppTheme.textSecondary,
+                        ),
                         filled: true,
                         fillColor: AppTheme.surfaceCard,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(16),
-                          borderSide: const BorderSide(color: AppTheme.borderColor),
+                          borderSide: const BorderSide(
+                            color: AppTheme.borderColor,
+                          ),
                         ),
                       ),
                     ),
@@ -459,15 +568,23 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                         height: 52,
                         child: ElevatedButton.icon(
                           onPressed: _finishWorkout,
-                          icon: const Icon(Icons.check_circle_outline, color: Colors.black),
+                          icon: const Icon(
+                            Icons.check_circle_outline,
+                            color: Colors.black,
+                          ),
                           label: Text(
                             'Complete & Save Session',
-                            style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.bold),
+                            style: GoogleFonts.outfit(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppTheme.primaryAmber,
                             foregroundColor: Colors.black,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
                           ),
                         ),
                       )
@@ -480,10 +597,19 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                               style: OutlinedButton.styleFrom(
                                 minimumSize: const Size(0, 50),
                                 foregroundColor: AppTheme.textSecondary,
-                                side: const BorderSide(color: AppTheme.borderColor),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                side: const BorderSide(
+                                  color: AppTheme.borderColor,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
                               ),
-                              child: Text('Exit Preview', style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
+                              child: Text(
+                                'Exit Preview',
+                                style: GoogleFonts.outfit(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                             ),
                           ),
                           const SizedBox(width: 12),
@@ -495,18 +621,30 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                                 });
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
-                                    content: Text('Switched to Live Workout! You can now log your sets.'),
+                                    content: Text(
+                                      'Switched to Live Workout! You can now log your sets.',
+                                    ),
                                     backgroundColor: AppTheme.primaryAmber,
                                   ),
                                 );
                               },
-                              icon: const Icon(Icons.play_arrow, color: Colors.black),
-                              label: Text('Start Live Log', style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
+                              icon: const Icon(
+                                Icons.play_arrow,
+                                color: Colors.black,
+                              ),
+                              label: Text(
+                                'Start Live Log',
+                                style: GoogleFonts.outfit(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                               style: ElevatedButton.styleFrom(
                                 minimumSize: const Size(0, 50),
                                 backgroundColor: AppTheme.primaryAmber,
                                 foregroundColor: Colors.black,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
                               ),
                             ),
                           ),
@@ -525,7 +663,11 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     );
   }
 
-  Widget _buildPhaseCard(BuildContext context, PhaseTemplate phase, SettingsProvider settings) {
+  Widget _buildPhaseCard(
+    BuildContext context,
+    PhaseTemplate phase,
+    SettingsProvider settings,
+  ) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
@@ -548,7 +690,8 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
           ),
           const SizedBox(height: 12),
           ...phase.exercises.map((exercise) {
-            final displayName = _swappedExerciseNames[exercise.name] ?? exercise.name;
+            final displayName =
+                _swappedExerciseNames[exercise.name] ?? exercise.name;
             final sets = _exerciseSets[exercise.name] ?? [];
             final weightCtrl = _weightControllers[exercise.name];
 
@@ -570,6 +713,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: .min,
                           children: [
                             Text(
                               displayName,
@@ -582,39 +726,76 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                             const SizedBox(height: 2),
                             Text(
                               exercise.setScheme,
-                              style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textSecondary),
+                              style: GoogleFonts.inter(
+                                fontSize: 12,
+                                color: AppTheme.textSecondary,
+                              ),
                             ),
                           ],
                         ),
                       ),
                       const SizedBox(width: 4),
 
-                      // Right: Top-Aligned Action Buttons (Swap + Plate Loader)
+                      // Right: Top-Aligned Action Buttons (Video + Swap + Plate Loader)
                       Row(
                         mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           IconButton(
                             padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                            icon: const Icon(Icons.swap_horiz, size: 22, color: AppTheme.accentBlue),
-                            tooltip: 'Swap Movement Variation',
-                            onPressed: () => _showSwapVariationDialog(exercise.name, exercise.liftId),
+                            constraints: const BoxConstraints(
+                              minWidth: 32,
+                              minHeight: 32,
+                            ),
+                            icon: const Icon(
+                              Icons.play_circle_outline,
+                              size: 22,
+                              color: AppTheme.secondaryCyan,
+                            ),
+                            tooltip: 'Watch Movement Demo',
+                            onPressed: () => _launchExerciseVideo(displayName),
                           ),
                           const SizedBox(width: 4),
                           IconButton(
                             padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                            icon: const Icon(Icons.pie_chart_outline, size: 22, color: AppTheme.primaryAmber),
+                            constraints: const BoxConstraints(
+                              minWidth: 32,
+                              minHeight: 32,
+                            ),
+                            icon: const Icon(
+                              Icons.swap_horiz,
+                              size: 22,
+                              color: AppTheme.accentBlue,
+                            ),
+                            tooltip: 'Swap Movement Variation',
+                            onPressed: () => _showSwapVariationDialog(
+                              exercise.name,
+                              exercise.liftId,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          IconButton(
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(
+                              minWidth: 32,
+                              minHeight: 32,
+                            ),
+                            icon: const Icon(
+                              Icons.pie_chart_outline,
+                              size: 22,
+                              color: AppTheme.primaryAmber,
+                            ),
                             tooltip: 'Plate Loader',
                             onPressed: () {
-                              final currentKg = double.tryParse(weightCtrl?.text ?? '100') ?? 100.0;
+                              final currentKg =
+                                  double.tryParse(weightCtrl?.text ?? '100') ??
+                                  100.0;
                               showModalBottomSheet(
                                 context: context,
                                 isScrollControlled: true,
                                 useSafeArea: true,
                                 backgroundColor: Colors.transparent,
-                                builder: (_) => PlateModal(initialWeightKg: currentKg),
+                                builder: (_) =>
+                                    PlateModal(initialWeightKg: currentKg),
                               );
                             },
                           ),
@@ -637,12 +818,15 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                           style: GoogleFonts.outfit(
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
-                            color: setItem.isCompleted ? Colors.black : AppTheme.textPrimary,
+                            color: setItem.isCompleted
+                                ? Colors.black
+                                : AppTheme.textPrimary,
                           ),
                         ),
                         selectedColor: AppTheme.primaryAmber,
                         backgroundColor: AppTheme.surfaceCard,
-                        onSelected: (_) => _toggleSetCompletion(exercise.name, index),
+                        onSelected: (_) =>
+                            _toggleSetCompletion(exercise.name, index),
                       );
                     }),
                   ),
