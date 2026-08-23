@@ -92,6 +92,10 @@ class MobilityExerciseModel {
     );
   }
 
+  static String _youtubeSearchUrl(String query) {
+    return 'https://www.youtube.com/results?search_query=${Uri.encodeComponent('$query Catalyst Athletics weightlifting tutorial')}';
+  }
+
   static List<MobilityExerciseModel> defaultExercises() {
     return [
       // CARDIO OPENERS
@@ -106,8 +110,8 @@ class MobilityExerciseModel {
           'Focus on driving through the heels and relaxing upper body.',
           'Gradually increase stroke rate during the final minute.'
         ],
-        durationSeconds: 180, // 3 mins
-        videoUrl: 'https://www.youtube.com/watch?v=eqVmMd7U5p0',
+        durationSeconds: 180,
+        videoUrl: _youtubeSearchUrl('Concept2 Ergometer Rowing Technique'),
         isYoutube: true,
       ),
 
@@ -124,7 +128,7 @@ class MobilityExerciseModel {
           'Pause and take 3 deep breaths at each stiff segment.'
         ],
         durationSeconds: 90,
-        videoUrl: 'https://www.youtube.com/watch?v=S3742-GqE0w',
+        videoUrl: _youtubeSearchUrl('Thoracic Spine Extension Foam Roller'),
         isYoutube: true,
       ),
       MobilityExerciseModel(
@@ -138,7 +142,7 @@ class MobilityExerciseModel {
           'Pause on tender spots for 5-10 seconds to allow tissue release.'
         ],
         durationSeconds: 90,
-        videoUrl: 'https://www.youtube.com/watch?v=vV7A_6zT3tI',
+        videoUrl: _youtubeSearchUrl('Foam Rolling Quads and Lats'),
         isYoutube: true,
       ),
 
@@ -170,7 +174,7 @@ class MobilityExerciseModel {
           'Keep core braced and avoid arching your lower back.'
         ],
         durationSeconds: 60,
-        videoUrl: 'https://www.youtube.com/watch?v=33P5AI27eiU',
+        videoUrl: _youtubeSearchUrl('PVC Shoulder Dislocates Pass Throughs'),
         isYoutube: true,
       ),
       MobilityExerciseModel(
@@ -185,7 +189,7 @@ class MobilityExerciseModel {
           'Keep chest tall and avoid leaning far back.'
         ],
         durationSeconds: 90,
-        videoUrl: 'https://www.youtube.com/watch?v=0_n5c_Wv8nU',
+        videoUrl: _youtubeSearchUrl('90 90 Hip Mobility Switches'),
         isYoutube: true,
       ),
       MobilityExerciseModel(
@@ -200,7 +204,7 @@ class MobilityExerciseModel {
           'Oscillate gently forward and backward for 60 seconds per ankle.'
         ],
         durationSeconds: 90,
-        videoUrl: 'https://www.youtube.com/watch?v=1b-9eW2YnQE',
+        videoUrl: _youtubeSearchUrl('Banded Ankle Dorsiflexion Mobilization'),
         isYoutube: true,
       ),
 
@@ -219,7 +223,7 @@ class MobilityExerciseModel {
         ],
         defaultSets: 1,
         defaultReps: 5,
-        videoUrl: 'https://www.youtube.com/watch?v=12-349fJ70w',
+        videoUrl: _youtubeSearchUrl('Burgener Snatch Warm Up'),
         isYoutube: true,
       ),
       MobilityExerciseModel(
@@ -235,7 +239,7 @@ class MobilityExerciseModel {
         ],
         defaultSets: 2,
         defaultReps: 5,
-        videoUrl: 'https://www.youtube.com/watch?v=gJ3vL_8xX1U',
+        videoUrl: _youtubeSearchUrl('Press in Snatch Bottom Sotts Press'),
         isYoutube: true,
       ),
 
@@ -254,7 +258,7 @@ class MobilityExerciseModel {
         ],
         defaultSets: 1,
         defaultReps: 5,
-        videoUrl: 'https://www.youtube.com/watch?v=PjY1rrr6hJk',
+        videoUrl: _youtubeSearchUrl('Clean and Jerk Warmup Complex'),
         isYoutube: true,
       ),
 
@@ -272,7 +276,7 @@ class MobilityExerciseModel {
         ],
         defaultSets: 2,
         defaultReps: 5,
-        videoUrl: 'https://www.youtube.com/watch?v=tpU1U4V9nNo',
+        videoUrl: _youtubeSearchUrl('Paused Squat Warmup'),
         isYoutube: true,
       ),
 
@@ -290,7 +294,7 @@ class MobilityExerciseModel {
         ],
         defaultSets: 3,
         defaultReps: 12,
-        videoUrl: 'https://www.youtube.com/watch?v=sO7u_m-7y88',
+        videoUrl: _youtubeSearchUrl('Lu Raises Lu Xiaojun'),
         isYoutube: true,
       ),
       MobilityExerciseModel(
@@ -306,7 +310,7 @@ class MobilityExerciseModel {
         ],
         defaultSets: 3,
         defaultReps: 8,
-        videoUrl: 'https://www.youtube.com/watch?v=84_U2T855h8',
+        videoUrl: _youtubeSearchUrl('Bodyweight Cossack Squat'),
         isYoutube: true,
       ),
       MobilityExerciseModel(
@@ -322,7 +326,7 @@ class MobilityExerciseModel {
         ],
         defaultSets: 3,
         defaultReps: 6,
-        videoUrl: 'https://www.youtube.com/watch?v=E73Yx2K-gYg',
+        videoUrl: _youtubeSearchUrl('Jefferson Curl'),
         isYoutube: true,
       ),
       MobilityExerciseModel(
@@ -337,7 +341,7 @@ class MobilityExerciseModel {
           'Squeeze back glute and lift torso upright.'
         ],
         durationSeconds: 90,
-        videoUrl: 'https://www.youtube.com/watch?v=JmF02wHjRik',
+        videoUrl: _youtubeSearchUrl('Couch Stretch Quad Hip Flexor'),
         isYoutube: true,
       ),
       MobilityExerciseModel(
@@ -353,7 +357,7 @@ class MobilityExerciseModel {
         ],
         defaultSets: 3,
         defaultReps: 12,
-        videoUrl: 'https://www.youtube.com/watch?v=in7PaeYlhrM',
+        videoUrl: _youtubeSearchUrl('Dumbbell Bicep Curls'),
         isYoutube: true,
       ),
       MobilityExerciseModel(
@@ -369,7 +373,7 @@ class MobilityExerciseModel {
         ],
         defaultSets: 3,
         defaultReps: 12,
-        videoUrl: 'https://www.youtube.com/watch?v=_gsUck-7M74',
+        videoUrl: _youtubeSearchUrl('Overhead Dumbbell Tricep Extension'),
         isYoutube: true,
       ),
       MobilityExerciseModel(
@@ -385,7 +389,7 @@ class MobilityExerciseModel {
         ],
         defaultSets: 3,
         defaultReps: 12,
-        videoUrl: 'https://www.youtube.com/watch?v=hdng3Nm1x_E',
+        videoUrl: _youtubeSearchUrl('Hanging Leg Raises'),
         isYoutube: true,
       ),
       MobilityExerciseModel(
@@ -402,7 +406,7 @@ class MobilityExerciseModel {
         durationSeconds: 60,
         defaultSets: 3,
         defaultReps: 10,
-        videoUrl: 'https://www.youtube.com/watch?v=rqiTPdK2j9A',
+        videoUrl: _youtubeSearchUrl('Ab Wheel Rollout'),
         isYoutube: true,
       ),
       MobilityExerciseModel(
@@ -419,7 +423,7 @@ class MobilityExerciseModel {
         durationSeconds: 45,
         defaultSets: 3,
         defaultReps: 1,
-        videoUrl: 'https://www.youtube.com/watch?v=p5M575x4lY0',
+        videoUrl: _youtubeSearchUrl('Farmer Carry Exercise'),
         isYoutube: true,
       ),
       MobilityExerciseModel(
@@ -436,7 +440,7 @@ class MobilityExerciseModel {
         durationSeconds: 45,
         defaultSets: 3,
         defaultReps: 1,
-        videoUrl: 'https://www.youtube.com/watch?v=1uR42jlyN0U',
+        videoUrl: _youtubeSearchUrl('Dead Hang Exercise'),
         isYoutube: true,
       ),
     ];
