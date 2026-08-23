@@ -9,16 +9,20 @@ class ProgramProvider extends ChangeNotifier {
   late ProgramCycle _cycle;
   late List<DayTemplate> _days;
   late List<WorkoutSession> _sessions;
+  ActiveWorkoutDraft? _activeDraft;
 
   ProgramProvider(this._storage) {
     _cycle = _storage.loadProgramCycle();
     _days = ProgramCycle.getBuiltInProgram();
     _sessions = _storage.loadWorkoutSessions();
+    _activeDraft = _storage.loadActiveWorkoutDraft();
   }
 
   ProgramCycle get cycle => _cycle;
   List<DayTemplate> get days => List.unmodifiable(_days);
   List<WorkoutSession> get sessions => List.unmodifiable(_sessions);
+  ActiveWorkoutDraft? get activeDraft => _activeDraft;
+  bool get hasActiveDraft => _activeDraft != null;
 
   int get currentWeek => _cycle.currentWeek;
   int get currentDay => _cycle.currentDay;
@@ -115,12 +119,26 @@ class ProgramProvider extends ChangeNotifier {
 
     await _storage.saveWorkoutSessions(_sessions);
     await _storage.saveProgramCycle(_cycle);
+    await clearActiveDraft();
+    notifyListeners();
+  }
+
+  Future<void> saveActiveDraft(ActiveWorkoutDraft draft) async {
+    _activeDraft = draft;
+    await _storage.saveActiveWorkoutDraft(draft);
+    notifyListeners();
+  }
+
+  Future<void> clearActiveDraft() async {
+    _activeDraft = null;
+    await _storage.clearActiveWorkoutDraft();
     notifyListeners();
   }
 
   Future<void> reload() async {
     _cycle = _storage.loadProgramCycle();
     _sessions = _storage.loadWorkoutSessions();
+    _activeDraft = _storage.loadActiveWorkoutDraft();
     notifyListeners();
   }
 }

@@ -14,6 +14,7 @@ class StorageService {
   static const String _keyRecoveryLogs = 'oly_recovery_logs_v1';
   static const String _keySoundAlerts = 'oly_sound_alerts_v1';
   static const String _keyHapticsEnabled = 'oly_haptics_enabled_v1';
+  static const String _keyActiveDraft = 'oly_active_draft_v1';
 
   final SharedPreferences _prefs;
 
@@ -79,6 +80,27 @@ class StorageService {
   Future<void> saveWorkoutSessions(List<WorkoutSession> sessions) async {
     final jsonStr = jsonEncode(sessions.map((e) => e.toJson()).toList());
     await _prefs.setString(_keySessions, jsonStr);
+  }
+
+  // --- ACTIVE WORKOUT DRAFT STORAGE ---
+  ActiveWorkoutDraft? loadActiveWorkoutDraft() {
+    final jsonStr = _prefs.getString(_keyActiveDraft);
+    if (jsonStr == null || jsonStr.isEmpty) return null;
+    try {
+      final map = jsonDecode(jsonStr) as Map<String, dynamic>;
+      return ActiveWorkoutDraft.fromJson(map);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> saveActiveWorkoutDraft(ActiveWorkoutDraft draft) async {
+    final jsonStr = jsonEncode(draft.toJson());
+    await _prefs.setString(_keyActiveDraft, jsonStr);
+  }
+
+  Future<void> clearActiveWorkoutDraft() async {
+    await _prefs.remove(_keyActiveDraft);
   }
 
   // --- SETTINGS STORAGE ---

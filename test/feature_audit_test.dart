@@ -76,5 +76,74 @@ void main() {
       final importResult = await settings.importDataJson(jsonBackup);
       expect(importResult, isTrue);
     });
+
+    test('ActiveWorkoutDraft serializes and calculates progress correctly', () {
+      final draft = ActiveWorkoutDraft(
+        dayNumber: 1,
+        weekNumber: 3,
+        cycleNumber: 1,
+        dayTitle: 'Day 1: Snatch & Clean Strength',
+        startTime: DateTime.now().subtract(const Duration(minutes: 25)),
+        exerciseSets: {
+          'Snatch': [
+            CompletedSet(setIndex: 1, weight: 80.0, reps: 3, isCompleted: true),
+            CompletedSet(setIndex: 2, weight: 80.0, reps: 3, isCompleted: true),
+            CompletedSet(setIndex: 3, weight: 80.0, reps: 3, isCompleted: false),
+            CompletedSet(setIndex: 4, weight: 80.0, reps: 3, isCompleted: false),
+          ],
+          'Back Squat': [
+            CompletedSet(setIndex: 1, weight: 130.0, reps: 5, isCompleted: false),
+            CompletedSet(setIndex: 2, weight: 130.0, reps: 5, isCompleted: false),
+          ],
+        },
+        exerciseWeights: {'Snatch': 80.0, 'Back Squat': 130.0},
+        swappedExerciseNames: {'Military Press': 'Push Press'},
+        notes: 'Felt snappy on snatches',
+        selectedRpe: 8,
+        selectedJointStrains: ['Wrists'],
+      );
+
+      expect(draft.totalSetsCount, equals(6));
+      expect(draft.totalCompletedSets, equals(2));
+      expect(draft.completionPercentage, closeTo(2 / 6, 0.001));
+
+      final json = draft.toJson();
+      final restored = ActiveWorkoutDraft.fromJson(json);
+
+      expect(restored.dayNumber, equals(1));
+      expect(restored.weekNumber, equals(3));
+      expect(restored.dayTitle, equals('Day 1: Snatch & Clean Strength'));
+      expect(restored.totalCompletedSets, equals(2));
+      expect(restored.exerciseSets['Snatch']?[0].isCompleted, isTrue);
+      expect(restored.exerciseWeights['Snatch'], equals(80.0));
+      expect(restored.swappedExerciseNames['Military Press'], equals('Push Press'));
+      expect(restored.notes, equals('Felt snappy on snatches'));
+      expect(restored.selectedJointStrains, contains('Wrists'));
+    });
+
+    test('StorageService persists and clears active workout draft', () async {
+      SharedPreferences.setMockInitialValues({});
+      final storage = await StorageService.init();
+
+      expect(storage.loadActiveWorkoutDraft(), isNull);
+
+      final draft = ActiveWorkoutDraft(
+        dayNumber: 2,
+        weekNumber: 1,
+        cycleNumber: 1,
+        dayTitle: 'Day 2: Technique Prep',
+        startTime: DateTime.now(),
+        exerciseSets: {},
+        exerciseWeights: {},
+      );
+
+      await storage.saveActiveWorkoutDraft(draft);
+      final loaded = storage.loadActiveWorkoutDraft();
+      expect(loaded, isNotNull);
+      expect(loaded?.dayTitle, equals('Day 2: Technique Prep'));
+
+      await storage.clearActiveWorkoutDraft();
+      expect(storage.loadActiveWorkoutDraft(), isNull);
+    });
   });
 }
