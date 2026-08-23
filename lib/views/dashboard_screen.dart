@@ -10,6 +10,7 @@ import '../widgets/active_recovery_card.dart';
 import '../widgets/plate_modal.dart';
 import '../widgets/warmup_sheet.dart';
 import 'recovery_session_screen.dart';
+import 'warmup_session_screen.dart';
 import 'workout_session_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
@@ -95,12 +96,11 @@ class DashboardScreen extends StatelessWidget {
                     icon: Icons.directions_run,
                     accentColor: AppTheme.secondaryCyan,
                     onTap: () {
-                      showModalBottomSheet(
-                        context: context,
-                        isScrollControlled: true,
-                        useSafeArea: true,
-                        backgroundColor: Colors.transparent,
-                        builder: (_) => const WarmupSheet(),
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => WarmupSessionScreen(dayTemplate: currentDay),
+                        ),
                       );
                     },
                   ),

@@ -469,6 +469,12 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
         return 'Abs & Core';
       case MobilityFocusArea.gripStrength:
         return 'Grip Strength';
+      case MobilityFocusArea.barbellSnatch:
+        return 'Snatch Prep';
+      case MobilityFocusArea.barbellCleanJerk:
+        return 'Clean & Jerk Prep';
+      case MobilityFocusArea.barbellSquat:
+        return 'Squat Prep';
     }
   }
 
@@ -482,6 +488,10 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
         return 'ZONE 2 CARDIO';
       case MobilityCategory.hypertrophyCore:
         return 'HYPERTROPHY & CORE';
+      case MobilityCategory.foamRolling:
+        return 'FOAM ROLLING';
+      case MobilityCategory.barbellPrep:
+        return 'BARBELL PREP';
     }
   }
 }

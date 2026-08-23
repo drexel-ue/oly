@@ -9,6 +9,9 @@ enum MobilityFocusArea {
   arms,
   absCore,
   gripStrength,
+  barbellSnatch,
+  barbellCleanJerk,
+  barbellSquat,
 }
 
 enum MobilityCategory {
@@ -16,6 +19,8 @@ enum MobilityCategory {
   liftingAccessory,
   cardioConditioning,
   hypertrophyCore,
+  foamRolling,
+  barbellPrep,
 }
 
 class MobilityExerciseModel {
@@ -89,29 +94,29 @@ class MobilityExerciseModel {
 
   static List<MobilityExerciseModel> defaultExercises() {
     return [
-      // PHASE 1: Zone 2 Cardio & Conditioning
+      // CARDIO OPENERS
       MobilityExerciseModel(
         id: 'zone2_cardio_row',
-        name: 'Ergometer Row / Bike (Zone 2 Cardio)',
+        name: 'Ergometer Row / Bike (Cardio Opener)',
         focusArea: MobilityFocusArea.cardio,
         category: MobilityCategory.cardioConditioning,
-        description: 'Promotes aerobic recovery and flushes metabolic waste without stressing joint tissue.',
+        description: 'Increases core body temperature and heart rate to prime muscles for heavy loading.',
         cues: [
-          'Maintain a steady, conversational pace (60-70% max heart rate).',
-          'Focus on smooth leg drive and long, controlled breathing.',
-          'Keep stroke rate at 22-26 sdm on rower or 85+ rpm on bike.'
+          'Row or bike at an easy, conversational pace (3-5 minutes).',
+          'Focus on driving through the heels and relaxing upper body.',
+          'Gradually increase stroke rate during the final minute.'
         ],
-        durationSeconds: 900, // 15 mins
+        durationSeconds: 180, // 3 mins
         videoUrl: 'https://www.youtube.com/watch?v=H0r_Zp1m7rY',
         isYoutube: true,
       ),
 
-      // PHASE 2: Thoracic Spine Mobility
+      // FOAM ROLLING
       MobilityExerciseModel(
         id: 'thoracic_foam_roll',
-        name: 'Thoracic Extension on Foam Roller',
+        name: 'Thoracic Extension Foam Roll',
         focusArea: MobilityFocusArea.thoracicSpine,
-        category: MobilityCategory.mobilityDrill,
+        category: MobilityCategory.foamRolling,
         description: 'Mobilizes upper back extension necessary for upright catch positions in snatch & front squat.',
         cues: [
           'Support your head with your hands, elbows pointed forward.',
@@ -123,22 +128,36 @@ class MobilityExerciseModel {
         isYoutube: true,
       ),
       MobilityExerciseModel(
-        id: 'cat_cow_thoracic',
-        name: 'Quadruped Thoracic Rotations',
-        focusArea: MobilityFocusArea.thoracicSpine,
-        category: MobilityCategory.mobilityDrill,
-        description: 'Increases thoracic rotation and rib cage mobility for shoulder overhead positioning.',
+        id: 'quads_lats_foam_roll',
+        name: 'Quads & Lats Foam Roll',
+        focusArea: MobilityFocusArea.quadriceps,
+        category: MobilityCategory.foamRolling,
+        description: 'Releases quad and upper lat stiffness before squatting and turnover pulls.',
         cues: [
-          'Place one hand behind your head while in all-fours position.',
-          'Rotate your elbow down towards the opposite wrist, then drive it up to the ceiling.',
-          'Exhale fully at top extension.'
+          'Roll 8-10 slow passes along the front of quads and side of lats.',
+          'Pause on tender spots for 5-10 seconds to allow tissue release.'
         ],
-        durationSeconds: 60,
-        videoUrl: 'https://www.youtube.com/watch?v=g8uF03zTdfY',
+        durationSeconds: 90,
+        videoUrl: 'https://www.youtube.com/watch?v=vV7A_6zT3tI',
         isYoutube: true,
       ),
 
-      // Shoulder & Overhead Stability
+      // JOINT MOBILIZATION & DROMS
+      MobilityExerciseModel(
+        id: 'wrist_elbow_droms',
+        name: 'Wrists & Elbows Dynamic Rotations',
+        focusArea: MobilityFocusArea.shoulderOverhead,
+        category: MobilityCategory.mobilityDrill,
+        description: 'Preps wrists and elbows for front rack and snatch overhead catch positions.',
+        cues: [
+          'Interlock fingers and rotate wrists in 15 clockwise and counter-clockwise circles.',
+          'Perform 10 elbow rotations inside and out.',
+          'Stretch wrists back against floor in all-fours position.'
+        ],
+        durationSeconds: 60,
+        videoUrl: 'https://www.youtube.com/watch?v=g38U-JqB-v0',
+        isYoutube: true,
+      ),
       MobilityExerciseModel(
         id: 'banded_shoulder_dislocates',
         name: 'PVC / Banded Shoulder Pass-Throughs',
@@ -155,6 +174,110 @@ class MobilityExerciseModel {
         isYoutube: true,
       ),
       MobilityExerciseModel(
+        id: 'hip_90_90_switches',
+        name: '90/90 Hip Mobility Switches',
+        focusArea: MobilityFocusArea.hipCapsule,
+        category: MobilityCategory.mobilityDrill,
+        description: 'Mobilizes internal and external hip rotation for deep squat receiving positions.',
+        cues: [
+          'Sit on floor with knees bent at 90-degree angles.',
+          'Rotate hips to transition from left side to right side smoothly.',
+          'Keep chest tall and avoid leaning far back.'
+        ],
+        durationSeconds: 90,
+        videoUrl: 'https://www.youtube.com/watch?v=t5J5iZ1rPCo',
+        isYoutube: true,
+      ),
+      MobilityExerciseModel(
+        id: 'banded_ankle_distraction',
+        name: 'Banded Ankle Dorsiflexion Mobilization',
+        focusArea: MobilityFocusArea.ankleDorsiflexion,
+        category: MobilityCategory.mobilityDrill,
+        description: 'Clears anterior ankle joint pinching to allow deeper, upright squat positioning.',
+        cues: [
+          'Attach heavy resistance band low on rig and loop around ankle talus bone.',
+          'Step forward into tension and drive knee over pinky toe.',
+          'Oscillate gently forward and backward for 60 seconds per ankle.'
+        ],
+        durationSeconds: 90,
+        videoUrl: 'https://www.youtube.com/watch?v=1b-9eW2YnQE',
+        isYoutube: true,
+      ),
+
+      // BARBELL PREP: SNATCH SPECIFIC
+      MobilityExerciseModel(
+        id: 'burgener_snatch_warmup',
+        name: 'Burgener Empty Barbell Snatch Warm-Up',
+        focusArea: MobilityFocusArea.barbellSnatch,
+        category: MobilityCategory.barbellPrep,
+        description: 'The standard Olympic lifting warmup complex for snatch trajectory, speed, and extension.',
+        cues: [
+          'Perform 5 reps of: Dip & Drive (Down & Up).',
+          '5 reps of: Dip-Drive & Elbows High and Outside.',
+          '5 reps of: Muscle Snatch.',
+          '5 reps of: Snatch Lands (Footwork) & Snatch Drops.'
+        ],
+        defaultSets: 1,
+        defaultReps: 5,
+        videoUrl: 'https://www.youtube.com/watch?v=mWfRBMTj_Lg',
+        isYoutube: true,
+      ),
+      MobilityExerciseModel(
+        id: 'sotts_press',
+        name: 'Press in Snatch Bottom (Sotts Press)',
+        focusArea: MobilityFocusArea.barbellSnatch,
+        category: MobilityCategory.barbellPrep,
+        description: 'Builds extreme overhead stability and hip/ankle flexibility in the bottom of the snatch.',
+        cues: [
+          'Sit in deep snatch squat with empty barbell or PVC pipe.',
+          'Press bar straight up overhead without standing up.',
+          'Lock elbows firmly and hold top position for 2 seconds.'
+        ],
+        defaultSets: 2,
+        defaultReps: 5,
+        videoUrl: 'https://www.youtube.com/watch?v=2r1H_vS29lE',
+        isYoutube: true,
+      ),
+
+      // BARBELL PREP: CLEAN & JERK SPECIFIC
+      MobilityExerciseModel(
+        id: 'clean_jerk_bar_prep',
+        name: 'Empty Barbell Clean & Jerk Prep Complex',
+        focusArea: MobilityFocusArea.barbellCleanJerk,
+        category: MobilityCategory.barbellPrep,
+        description: 'Preps front rack delivery, dip-and-drive verticality, and jerk split receiver.',
+        cues: [
+          'Perform 5 reps of: Empty Bar Front Squats.',
+          '5 reps of: Tall Cleans (High Pull + Quick Drop under).',
+          '5 reps of: Push Press.',
+          '5 reps of: Split Jerk footwork drops.'
+        ],
+        defaultSets: 1,
+        defaultReps: 5,
+        videoUrl: 'https://www.youtube.com/watch?v=vUXtD-88wEU',
+        isYoutube: true,
+      ),
+
+      // BARBELL PREP: SQUAT SPECIFIC
+      MobilityExerciseModel(
+        id: 'squat_bar_prep',
+        name: 'Empty Barbell Paused Squat Prep',
+        focusArea: MobilityFocusArea.barbellSquat,
+        category: MobilityCategory.barbellPrep,
+        description: 'Primes deep squat positioning, adductors, and core bracing under barbell load.',
+        cues: [
+          'Perform 5 empty bar Front or Back Squats with a 3-second pause in the hole.',
+          'Focus on driving knees out and keeping chest upright.',
+          'Perform 5 explosive squat jumps with empty bar.'
+        ],
+        defaultSets: 2,
+        defaultReps: 5,
+        videoUrl: 'https://www.youtube.com/watch?v=tpU1U4V9nNo',
+        isYoutube: true,
+      ),
+
+      // ACCESSORIES & HYPERTROPHY
+      MobilityExerciseModel(
         id: 'lu_raises',
         name: 'Lu Raises (Lateral Full Range)',
         focusArea: MobilityFocusArea.shoulderOverhead,
@@ -168,39 +291,6 @@ class MobilityExerciseModel {
         defaultSets: 3,
         defaultReps: 12,
         videoUrl: 'https://www.youtube.com/watch?v=sO7u_m-7y88',
-        isYoutube: true,
-      ),
-      MobilityExerciseModel(
-        id: 'sotts_press',
-        name: 'Press in Snatch Bottom (Sotts Press)',
-        focusArea: MobilityFocusArea.shoulderOverhead,
-        category: MobilityCategory.liftingAccessory,
-        description: 'Builds extreme overhead stability and hip/ankle flexibility in the bottom of the snatch.',
-        cues: [
-          'Sit in deep snatch squat with empty barbell or PVC pipe.',
-          'Press bar straight up overhead without standing up.',
-          'Lock elbows firmly and hold top position for 2 seconds.'
-        ],
-        defaultSets: 3,
-        defaultReps: 6,
-        videoUrl: 'https://www.youtube.com/watch?v=2r1H_vS29lE',
-        isYoutube: true,
-      ),
-
-      // Hip Capsule & Flexor Opener
-      MobilityExerciseModel(
-        id: 'hip_90_90_switches',
-        name: '90/90 Hip Mobility Switches',
-        focusArea: MobilityFocusArea.hipCapsule,
-        category: MobilityCategory.mobilityDrill,
-        description: 'Mobilizes internal and external hip rotation for deep squat receiving positions.',
-        cues: [
-          'Sit on floor with knees bent at 90-degree angles.',
-          'Rotate hips to transition from left side to right side smoothly.',
-          'Keep chest tall and avoid leaning far back.'
-        ],
-        durationSeconds: 90,
-        videoUrl: 'https://www.youtube.com/watch?v=t5J5iZ1rPCo',
         isYoutube: true,
       ),
       MobilityExerciseModel(
@@ -219,40 +309,6 @@ class MobilityExerciseModel {
         videoUrl: 'https://www.youtube.com/watch?v=tpU1U4V9nNo',
         isYoutube: true,
       ),
-
-      // Ankle Dorsiflexion
-      MobilityExerciseModel(
-        id: 'banded_ankle_distraction',
-        name: 'Banded Ankle Dorsiflexion Mobilization',
-        focusArea: MobilityFocusArea.ankleDorsiflexion,
-        category: MobilityCategory.mobilityDrill,
-        description: 'Clears anterior ankle joint pinching to allow deeper, upright squat positioning.',
-        cues: [
-          'Attach heavy resistance band low on rig and loop around ankle talus bone.',
-          'Step forward into tension and drive knee over pinky toe.',
-          'Oscillate gently forward and backward for 60 seconds per ankle.'
-        ],
-        durationSeconds: 90,
-        videoUrl: 'https://www.youtube.com/watch?v=1b-9eW2YnQE',
-        isYoutube: true,
-      ),
-      MobilityExerciseModel(
-        id: 'kettlebell_knee_drives',
-        name: 'Weighted Ankle Knee Drives',
-        focusArea: MobilityFocusArea.ankleDorsiflexion,
-        category: MobilityCategory.mobilityDrill,
-        description: 'Uses weight on the knee to force deep ankle dorsiflexion and calf stretch.',
-        cues: [
-          'Rest kettlebell or plate on knee while in half-kneeling stance.',
-          'Lean forward into maximum knee travel over toes.',
-          'Hold end position for 5 seconds per rep.'
-        ],
-        durationSeconds: 60,
-        videoUrl: 'https://www.youtube.com/watch?v=U2l-S_W_Gv8',
-        isYoutube: true,
-      ),
-
-      // Posterior Chain & Hamstrings
       MobilityExerciseModel(
         id: 'jefferson_curl',
         name: 'Jefferson Curls (Weighted Segmented Hinge)',
@@ -270,24 +326,6 @@ class MobilityExerciseModel {
         isYoutube: true,
       ),
       MobilityExerciseModel(
-        id: 'single_leg_rdl',
-        name: 'Bodyweight Single-Leg RDL',
-        focusArea: MobilityFocusArea.posteriorChain,
-        category: MobilityCategory.liftingAccessory,
-        description: 'Addresses posterior chain imbalances and improves single-leg hip hinge stability for clean pulls.',
-        cues: [
-          'Hinge at hip extending non-working leg straight behind you.',
-          'Keep hips level to ground and back straight.',
-          'Squeeze glute of working leg to return upright.'
-        ],
-        defaultSets: 3,
-        defaultReps: 8,
-        videoUrl: 'https://www.youtube.com/watch?v=Vd0nSjV3F3Q',
-        isYoutube: true,
-      ),
-
-      // Quadriceps & Glute Flush
-      MobilityExerciseModel(
         id: 'couch_stretch',
         name: 'Couch Stretch (Quad & Hip Flexor)',
         focusArea: MobilityFocusArea.quadriceps,
@@ -302,8 +340,6 @@ class MobilityExerciseModel {
         videoUrl: 'https://www.youtube.com/watch?v=JmF02wHjRik',
         isYoutube: true,
       ),
-
-      // PHASE 3: Arms & Upper Hypertrophy
       MobilityExerciseModel(
         id: 'db_bicep_curls',
         name: 'Dumbbell Bicep Curls',
@@ -336,8 +372,6 @@ class MobilityExerciseModel {
         videoUrl: 'https://www.youtube.com/watch?v=_gsUck-7M74',
         isYoutube: true,
       ),
-
-      // PHASE 4: Abs & Core Stability
       MobilityExerciseModel(
         id: 'hanging_leg_raises',
         name: 'Hanging Leg Raises',
@@ -371,8 +405,6 @@ class MobilityExerciseModel {
         videoUrl: 'https://www.youtube.com/watch?v=rqiTPdK2j9A',
         isYoutube: true,
       ),
-
-      // PHASE 5: Grip Strength
       MobilityExerciseModel(
         id: 'farmers_carries',
         name: 'Heavy Farmer\'s Carries',
@@ -401,7 +433,7 @@ class MobilityExerciseModel {
           'Relax lower body completely and let spine stretch out.',
           'Hold grip firmly for 45-60 seconds per set.'
         ],
-        durationSeconds: 60,
+        durationSeconds: 45,
         defaultSets: 3,
         defaultReps: 1,
         videoUrl: 'https://www.youtube.com/watch?v=W-L596Y_G68',
