@@ -46,5 +46,19 @@ void main() {
       expect(result.platesPerSide.length, equals(1));
       expect(result.platesPerSide.first.label, equals('45'));
     });
+
+    test('Defaults to 45 lbs bar when isLbs is true without explicit barWeight', () {
+      final result = PlateCalculator.calculate(
+        targetWeight: 225.0,
+        isLbs: true,
+      );
+
+      expect(result.barWeight, equals(45.0));
+      expect(result.actualWeight, equals(225.0));
+      // (225 - 45) / 2 = 90 lbs per side -> two 45lb plates
+      expect(result.platesPerSide.length, equals(2));
+      expect(result.platesPerSide[0].weight, equals(45.0));
+      expect(result.platesPerSide[1].weight, equals(45.0));
+    });
   });
 }

@@ -158,7 +158,84 @@ class _PlateModalState extends State<PlateModal> {
                 _buildStepButton('+10', () => _updateWeight(_targetWeight + (isLbs ? 10 : 5))),
               ],
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 12),
+
+            // Bar & Collar Quick Selector
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              decoration: BoxDecoration(
+                color: AppTheme.surfaceElevated,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppTheme.borderColor),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.fitness_center, size: 16, color: AppTheme.primaryAmber),
+                      const SizedBox(width: 6),
+                      Text('Bar:', style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textSecondary)),
+                      const SizedBox(width: 4),
+                      DropdownButton<double>(
+                        value: settings.barWeight,
+                        isDense: true,
+                        dropdownColor: AppTheme.surfaceCard,
+                        underline: const SizedBox(),
+                        style: GoogleFonts.outfit(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.textPrimary,
+                        ),
+                        items: isLbs
+                            ? const [
+                                DropdownMenuItem(value: 45.0, child: Text('45 lbs (Std)')),
+                                DropdownMenuItem(value: 35.0, child: Text('35 lbs (Women)')),
+                                DropdownMenuItem(value: 15.0, child: Text('15 lbs (Tech)')),
+                              ]
+                            : const [
+                                DropdownMenuItem(value: 20.0, child: Text('20 kg (Men)')),
+                                DropdownMenuItem(value: 15.0, child: Text('15 kg (Women)')),
+                                DropdownMenuItem(value: 10.0, child: Text('10 kg (Tech)')),
+                                DropdownMenuItem(value: 45.0, child: Text('45 lbs')),
+                              ],
+                        onChanged: (val) => val != null ? settings.setBarWeight(val) : null,
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Text('Collars:', style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textSecondary)),
+                      const SizedBox(width: 4),
+                      DropdownButton<double>(
+                        value: settings.collarWeight,
+                        isDense: true,
+                        dropdownColor: AppTheme.surfaceCard,
+                        underline: const SizedBox(),
+                        style: GoogleFonts.outfit(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.textPrimary,
+                        ),
+                        items: isLbs
+                            ? const [
+                                DropdownMenuItem(value: 5.0, child: Text('5 lbs')),
+                                DropdownMenuItem(value: 2.5, child: Text('2.5 lbs')),
+                                DropdownMenuItem(value: 0.0, child: Text('None (0)')),
+                              ]
+                            : const [
+                                DropdownMenuItem(value: 2.5, child: Text('2.5 kg')),
+                                DropdownMenuItem(value: 0.5, child: Text('0.5 kg')),
+                                DropdownMenuItem(value: 0.0, child: Text('None')),
+                              ],
+                        onChanged: (val) => val != null ? settings.setCollarWeight(val) : null,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
 
             // VISUAL BARBELL DISPLAY
             Container(

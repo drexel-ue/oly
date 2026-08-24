@@ -19,8 +19,22 @@ class SettingsProvider extends ChangeNotifier {
   }
 
   bool get isLbs => _isLbs;
-  double get barWeight => _barWeight;
-  double get collarWeight => _collarWeight;
+  double get barWeight {
+    if (_isLbs) {
+      if (_barWeight == 20.0) return 45.0;
+      return _barWeight;
+    } else {
+      if (_barWeight == 45.0) return 20.0;
+      return _barWeight;
+    }
+  }
+  double get collarWeight {
+    if (_isLbs) {
+      if (_collarWeight == 2.5) return 0.0;
+      return _collarWeight;
+    }
+    return _collarWeight;
+  }
   bool get soundAlertsEnabled => _soundAlertsEnabled;
   bool get hapticsEnabled => _hapticsEnabled;
   String get unitLabel => _isLbs ? 'lbs' : 'kg';
@@ -75,7 +89,11 @@ class SettingsProvider extends ChangeNotifier {
 
   void toggleUnit() {
     _isLbs = !_isLbs;
+    _barWeight = _isLbs ? 45.0 : 20.0;
+    _collarWeight = _isLbs ? 0.0 : 2.5;
     _storage.saveIsLbs(_isLbs);
+    _storage.saveBarWeight(_barWeight);
+    _storage.saveCollarWeight(_collarWeight);
     notifyListeners();
   }
 

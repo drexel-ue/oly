@@ -65,29 +65,33 @@ class PlateCalculator {
 
   static PlateCalcResult calculate({
     required double targetWeight,
-    double barWeight = 20.0,
-    double collarWeight = 2.5, // 2.5kg pair (1.25kg each side) or total collar weight
+    double? barWeight,
+    double? collarWeight,
     bool isLbs = false,
   }) {
+    final resolvedBar = (isLbs && (barWeight == null || barWeight == 20.0))
+        ? 45.0
+        : (barWeight ?? (isLbs ? 45.0 : 20.0));
+    final resolvedCollar = collarWeight ?? (isLbs ? 0.0 : 2.5);
     final availablePlates = isLbs ? lbsPlates : kgPlates;
     final unit = isLbs ? 'lbs' : 'kg';
 
-    if (targetWeight <= barWeight) {
+    if (targetWeight <= resolvedBar) {
       return PlateCalcResult(
         targetWeight: targetWeight,
-        actualWeight: barWeight,
-        barWeight: barWeight,
+        actualWeight: resolvedBar,
+        barWeight: resolvedBar,
         collarWeight: 0.0,
         platesPerSide: [],
-        isExact: targetWeight == barWeight,
+        isExact: targetWeight == resolvedBar,
         unit: unit,
       );
     }
 
-    double weightToLoad = targetWeight - barWeight - collarWeight;
+    double weightToLoad = targetWeight - resolvedBar - resolvedCollar;
     if (weightToLoad < 0) {
       // If adding collars makes it exceed target, try without collars
-      weightToLoad = targetWeight - barWeight;
+      weightToLoad = targetWeight - resolvedBar;
     }
 
     double weightPerSide = weightToLoad / 2.0;
@@ -101,14 +105,14 @@ class PlateCalculator {
       }
     }
 
-    final actualWeight = barWeight + collarWeight + (currentWeight * 2.0);
+    final actualWeight = resolvedBar + (weightToLoad < 0 ? 0.0 : resolvedCollar) + (currentWeight * 2.0);
     final isExact = (actualWeight - targetWeight).abs() < 0.01;
 
     return PlateCalcResult(
       targetWeight: targetWeight,
       actualWeight: actualWeight,
-      barWeight: barWeight,
-      collarWeight: collarWeight,
+      barWeight: resolvedBar,
+      collarWeight: resolvedCollar,
       platesPerSide: resultPlates,
       isExact: isExact,
       unit: unit,

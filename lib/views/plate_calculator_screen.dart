@@ -84,12 +84,18 @@ class _PlateCalculatorScreenState extends State<PlateCalculatorScreen> {
                         value: settings.barWeight,
                         dropdownColor: AppTheme.surfaceCard,
                         underline: const SizedBox(),
-                        items: [
-                          DropdownMenuItem(value: 20.0, child: Text('20 kg (Men\'s Bar)', style: GoogleFonts.outfit())),
-                          DropdownMenuItem(value: 15.0, child: Text('15 kg (Women\'s Bar)', style: GoogleFonts.outfit())),
-                          DropdownMenuItem(value: 10.0, child: Text('10 kg (Technique Bar)', style: GoogleFonts.outfit())),
-                          DropdownMenuItem(value: 45.0, child: Text('45 lbs (Standard Bar)', style: GoogleFonts.outfit())),
-                        ],
+                        items: settings.isLbs
+                            ? [
+                                DropdownMenuItem(value: 45.0, child: Text('45 lbs (Standard Bar)', style: GoogleFonts.outfit())),
+                                DropdownMenuItem(value: 35.0, child: Text('35 lbs (Women\'s Bar)', style: GoogleFonts.outfit())),
+                                DropdownMenuItem(value: 15.0, child: Text('15 lbs (Technique Bar)', style: GoogleFonts.outfit())),
+                              ]
+                            : [
+                                DropdownMenuItem(value: 20.0, child: Text('20 kg (Men\'s Bar)', style: GoogleFonts.outfit())),
+                                DropdownMenuItem(value: 15.0, child: Text('15 kg (Women\'s Bar)', style: GoogleFonts.outfit())),
+                                DropdownMenuItem(value: 10.0, child: Text('10 kg (Technique Bar)', style: GoogleFonts.outfit())),
+                                DropdownMenuItem(value: 45.0, child: Text('45 lbs (20.4 kg)', style: GoogleFonts.outfit())),
+                              ],
                         onChanged: (val) => val != null ? settings.setBarWeight(val) : null,
                       ),
                     ],
@@ -103,11 +109,17 @@ class _PlateCalculatorScreenState extends State<PlateCalculatorScreen> {
                         value: settings.collarWeight,
                         dropdownColor: AppTheme.surfaceCard,
                         underline: const SizedBox(),
-                        items: [
-                          DropdownMenuItem(value: 2.5, child: Text('2.5 kg Collars', style: GoogleFonts.outfit())),
-                          DropdownMenuItem(value: 0.5, child: Text('0.5 kg Collars', style: GoogleFonts.outfit())),
-                          DropdownMenuItem(value: 0.0, child: Text('No Collars', style: GoogleFonts.outfit())),
-                        ],
+                        items: settings.isLbs
+                            ? [
+                                DropdownMenuItem(value: 5.0, child: Text('5.0 lbs Collars (Pair)', style: GoogleFonts.outfit())),
+                                DropdownMenuItem(value: 2.5, child: Text('2.5 lbs Collars', style: GoogleFonts.outfit())),
+                                DropdownMenuItem(value: 0.0, child: Text('No Collars (0 lbs)', style: GoogleFonts.outfit())),
+                              ]
+                            : [
+                                DropdownMenuItem(value: 2.5, child: Text('2.5 kg Collars (Pair)', style: GoogleFonts.outfit())),
+                                DropdownMenuItem(value: 0.5, child: Text('0.5 kg Collars', style: GoogleFonts.outfit())),
+                                DropdownMenuItem(value: 0.0, child: Text('No Collars', style: GoogleFonts.outfit())),
+                              ],
                         onChanged: (val) => val != null ? settings.setCollarWeight(val) : null,
                       ),
                     ],
