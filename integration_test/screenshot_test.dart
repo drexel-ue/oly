@@ -121,10 +121,19 @@ void main() {
     );
     await tester.pumpWidget(
       buildAppWrapper(
-        ExerciseSwapModal(
-          exercise: exercise,
-          currentWeek: 2,
-          onSwapSelected: (_) {},
+        Stack(
+          children: [
+            WorkoutSessionScreen(dayTemplate: day1, previewWeek: 2),
+            Container(color: Colors.black.withValues(alpha: 0.65)),
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: ExerciseSwapModal(
+                exercise: exercise,
+                currentWeek: 2,
+                onSwapSelected: (_) {},
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -133,16 +142,25 @@ void main() {
     // 11 WORKOUT WEIGHT & 1RM RECALC DIALOG
     await tester.pumpWidget(
       buildAppWrapper(
-        WorkoutWeightDialog(
-          exercise: exercise,
-          displayName: 'Power Snatch + Overhead Squat',
-          initialWeightKg: 70.0,
-          currentWeek: 2,
-          onWeightUpdated: ({
-            required double newWeightKg,
-            required bool update1RM,
-            double? new1RMKg,
-          }) {},
+        Stack(
+          children: [
+            WorkoutSessionScreen(dayTemplate: day1, previewWeek: 2),
+            Container(color: Colors.black.withValues(alpha: 0.65)),
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: WorkoutWeightDialog(
+                exercise: exercise,
+                displayName: 'Power Snatch + Overhead Squat',
+                initialWeightKg: 70.0,
+                currentWeek: 2,
+                onWeightUpdated: ({
+                  required double newWeightKg,
+                  required bool update1RM,
+                  double? new1RMKg,
+                }) {},
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -171,9 +189,18 @@ void main() {
     );
     await tester.pumpWidget(
       buildAppWrapper(
-        MobilityExerciseSwapModal(
-          exercise: mobilityEx,
-          onSwapSelected: (_) {},
+        Stack(
+          children: [
+            RecoverySessionScreen(routine: routine),
+            Container(color: Colors.black.withValues(alpha: 0.65)),
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: MobilityExerciseSwapModal(
+                exercise: mobilityEx,
+                onSwapSelected: (_) {},
+              ),
+            ),
+          ],
         ),
       ),
     );
