@@ -1098,29 +1098,24 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                             color: AppTheme.primaryAmber,
                           ),
                           const SizedBox(width: 6),
-                          Expanded(
-                            child: Row(
-                              children: [
-                                Text(
-                                  'Weight: ',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 12,
-                                    color: AppTheme.textSecondary,
-                                  ),
-                                ),
-                                Text(
-                                  settings.formatWeight(
-                                    double.tryParse(weightCtrl?.text ?? '0') ?? 0.0,
-                                  ),
-                                  style: GoogleFonts.outfit(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppTheme.textPrimary,
-                                  ),
-                                ),
-                              ],
+                          Text(
+                            'Weight: ',
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              color: AppTheme.textSecondary,
                             ),
                           ),
+                          Text(
+                            settings.formatWeight(
+                              double.tryParse(weightCtrl?.text ?? '0') ?? 0.0,
+                            ),
+                            style: GoogleFonts.outfit(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: AppTheme.textPrimary,
+                            ),
+                          ),
+                          const Spacer(),
                           Text(
                             'Adjust / Recalc 1RM',
                             style: GoogleFonts.outfit(
