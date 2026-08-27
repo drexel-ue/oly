@@ -189,10 +189,14 @@ class AnalyticsScreen extends StatelessWidget {
                                         child: Row(
                                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                           children: [
-                                            Text(
-                                              log.exerciseName,
-                                              style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 13),
+                                            Expanded(
+                                              child: Text(
+                                                log.exerciseName,
+                                                style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 13),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
                                             ),
+                                            const SizedBox(width: 8),
                                             Text(
                                               '${log.sets.length} sets completed',
                                               style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textSecondary),

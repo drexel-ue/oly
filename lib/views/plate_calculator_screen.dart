@@ -79,7 +79,12 @@ class _PlateCalculatorScreenState extends State<PlateCalculatorScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('Barbell Weight:', style: GoogleFonts.inter(fontWeight: FontWeight.w500)),
+                      Expanded(
+                        child: Text(
+                          'Barbell Weight:',
+                          style: GoogleFonts.inter(fontWeight: FontWeight.w500),
+                        ),
+                      ),
                       DropdownButton<double>(
                         value: settings.barWeight,
                         dropdownColor: AppTheme.surfaceCard,
@@ -104,7 +109,12 @@ class _PlateCalculatorScreenState extends State<PlateCalculatorScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('Collars Weight:', style: GoogleFonts.inter(fontWeight: FontWeight.w500)),
+                      Expanded(
+                        child: Text(
+                          'Collars Weight:',
+                          style: GoogleFonts.inter(fontWeight: FontWeight.w500),
+                        ),
+                      ),
                       DropdownButton<double>(
                         value: settings.collarWeight,
                         dropdownColor: AppTheme.surfaceCard,
@@ -289,9 +299,15 @@ class _PlateCalculatorScreenState extends State<PlateCalculatorScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        'Total Loaded: ${result.actualWeight.toStringAsFixed(1)} ${result.unit}',
-                        style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.primaryAmber),
+                      Expanded(
+                        child: Text(
+                          'Total: ${result.actualWeight.toStringAsFixed(1)} ${result.unit}',
+                          style: GoogleFonts.outfit(
+                            fontSize: 17,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.primaryAmber,
+                          ),
+                        ),
                       ),
                       Text(
                         'Bar: ${result.barWeight} ${result.unit}',

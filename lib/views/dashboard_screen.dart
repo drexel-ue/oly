@@ -269,12 +269,14 @@ class DashboardScreen extends StatelessWidget {
                 children: [
                   const Icon(Icons.explore, color: AppTheme.secondaryCyan, size: 18),
                   const SizedBox(width: 8),
-                  Text(
-                    'Explore Any Week or Routine (Preview Mode)',
-                    style: GoogleFonts.outfit(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.secondaryCyan,
+                  Flexible(
+                    child: Text(
+                      'Explore Any Week or Routine (Preview Mode)',
+                      style: GoogleFonts.outfit(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.secondaryCyan,
+                      ),
                     ),
                   ),
                 ],
