@@ -4,12 +4,14 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:uuid/uuid.dart';
 
+import '../models/lift_model.dart';
 import '../models/program_model.dart';
 import '../models/workout_session.dart';
 import '../providers/lift_provider.dart';
 import '../providers/program_provider.dart';
 import '../providers/settings_provider.dart';
 import '../theme/app_theme.dart';
+import '../widgets/exercise_swap_modal.dart';
 import '../widgets/plate_modal.dart';
 import '../widgets/rest_timer_widget.dart';
 import 'warmup_session_screen.dart';
@@ -272,120 +274,104 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     }
   }
 
-  void _showSwapVariationDialog(
-    String originalExerciseName,
-    String currentLiftId,
-  ) {
+  void _showSwapVariationDialog(ExerciseTemplate exercise) {
     final liftProvider = Provider.of<LiftProvider>(context, listen: false);
-    final allLifts = liftProvider.lifts;
+    final programProvider =
+        Provider.of<ProgramProvider>(context, listen: false);
+    final currentWeek = widget.previewWeek ??
+        widget.initialDraft?.weekNumber ??
+        programProvider.currentWeek;
+
+    final currentSwapped = _swappedExerciseNames[exercise.name];
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
-      backgroundColor: AppTheme.darkBackground,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
+      backgroundColor: Colors.transparent,
       builder: (ctx) {
-        return SafeArea(
-          child: Container(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Swap Movement Variation',
-                      style: GoogleFonts.outfit(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(
-                        Icons.close,
-                        color: AppTheme.textSecondary,
-                      ),
-                      onPressed: () => Navigator.pop(ctx),
-                    ),
-                  ],
+        return ExerciseSwapModal(
+          exercise: exercise,
+          currentSwappedName: currentSwapped,
+          currentWeek: currentWeek,
+          onSwapSelected: (LiftModel newLift) {
+            final targetKg = ExerciseSwapHelper.calculateSwappedWeight(
+              newLift: newLift,
+              exerciseTemplate: exercise,
+              currentWeek: currentWeek,
+              currentMaxes: liftProvider.currentMaxes,
+            );
+
+            setState(() {
+              _swappedExerciseNames[exercise.name] = newLift.name;
+              _weightControllers[exercise.name]?.text =
+                  targetKg.toStringAsFixed(1);
+
+              final sets = _exerciseSets[exercise.name];
+              if (sets != null) {
+                for (int i = 0; i < sets.length; i++) {
+                  sets[i] = CompletedSet(
+                    setIndex: sets[i].setIndex,
+                    weight: targetKg,
+                    reps: sets[i].reps,
+                    rpe: sets[i].rpe,
+                    isCompleted: sets[i].isCompleted,
+                    completedAt: sets[i].completedAt,
+                  );
+                }
+              }
+            });
+
+            _persistDraft();
+
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  'Swapped to ${newLift.name}! Working weight updated to ${targetKg.toStringAsFixed(1)} kg.',
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  'Replace $originalExerciseName while preserving program periodization percentages.',
-                  style: GoogleFonts.inter(
-                    fontSize: 13,
-                    color: AppTheme.textSecondary,
-                  ),
+                backgroundColor: AppTheme.primaryAmber,
+                duration: const Duration(seconds: 3),
+              ),
+            );
+          },
+          onResetToOriginal: () {
+            final originalTargetKg = exercise.calculateTargetWeight(
+              week: currentWeek,
+              currentMaxes: liftProvider.currentMaxes,
+            );
+
+            setState(() {
+              _swappedExerciseNames.remove(exercise.name);
+              _weightControllers[exercise.name]?.text =
+                  originalTargetKg.toStringAsFixed(1);
+
+              final sets = _exerciseSets[exercise.name];
+              if (sets != null) {
+                for (int i = 0; i < sets.length; i++) {
+                  sets[i] = CompletedSet(
+                    setIndex: sets[i].setIndex,
+                    weight: originalTargetKg,
+                    reps: sets[i].reps,
+                    rpe: sets[i].rpe,
+                    isCompleted: sets[i].isCompleted,
+                    completedAt: sets[i].completedAt,
+                  );
+                }
+              }
+            });
+
+            _persistDraft();
+
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  'Restored to original: ${exercise.name}',
                 ),
-                const SizedBox(height: 16),
-                Flexible(
-                  child: ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: allLifts.length,
-                    itemBuilder: (context, index) {
-                      final lift = allLifts[index];
-                      return ListTile(
-                        title: Text(
-                          lift.name,
-                          style: GoogleFonts.outfit(
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        subtitle: Text(
-                          '1RM: ${lift.currentMax.toStringAsFixed(1)} kg (${lift.category.name})',
-                          style: GoogleFonts.inter(
-                            fontSize: 12,
-                            color: AppTheme.textSecondary,
-                          ),
-                        ),
-                        trailing: const Icon(
-                          Icons.swap_horiz,
-                          color: AppTheme.primaryAmber,
-                        ),
-                        onTap: () {
-                          setState(() {
-                            _swappedExerciseNames[originalExerciseName] =
-                                lift.name;
-                            // Recalculate weights based on selected lift's 1RM
-                            final sets = _exerciseSets[originalExerciseName];
-                            if (sets != null) {
-                              final targetKg =
-                                  lift.currentMax * 0.75; // Default 75%
-                              _weightControllers[originalExerciseName]?.text =
-                                  targetKg.toStringAsFixed(1);
-                              for (int i = 0; i < sets.length; i++) {
-                                sets[i] = CompletedSet(
-                                  setIndex: sets[i].setIndex,
-                                  weight: targetKg,
-                                  reps: sets[i].reps,
-                                  isCompleted: sets[i].isCompleted,
-                                );
-                              }
-                            }
-                          });
-                          _persistDraft();
-                          Navigator.pop(ctx);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                'Swapped to ${lift.name}! Weights updated.',
-                              ),
-                              backgroundColor: AppTheme.primaryAmber,
-                            ),
-                          );
-                        },
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
+                backgroundColor: AppTheme.secondaryCyan,
+                duration: const Duration(seconds: 3),
+              ),
+            );
+          },
         );
       },
     );
@@ -829,6 +815,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                 _swappedExerciseNames[exercise.name] ?? exercise.name;
             final sets = _exerciseSets[exercise.name] ?? [];
             final weightCtrl = _weightControllers[exercise.name];
+            final isSwapped = _swappedExerciseNames.containsKey(exercise.name);
 
             return Container(
               margin: const EdgeInsets.only(bottom: 12),
@@ -836,7 +823,11 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
               decoration: BoxDecoration(
                 color: AppTheme.surfaceElevated,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppTheme.borderColor),
+                border: Border.all(
+                  color: isSwapped
+                      ? AppTheme.primaryAmber.withValues(alpha: 0.6)
+                      : AppTheme.borderColor,
+                ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -848,15 +839,44 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: .min,
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text(
-                              displayName,
-                              style: GoogleFonts.outfit(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: AppTheme.textPrimary,
-                              ),
+                            Row(
+                              children: [
+                                Flexible(
+                                  child: Text(
+                                    displayName,
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppTheme.textPrimary,
+                                    ),
+                                  ),
+                                ),
+                                if (isSwapped) ...[
+                                  const SizedBox(width: 6),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 6,
+                                      vertical: 1.5,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: AppTheme.primaryAmber
+                                          .withValues(alpha: 0.15),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: Text(
+                                      'SWAPPED',
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppTheme.primaryAmber,
+                                        letterSpacing: 0.5,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ],
                             ),
                             const SizedBox(height: 2),
                             Text(
@@ -896,15 +916,16 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                               minWidth: 32,
                               minHeight: 32,
                             ),
-                            icon: const Icon(
+                            icon: Icon(
                               Icons.swap_horiz,
                               size: 22,
-                              color: AppTheme.accentBlue,
+                              color: isSwapped
+                                  ? AppTheme.primaryAmber
+                                  : AppTheme.accentBlue,
                             ),
                             tooltip: 'Swap Movement Variation',
                             onPressed: () => _showSwapVariationDialog(
-                              exercise.name,
-                              exercise.liftId,
+                              exercise,
                             ),
                           ),
                           const SizedBox(width: 4),
