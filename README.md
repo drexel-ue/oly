@@ -13,7 +13,7 @@
   <img src="https://img.shields.io/badge/Dart-3.x-0175C2?logo=dart&logoColor=white" alt="Dart" />
   <img src="https://img.shields.io/badge/Platform-iOS%20%7C%20Android%20%7C%20macOS-4E8EF7" alt="Platform" />
   <img src="https://img.shields.io/badge/Theme-Dark%20Obsidian-121214" alt="Theme" />
-  <img src="https://img.shields.io/badge/Tests-51%20Passing-brightgreen" alt="Tests" />
+  <img src="https://img.shields.io/badge/Tests-65%20Passing-brightgreen" alt="Tests" />
   <img src="https://img.shields.io/badge/License-Proprietary-FF9E1B" alt="License" />
 </p>
 
@@ -21,7 +21,7 @@
 
 ## 🌟 Overview
 
-**OLY** is engineered specifically for the demands of Olympic weightlifting (Snatch, Clean & Jerk, and Squats). It integrates dynamic 4-Day and 5-Day periodization programming, real-time working percentage calculation (`65% → 70% → 75% → 70% → Retest`), movement video tutorials, an intelligent rest timer with lock-screen alerts, an IWF color-coded bumper plate calculator, Greg Everett / Catalyst Athletics 1RM variation ratios, in-workout exercise variation swapping, working weight adjustment with live 1RM recalculation, an adaptive active recovery generator, and native data backup into a sleek, dark-mode mobile experience.
+**OLY** is engineered specifically for the demands of Olympic weightlifting (Snatch, Clean & Jerk, and Squats). It integrates dynamic 4-Day and 5-Day periodization programming, real-time working percentage calculation (`65% → 70% → 75% → 70% → Retest`), movement video tutorials, an intelligent rest timer with lock-screen alerts, an IWF color-coded bumper plate calculator, Greg Everett / Catalyst Athletics 1RM variation ratios, in-workout exercise variation swapping, working weight adjustment with live 1RM recalculation, an adaptive active recovery generator, warmup and mobility drill swapping, accessory weight progression tracking, and native data backup into a sleek, dark-mode mobile experience.
 
 ---
 
@@ -42,20 +42,25 @@
 | <img src="screenshots/12_recovery_session_screen.png" width="360" alt="Active Recovery Routine" /> | <img src="screenshots/08_warmup_session_screen.png" width="360" alt="Guided Olympic Warm-Up" /> |
 | *Multi-phase mobility flow adapted from joint strain feedback* | *Multi-phase warm-up drills with video guides and form cues* |
 
+| Training Analytics & Workouts | Accessory Weight Progressions |
+| :---: | :---: |
+| <img src="screenshots/07_analytics_screen.png" width="360" alt="Training Analytics" /> | <img src="screenshots/07b_accessory_progressions_screen.png" width="360" alt="Accessory Weight Progressions" /> |
+| *Total tonnage moved, completed workouts, sets, and reps* | *Tracked movements, personal bests, and weight increase deltas* |
+
+| Mobility & Drill Swaps | Olympic Ratio Standards Sheet |
+| :---: | :---: |
+| <img src="screenshots/13_mobility_swap_modal.png" width="360" alt="Mobility & Drill Swaps" /> | <img src="screenshots/04_standard_ratios_sheet.png" width="360" alt="Olympic Ratio Standards Sheet" /> |
+| *Segmented alternatives matching target joint focus area or category* | *Catalyst Athletics ideal ratio reference standards* |
+
 | Lift Catalog & Percentages | Olympic Ratio Balance |
 | :---: | :---: |
 | <img src="screenshots/02_lifts_matrix_screen.png" width="360" alt="Lift Catalog" /> | <img src="screenshots/03_lift_ratios_screen.png" width="360" alt="Olympic Ratio Balance" /> |
 | *1RM baselines with expanded 50%–105% percentage matrix* | *Benchmark targets & diagnostic balance analysis* |
 
-| Barbell Plate Loader | Training Analytics & Logs |
+| Barbell Plate Loader | 1RM Retest Assistant |
 | :---: | :---: |
-| <img src="screenshots/05_plate_calculator_screen.png" width="360" alt="Barbell Plate Loader" /> | <img src="screenshots/07_analytics_screen.png" width="360" alt="Training Analytics" /> |
-| *IWF color-coded bumper plates and per-side breakdown* | *Total tonnage moved, completed workouts, sets, and reps* |
-
-| 1RM Retest Assistant | Olympic Ratio Standards Sheet |
-| :---: | :---: |
-| <img src="screenshots/06_max_test_screen.png" width="360" alt="1RM Retest Assistant" /> | <img src="screenshots/04_standard_ratios_sheet.png" width="360" alt="Olympic Ratio Standards Sheet" /> |
-| *Week 5 Max Test protocol, warmup jumps, and opener targets* | *Catalyst Athletics ideal ratio reference standards* |
+| <img src="screenshots/05_plate_calculator_screen.png" width="360" alt="Barbell Plate Loader" /> | <img src="screenshots/06_max_test_screen.png" width="360" alt="1RM Retest Assistant" /> |
+| *IWF color-coded bumper plates and per-side breakdown* | *Week 5 Max Test protocol, warmup jumps, and opener targets* |
 
 ---
 
@@ -136,8 +141,14 @@
 - **Metric & Imperial Support**: View total workload in **Metric Tonnes** ($1{,}000\text{ kg}$) or **US Short Tons** ($2{,}000\text{ lbs}$).
 - **Historical Logs**: Comprehensive session breakdown with dates, RPE ratings, joint strain tags, and completed exercise sets.
 
-### 💾 10. Native Backup, Export & Import
-- **JSON Full Backup**: One-tap export and import of all user preferences, 1RMs, cycle history, and workout logs.
+### 📊 10. Accessory Weight Progression & PR Tracking
+- **Automatic Weight Persistence**: Completing accessory sets (e.g. Bicep Curls, Tricep Extensions, Delt Flyes, Sots Press) in Guided Warm-Ups or Active Recovery routines automatically logs the load and remembers it for your next session.
+- **Personal Best & History Badges**: Displays all-time Personal Best (`PB: 15.0 KG`) and last completed weight directly on exercise cards.
+- **Dedicated Progressions Tab**: Explore all tracked accessory movements in Analytics with chronological timeline chips, total set/rep tallies, and green delta gain pills (`+2.5 kg`, `+5.0 kg`).
+- **In-Card History Breakdown**: Tap "History" on any accessory card to review full date-stamped progression history.
+
+### 💾 11. Native Backup, Export & Import
+- **JSON Full Backup**: One-tap export and import of all user preferences, 1RMs, cycle history, workout logs, and accessory weight progressions.
 - **CSV Log Export**: Export human-readable spreadsheet-compatible workout logs for external analysis or coach review.
 
 ---

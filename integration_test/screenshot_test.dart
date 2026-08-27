@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:provider/provider.dart';
+import 'package:oly/models/mobility_exercise_model.dart';
 import 'package:oly/models/program_model.dart';
 import 'package:oly/providers/lift_provider.dart';
 import 'package:oly/providers/program_provider.dart';
@@ -18,6 +19,7 @@ import 'package:oly/views/recovery_session_screen.dart';
 import 'package:oly/views/warmup_session_screen.dart';
 import 'package:oly/views/workout_session_screen.dart';
 import 'package:oly/widgets/exercise_swap_modal.dart';
+import 'package:oly/widgets/mobility_exercise_swap_modal.dart';
 import 'package:oly/widgets/standard_ratios_sheet.dart';
 import 'package:oly/widgets/workout_weight_dialog.dart';
 import '../test/utils/mock_data_helper.dart';
@@ -91,13 +93,19 @@ void main() {
     await tester.pumpWidget(buildAppWrapper(const MaxTestScreen()));
     await takeAppScreenshot('06_max_test_screen');
 
-    // 07 ANALYTICS SCREEN
+    // 07 ANALYTICS SCREEN (Workouts Tab)
     await tester.pumpWidget(buildAppWrapper(const AnalyticsScreen()));
     await takeAppScreenshot('07_analytics_screen');
+
+    // 07b ACCESSORY PROGRESSIONS TAB
+    await tester.tap(find.text('Accessories'));
+    await tester.pump(const Duration(milliseconds: 300));
+    await takeAppScreenshot('07b_accessory_progressions_screen');
 
     // 08 WARMUP SESSION SCREEN
     final day1 = ProgramCycle.getBuiltInProgram().first;
     await tester.pumpWidget(buildAppWrapper(WarmupSessionScreen(dayTemplate: day1)));
+    await tester.pump(const Duration(milliseconds: 300));
     await takeAppScreenshot('08_warmup_session_screen');
 
     // 09 WORKOUT SESSION SCREEN
@@ -146,6 +154,29 @@ void main() {
       lastSession: programProvider.sessions.isNotEmpty ? programProvider.sessions.first : null,
     );
     await tester.pumpWidget(buildAppWrapper(RecoverySessionScreen(routine: routine)));
+    await tester.pump(const Duration(milliseconds: 300));
     await takeAppScreenshot('12_recovery_session_screen');
+
+    // 13 MOBILITY & RECOVERY SWAP MODAL
+    final mobilityEx = MobilityExerciseModel(
+      id: 'db_bicep_curls',
+      name: 'Dumbbell Bicep Curls',
+      focusArea: MobilityFocusArea.arms,
+      category: MobilityCategory.hypertrophyCore,
+      description: 'Builds elbow flexor strength and bicep tendon resilience for heavy clean catches.',
+      cues: ['Keep elbows tucked.', 'Squeeze biceps.'],
+      defaultSets: 3,
+      defaultReps: 12,
+      videoUrl: 'https://youtube.com',
+    );
+    await tester.pumpWidget(
+      buildAppWrapper(
+        MobilityExerciseSwapModal(
+          exercise: mobilityEx,
+          onSwapSelected: (_) {},
+        ),
+      ),
+    );
+    await takeAppScreenshot('13_mobility_swap_modal');
   });
 }

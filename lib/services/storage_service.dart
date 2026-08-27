@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../models/accessory_log.dart';
 import '../models/lift_model.dart';
 import '../models/program_model.dart';
 import '../models/workout_session.dart';
@@ -15,6 +16,7 @@ class StorageService {
   static const String _keySoundAlerts = 'oly_sound_alerts_v1';
   static const String _keyHapticsEnabled = 'oly_haptics_enabled_v1';
   static const String _keyActiveDraft = 'oly_active_draft_v1';
+  static const String _keyAccessoryLogs = 'oly_accessory_logs_v1';
 
   final SharedPreferences _prefs;
 
@@ -136,6 +138,66 @@ class StorageService {
   bool loadHapticsEnabled() => _prefs.getBool(_keyHapticsEnabled) ?? true;
   Future<void> saveHapticsEnabled(bool value) async => await _prefs.setBool(_keyHapticsEnabled, value);
 
+  // --- ACCESSORY LOGS STORAGE ---
+  List<AccessoryLog> loadAccessoryLogs() {
+    final jsonStr = _prefs.getString(_keyAccessoryLogs);
+    if (jsonStr == null || jsonStr.isEmpty) return [];
+    try {
+      final List<dynamic> list = jsonDecode(jsonStr);
+      return list.map((e) => AccessoryLog.fromJson(e as Map<String, dynamic>)).toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  Future<void> saveAccessoryLogs(List<AccessoryLog> logs) async {
+    final jsonStr = jsonEncode(logs.map((e) => e.toJson()).toList());
+    await _prefs.setString(_keyAccessoryLogs, jsonStr);
+  }
+
+  Future<void> logAccessorySet({
+    required String exerciseId,
+    required String exerciseName,
+    required double weightKg,
+    required int sets,
+    required int reps,
+    String? source,
+    String? notes,
+  }) async {
+    final currentLogs = loadAccessoryLogs();
+    final newEntry = AccessoryLog(
+      id: 'acc_${DateTime.now().millisecondsSinceEpoch}',
+      exerciseId: exerciseId,
+      exerciseName: exerciseName,
+      weightKg: weightKg,
+      sets: sets,
+      reps: reps,
+      date: DateTime.now(),
+      source: source,
+      notes: notes,
+    );
+    currentLogs.add(newEntry);
+    await saveAccessoryLogs(currentLogs);
+  }
+
+  List<AccessoryLog> getAccessoryHistory(String exerciseId) {
+    return loadAccessoryLogs()
+        .where((l) => l.exerciseId == exerciseId || l.exerciseName.toLowerCase() == exerciseId.toLowerCase())
+        .toList()
+      ..sort((a, b) => b.date.compareTo(a.date));
+  }
+
+  AccessoryLog? getLatestAccessoryLog(String exerciseId) {
+    final history = getAccessoryHistory(exerciseId);
+    return history.isNotEmpty ? history.first : null;
+  }
+
+  double getAccessoryPersonalBest(String exerciseId) {
+    final history = getAccessoryHistory(exerciseId);
+    if (history.isEmpty) return 0.0;
+    return history.map((e) => e.weightKg).reduce((a, b) => a > b ? a : b);
+  }
+
   // --- EXPORT & IMPORT UTILITIES ---
   String exportFullAppDataJson() {
     final map = {
@@ -144,6 +206,7 @@ class StorageService {
       'cycle': jsonDecode(_prefs.getString(_keyCycle) ?? '{}'),
       'workoutSessions': jsonDecode(_prefs.getString(_keySessions) ?? '[]'),
       'recoveryLogs': jsonDecode(_prefs.getString(_keyRecoveryLogs) ?? '[]'),
+      'accessoryLogs': jsonDecode(_prefs.getString(_keyAccessoryLogs) ?? '[]'),
       'settings': {
         'isLbs': loadIsLbs(),
         'barWeight': loadBarWeight(),
@@ -180,6 +243,9 @@ class StorageService {
       }
       if (map.containsKey('recoveryLogs')) {
         await _prefs.setString(_keyRecoveryLogs, jsonEncode(map['recoveryLogs']));
+      }
+      if (map.containsKey('accessoryLogs')) {
+        await _prefs.setString(_keyAccessoryLogs, jsonEncode(map['accessoryLogs']));
       }
       if (map.containsKey('settings')) {
         final s = map['settings'] as Map<String, dynamic>;

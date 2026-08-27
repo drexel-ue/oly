@@ -1,19 +1,30 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../models/mobility_exercise_model.dart';
+import '../providers/recovery_provider.dart';
 import '../providers/settings_provider.dart';
 import '../theme/app_theme.dart';
+import 'mobility_exercise_swap_modal.dart';
+import 'rest_timer_widget.dart';
 
 class VideoPlayerCard extends StatefulWidget {
   final MobilityExerciseModel exercise;
+  final MobilityExerciseModel? originalExercise;
+  final bool isSwapped;
+  final ValueChanged<MobilityExerciseModel>? onSwapExercise;
+  final VoidCallback? onResetExercise;
   final VoidCallback onCompleted;
 
   const VideoPlayerCard({
     super.key,
     required this.exercise,
+    this.originalExercise,
+    this.isSwapped = false,
+    this.onSwapExercise,
+    this.onResetExercise,
     required this.onCompleted,
   });
 
@@ -22,71 +33,70 @@ class VideoPlayerCard extends StatefulWidget {
 }
 
 class _VideoPlayerCardState extends State<VideoPlayerCard> {
-  // Mobility Drill Timer State
-  Timer? _timer;
-  int _secondsRemaining = 60;
-  bool _isRunning = false;
-
-  // Accessory Sets Completed Tracker State
   late List<bool> _setsCompleted;
+  late TextEditingController _weightController;
+  double _accessoryWeight = 0.0;
+  bool _showAccessoryRestTimer = false;
+  bool _initializedWeight = false;
 
   @override
   void initState() {
     super.initState();
-    _secondsRemaining = widget.exercise.durationSeconds;
     _setsCompleted = List.filled(widget.exercise.defaultSets, false);
+    _accessoryWeight = widget.exercise.category == MobilityCategory.barbellPrep ? 20.0 : 10.0;
+    _weightController = TextEditingController(
+      text: _accessoryWeight > 0 ? _accessoryWeight.toStringAsFixed(1) : '0',
+    );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_initializedWeight) {
+      final recovery = Provider.of<RecoveryProvider>(context, listen: false);
+      final latest = recovery.getLatestAccessoryLog(widget.exercise.id);
+      if (latest != null && latest.weightKg > 0) {
+        _accessoryWeight = latest.weightKg;
+        _weightController.text = _accessoryWeight.toStringAsFixed(1);
+      }
+      _initializedWeight = true;
+    }
   }
 
   @override
   void didUpdateWidget(covariant VideoPlayerCard oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.exercise.id != widget.exercise.id) {
-      _stopTimer();
-      _secondsRemaining = widget.exercise.durationSeconds;
       _setsCompleted = List.filled(widget.exercise.defaultSets, false);
-      _isRunning = false;
+      final recovery = Provider.of<RecoveryProvider>(context, listen: false);
+      final latest = recovery.getLatestAccessoryLog(widget.exercise.id);
+      if (latest != null && latest.weightKg > 0) {
+        _accessoryWeight = latest.weightKg;
+      } else {
+        _accessoryWeight = widget.exercise.category == MobilityCategory.barbellPrep ? 20.0 : 10.0;
+      }
+      _weightController.text = _accessoryWeight > 0 ? _accessoryWeight.toStringAsFixed(1) : '0';
+      _showAccessoryRestTimer = false;
     }
   }
 
   @override
   void dispose() {
-    _stopTimer();
+    _weightController.dispose();
     super.dispose();
   }
 
-  void _startTimer() {
-    if (_isRunning) return;
-    setState(() => _isRunning = true);
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (_secondsRemaining <= 1) {
-        _stopTimer();
-        setState(() {
-          _secondsRemaining = 0;
-          _isRunning = false;
-        });
-        widget.onCompleted();
-      } else {
-        setState(() => _secondsRemaining--);
-      }
-    });
-  }
-
-  void _pauseTimer() {
-    _stopTimer();
-    setState(() => _isRunning = false);
-  }
-
-  void _resetTimer() {
-    _stopTimer();
+  void _adjustAccessoryWeight(double delta) {
     setState(() {
-      _secondsRemaining = widget.exercise.durationSeconds;
-      _isRunning = false;
+      _accessoryWeight = (_accessoryWeight + delta).clamp(0.0, 300.0);
+      _weightController.text = _accessoryWeight.toStringAsFixed(1);
     });
   }
 
-  void _stopTimer() {
-    _timer?.cancel();
-    _timer = null;
+  bool get _isTimedDrill {
+    return widget.exercise.category == MobilityCategory.cardioConditioning ||
+        widget.exercise.category == MobilityCategory.foamRolling ||
+        widget.exercise.category == MobilityCategory.mobilityDrill;
   }
 
   Future<void> _launchVideoUrl() async {
@@ -105,7 +115,6 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
     }
 
     if (!launched) {
-      // Fallback: Launch a targeted YouTube search for the exercise tutorial
       final query = '${widget.exercise.name} Catalyst Athletics weightlifting tutorial';
       final searchUri = Uri.parse('https://www.youtube.com/results?search_query=${Uri.encodeComponent(query)}');
 
@@ -122,11 +131,195 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
     }
   }
 
+  void _showAccessoryHistorySheet(BuildContext context, RecoveryProvider recovery, SettingsProvider settings) {
+    final history = recovery.getAccessoryHistory(widget.exercise.id);
+    final pb = recovery.getAccessoryPersonalBest(widget.exercise.id);
+    final unit = settings.unitLabel.toUpperCase();
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppTheme.surfaceCard,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: AppTheme.borderColor,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            widget.exercise.name,
+                            style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.bold),
+                          ),
+                          Text(
+                            'Weight Progression History',
+                            style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textSecondary),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (pb > 0)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: AppTheme.primaryAmber.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: AppTheme.primaryAmber),
+                        ),
+                        child: Text(
+                          'PB: ${settings.toDisplayWeight(pb).toStringAsFixed(1)} $unit',
+                          style: GoogleFonts.outfit(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                            color: AppTheme.primaryAmber,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                const Divider(color: AppTheme.borderColor),
+                const SizedBox(height: 8),
+                if (history.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 24),
+                    child: Center(
+                      child: Text(
+                        'No logged sets for this movement yet.\nComplete sets to start tracking weight progression!',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.inter(color: AppTheme.textSecondary, fontSize: 13),
+                      ),
+                    ),
+                  )
+                else
+                  Flexible(
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: history.length,
+                      itemBuilder: (ctx, idx) {
+                        final item = history[idx];
+                        final dateStr = DateFormat('MMM d, yyyy • h:mm a').format(item.date);
+                        final itemWeight = settings.toDisplayWeight(item.weightKg);
+                        final isPb = item.weightKg >= pb && pb > 0;
+
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 8),
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: AppTheme.surfaceElevated,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: isPb
+                                  ? AppTheme.primaryAmber.withValues(alpha: 0.5)
+                                  : AppTheme.borderColor,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    dateStr,
+                                    style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textSecondary),
+                                  ),
+                                  Text(
+                                    '${item.sets} Sets × ${item.reps} Reps',
+                                    style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w500),
+                                  ),
+                                ],
+                              ),
+                              Row(
+                                children: [
+                                  if (isPb)
+                                    Container(
+                                      margin: const EdgeInsets.only(right: 8),
+                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: AppTheme.primaryAmber,
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: const Text(
+                                        'PR',
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                    ),
+                                  Text(
+                                    item.weightKg > 0
+                                        ? '${itemWeight.toStringAsFixed(1)} $unit'
+                                        : 'Bodyweight',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                      color: isPb ? AppTheme.primaryAmber : AppTheme.textPrimary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _openSwapModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => MobilityExerciseSwapModal(
+        exercise: widget.exercise,
+        originalExercise: widget.originalExercise,
+        onSwapSelected: (replacement) {
+          if (widget.onSwapExercise != null) {
+            widget.onSwapExercise!(replacement);
+          }
+        },
+        onResetToOriginal: widget.onResetExercise,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final settings = Provider.of<SettingsProvider>(context);
     final ex = widget.exercise;
-    final isMobility = ex.category == MobilityCategory.mobilityDrill;
+    final isMobility = ex.category == MobilityCategory.mobilityDrill || ex.category == MobilityCategory.foamRolling;
+    final isCardio = ex.category == MobilityCategory.cardioConditioning;
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -145,49 +338,104 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header Category Badges
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          // Header Category Badges & Swap Button
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 8,
+            runSpacing: 6,
             children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: isMobility
-                      ? AppTheme.accentBlue.withValues(alpha: 0.15)
-                      : AppTheme.primaryAmber.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: isMobility
-                        ? AppTheme.accentBlue.withValues(alpha: 0.5)
-                        : AppTheme.primaryAmber.withValues(alpha: 0.5),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: isCardio
+                          ? Colors.tealAccent.withValues(alpha: 0.15)
+                          : isMobility
+                              ? AppTheme.accentBlue.withValues(alpha: 0.15)
+                              : AppTheme.primaryAmber.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: isCardio
+                            ? Colors.tealAccent.withValues(alpha: 0.5)
+                            : isMobility
+                                ? AppTheme.accentBlue.withValues(alpha: 0.5)
+                                : AppTheme.primaryAmber.withValues(alpha: 0.5),
+                      ),
+                    ),
+                    child: Text(
+                      _categoryLabel(ex.category),
+                      style: GoogleFonts.outfit(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: isCardio
+                            ? Colors.tealAccent
+                            : isMobility
+                                ? AppTheme.accentBlue
+                                : AppTheme.primaryAmber,
+                        letterSpacing: 1.0,
+                      ),
+                    ),
                   ),
-                ),
-                child: Text(
-                  _categoryLabel(ex.category),
-                  style: GoogleFonts.outfit(
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                    color: isMobility ? AppTheme.accentBlue : AppTheme.primaryAmber,
-                    letterSpacing: 1.0,
+                  const SizedBox(width: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppTheme.surfaceElevated,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppTheme.borderColor),
+                    ),
+                    child: Text(
+                      _focusAreaLabel(ex.focusArea),
+                      style: GoogleFonts.inter(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.textSecondary,
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppTheme.surfaceElevated,
+              if (widget.onSwapExercise != null)
+                InkWell(
+                  onTap: () => _openSwapModal(context),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: AppTheme.borderColor),
-                ),
-                child: Text(
-                  _focusAreaLabel(ex.focusArea),
-                  style: GoogleFonts.inter(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.textSecondary,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: widget.isSwapped
+                          ? AppTheme.primaryAmber.withValues(alpha: 0.2)
+                          : AppTheme.surfaceElevated,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: widget.isSwapped
+                            ? AppTheme.primaryAmber
+                            : AppTheme.borderColor,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.swap_horiz,
+                          size: 14,
+                          color: widget.isSwapped ? AppTheme.primaryAmber : AppTheme.textSecondary,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          widget.isSwapped ? 'SWAPPED' : 'Swap',
+                          style: GoogleFonts.outfit(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: widget.isSwapped ? AppTheme.primaryAmber : AppTheme.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
             ],
           ),
           const SizedBox(height: 14),
@@ -332,94 +580,85 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
           }),
           const SizedBox(height: 20),
 
-          // Interactive Execution Controls (Timer for Mobility vs Sets Checklist for Accessory)
-          isMobility ? _buildMobilityTimerSection() : _buildAccessorySetsSection(),
+          // Unified Execution Controls: Reusable Timer for Timed Drills vs Workout-Matched Sets for Accessories
+          _isTimedDrill
+              ? _buildUnifiedDrillTimerSection(settings)
+              : _buildWorkoutMatchedSetsSection(settings),
         ],
       ),
     );
   }
 
-  Widget _buildMobilityTimerSection() {
-    final mins = (_secondsRemaining ~/ 60).toString().padLeft(2, '0');
-    final secs = (_secondsRemaining % 60).toString().padLeft(2, '0');
+  Widget _buildUnifiedDrillTimerSection(SettingsProvider settings) {
+    final ex = widget.exercise;
+    final isCardio = ex.category == MobilityCategory.cardioConditioning;
+    final isFoamRoll = ex.category == MobilityCategory.foamRolling;
+
+    String timerTitle = 'Mobility Drill Timer';
+    IconData timerIcon = Icons.timer_outlined;
+    List<int> presets = [30, 45, 60, 90, 120];
+    Color primaryColor = AppTheme.accentBlue;
+
+    if (isCardio) {
+      timerTitle = 'Cardio Interval Timer';
+      timerIcon = Icons.directions_run;
+      presets = [60, 120, 180, 300, 480, 600]; // 1m, 2m, 3m, 5m, 8m, 10m
+      primaryColor = AppTheme.primaryAmber;
+    } else if (isFoamRoll) {
+      timerTitle = 'Foam Roll Timer';
+      timerIcon = Icons.self_improvement;
+      presets = [30, 45, 60, 90, 120];
+      primaryColor = AppTheme.secondaryCyan;
+    }
+
+    final duration = ex.durationSeconds > 0 ? ex.durationSeconds : (isCardio ? 180 : 60);
+
+    return RestTimerWidget(
+      key: ValueKey('${ex.id}_timer'),
+      title: timerTitle,
+      icon: timerIcon,
+      initialSeconds: duration,
+      presetSeconds: presets,
+      primaryColor: primaryColor,
+      isEmbedded: true,
+      notificationTitle: isCardio
+          ? '🏃 Cardio Interval Complete!'
+          : isFoamRoll
+              ? '🧘 Foam Rolling Complete!'
+              : '✨ Mobility Drill Complete!',
+      notificationBody: '${ex.name} finished. Ready for the next movement.',
+      onFinished: widget.onCompleted,
+    );
+  }
+
+  Widget _buildWorkoutMatchedSetsSection(SettingsProvider settings) {
+    final ex = widget.exercise;
+    final displayWeight = settings.toDisplayWeight(_accessoryWeight);
+    final unitLabel = settings.unitLabel.toUpperCase();
+    final recovery = Provider.of<RecoveryProvider>(context);
+
+    final pbKg = recovery.getAccessoryPersonalBest(ex.id);
+    final latestLog = recovery.getLatestAccessoryLog(ex.id);
 
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppTheme.surfaceElevated,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.borderColor),
-      ),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.timer_outlined, color: AppTheme.accentBlue, size: 20),
-              const SizedBox(width: 8),
-              Text(
-                '$mins:$secs',
-                style: GoogleFonts.outfit(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.textPrimary,
-                  letterSpacing: 2.0,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              ElevatedButton.icon(
-                onPressed: _isRunning ? _pauseTimer : _startTimer,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _isRunning ? Colors.orangeAccent : AppTheme.accentBlue,
-                  foregroundColor: Colors.black,
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-                icon: Icon(_isRunning ? Icons.pause : Icons.play_arrow),
-                label: Text(
-                  _isRunning ? 'PAUSE' : 'START TIMER',
-                  style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
-                ),
-              ),
-              const SizedBox(width: 12),
-              OutlinedButton(
-                onPressed: _resetTimer,
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: AppTheme.textSecondary,
-                  side: const BorderSide(color: AppTheme.borderColor),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-                child: const Text('RESET'),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAccessorySetsSection() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppTheme.surfaceElevated,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.borderColor),
+        border: Border.all(color: AppTheme.primaryAmber.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          // Header: Target Scheme, Rest Timer Toggle & Progression History
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 8,
+            runSpacing: 6,
             children: [
               Text(
-                'TARGET SETS',
+                'TARGET SETS & WEIGHT',
                 style: GoogleFonts.outfit(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
@@ -427,39 +666,278 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
                   letterSpacing: 1.0,
                 ),
               ),
-              Text(
-                '${widget.exercise.defaultSets} Sets × ${widget.exercise.defaultReps} Reps (Light)',
-                style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textSecondary),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '${ex.defaultSets} Sets × ${ex.defaultReps} Reps',
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.textSecondary,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  // Progression History Button
+                  InkWell(
+                    onTap: () => _showAccessoryHistorySheet(context, recovery, settings),
+                    borderRadius: BorderRadius.circular(8),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppTheme.surfaceCard,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: AppTheme.borderColor),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.show_chart, size: 14, color: AppTheme.accentBlue),
+                          const SizedBox(width: 4),
+                          Text(
+                            'History',
+                            style: GoogleFonts.outfit(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: AppTheme.accentBlue,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  // Rest Timer Toggle
+                  InkWell(
+                    onTap: () => setState(() => _showAccessoryRestTimer = !_showAccessoryRestTimer),
+                    borderRadius: BorderRadius.circular(8),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: _showAccessoryRestTimer
+                            ? AppTheme.primaryAmber.withValues(alpha: 0.2)
+                            : AppTheme.surfaceCard,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: _showAccessoryRestTimer
+                              ? AppTheme.primaryAmber
+                              : AppTheme.borderColor,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.timer_outlined,
+                            size: 14,
+                            color: _showAccessoryRestTimer ? AppTheme.primaryAmber : AppTheme.textSecondary,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Rest',
+                            style: GoogleFonts.outfit(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: _showAccessoryRestTimer ? AppTheme.primaryAmber : AppTheme.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
           const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: List.generate(widget.exercise.defaultSets, (index) {
-              final isDone = _setsCompleted[index];
-              return ChoiceChip(
-                label: Text(
-                  'Set ${index + 1}',
-                  style: GoogleFonts.outfit(
-                    fontWeight: FontWeight.bold,
-                    color: isDone ? Colors.black : AppTheme.textPrimary,
+
+          // Working Weight Banner & Steppers (Matching Live Workout Session)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: AppTheme.surfaceCard,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppTheme.borderColor),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.fitness_center, color: AppTheme.primaryAmber, size: 18),
+                const SizedBox(width: 8),
+                Text(
+                  'Weight:',
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.textSecondary,
                   ),
                 ),
-                selected: isDone,
-                selectedColor: AppTheme.primaryAmber,
-                backgroundColor: AppTheme.surfaceCard,
-                avatar: isDone ? const Icon(Icons.check, color: Colors.black, size: 18) : null,
-                onSelected: (val) {
-                  setState(() => _setsCompleted[index] = val);
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    _accessoryWeight == 0.0
+                        ? 'Bodyweight / Band'
+                        : '${displayWeight.toStringAsFixed(1)} $unitLabel',
+                    style: GoogleFonts.outfit(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.textPrimary,
+                    ),
+                  ),
+                ),
+                // Steppers
+                _buildWeightStepButton('-2.5', -2.5),
+                const SizedBox(width: 4),
+                _buildWeightStepButton('+2.5', 2.5),
+                const SizedBox(width: 4),
+                _buildWeightStepButton('+5.0', 5.0),
+              ],
+            ),
+          ),
+
+          // Personal Best & Previous Log progression indicators
+          if (pbKg > 0 || latestLog != null) ...[
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                if (pbKg > 0)
+                  Container(
+                    margin: const EdgeInsets.only(right: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryAmber.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: AppTheme.primaryAmber.withValues(alpha: 0.4)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.emoji_events_outlined, size: 12, color: AppTheme.primaryAmber),
+                        const SizedBox(width: 4),
+                        Text(
+                          'PB: ${settings.toDisplayWeight(pbKg).toStringAsFixed(1)} $unitLabel',
+                          style: GoogleFonts.inter(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.primaryAmber,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                if (latestLog != null)
+                  Text(
+                    'Last: ${settings.toDisplayWeight(latestLog.weightKg).toStringAsFixed(1)} $unitLabel',
+                    style: GoogleFonts.inter(
+                      fontSize: 11,
+                      color: AppTheme.textSecondary,
+                    ),
+                  ),
+              ],
+            ),
+          ],
+          const SizedBox(height: 14),
+
+          // Workout-Matched Interactive Set Pills
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: List.generate(ex.defaultSets, (index) {
+              final isDone = _setsCompleted[index];
+              final weightText = _accessoryWeight > 0
+                  ? '${displayWeight.toStringAsFixed(1)}$unitLabel'
+                  : 'BW';
+
+              return InkWell(
+                onTap: () async {
+                  setState(() => _setsCompleted[index] = !isDone);
                   if (_setsCompleted.every((e) => e)) {
+                    // Log accessory progression into history
+                    await recovery.logAccessoryWeight(
+                      exerciseId: ex.id,
+                      exerciseName: ex.name,
+                      weightKg: _accessoryWeight,
+                      sets: ex.defaultSets,
+                      reps: ex.defaultReps,
+                      source: 'routine',
+                    );
                     widget.onCompleted();
                   }
                 },
+                borderRadius: BorderRadius.circular(12),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: isDone ? Colors.green.withValues(alpha: 0.25) : AppTheme.surfaceCard,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isDone ? Colors.greenAccent : AppTheme.borderColor,
+                      width: isDone ? 1.5 : 1.0,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        isDone ? Icons.check_circle : Icons.radio_button_unchecked,
+                        size: 16,
+                        color: isDone ? Colors.greenAccent : AppTheme.textSecondary,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Set ${index + 1}: $weightText',
+                        style: GoogleFonts.outfit(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: isDone ? Colors.greenAccent : AppTheme.textPrimary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               );
             }),
           ),
+
+          // Optional In-line Rest Timer
+          if (_showAccessoryRestTimer) ...[
+            const SizedBox(height: 14),
+            RestTimerWidget(
+              key: ValueKey('${ex.id}_rest_timer'),
+              title: 'Accessory Rest Timer',
+              icon: Icons.timer_outlined,
+              initialSeconds: 60,
+              presetSeconds: const [30, 45, 60, 90, 120],
+              primaryColor: AppTheme.primaryAmber,
+              isEmbedded: true,
+              notificationTitle: '⏰ Rest Complete!',
+              notificationBody: 'Time for your next set of ${ex.name}.',
+            ),
+          ],
         ],
+      ),
+    );
+  }
+
+  Widget _buildWeightStepButton(String label, double delta) {
+    return InkWell(
+      onTap: () => _adjustAccessoryWeight(delta),
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        decoration: BoxDecoration(
+          color: AppTheme.surfaceElevated,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: AppTheme.borderColor),
+        ),
+        child: Text(
+          label,
+          style: GoogleFonts.outfit(
+            fontSize: 11,
+            fontWeight: FontWeight.bold,
+            color: delta > 0 ? AppTheme.primaryAmber : AppTheme.textSecondary,
+          ),
+        ),
       ),
     );
   }

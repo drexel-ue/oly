@@ -7,13 +7,27 @@ import '../services/notification_service.dart';
 import '../theme/app_theme.dart';
 
 class RestTimerWidget extends StatefulWidget {
+  final String title;
+  final IconData icon;
   final int initialSeconds;
+  final List<int>? presetSeconds;
+  final Color? primaryColor;
+  final bool isEmbedded;
+  final String notificationTitle;
+  final String notificationBody;
   final VoidCallback? onFinished;
   final FocusNode? notesFocusNode;
 
   const RestTimerWidget({
     super.key,
+    this.title = 'Rest Timer',
+    this.icon = Icons.timer_outlined,
     this.initialSeconds = 120, // Default 2 min rest for Olympic lifting
+    this.presetSeconds,
+    this.primaryColor,
+    this.isEmbedded = false,
+    this.notificationTitle = '⏰ Rest Timer Expired!',
+    this.notificationBody = 'Time for your next set! Keep pushing.',
     this.onFinished,
     this.notesFocusNode,
   });
@@ -37,6 +51,15 @@ class _RestTimerWidgetState extends State<RestTimerWidget> with WidgetsBindingOb
     _totalSeconds = widget.initialSeconds;
     _secondsRemaining = widget.initialSeconds;
     widget.notesFocusNode?.addListener(_handleFocusChange);
+  }
+
+  @override
+  void didUpdateWidget(covariant RestTimerWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initialSeconds != widget.initialSeconds && !_isRunning) {
+      _totalSeconds = widget.initialSeconds;
+      _secondsRemaining = widget.initialSeconds;
+    }
   }
 
   @override
@@ -88,6 +111,15 @@ class _RestTimerWidgetState extends State<RestTimerWidget> with WidgetsBindingOb
     }
   }
 
+  void _resetTimer() {
+    _timer?.cancel();
+    NotificationService().cancelTimerNotification();
+    setState(() {
+      _secondsRemaining = _totalSeconds;
+      _isRunning = false;
+    });
+  }
+
   void _startTimer() {
     _timer?.cancel();
     _targetEndTime = DateTime.now().add(Duration(seconds: _secondsRemaining));
@@ -95,8 +127,8 @@ class _RestTimerWidgetState extends State<RestTimerWidget> with WidgetsBindingOb
 
     NotificationService().scheduleTimerNotification(
       secondsRemaining: _secondsRemaining,
-      title: '⏰ Rest Timer Expired!',
-      body: 'Time for your next set! Keep pushing.',
+      title: widget.notificationTitle,
+      body: widget.notificationBody,
     );
 
     _timer = Timer.periodic(const Duration(seconds: 1), (t) {
@@ -136,10 +168,10 @@ class _RestTimerWidgetState extends State<RestTimerWidget> with WidgetsBindingOb
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('⏰ Rest Timer Expired! Ready for your next set.'),
-          backgroundColor: AppTheme.primaryAmber,
-          duration: Duration(seconds: 4),
+        SnackBar(
+          content: Text('${widget.notificationTitle} Finished!'),
+          backgroundColor: widget.primaryColor ?? AppTheme.primaryAmber,
+          duration: const Duration(seconds: 4),
         ),
       );
     }
@@ -174,9 +206,179 @@ class _RestTimerWidgetState extends State<RestTimerWidget> with WidgetsBindingOb
     return '${mins.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}';
   }
 
+  String _formatDurationLabel(int seconds) {
+    if (seconds >= 60 && seconds % 60 == 0) {
+      return '${seconds ~/ 60}m';
+    } else if (seconds >= 60) {
+      final m = seconds ~/ 60;
+      final s = seconds % 60;
+      return '${m}m${s}s';
+    } else {
+      return '${seconds}s';
+    }
+  }
+
+  List<int> get _presetDurations {
+    if (widget.presetSeconds != null && widget.presetSeconds!.isNotEmpty) {
+      return widget.presetSeconds!;
+    }
+    // Default preset options
+    return [30, 60, 90, 120, 180, 300];
+  }
+
   @override
   Widget build(BuildContext context) {
+    final themeColor = widget.primaryColor ?? AppTheme.primaryAmber;
     final progress = _totalSeconds > 0 ? _secondsRemaining / _totalSeconds : 0.0;
+
+    if (widget.isEmbedded) {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppTheme.surfaceElevated,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: themeColor.withValues(alpha: 0.3)),
+        ),
+        child: Column(
+          children: [
+            // Embedded Header with Title & Reset Button
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Icon(widget.icon, color: themeColor, size: 20),
+                    const SizedBox(width: 8),
+                    Text(
+                      widget.title,
+                      style: GoogleFonts.outfit(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.textPrimary,
+                      ),
+                    ),
+                  ],
+                ),
+                OutlinedButton.icon(
+                  onPressed: _resetTimer,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppTheme.textSecondary,
+                    side: const BorderSide(color: AppTheme.borderColor),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    visualDensity: VisualDensity.compact,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  icon: const Icon(Icons.refresh, size: 14),
+                  label: const Text('Reset', style: TextStyle(fontSize: 12)),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+
+            // Central Circular Progress Timer
+            Stack(
+              alignment: Alignment.center,
+              children: [
+                SizedBox(
+                  width: 106,
+                  height: 106,
+                  child: CircularProgressIndicator(
+                    value: progress,
+                    strokeWidth: 8,
+                    backgroundColor: AppTheme.surfaceCard,
+                    valueColor: AlwaysStoppedAnimation<Color>(themeColor),
+                  ),
+                ),
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      _formattedTime,
+                      style: GoogleFonts.outfit(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.textPrimary,
+                      ),
+                    ),
+                    Text(
+                      _isRunning ? 'ACTIVE' : 'PAUSED',
+                      style: GoogleFonts.inter(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: _isRunning ? themeColor : AppTheme.textSecondary,
+                        letterSpacing: 1.0,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+
+            // Big Start / Pause CTA Button
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: _toggleTimer,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _isRunning ? Colors.orangeAccent : themeColor,
+                  foregroundColor: Colors.black,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                icon: Icon(_isRunning ? Icons.pause : Icons.play_arrow),
+                label: Text(
+                  _isRunning ? 'PAUSE TIMER' : 'START TIMER',
+                  style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 14),
+                ),
+              ),
+            ),
+            const SizedBox(height: 14),
+
+            // Micro Adjustment Steppers
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _buildAdjustmentChip('-10s', -10, themeColor),
+                  const SizedBox(width: 6),
+                  _buildAdjustmentChip('-5s', -5, themeColor),
+                  const SizedBox(width: 6),
+                  _buildAdjustmentChip('-1s', -1, themeColor),
+                  Container(
+                    height: 20,
+                    width: 1,
+                    margin: const EdgeInsets.symmetric(horizontal: 8),
+                    color: AppTheme.borderColor,
+                  ),
+                  _buildAdjustmentChip('+1s', 1, themeColor),
+                  const SizedBox(width: 6),
+                  _buildAdjustmentChip('+5s', 5, themeColor),
+                  const SizedBox(width: 6),
+                  _buildAdjustmentChip('+10s', 10, themeColor),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            // Duration Presets
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: _presetDurations.map((dur) {
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 6),
+                    child: _buildPresetChip(_formatDurationLabel(dur), dur, themeColor),
+                  );
+                }).toList(),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
 
     return GestureDetector(
       onVerticalDragEnd: (details) {
@@ -211,14 +413,14 @@ class _RestTimerWidgetState extends State<RestTimerWidget> with WidgetsBindingOb
           crossFadeState: _isMinimized
               ? CrossFadeState.showSecond
               : CrossFadeState.showFirst,
-          firstChild: _buildExpandedView(progress),
-          secondChild: _buildCollapsedBar(progress),
+          firstChild: _buildExpandedView(progress, themeColor),
+          secondChild: _buildCollapsedBar(progress, themeColor),
         ),
       ),
     );
   }
 
-  Widget _buildExpandedView(double progress) {
+  Widget _buildExpandedView(double progress, Color themeColor) {
     return Column(
       key: const ValueKey('expanded'),
       mainAxisSize: MainAxisSize.min,
@@ -250,10 +452,10 @@ class _RestTimerWidgetState extends State<RestTimerWidget> with WidgetsBindingOb
           children: [
             Row(
               children: [
-                const Icon(Icons.timer_outlined, color: AppTheme.primaryAmber, size: 22),
+                Icon(widget.icon, color: themeColor, size: 22),
                 const SizedBox(width: 8),
                 Text(
-                  'Rest Timer',
+                  widget.title,
                   style: GoogleFonts.outfit(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -267,7 +469,7 @@ class _RestTimerWidgetState extends State<RestTimerWidget> with WidgetsBindingOb
                 IconButton(
                   icon: Icon(
                     _isRunning ? Icons.pause_circle_filled : Icons.play_circle_fill,
-                    color: AppTheme.primaryAmber,
+                    color: themeColor,
                     size: 34,
                   ),
                   onPressed: _toggleTimer,
@@ -294,7 +496,7 @@ class _RestTimerWidgetState extends State<RestTimerWidget> with WidgetsBindingOb
                 value: progress,
                 strokeWidth: 8,
                 backgroundColor: AppTheme.surfaceElevated,
-                valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryAmber),
+                valueColor: AlwaysStoppedAnimation<Color>(themeColor),
               ),
             ),
             Text(
@@ -315,52 +517,45 @@ class _RestTimerWidgetState extends State<RestTimerWidget> with WidgetsBindingOb
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _buildAdjustmentChip('-10s', -10),
+              _buildAdjustmentChip('-10s', -10, themeColor),
               const SizedBox(width: 8),
-              _buildAdjustmentChip('-5s', -5),
+              _buildAdjustmentChip('-5s', -5, themeColor),
               const SizedBox(width: 8),
-              _buildAdjustmentChip('-1s', -1),
+              _buildAdjustmentChip('-1s', -1, themeColor),
               Container(
                 height: 24,
                 width: 1,
                 margin: const EdgeInsets.symmetric(horizontal: 10),
                 color: AppTheme.borderColor,
               ),
-              _buildAdjustmentChip('+1s', 1),
+              _buildAdjustmentChip('+1s', 1, themeColor),
               const SizedBox(width: 8),
-              _buildAdjustmentChip('+5s', 5),
+              _buildAdjustmentChip('+5s', 5, themeColor),
               const SizedBox(width: 8),
-              _buildAdjustmentChip('+10s', 10),
+              _buildAdjustmentChip('+10s', 10, themeColor),
             ],
           ),
         ),
         const SizedBox(height: 14),
 
-        // Horizontal Preset Duration Selectors (30s, 60s, 90s, 2m, 3m, 5m)
+        // Horizontal Preset Duration Selectors
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _buildPresetChip('30s', 30),
-              const SizedBox(width: 8),
-              _buildPresetChip('60s', 60),
-              const SizedBox(width: 8),
-              _buildPresetChip('90s', 90),
-              const SizedBox(width: 8),
-              _buildPresetChip('2m', 120),
-              const SizedBox(width: 8),
-              _buildPresetChip('3m', 180),
-              const SizedBox(width: 8),
-              _buildPresetChip('5m', 300),
-            ],
+            children: _presetDurations.map((dur) {
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: _buildPresetChip(_formatDurationLabel(dur), dur, themeColor),
+              );
+            }).toList(),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildCollapsedBar(double progress) {
+  Widget _buildCollapsedBar(double progress, Color themeColor) {
     return GestureDetector(
       key: const ValueKey('collapsed'),
       onTap: () => setState(() => _isMinimized = false),
@@ -383,7 +578,7 @@ class _RestTimerWidgetState extends State<RestTimerWidget> with WidgetsBindingOb
                       value: progress,
                       strokeWidth: 3,
                       backgroundColor: AppTheme.surfaceElevated,
-                      valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryAmber),
+                      valueColor: AlwaysStoppedAnimation<Color>(themeColor),
                     ),
                   ),
                 ),
@@ -393,12 +588,12 @@ class _RestTimerWidgetState extends State<RestTimerWidget> with WidgetsBindingOb
                   style: GoogleFonts.outfit(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: AppTheme.primaryAmber,
+                    color: themeColor,
                   ),
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  _isRunning ? 'RESTING' : 'PAUSED',
+                  _isRunning ? 'ACTIVE' : 'PAUSED',
                   style: GoogleFonts.outfit(
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
@@ -415,7 +610,7 @@ class _RestTimerWidgetState extends State<RestTimerWidget> with WidgetsBindingOb
                 IconButton(
                   icon: Icon(
                     _isRunning ? Icons.pause : Icons.play_arrow,
-                    color: AppTheme.primaryAmber,
+                    color: themeColor,
                     size: 24,
                   ),
                   onPressed: _toggleTimer,
@@ -433,7 +628,7 @@ class _RestTimerWidgetState extends State<RestTimerWidget> with WidgetsBindingOb
     );
   }
 
-  Widget _buildAdjustmentChip(String label, int deltaSeconds) {
+  Widget _buildAdjustmentChip(String label, int deltaSeconds, Color themeColor) {
     return InkWell(
       onTap: () => _adjustTime(deltaSeconds),
       borderRadius: BorderRadius.circular(10),
@@ -444,7 +639,7 @@ class _RestTimerWidgetState extends State<RestTimerWidget> with WidgetsBindingOb
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
             color: deltaSeconds > 0
-                ? AppTheme.primaryAmber.withValues(alpha: 0.4)
+                ? themeColor.withValues(alpha: 0.4)
                 : AppTheme.borderColor,
           ),
         ),
@@ -453,31 +648,31 @@ class _RestTimerWidgetState extends State<RestTimerWidget> with WidgetsBindingOb
           style: GoogleFonts.outfit(
             fontSize: 14,
             fontWeight: FontWeight.bold,
-            color: deltaSeconds > 0 ? AppTheme.primaryAmber : AppTheme.textSecondary,
+            color: deltaSeconds > 0 ? themeColor : AppTheme.textSecondary,
           ),
         ),
       ),
     );
   }
 
-  Widget _buildPresetChip(String label, int seconds) {
+  Widget _buildPresetChip(String label, int seconds, Color themeColor) {
     final isSelected = _totalSeconds == seconds;
     return InkWell(
       onTap: () => _setDuration(seconds),
       borderRadius: BorderRadius.circular(10),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? AppTheme.primaryAmber : AppTheme.surfaceElevated,
+          color: isSelected ? themeColor : AppTheme.surfaceElevated,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: isSelected ? AppTheme.primaryAmber : AppTheme.borderColor,
+            color: isSelected ? themeColor : AppTheme.borderColor,
           ),
         ),
         child: Text(
           label,
           style: GoogleFonts.outfit(
-            fontSize: 14,
+            fontSize: 13,
             fontWeight: FontWeight.bold,
             color: isSelected ? Colors.black : AppTheme.textSecondary,
           ),

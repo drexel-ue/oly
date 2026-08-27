@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import '../models/mobility_exercise_model.dart';
 import '../models/program_model.dart';
 import '../providers/settings_provider.dart';
 import '../services/warmup_engine_service.dart';
@@ -19,6 +20,7 @@ class WarmupSessionScreen extends StatefulWidget {
 class _WarmupSessionScreenState extends State<WarmupSessionScreen> {
   int _currentIndex = 0;
   final Set<String> _completedExerciseIds = {};
+  final Map<String, MobilityExerciseModel> _swappedExercises = {};
   late GeneratedWarmupRoutine _warmupRoutine;
 
   final ScrollController _phaseScrollController = ScrollController();
@@ -107,7 +109,10 @@ class _WarmupSessionScreenState extends State<WarmupSessionScreen> {
   Widget build(BuildContext context) {
     final settings = Provider.of<SettingsProvider>(context);
     final exercises = _warmupRoutine.exercises;
-    final currentEx = exercises[_currentIndex];
+    final originalEx = exercises[_currentIndex];
+    final activeEx = _swappedExercises[originalEx.id] ?? originalEx;
+    final isSwapped = _swappedExercises.containsKey(originalEx.id);
+    final currentEx = activeEx;
     final progress = (_currentIndex + 1) / exercises.length;
 
     return Scaffold(
@@ -249,9 +254,21 @@ class _WarmupSessionScreenState extends State<WarmupSessionScreen> {
 
               // Embedded Video & Exercise Player Card
               VideoPlayerCard(
-                key: ValueKey(currentEx.id),
-                exercise: currentEx,
-                onCompleted: () => _markExerciseCompleted(currentEx.id),
+                key: ValueKey('${activeEx.id}_$isSwapped'),
+                exercise: activeEx,
+                originalExercise: originalEx,
+                isSwapped: isSwapped,
+                onSwapExercise: (replacement) {
+                  setState(() {
+                    _swappedExercises[originalEx.id] = replacement;
+                  });
+                },
+                onResetExercise: () {
+                  setState(() {
+                    _swappedExercises.remove(originalEx.id);
+                  });
+                },
+                onCompleted: () => _markExerciseCompleted(activeEx.id),
               ),
               const SizedBox(height: 24),
 

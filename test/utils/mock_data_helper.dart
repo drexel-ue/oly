@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:oly/models/accessory_log.dart';
 import 'package:oly/models/lift_model.dart';
 import 'package:oly/models/pr_entry.dart';
 import 'package:oly/models/program_model.dart';
@@ -327,18 +328,117 @@ class MockDataHelper {
     ];
   }
 
+  static List<AccessoryLog> getMockAccessoryLogs() {
+    final now = DateTime.now();
+
+    return [
+      AccessoryLog(
+        id: 'acc_1',
+        exerciseId: 'bicep_curls',
+        exerciseName: 'Bicep Curls / Hammer Curls',
+        weightKg: 10.0,
+        sets: 3,
+        reps: 12,
+        date: now.subtract(const Duration(days: 21)),
+        source: 'routine',
+      ),
+      AccessoryLog(
+        id: 'acc_2',
+        exerciseId: 'bicep_curls',
+        exerciseName: 'Bicep Curls / Hammer Curls',
+        weightKg: 12.5,
+        sets: 3,
+        reps: 12,
+        date: now.subtract(const Duration(days: 10)),
+        source: 'routine',
+      ),
+      AccessoryLog(
+        id: 'acc_3',
+        exerciseId: 'bicep_curls',
+        exerciseName: 'Bicep Curls / Hammer Curls',
+        weightKg: 15.0,
+        sets: 3,
+        reps: 12,
+        date: now.subtract(const Duration(days: 2)),
+        source: 'routine',
+      ),
+      AccessoryLog(
+        id: 'acc_4',
+        exerciseId: 'tricep_extensions',
+        exerciseName: 'Overhead Tricep Extensions',
+        weightKg: 12.5,
+        sets: 3,
+        reps: 15,
+        date: now.subtract(const Duration(days: 14)),
+        source: 'routine',
+      ),
+      AccessoryLog(
+        id: 'acc_5',
+        exerciseId: 'tricep_extensions',
+        exerciseName: 'Overhead Tricep Extensions',
+        weightKg: 15.0,
+        sets: 3,
+        reps: 15,
+        date: now.subtract(const Duration(days: 3)),
+        source: 'routine',
+      ),
+      AccessoryLog(
+        id: 'acc_6',
+        exerciseId: 'lateral_delt_flyes',
+        exerciseName: 'Lateral & Rear Delt Flyes',
+        weightKg: 7.5,
+        sets: 3,
+        reps: 15,
+        date: now.subtract(const Duration(days: 12)),
+        source: 'routine',
+      ),
+      AccessoryLog(
+        id: 'acc_7',
+        exerciseId: 'lateral_delt_flyes',
+        exerciseName: 'Lateral & Rear Delt Flyes',
+        weightKg: 10.0,
+        sets: 3,
+        reps: 15,
+        date: now.subtract(const Duration(days: 4)),
+        source: 'routine',
+      ),
+      AccessoryLog(
+        id: 'acc_8',
+        exerciseId: 'sots_press',
+        exerciseName: 'Sots Press & Snatch Balance Prep',
+        weightKg: 20.0,
+        sets: 3,
+        reps: 5,
+        date: now.subtract(const Duration(days: 16)),
+        source: 'warmup',
+      ),
+      AccessoryLog(
+        id: 'acc_9',
+        exerciseId: 'sots_press',
+        exerciseName: 'Sots Press & Snatch Balance Prep',
+        weightKg: 25.0,
+        sets: 3,
+        reps: 5,
+        date: now.subtract(const Duration(days: 5)),
+        source: 'warmup',
+      ),
+    ];
+  }
+
   /// Seeds SharedPreferences with comprehensive mock data
   static Future<StorageService> setupMockStorage() async {
     final liftsJson = jsonEncode(getMockLifts().map((e) => e.toJson()).toList());
     final cycleJson = jsonEncode(getMockProgramCycle().toJson());
     final sessionsJson = jsonEncode(getMockWorkoutSessions().map((e) => e.toJson()).toList());
     final recoveryJson = jsonEncode(getMockRecoveryLogs());
+    final accessoryJson = jsonEncode(getMockAccessoryLogs().map((e) => e.toJson()).toList());
 
     SharedPreferences.setMockInitialValues({
       'oly_lifts_v1': liftsJson,
       'oly_cycle_v1': cycleJson,
       'oly_sessions_v1': sessionsJson,
       'oly_recovery_logs_v1': recoveryJson,
+      'oly_accessory_logs_v1': accessoryJson,
       'oly_unit_v1': false, // KG
       'oly_bar_weight_v1': 20.0,
       'oly_collar_weight_v1': 2.5,

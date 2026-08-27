@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:oly/models/mobility_exercise_model.dart';
 import 'package:oly/models/program_model.dart';
 import 'package:oly/providers/lift_provider.dart';
 import 'package:oly/providers/program_provider.dart';
@@ -19,6 +20,7 @@ import 'package:oly/views/recovery_session_screen.dart';
 import 'package:oly/views/warmup_session_screen.dart';
 import 'package:oly/views/workout_session_screen.dart';
 import 'package:oly/widgets/exercise_swap_modal.dart';
+import 'package:oly/widgets/mobility_exercise_swap_modal.dart';
 import 'package:oly/widgets/standard_ratios_sheet.dart';
 import 'package:oly/widgets/workout_weight_dialog.dart';
 import 'utils/mock_data_helper.dart';
@@ -152,6 +154,21 @@ void main() {
       expect(find.text('Analytics & Session Logs'), findsOneWidget);
     });
 
+    testWidgets('07b Renders Accessory Progressions Screen with movement delta chips', (tester) async {
+      tester.view.physicalSize = const Size(1170, 2532);
+      tester.view.devicePixelRatio = 2.0;
+      addTearDown(() => tester.view.resetPhysicalSize());
+
+      await tester.pumpWidget(buildTestScreen(const AnalyticsScreen()));
+      await tester.pump(const Duration(milliseconds: 200));
+
+      await tester.tap(find.text('Accessories'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('ACCESSORY WEIGHT PROGRESSIONS'), findsOneWidget);
+      expect(find.text('Bicep Curls / Hammer Curls'), findsOneWidget);
+    });
+
     testWidgets('08 Renders Warmup Session Screen', (tester) async {
       tester.view.physicalSize = const Size(1170, 2532);
       tester.view.devicePixelRatio = 2.0;
@@ -258,6 +275,39 @@ void main() {
       await tester.pump(const Duration(milliseconds: 200));
 
       expect(find.text('Active Recovery Routine'), findsOneWidget);
+    });
+
+    testWidgets('13 Renders Mobility Exercise Swap Modal with Suggested Alternatives', (tester) async {
+      tester.view.physicalSize = const Size(1170, 2532);
+      tester.view.devicePixelRatio = 2.0;
+      addTearDown(() => tester.view.resetPhysicalSize());
+
+      final mobilityEx = MobilityExerciseModel(
+        id: 'db_bicep_curls',
+        name: 'Dumbbell Bicep Curls',
+        focusArea: MobilityFocusArea.arms,
+        category: MobilityCategory.hypertrophyCore,
+        description: 'Builds elbow flexor strength and bicep tendon resilience for heavy clean catches.',
+        cues: ['Keep elbows tucked.', 'Squeeze biceps.'],
+        defaultSets: 3,
+        defaultReps: 12,
+        videoUrl: 'https://youtube.com',
+      );
+
+      await tester.pumpWidget(
+        buildTestScreen(
+          MobilityExerciseSwapModal(
+            exercise: mobilityEx,
+            onSwapSelected: (_) {},
+          ),
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 200));
+
+      expect(find.text('Swap Movement'), findsOneWidget);
+      expect(find.text('CURRENT MOVEMENT'), findsOneWidget);
+      expect(find.text('Dumbbell Bicep Curls'), findsOneWidget);
+      expect(find.text('SUGGESTED ALTERNATIVES'), findsOneWidget);
     });
   });
 }
