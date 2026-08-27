@@ -14,6 +14,7 @@ import '../theme/app_theme.dart';
 import '../widgets/exercise_swap_modal.dart';
 import '../widgets/plate_modal.dart';
 import '../widgets/rest_timer_widget.dart';
+import '../widgets/workout_weight_dialog.dart';
 import 'warmup_session_screen.dart';
 
 class WorkoutSessionScreen extends StatefulWidget {
@@ -371,6 +372,105 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                 duration: const Duration(seconds: 3),
               ),
             );
+          },
+        );
+      },
+    );
+  }
+
+  void _showWeightAdjustDialog(ExerciseTemplate exercise) {
+    final liftProvider = Provider.of<LiftProvider>(context, listen: false);
+    final programProvider =
+        Provider.of<ProgramProvider>(context, listen: false);
+    final currentWeek = widget.previewWeek ??
+        widget.initialDraft?.weekNumber ??
+        programProvider.currentWeek;
+
+    final displayName =
+        _swappedExerciseNames[exercise.name] ?? exercise.name;
+    final currentWeightKg =
+        double.tryParse(_weightControllers[exercise.name]?.text ?? '0') ??
+            exercise.calculateTargetWeight(
+              week: currentWeek,
+              currentMaxes: liftProvider.currentMaxes,
+            );
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return WorkoutWeightDialog(
+          exercise: exercise,
+          displayName: displayName,
+          initialWeightKg: currentWeightKg,
+          currentWeek: currentWeek,
+          onWeightUpdated: ({
+            required double newWeightKg,
+            required bool update1RM,
+            double? new1RMKg,
+          }) async {
+            setState(() {
+              _weightControllers[exercise.name]?.text =
+                  newWeightKg.toStringAsFixed(1);
+
+              final sets = _exerciseSets[exercise.name];
+              if (sets != null) {
+                for (int i = 0; i < sets.length; i++) {
+                  sets[i] = CompletedSet(
+                    setIndex: sets[i].setIndex,
+                    weight: newWeightKg,
+                    reps: sets[i].reps,
+                    rpe: sets[i].rpe,
+                    isCompleted: sets[i].isCompleted,
+                    completedAt: sets[i].completedAt,
+                  );
+                }
+              }
+            });
+
+            _persistDraft();
+
+            if (update1RM && new1RMKg != null && new1RMKg > 0) {
+              final targetLift = liftProvider.lifts.firstWhere(
+                (l) => l.name.toLowerCase() == displayName.toLowerCase(),
+                orElse: () => liftProvider.lifts.firstWhere(
+                  (l) =>
+                      l.id.toLowerCase() == exercise.liftId.toLowerCase(),
+                  orElse: () => liftProvider.lifts.first,
+                ),
+              );
+
+              await liftProvider.updateMax(
+                targetLift.id,
+                new1RMKg,
+                notes:
+                    'Recalculated from workout ($displayName @ ${newWeightKg.toStringAsFixed(1)} kg)',
+              );
+
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      '🔥 ${targetLift.name} 1RM updated to ${new1RMKg.toStringAsFixed(1)} kg! Working weight set to ${newWeightKg.toStringAsFixed(1)} kg.',
+                    ),
+                    backgroundColor: AppTheme.primaryAmber,
+                    duration: const Duration(seconds: 4),
+                  ),
+                );
+              }
+            } else if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    'Working weight updated to ${newWeightKg.toStringAsFixed(1)} kg.',
+                  ),
+                  backgroundColor: AppTheme.secondaryCyan,
+                  duration: const Duration(seconds: 2),
+                ),
+              );
+            }
           },
         );
       },
@@ -891,7 +991,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                       ),
                       const SizedBox(width: 4),
 
-                      // Right: Top-Aligned Action Buttons (Video + Swap + Plate Loader)
+                      // Right: Top-Aligned Action Buttons (Video + Swap + Weight Tune + Plate Loader)
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -936,6 +1036,21 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                               minHeight: 32,
                             ),
                             icon: const Icon(
+                              Icons.tune,
+                              size: 20,
+                              color: AppTheme.primaryAmber,
+                            ),
+                            tooltip: 'Adjust Weight & Recalculate 1RM',
+                            onPressed: () => _showWeightAdjustDialog(exercise),
+                          ),
+                          const SizedBox(width: 4),
+                          IconButton(
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(
+                              minWidth: 32,
+                              minHeight: 32,
+                            ),
+                            icon: const Icon(
                               Icons.pie_chart_outline,
                               size: 22,
                               color: AppTheme.primaryAmber,
@@ -958,6 +1073,66 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                         ],
                       ),
                     ],
+                  ),
+                  const SizedBox(height: 10),
+
+                  // Tappable Weight & 1RM Adjustment Banner
+                  InkWell(
+                    onTap: () => _showWeightAdjustDialog(exercise),
+                    borderRadius: BorderRadius.circular(10),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 7,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppTheme.surfaceCard,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: AppTheme.borderColor),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.tune,
+                            size: 14,
+                            color: AppTheme.primaryAmber,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Working Weight: ',
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              color: AppTheme.textSecondary,
+                            ),
+                          ),
+                          Text(
+                            settings.formatWeight(
+                              double.tryParse(weightCtrl?.text ?? '0') ?? 0.0,
+                            ),
+                            style: GoogleFonts.outfit(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: AppTheme.textPrimary,
+                            ),
+                          ),
+                          const Spacer(),
+                          Text(
+                            'Adjust / Recalc 1RM',
+                            style: GoogleFonts.outfit(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: AppTheme.primaryAmber,
+                            ),
+                          ),
+                          const SizedBox(width: 2),
+                          const Icon(
+                            Icons.chevron_right,
+                            size: 14,
+                            color: AppTheme.primaryAmber,
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 10),
 
