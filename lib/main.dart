@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'providers/body_comp_provider.dart';
 import 'providers/lift_provider.dart';
+import 'providers/nutrition_provider.dart';
 import 'providers/program_provider.dart';
 import 'providers/recovery_provider.dart';
 import 'providers/settings_provider.dart';
@@ -13,6 +15,7 @@ import 'views/analytics_screen.dart';
 import 'views/dashboard_screen.dart';
 import 'views/lifts_screen.dart';
 import 'views/max_test_screen.dart';
+import 'views/nutrition/nutrition_dashboard_screen.dart';
 import 'views/plate_calculator_screen.dart';
 import 'views/recovery_session_screen.dart';
 import 'views/splash_screen.dart';
@@ -31,6 +34,8 @@ void main() async {
         ChangeNotifierProvider(create: (_) => LiftProvider(storageService)),
         ChangeNotifierProvider(create: (_) => ProgramProvider(storageService)),
         ChangeNotifierProvider(create: (_) => RecoveryProvider(storageService)),
+        ChangeNotifierProvider(create: (_) => BodyCompProvider(storageService)),
+        ChangeNotifierProvider(create: (_) => NutritionProvider(storageService)),
       ],
       child: const OlyApp(),
     ),
@@ -112,6 +117,7 @@ class _MainNavigationContainerState extends State<MainNavigationContainer> {
   final List<Widget> _screens = [
     const DashboardScreen(),
     const LiftsScreen(),
+    const NutritionDashboardScreen(),
     const PlateCalculatorScreen(),
     const MaxTestScreen(),
     const AnalyticsScreen(),
@@ -139,6 +145,11 @@ class _MainNavigationContainerState extends State<MainNavigationContainer> {
             icon: Icon(Icons.fitness_center_outlined),
             activeIcon: Icon(Icons.fitness_center),
             label: 'Lifts',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.restaurant_outlined),
+            activeIcon: Icon(Icons.restaurant),
+            label: 'Nutrition',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.pie_chart_outline),

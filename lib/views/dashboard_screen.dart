@@ -9,6 +9,8 @@ import '../theme/app_theme.dart';
 import '../widgets/active_recovery_card.dart';
 import '../widgets/plate_modal.dart';
 import '../widgets/settings_modal.dart';
+import 'nutrition/nutrition_dashboard_screen.dart';
+import 'nutrition/renpho_scanner_sheet.dart';
 import 'recovery_session_screen.dart';
 import 'warmup_session_screen.dart';
 import 'workout_session_screen.dart';
@@ -139,6 +141,49 @@ class DashboardScreen extends StatelessWidget {
                         useSafeArea: true,
                         backgroundColor: Colors.transparent,
                         builder: (_) => const PlateModal(initialWeightKg: 100.0),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+
+            // Nutrition & Renpho Scale Scanner Row
+            Row(
+              children: [
+                Expanded(
+                  child: _buildActionCard(
+                    context,
+                    title: 'Calorie & Macros',
+                    subtitle: 'Daily Food & Fuel',
+                    icon: Icons.restaurant,
+                    accentColor: AppTheme.primaryAmber,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const NutritionDashboardScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildActionCard(
+                    context,
+                    title: 'Renpho Scale Scan',
+                    subtitle: 'LBM, BF% & BMR',
+                    icon: Icons.document_scanner,
+                    accentColor: AppTheme.successGreen,
+                    onTap: () {
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        useSafeArea: true,
+                        backgroundColor: Colors.transparent,
+                        builder: (_) => const RenphoScannerSheet(),
                       );
                     },
                   ),

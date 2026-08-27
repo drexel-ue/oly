@@ -145,37 +145,87 @@ class _SettingsModalState extends State<SettingsModal> {
               const SizedBox(height: 16),
 
               // Unit Preference
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                title: Text('Display Weight Unit', style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
-                subtitle: Text('Currently set to ${settings.isLbs ? "Imperial (LBS)" : "Metric (KG)"}'),
-                trailing: ChoiceChip(
-                  label: Text(settings.isLbs ? 'LBS' : 'KG'),
-                  selected: true,
-                  selectedColor: AppTheme.primaryAmber,
-                  onSelected: (_) => settings.toggleUnit(),
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Display Weight Unit', style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Currently set to ${settings.isLbs ? "Imperial (LBS)" : "Metric (KG)"}',
+                          style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textSecondary),
+                        ),
+                      ],
+                    ),
+                  ),
+                  ChoiceChip(
+                    label: Text(settings.isLbs ? 'LBS' : 'KG'),
+                    selected: true,
+                    selectedColor: AppTheme.primaryAmber,
+                    onSelected: (_) => settings.toggleUnit(),
+                  ),
+                ],
               ),
+              const SizedBox(height: 12),
               const Divider(color: AppTheme.borderColor),
+              const SizedBox(height: 8),
 
               // Sound Alerts Toggle
-              SwitchListTile(
-                contentPadding: EdgeInsets.zero,
-                activeThumbColor: AppTheme.primaryAmber,
-                title: Text('Rest Timer Sound Alerts', style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
-                subtitle: const Text('Plays system audio pulse when rest timer reaches 0s'),
-                value: settings.soundAlertsEnabled,
-                onChanged: (_) => settings.toggleSoundAlerts(),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Rest Timer Sound Alerts', style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Plays system audio pulse when rest timer reaches 0s',
+                          style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textSecondary),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Switch.adaptive(
+                    activeColor: AppTheme.primaryAmber,
+                    value: settings.soundAlertsEnabled,
+                    onChanged: (_) => settings.toggleSoundAlerts(),
+                  ),
+                ],
               ),
+              const SizedBox(height: 12),
+              const Divider(color: AppTheme.borderColor),
+              const SizedBox(height: 8),
 
               // Haptic Feedback Toggle
-              SwitchListTile(
-                contentPadding: EdgeInsets.zero,
-                activeThumbColor: AppTheme.primaryAmber,
-                title: Text('Haptic Vibration Alerts', style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
-                subtitle: const Text('Triggers device vibration when rest timer finishes'),
-                value: settings.hapticsEnabled,
-                onChanged: (_) => settings.toggleHaptics(),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Haptic Vibration Alerts', style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Triggers device vibration when rest timer finishes',
+                          style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textSecondary),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Switch.adaptive(
+                    activeColor: AppTheme.primaryAmber,
+                    value: settings.hapticsEnabled,
+                    onChanged: (_) => settings.toggleHaptics(),
+                  ),
+                ],
               ),
 
               const SizedBox(height: 16),
