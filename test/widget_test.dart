@@ -2,7 +2,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:oly/main.dart';
+import 'package:oly/providers/body_comp_provider.dart';
 import 'package:oly/providers/lift_provider.dart';
+import 'package:oly/providers/nutrition_provider.dart';
 import 'package:oly/providers/program_provider.dart';
 import 'package:oly/providers/recovery_provider.dart';
 import 'package:oly/providers/settings_provider.dart';
@@ -21,6 +23,8 @@ void main() {
           ChangeNotifierProvider(create: (_) => LiftProvider(storage)),
           ChangeNotifierProvider(create: (_) => ProgramProvider(storage)),
           ChangeNotifierProvider(create: (_) => RecoveryProvider(storage)),
+          ChangeNotifierProvider(create: (_) => BodyCompProvider(storage)),
+          ChangeNotifierProvider(create: (_) => NutritionProvider(storage)),
         ],
         child: const OlyApp(),
       ),

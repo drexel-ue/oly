@@ -4,7 +4,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:oly/models/mobility_exercise_model.dart';
 import 'package:oly/models/program_model.dart';
+import 'package:oly/providers/body_comp_provider.dart';
 import 'package:oly/providers/lift_provider.dart';
+import 'package:oly/providers/nutrition_provider.dart';
 import 'package:oly/providers/program_provider.dart';
 import 'package:oly/providers/recovery_provider.dart';
 import 'package:oly/providers/settings_provider.dart';
@@ -33,6 +35,8 @@ void main() {
   late LiftProvider liftProvider;
   late ProgramProvider programProvider;
   late RecoveryProvider recoveryProvider;
+  late BodyCompProvider bodyCompProvider;
+  late NutritionProvider nutritionProvider;
 
   setUpAll(() async {
     GoogleFonts.config.allowRuntimeFetching = false;
@@ -44,6 +48,8 @@ void main() {
     liftProvider = LiftProvider(storage);
     programProvider = ProgramProvider(storage);
     recoveryProvider = RecoveryProvider(storage);
+    bodyCompProvider = BodyCompProvider(storage);
+    nutritionProvider = NutritionProvider(storage);
   });
 
   Widget buildTestScreen(Widget child) {
@@ -53,6 +59,8 @@ void main() {
         ChangeNotifierProvider.value(value: liftProvider),
         ChangeNotifierProvider.value(value: programProvider),
         ChangeNotifierProvider.value(value: recoveryProvider),
+        ChangeNotifierProvider.value(value: bodyCompProvider),
+        ChangeNotifierProvider.value(value: nutritionProvider),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
