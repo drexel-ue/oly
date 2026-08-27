@@ -1,7 +1,11 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/accessory_log.dart';
+import '../models/body_composition_entry.dart';
+import '../models/daily_nutrition_log.dart';
 import '../models/lift_model.dart';
+import '../models/nutrition_entry.dart';
+import '../models/nutrition_goal_model.dart';
 import '../models/program_model.dart';
 import '../models/workout_session.dart';
 
@@ -17,6 +21,10 @@ class StorageService {
   static const String _keyHapticsEnabled = 'oly_haptics_enabled_v1';
   static const String _keyActiveDraft = 'oly_active_draft_v1';
   static const String _keyAccessoryLogs = 'oly_accessory_logs_v1';
+  static const String _keyBodyCompEntries = 'oly_body_comp_entries_v1';
+  static const String _keyNutritionLogs = 'oly_nutrition_logs_v1';
+  static const String _keyNutritionGoal = 'oly_nutrition_goal_v1';
+  static const String _keyMealTemplates = 'oly_meal_templates_v1';
 
   final SharedPreferences _prefs;
 
@@ -301,4 +309,84 @@ class StorageService {
       return false;
     }
   }
+
+  // --- BODY COMPOSITION STORAGE ---
+  List<BodyCompositionEntry> loadBodyCompEntries() {
+    final jsonStr = _prefs.getString(_keyBodyCompEntries);
+    if (jsonStr == null || jsonStr.isEmpty) {
+      return [];
+    }
+    try {
+      final List<dynamic> list = jsonDecode(jsonStr);
+      final entries = list.map((e) => BodyCompositionEntry.fromJson(e as Map<String, dynamic>)).toList();
+      entries.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+      return entries;
+    } catch (_) {
+      return [];
+    }
+  }
+
+  Future<void> saveBodyCompEntries(List<BodyCompositionEntry> entries) async {
+    final jsonStr = jsonEncode(entries.map((e) => e.toJson()).toList());
+    await _prefs.setString(_keyBodyCompEntries, jsonStr);
+  }
+
+  // --- DAILY NUTRITION LOGS STORAGE ---
+  Map<String, DailyNutritionLog> loadDailyNutritionLogs() {
+    final jsonStr = _prefs.getString(_keyNutritionLogs);
+    if (jsonStr == null || jsonStr.isEmpty) {
+      return {};
+    }
+    try {
+      final Map<String, dynamic> map = jsonDecode(jsonStr);
+      return map.map((k, v) => MapEntry(k, DailyNutritionLog.fromJson(v as Map<String, dynamic>)));
+    } catch (_) {
+      return {};
+    }
+  }
+
+  Future<void> saveDailyNutritionLogs(Map<String, DailyNutritionLog> logs) async {
+    final map = logs.map((k, v) => MapEntry(k, v.toJson()));
+    final jsonStr = jsonEncode(map);
+    await _prefs.setString(_keyNutritionLogs, jsonStr);
+  }
+
+  // --- NUTRITION GOAL STORAGE ---
+  NutritionGoalModel loadNutritionGoal() {
+    final jsonStr = _prefs.getString(_keyNutritionGoal);
+    if (jsonStr == null || jsonStr.isEmpty) {
+      return const NutritionGoalModel();
+    }
+    try {
+      final map = jsonDecode(jsonStr) as Map<String, dynamic>;
+      return NutritionGoalModel.fromJson(map);
+    } catch (_) {
+      return const NutritionGoalModel();
+    }
+  }
+
+  Future<void> saveNutritionGoal(NutritionGoalModel goal) async {
+    final jsonStr = jsonEncode(goal.toJson());
+    await _prefs.setString(_keyNutritionGoal, jsonStr);
+  }
+
+  // --- MEAL TEMPLATES / FAVORITES STORAGE ---
+  List<NutritionEntry> loadMealTemplates() {
+    final jsonStr = _prefs.getString(_keyMealTemplates);
+    if (jsonStr == null || jsonStr.isEmpty) {
+      return [];
+    }
+    try {
+      final List<dynamic> list = jsonDecode(jsonStr);
+      return list.map((e) => NutritionEntry.fromJson(e as Map<String, dynamic>)).toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  Future<void> saveMealTemplates(List<NutritionEntry> templates) async {
+    final jsonStr = jsonEncode(templates.map((e) => e.toJson()).toList());
+    await _prefs.setString(_keyMealTemplates, jsonStr);
+  }
 }
+
