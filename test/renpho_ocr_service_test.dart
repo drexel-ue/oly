@@ -95,5 +95,164 @@ Data from RENPHO Scale
       final fatToLose = entry.fatToLoseForTargetBf(15.0);
       expect(fatToLose, closeTo(19.39, 0.1));
     });
+
+    test('Parses multiline fragmented OCR text from mobile camera roll screenshots', () {
+      const fragmentedText = '''
+RENPHO Report
+Jul 21, 2026 at 19:30:37
+
+Weight
+264.8 lb
+High
+
+BMI
+34.9
+High
+
+Body Fat
+56.2 lb
+21.2 %
+Average
+
+Skeletal Muscle
+134.6 lb
+50.8 %
+
+Fat-Free Mass
+208.6 lb
+
+Subcutaneous Fat
+16.8 %
+
+Visceral Fat
+17
+
+Body Water
+150.6 lb
+56.9 %
+
+Muscle Mass
+198.4 lb
+74.9 %
+
+Bone Mass
+10.4 lb
+3.9 %
+
+Protein
+47.6 lb
+18.0 %
+
+BMR
+2394 kcal
+
+Metabolic Age
+35
+''';
+
+      final entry = ocrService.parseRecognizedText(fragmentedText);
+
+      expect(entry, isNotNull);
+      expect(entry!.weightLb, closeTo(264.8, 0.01));
+      expect(entry.bmi, closeTo(34.9, 0.01));
+      expect(entry.bodyFatLb, closeTo(56.2, 0.01));
+      expect(entry.bodyFatPct, closeTo(21.2, 0.01));
+      expect(entry.skeletalMuscleLb, closeTo(134.6, 0.01));
+      expect(entry.skeletalMusclePct, closeTo(50.8, 0.01));
+      expect(entry.fatFreeMassLb, closeTo(208.6, 0.01));
+      expect(entry.subcutaneousFatPct, closeTo(16.8, 0.01));
+      expect(entry.visceralFat, equals(17));
+      expect(entry.bodyWaterLb, closeTo(150.6, 0.01));
+      expect(entry.bodyWaterPct, closeTo(56.9, 0.01));
+      expect(entry.muscleMassLb, closeTo(198.4, 0.01));
+      expect(entry.boneMassLb, closeTo(10.4, 0.01));
+      expect(entry.proteinLb, closeTo(47.6, 0.01));
+      expect(entry.bmrKcal, equals(2394));
+      expect(entry.metabolicAge, equals(35));
+    });
+
+    test('Parses exact raw multi-column OCR text from user iPhone device scan', () {
+      const userDeviceOcrText = '''
+RENPHO
+Data from Scale
+ikeshpack
+Jul 21, 2026 at 19:30:37
+Body Water
+O Protein
+Body Fat
+Bone Mass
+150.6 Ib
+47.6 lb
+56.2 Ib
+10.4 Ib
+Weight
+264.8
+Weight
+High
+BMI
+High
+Body Fat
+Average
+Skeletal Muscle
+Average
+264.8 lb
+34.9
+56.2 Ib,21.2 %
+134.6 lb,50.8 %
+Fat-Free Mass
+Subcutaneous Fat
+High
+Visceral Fat
+High
+Body Water
+Average
+208.6 lb
+16.8 %
+17
+150.6 Ib,56.9 %
+Muscle Mass
+High
+Bone Mass
+Average
+Protein
+Average
+198.4 Ib,74.9 %
+10.4 Ib,3.9 %
+47.6 Ib,18.0 %
+BMR
+Average
+Metabolic Age
+High
+2394 kcal
+35
+Data from RENPHO Scale
+Disclaimer: The information provided by the app is for reference
+purposes only and should not be considered a substitute for
+professional healthcare services.
+''';
+
+      final entry = ocrService.parseRecognizedText(userDeviceOcrText);
+
+      expect(entry, isNotNull);
+      expect(entry!.weightLb, closeTo(264.8, 0.01));
+      expect(entry.bmi, closeTo(34.9, 0.01));
+      expect(entry.bodyFatLb, closeTo(56.2, 0.01));
+      expect(entry.bodyFatPct, closeTo(21.2, 0.01));
+      expect(entry.skeletalMuscleLb, closeTo(134.6, 0.01));
+      expect(entry.skeletalMusclePct, closeTo(50.8, 0.01));
+      expect(entry.fatFreeMassLb, closeTo(208.6, 0.01));
+      expect(entry.subcutaneousFatPct, closeTo(16.8, 0.01));
+      expect(entry.visceralFat, equals(17));
+      expect(entry.bodyWaterLb, closeTo(150.6, 0.01));
+      expect(entry.bodyWaterPct, closeTo(56.9, 0.01));
+      expect(entry.muscleMassLb, closeTo(198.4, 0.01));
+      expect(entry.muscleMassPct, closeTo(74.9, 0.01));
+      expect(entry.boneMassLb, closeTo(10.4, 0.01));
+      expect(entry.boneMassPct, closeTo(3.9, 0.01));
+      expect(entry.proteinLb, closeTo(47.6, 0.01));
+      expect(entry.proteinPct, closeTo(18.0, 0.01));
+      expect(entry.bmrKcal, equals(2394));
+      expect(entry.metabolicAge, equals(35));
+    });
   });
 }

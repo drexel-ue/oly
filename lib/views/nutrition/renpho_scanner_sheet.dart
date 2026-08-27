@@ -22,6 +22,8 @@ class _RenphoScannerSheetState extends State<RenphoScannerSheet> {
   bool _isProcessing = false;
   BodyCompositionEntry? _parsedEntry;
   String? _errorMessage;
+  String? _rawOcrText;
+  int _extractedFieldsCount = 0;
 
   // Controllers for verification
   final TextEditingController _weightController = TextEditingController();
@@ -41,37 +43,18 @@ class _RenphoScannerSheetState extends State<RenphoScannerSheet> {
   @override
   void initState() {
     super.initState();
-    // Default preview with sample baseline
-    _populateFromEntry(
-      BodyCompositionEntry.create(
-        weightLb: 264.8,
-        bmi: 34.9,
-        bodyFatPct: 21.2,
-        bodyFatLb: 56.2,
-        skeletalMuscleLb: 134.6,
-        skeletalMusclePct: 50.8,
-        fatFreeMassLb: 208.6,
-        subcutaneousFatPct: 16.8,
-        visceralFat: 17,
-        bodyWaterLb: 150.6,
-        bodyWaterPct: 56.9,
-        muscleMassLb: 198.4,
-        muscleMassPct: 74.9,
-        boneMassLb: 10.4,
-        boneMassPct: 3.9,
-        proteinLb: 47.6,
-        proteinPct: 18.0,
-        bmrKcal: 2394,
-        metabolicAge: 35,
-        source: 'renpho_ocr',
-      ),
-    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final bodyComp = Provider.of<BodyCompProvider>(context, listen: false);
+      if (bodyComp.latestEntry != null) {
+        _populateFromEntry(bodyComp.latestEntry!);
+      }
+    });
   }
 
   void _populateFromEntry(BodyCompositionEntry entry) {
     setState(() {
       _parsedEntry = entry;
-      _weightController.text = entry.weightLb.toStringAsFixed(1);
+      _weightController.text = entry.weightLb > 0 ? entry.weightLb.toStringAsFixed(1) : '';
       _bodyFatPctController.text = entry.bodyFatPct?.toStringAsFixed(1) ?? '';
       _skeletalMuscleController.text = entry.skeletalMuscleLb?.toStringAsFixed(1) ?? '';
       _fatFreeMassController.text = entry.fatFreeMassLb?.toStringAsFixed(1) ?? '';
@@ -116,11 +99,25 @@ class _RenphoScannerSheetState extends State<RenphoScannerSheet> {
       final pickedFile = await _picker.pickImage(source: source);
       if (pickedFile != null) {
         final result = await _ocrService.processImage(pickedFile.path);
-        if (result != null) {
-          _populateFromEntry(result);
+        setState(() {
+          _rawOcrText = result.rawText;
+          _extractedFieldsCount = result.fieldsFound;
+        });
+
+        if (result.isSuccess && result.entry != null) {
+          _populateFromEntry(result.entry!);
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('✓ Extracted ${result.fieldsFound} metrics from scale scan!'),
+                backgroundColor: AppTheme.successGreen,
+                duration: const Duration(seconds: 3),
+              ),
+            );
+          }
         } else {
           setState(() {
-            _errorMessage = 'Could not auto-extract metrics. You can edit the values below.';
+            _errorMessage = result.errorMessage ?? 'Could not auto-extract metrics. You can edit the values below or view the raw text.';
           });
         }
       }
@@ -133,6 +130,67 @@ class _RenphoScannerSheetState extends State<RenphoScannerSheet> {
         _isProcessing = false;
       });
     }
+  }
+
+  void _loadSampleData() {
+    const sampleRenphoText = '''
+RENPHO
+Jul 21, 2026 at 19:30:37 Data from Scale
+Weight 264.8 lb
+BMI 34.9
+Body Fat 56.2 lb, 21.2 %
+Skeletal Muscle 134.6 lb, 50.8 %
+Fat-Free Mass 208.6 lb
+Subcutaneous Fat 16.8 %
+Visceral Fat 17
+Body Water 150.6 lb, 56.9 %
+Muscle Mass 198.4 lb, 74.9 %
+Bone Mass 10.4 lb, 3.9 %
+Protein 47.6 lb, 18.0 %
+BMR 2394 kcal
+Metabolic Age 35
+''';
+    final entry = _ocrService.parseRecognizedText(sampleRenphoText);
+    if (entry != null) {
+      setState(() {
+        _rawOcrText = sampleRenphoText;
+        _errorMessage = null;
+        _extractedFieldsCount = 13;
+      });
+      _populateFromEntry(entry);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('✓ Loaded Renpho scale benchmark profile (13 biometrics)'),
+          backgroundColor: AppTheme.primaryAmber,
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
+  void _showRawTextDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppTheme.surfaceCard,
+        title: Text('Raw OCR Extracted Text', style: GoogleFonts.outfit(color: AppTheme.textPrimary)),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: SingleChildScrollView(
+            child: Text(
+              _rawOcrText != null && _rawOcrText!.isNotEmpty ? _rawOcrText! : 'No raw text available yet. Please select an image.',
+              style: GoogleFonts.firaCode(fontSize: 12, color: AppTheme.textSecondary),
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Close', style: TextStyle(color: AppTheme.primaryAmber)),
+          ),
+        ],
+      ),
+    );
   }
 
   void _saveScan() {
@@ -231,6 +289,30 @@ class _RenphoScannerSheetState extends State<RenphoScannerSheet> {
                           onTap: () => _pickImage(ImageSource.camera),
                         ),
                       ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      TextButton.icon(
+                        onPressed: _loadSampleData,
+                        icon: const Icon(Icons.flash_on, size: 14, color: AppTheme.primaryAmber),
+                        label: Text(
+                          'Test Sample Data',
+                          style: GoogleFonts.inter(fontSize: 12, color: AppTheme.primaryAmber),
+                        ),
+                      ),
+                      if (_rawOcrText != null && _rawOcrText!.isNotEmpty)
+                        TextButton.icon(
+                          onPressed: _showRawTextDialog,
+                          icon: const Icon(Icons.article_outlined, size: 14, color: AppTheme.secondaryCyan),
+                          label: Text(
+                            'View Raw OCR Text',
+                            style: GoogleFonts.inter(fontSize: 12, color: AppTheme.secondaryCyan),
+                          ),
+                        ),
                     ],
                   ),
 
