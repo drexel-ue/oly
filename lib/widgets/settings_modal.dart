@@ -8,6 +8,7 @@ import '../providers/lift_provider.dart';
 import '../providers/program_provider.dart';
 import '../providers/settings_provider.dart';
 import '../theme/app_theme.dart';
+import '../views/diagnostics/crash_report_screen.dart';
 
 class SettingsModal extends StatefulWidget {
   const SettingsModal({super.key});
@@ -315,6 +316,41 @@ class _SettingsModalState extends State<SettingsModal> {
                   onPressed: () => _showPasteImportDialog(context),
                   icon: const Icon(Icons.paste, size: 16, color: AppTheme.textSecondary),
                   label: Text('Paste Raw Text / JSON', style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textSecondary)),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              const Divider(color: AppTheme.borderColor),
+              const SizedBox(height: 8),
+
+              // Diagnostics & System Logs
+              Text(
+                'DIAGNOSTICS & SYSTEM LOGS',
+                style: GoogleFonts.outfit(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.primaryAmber,
+                  letterSpacing: 1.0,
+                ),
+              ),
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const CrashReportScreen()),
+                    );
+                  },
+                  icon: const Icon(Icons.bug_report, color: Colors.orangeAccent),
+                  label: Text('View Diagnostics & Crash Logs', style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppTheme.textPrimary,
+                    side: const BorderSide(color: AppTheme.borderColor),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
                 ),
               ),
               const SizedBox(height: 16),

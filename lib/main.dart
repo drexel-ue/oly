@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/body_comp_provider.dart';
@@ -17,6 +18,7 @@ import 'views/lifts_screen.dart';
 import 'views/max_test_screen.dart';
 import 'views/nutrition/nutrition_dashboard_screen.dart';
 import 'views/plate_calculator_screen.dart';
+import 'services/app_log_service.dart';
 import 'views/recovery_session_screen.dart';
 import 'views/splash_screen.dart';
 import 'views/warmup_session_screen.dart';
@@ -24,8 +26,34 @@ import 'views/workout_session_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize logging and crash reporting first
+  await AppLogService.instance.init();
+
+  // Global Flutter framework error hook
+  FlutterError.onError = (FlutterErrorDetails details) {
+    FlutterError.presentError(details);
+    AppLogService.instance.crash(
+      'FLUTTER_FRAMEWORK',
+      details.exceptionAsString(),
+      stackTrace: details.stack,
+    );
+  };
+
+  // Global uncaught asynchronous errors hook
+  PlatformDispatcher.instance.onError = (Object error, StackTrace stack) {
+    AppLogService.instance.crash(
+      'UNCAUGHT_ASYNC',
+      error.toString(),
+      stackTrace: stack,
+    );
+    return true; // prevent application from dying
+  };
+
   final storageService = await StorageService.init();
   await NotificationService().init();
+
+  AppLogService.instance.info('SYSTEM', 'Oly application initialized successfully');
 
   runApp(
     MultiProvider(
