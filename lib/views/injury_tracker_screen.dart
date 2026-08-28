@@ -4,6 +4,7 @@ import 'package:oly/models/injury_model.dart';
 import 'package:oly/models/mobility_exercise_model.dart';
 import 'package:oly/providers/injury_provider.dart';
 import 'package:oly/theme/app_theme.dart';
+import 'package:oly/widgets/injury_export_bottom_sheet.dart';
 import 'package:oly/widgets/injury_log_bottom_sheet.dart';
 import 'package:oly/widgets/interactive_body_map.dart';
 import 'package:provider/provider.dart';
@@ -48,6 +49,17 @@ class _InjuryTrackerScreenState extends State<InjuryTrackerScreen>
       builder: (BuildContext _) => InjuryLogBottomSheet(
         initialRegion: region,
         existingInjury: existing,
+      ),
+    );
+  }
+
+  void _showExportSheet(List<InjuryRecord> allInjuries) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (BuildContext _) => InjuryExportBottomSheet(
+        injuries: allInjuries,
       ),
     );
   }
@@ -175,6 +187,14 @@ class _InjuryTrackerScreenState extends State<InjuryTrackerScreen>
         actions: <Widget>[
           IconButton(
             icon: const Icon(
+              Icons.ios_share,
+              color: AppTheme.primaryAmber,
+            ),
+            tooltip: 'Export Report (PDF / JSON)',
+            onPressed: () => _showExportSheet(injuryProvider.allInjuries),
+          ),
+          IconButton(
+            icon: const Icon(
               Icons.info_outline,
               color: AppTheme.textSecondary,
             ),
@@ -247,7 +267,7 @@ class _InjuryTrackerScreenState extends State<InjuryTrackerScreen>
                   children: <Widget>[
                     _buildActiveInjuriesTab(activeList, injuryProvider),
                     _buildRehabTab(activeList),
-                    _buildHistoryTab(resolvedList),
+                    _buildHistoryTab(resolvedList, injuryProvider.allInjuries),
                   ],
                 ),
               ),
@@ -563,35 +583,89 @@ class _InjuryTrackerScreenState extends State<InjuryTrackerScreen>
     );
   }
 
-  Widget _buildHistoryTab(List<InjuryRecord> resolved) {
-    if (resolved.isEmpty) {
-      return Center(
-        child: Text(
-          'No resolved injury history recorded yet.',
-          style: GoogleFonts.inter(color: AppTheme.textSecondary),
-        ),
-      );
-    }
-
-    return ListView.builder(
-      itemCount: resolved.length,
-      itemBuilder: (BuildContext context, int index) {
-        final InjuryRecord record = resolved[index];
-        return Card(
-          margin: const EdgeInsets.only(bottom: 10),
-          child: ListTile(
-            leading: const Icon(Icons.history, color: AppTheme.successGreen),
-            title: Text(
-              record.name,
-              style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
-            ),
-            subtitle: Text(
-              '${record.region.displayName} • Duration: ${record.formattedDuration}',
-              style: GoogleFonts.inter(fontSize: 11, color: AppTheme.textSecondary),
+  Widget _buildHistoryTab(
+    List<InjuryRecord> resolved,
+    List<InjuryRecord> allInjuries,
+  ) {
+    return Column(
+      children: <Widget>[
+        // Export Action Banner
+        Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: AppTheme.surfaceCard,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: AppTheme.primaryAmber.withValues(alpha: 0.3),
             ),
           ),
-        );
-      },
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              Text(
+                'Clinical PDF & JSON Export',
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.textPrimary,
+                ),
+              ),
+              TextButton.icon(
+                icon: const Icon(
+                  Icons.ios_share,
+                  size: 15,
+                  color: AppTheme.primaryAmber,
+                ),
+                label: Text(
+                  'Export Report',
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.primaryAmber,
+                  ),
+                ),
+                onPressed: () => _showExportSheet(allInjuries),
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: resolved.isEmpty
+              ? Center(
+                  child: Text(
+                    'No resolved injury history recorded yet.',
+                    style: GoogleFonts.inter(color: AppTheme.textSecondary),
+                  ),
+                )
+              : ListView.builder(
+                  itemCount: resolved.length,
+                  itemBuilder: (BuildContext context, int index) {
+                    final InjuryRecord record = resolved[index];
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 10),
+                      child: ListTile(
+                        leading: const Icon(
+                          Icons.history,
+                          color: AppTheme.successGreen,
+                        ),
+                        title: Text(
+                          record.name,
+                          style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
+                        ),
+                        subtitle: Text(
+                          '${record.region.displayName} • Duration: ${record.formattedDuration}',
+                          style: GoogleFonts.inter(
+                            fontSize: 11,
+                            color: AppTheme.textSecondary,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+        ),
+      ],
     );
   }
 }

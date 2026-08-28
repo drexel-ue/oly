@@ -14,7 +14,7 @@
   <img src="https://img.shields.io/badge/Open%20Food%20Facts-SDK%20v3-00B259?logo=openfoodfacts&logoColor=white" alt="Open Food Facts SDK" />
   <img src="https://img.shields.io/badge/Google%20ML%20Kit-OCR%20Vision-4285F4?logo=google&logoColor=white" alt="ML Kit Vision" />
   <img src="https://img.shields.io/badge/Theme-Dark%20Obsidian-121214" alt="Theme" />
-  <img src="https://img.shields.io/badge/Tests-134%20Passing-brightgreen" alt="Tests" />
+  <img src="https://img.shields.io/badge/Tests-139%20Passing-brightgreen" alt="Tests" />
   <img src="https://img.shields.io/badge/License-Proprietary-FF9E1B" alt="License" />
 </p>
 
@@ -85,15 +85,15 @@
 
 ### 🧘‍♂️ Active Recovery, Analytics & Diagnostics
 
-| Interactive Anatomical Body Map | Post-Session Strain Check-In |
+| Interactive Anatomical Body Map | Clinical PDF & JSON Export |
 | :---: | :---: |
-| <img src="screenshots/21_injury_tracker_screen.png" width="360" alt="Body Map & Injury Tracker" /> | <img src="screenshots/22_post_session_body_checkin.png" width="360" alt="Post-Session Strain Check-In" /> |
-| *14-region clickable body map, acute (<14d) vs chronic (6w+) tags, and OSIICS catalog* | *Before-vs-after session strain comparison modal and recovery sync* |
+| <img src="screenshots/21_injury_tracker_screen.png" width="360" alt="Body Map & Injury Tracker" /> | <img src="screenshots/23_injury_export_sheet.png" width="360" alt="Clinical PDF & JSON Export" /> |
+| *14-region clickable body map, acute (<14d) vs chronic (6w+) tags, and OSIICS catalog* | *Multi-page clinical PDF report and structured raw JSON data backup* |
 
-| Active Recovery Routine (Top) | Active Recovery Routine (Scrolled) |
+| Post-Session Strain Check-In | Active Recovery Routine |
 | :---: | :---: |
-| <img src="screenshots/12_recovery_session_screen.png" width="360" alt="Active Recovery Top" /> | <img src="screenshots/12_recovery_session_screen_scrolled.png" width="360" alt="Active Recovery Scrolled" /> |
-| *Adaptive 5-phase mobility flow generated from previous joint strain tags* | *Upper body hypertrophy, core stability, and grip resilience drills* |
+| <img src="screenshots/22_post_session_body_checkin.png" width="360" alt="Post-Session Strain Check-In" /> | <img src="screenshots/12_recovery_session_screen.png" width="360" alt="Active Recovery Top" /> |
+| *Before-vs-after session strain comparison modal and recovery sync* | *Adaptive 5-phase mobility flow generated from previous joint strain tags* |
 
 | Guided Olympic Warm-Up | Mobility & Drill Swaps |
 | :---: | :---: |
@@ -320,7 +320,7 @@ lib/
 
 ---
 
-## 📄 Testing Suite (134 Passing Tests)
+## 📄 Testing Suite (139 Passing Tests)
 
 Run the full suite of unit, widget, domain engine, and screenshot rendering tests:
 ```bash
@@ -328,6 +328,7 @@ flutter test
 ```
 
 Test coverage includes:
+- `injury_export_test.dart`: Clinical PDF document byte generation, structured JSON backup format, and export bottom sheet widget interactions.
 - `injury_model_test.dart`: OSIICS serialization, duration calculation, and acute/subacute/chronic classification.
 - `injury_adaptation_test.dart`: Biomechanical loading vector rules, exercise regressions, and rehab warmup injection.
 - `injury_provider_test.dart`: Injury CRUD, persistent storage, history tracking, and post-session diff sync.

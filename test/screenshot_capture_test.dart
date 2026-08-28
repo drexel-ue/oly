@@ -40,6 +40,7 @@ import 'package:oly/views/recovery_session_screen.dart';
 import 'package:oly/views/warmup_session_screen.dart';
 import 'package:oly/views/workout_session_screen.dart';
 import 'package:oly/widgets/exercise_swap_modal.dart';
+import 'package:oly/widgets/injury_export_bottom_sheet.dart';
 import 'package:oly/widgets/mobility_exercise_swap_modal.dart';
 import 'package:oly/widgets/nutrition/smart_portion_drawer.dart';
 import 'package:oly/widgets/post_session_body_checkin_dialog.dart';
@@ -742,6 +743,26 @@ void main() {
       await captureScreen(tester, '22_post_session_body_checkin');
       expect(find.text('Post-Session Strain Check-In'), findsOneWidget);
       expect(find.text('Save & Finish'), findsOneWidget);
+    });
+
+    testWidgets('23 Renders Injury Export Bottom Sheet (PDF & JSON)', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(1170, 2532);
+      tester.view.devicePixelRatio = 2.0;
+      addTearDown(() => tester.view.resetPhysicalSize());
+
+      await tester.pumpWidget(
+        buildTestScreen(
+          InjuryExportBottomSheet(
+            injuries: injuryProvider.allInjuries,
+          ),
+        ),
+      );
+      await captureScreen(tester, '23_injury_export_sheet');
+      expect(find.text('Export Injury History'), findsOneWidget);
+      expect(find.text('Clinical & Athletic PDF Report'), findsOneWidget);
+      expect(find.text('Structured JSON Data Export'), findsOneWidget);
     });
   });
 }

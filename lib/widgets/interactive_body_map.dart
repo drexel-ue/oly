@@ -1,3 +1,6 @@
+import 'dart:typed_data';
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:oly/models/injury_model.dart';
@@ -120,7 +123,7 @@ class _InteractiveBodyMapState extends State<InteractiveBodyMap> {
                   ),
                   child: CustomPaint(
                     size: Size(constraints.maxWidth, constraints.maxHeight),
-                    painter: _BodyMapPainter(
+                    painter: BodyMapPainter(
                       isFront: _isFront,
                       injuries: widget.injuries,
                       selectedRegion: widget.selectedRegion,
@@ -308,8 +311,8 @@ class _InteractiveBodyMapState extends State<InteractiveBodyMap> {
   }
 }
 
-class _BodyMapPainter extends CustomPainter {
-  _BodyMapPainter({
+class BodyMapPainter extends CustomPainter {
+  BodyMapPainter({
     required this.isFront,
     required this.injuries,
     this.selectedRegion,
@@ -320,6 +323,41 @@ class _BodyMapPainter extends CustomPainter {
   final List<InjuryRecord> injuries;
   final InjuryRegion? selectedRegion;
   final Map<InjuryRegion, int>? customPainMap;
+
+  /// Renders the vector anatomical body map into a PNG byte buffer
+  static Future<Uint8List> renderBodyMapPng({
+    required bool isFront,
+    required List<InjuryRecord> injuries,
+    double width = 280,
+    double height = 360,
+    Map<InjuryRegion, int>? customPainMap,
+  }) async {
+    final ui.PictureRecorder recorder = ui.PictureRecorder();
+    final Canvas canvas = Canvas(recorder, Rect.fromLTWH(0, 0, width, height));
+
+    // Dark card background
+    final Paint bgPaint = Paint()..color = const Color(0xFF18181B);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(0, 0, width, height),
+        const Radius.circular(10),
+      ),
+      bgPaint,
+    );
+
+    final BodyMapPainter painter = BodyMapPainter(
+      isFront: isFront,
+      injuries: injuries,
+      customPainMap: customPainMap,
+    );
+    painter.paint(canvas, Size(width, height));
+
+    final ui.Picture picture = recorder.endRecording();
+    final ui.Image image = await picture.toImage(width.toInt(), height.toInt());
+    final ByteData? byteData =
+        await image.toByteData(format: ui.ImageByteFormat.png);
+    return byteData!.buffer.asUint8List();
+  }
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -801,7 +839,7 @@ class _BodyMapPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _BodyMapPainter oldDelegate) {
+  bool shouldRepaint(covariant BodyMapPainter oldDelegate) {
     return oldDelegate.isFront != isFront ||
         oldDelegate.injuries != injuries ||
         oldDelegate.selectedRegion != selectedRegion ||
