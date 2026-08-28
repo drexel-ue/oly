@@ -1,18 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:oly/models/nutrition_entry.dart';
+import 'package:oly/providers/body_comp_provider.dart';
+import 'package:oly/providers/nutrition_provider.dart';
+import 'package:oly/theme/app_theme.dart';
 import 'package:provider/provider.dart';
-import '../../models/nutrition_entry.dart';
-import '../../providers/body_comp_provider.dart';
-import '../../providers/nutrition_provider.dart';
-import '../../theme/app_theme.dart';
 
 class QuickMacroLogSheet extends StatefulWidget {
-  final MealCategory defaultCategory;
-
   const QuickMacroLogSheet({
     super.key,
     this.defaultCategory = MealCategory.snack,
   });
+  final MealCategory defaultCategory;
 
   @override
   State<QuickMacroLogSheet> createState() => _QuickMacroLogSheetState();
@@ -46,24 +45,32 @@ class _QuickMacroLogSheetState extends State<QuickMacroLogSheet> {
   }
 
   void _addCalories(int delta) {
-    final current = int.tryParse(_calsController.text) ?? 0;
-    final next = (current + delta).clamp(0, 5000);
+    final int current = int.tryParse(_calsController.text) ?? 0;
+    final int next = (current + delta).clamp(0, 5000);
     _calsController.text = next.toString();
   }
 
   void _saveLog() {
-    final cals = int.tryParse(_calsController.text) ?? 0;
-    if (cals <= 0) return;
+    final int cals = int.tryParse(_calsController.text) ?? 0;
+    if (cals <= 0) {
+      return;
+    }
 
-    final protein = double.tryParse(_proteinController.text) ?? 0.0;
-    final carbs = double.tryParse(_carbsController.text) ?? 0.0;
-    final fat = double.tryParse(_fatController.text) ?? 0.0;
-    final name = _nameController.text.trim().isNotEmpty
+    final double protein = double.tryParse(_proteinController.text) ?? 0.0;
+    final double carbs = double.tryParse(_carbsController.text) ?? 0.0;
+    final double fat = double.tryParse(_fatController.text) ?? 0.0;
+    final String name = _nameController.text.trim().isNotEmpty
         ? _nameController.text.trim()
         : _selectedCategory.displayName;
 
-    final nutrition = Provider.of<NutritionProvider>(context, listen: false);
-    final bodyComp = Provider.of<BodyCompProvider>(context, listen: false);
+    final NutritionProvider nutrition = Provider.of<NutritionProvider>(
+      context,
+      listen: false,
+    );
+    final BodyCompProvider bodyComp = Provider.of<BodyCompProvider>(
+      context,
+      listen: false,
+    );
 
     nutrition.addFoodEntry(
       NutritionEntry.create(
@@ -73,7 +80,9 @@ class _QuickMacroLogSheetState extends State<QuickMacroLogSheet> {
         carbsGrams: carbs,
         fatGrams: fat,
         category: _selectedCategory,
-        portion: _portionController.text.trim().isNotEmpty ? _portionController.text.trim() : null,
+        portion: _portionController.text.trim().isNotEmpty
+            ? _portionController.text.trim()
+            : null,
       ),
       latestBodyComp: bodyComp.latestEntry,
     );
@@ -98,7 +107,7 @@ class _QuickMacroLogSheetState extends State<QuickMacroLogSheet> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+          children: <Widget>[
             // Handle Bar
             Center(
               child: Container(
@@ -115,7 +124,7 @@ class _QuickMacroLogSheetState extends State<QuickMacroLogSheet> {
             // Header
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
+              children: <Widget>[
                 Text(
                   'Quick Food & Macro Log',
                   style: GoogleFonts.outfit(
@@ -137,8 +146,8 @@ class _QuickMacroLogSheetState extends State<QuickMacroLogSheet> {
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
-                children: MealCategory.values.map((cat) {
-                  final isSelected = _selectedCategory == cat;
+                children: MealCategory.values.map((MealCategory cat) {
+                  final bool isSelected = _selectedCategory == cat;
                   return Padding(
                     padding: const EdgeInsets.only(right: 8),
                     child: ChoiceChip(
@@ -148,15 +157,20 @@ class _QuickMacroLogSheetState extends State<QuickMacroLogSheet> {
                       backgroundColor: AppTheme.surfaceCard,
                       labelStyle: GoogleFonts.inter(
                         fontSize: 12,
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                        fontWeight: isSelected
+                            ? FontWeight.bold
+                            : FontWeight.normal,
                         color: isSelected ? Colors.black : AppTheme.textPrimary,
                       ),
-                      onSelected: (selected) {
+                      onSelected: (bool selected) {
                         if (selected) {
                           setState(() {
                             _selectedCategory = cat;
                             if (_nameController.text.isEmpty ||
-                                MealCategory.values.any((c) => c.displayName == _nameController.text)) {
+                                MealCategory.values.any(
+                                  (MealCategory c) =>
+                                      c.displayName == _nameController.text,
+                                )) {
                               _nameController.text = cat.displayName;
                             }
                           });
@@ -194,7 +208,7 @@ class _QuickMacroLogSheetState extends State<QuickMacroLogSheet> {
 
             // Calories Input & Quick Add Steppers
             Row(
-              children: [
+              children: <Widget>[
                 Expanded(
                   flex: 3,
                   child: TextField(
@@ -208,16 +222,23 @@ class _QuickMacroLogSheetState extends State<QuickMacroLogSheet> {
                     ),
                     decoration: InputDecoration(
                       labelText: 'Calories (kcal)',
-                      labelStyle: GoogleFonts.inter(color: AppTheme.textSecondary, fontSize: 13),
+                      labelStyle: GoogleFonts.inter(
+                        color: AppTheme.textSecondary,
+                        fontSize: 13,
+                      ),
                       filled: true,
                       fillColor: AppTheme.surfaceCard,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(14),
-                        borderSide: const BorderSide(color: AppTheme.borderColor),
+                        borderSide: const BorderSide(
+                          color: AppTheme.borderColor,
+                        ),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(14),
-                        borderSide: const BorderSide(color: AppTheme.borderColor),
+                        borderSide: const BorderSide(
+                          color: AppTheme.borderColor,
+                        ),
                       ),
                     ),
                   ),
@@ -235,7 +256,7 @@ class _QuickMacroLogSheetState extends State<QuickMacroLogSheet> {
 
             // Macros Row (Protein, Carbs, Fat)
             Row(
-              children: [
+              children: <Widget>[
                 Expanded(
                   child: _buildMacroField(
                     controller: _proteinController,
@@ -273,7 +294,9 @@ class _QuickMacroLogSheetState extends State<QuickMacroLogSheet> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.primaryAmber,
                   foregroundColor: Colors.black,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                   elevation: 0,
                 ),
                 child: Text(
@@ -329,10 +352,16 @@ class _QuickMacroLogSheetState extends State<QuickMacroLogSheet> {
       ),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: GoogleFonts.inter(color: AppTheme.textSecondary, fontSize: 11),
+        labelStyle: GoogleFonts.inter(
+          color: AppTheme.textSecondary,
+          fontSize: 11,
+        ),
         filled: true,
         fillColor: AppTheme.surfaceCard,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 12,
+          vertical: 12,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: const BorderSide(color: AppTheme.borderColor),

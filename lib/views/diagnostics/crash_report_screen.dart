@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../services/app_log_service.dart';
-import '../../theme/app_theme.dart';
+import 'package:oly/services/app_log_service.dart';
+import 'package:oly/theme/app_theme.dart';
 
 class CrashReportScreen extends StatefulWidget {
   const CrashReportScreen({super.key});
@@ -23,7 +23,7 @@ class _CrashReportScreenState extends State<CrashReportScreen> {
   }
 
   void _copyAllLogs() {
-    final text = AppLogService.instance.exportFullLogsText();
+    final String text = AppLogService.instance.exportFullLogsText();
     Clipboard.setData(ClipboardData(text: text));
     HapticFeedback.mediumImpact();
     ScaffoldMessenger.of(context).showSnackBar(
@@ -47,17 +47,23 @@ class _CrashReportScreenState extends State<CrashReportScreen> {
   }
 
   Future<void> _clearLogs() async {
-    final confirm = await showDialog<bool>(
+    final bool? confirm = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (BuildContext ctx) => AlertDialog(
         backgroundColor: AppTheme.surfaceCard,
-        title: Text('Clear System Logs?', style: GoogleFonts.outfit(color: AppTheme.textPrimary)),
+        title: Text(
+          'Clear System Logs?',
+          style: GoogleFonts.outfit(color: AppTheme.textPrimary),
+        ),
         content: Text(
           'This will permanently delete all recorded log messages and crash reports from memory and local storage.',
           style: GoogleFonts.inter(color: AppTheme.textSecondary),
         ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
@@ -72,7 +78,10 @@ class _CrashReportScreenState extends State<CrashReportScreen> {
       setState(() {});
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('✓ All logs cleared'), backgroundColor: AppTheme.primaryAmber),
+          const SnackBar(
+            content: Text('✓ All logs cleared'),
+            backgroundColor: AppTheme.primaryAmber,
+          ),
         );
       }
     }
@@ -90,21 +99,29 @@ class _CrashReportScreenState extends State<CrashReportScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final allLogs = AppLogService.instance.logs;
-    final filteredLogs = allLogs.where((log) {
-      if (_filterLevel != null && log.level != _filterLevel) return false;
+    final List<LogEntry> allLogs = AppLogService.instance.logs;
+    final List<LogEntry> filteredLogs = allLogs.where((LogEntry log) {
+      if (_filterLevel != null && log.level != _filterLevel) {
+        return false;
+      }
       if (_searchQuery.isNotEmpty) {
-        final q = _searchQuery.toLowerCase();
-        final matchTag = log.tag.toLowerCase().contains(q);
-        final matchMsg = log.message.toLowerCase().contains(q);
+        final String q = _searchQuery.toLowerCase();
+        final bool matchTag = log.tag.toLowerCase().contains(q);
+        final bool matchMsg = log.message.toLowerCase().contains(q);
         return matchTag || matchMsg;
       }
       return true;
     }).toList();
 
-    final crashCount = allLogs.where((l) => l.level == LogLevel.crash).length;
-    final errorCount = allLogs.where((l) => l.level == LogLevel.error).length;
-    final warnCount = allLogs.where((l) => l.level == LogLevel.warning).length;
+    final int crashCount = allLogs
+        .where((LogEntry l) => l.level == LogLevel.crash)
+        .length;
+    final int errorCount = allLogs
+        .where((LogEntry l) => l.level == LogLevel.error)
+        .length;
+    final int warnCount = allLogs
+        .where((LogEntry l) => l.level == LogLevel.warning)
+        .length;
 
     return Scaffold(
       backgroundColor: AppTheme.darkBackground,
@@ -113,9 +130,12 @@ class _CrashReportScreenState extends State<CrashReportScreen> {
         elevation: 0,
         title: Text(
           'Diagnostics & Crash Logs',
-          style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+          style: GoogleFonts.outfit(
+            fontWeight: FontWeight.bold,
+            color: AppTheme.textPrimary,
+          ),
         ),
-        actions: [
+        actions: <Widget>[
           IconButton(
             icon: const Icon(Icons.copy_all, color: AppTheme.primaryAmber),
             tooltip: 'Copy Full Log',
@@ -129,19 +149,39 @@ class _CrashReportScreenState extends State<CrashReportScreen> {
         ],
       ),
       body: Column(
-        children: [
+        children: <Widget>[
           // Stat Overview Cards
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
             child: Row(
-              children: [
-                _buildStatCard('Total Logs', '${allLogs.length}', AppTheme.textPrimary, null),
+              children: <Widget>[
+                _buildStatCard(
+                  'Total Logs',
+                  '${allLogs.length}',
+                  AppTheme.textPrimary,
+                  null,
+                ),
                 const SizedBox(width: 8),
-                _buildStatCard('Crashes', '$crashCount', Colors.redAccent, LogLevel.crash),
+                _buildStatCard(
+                  'Crashes',
+                  '$crashCount',
+                  Colors.redAccent,
+                  LogLevel.crash,
+                ),
                 const SizedBox(width: 8),
-                _buildStatCard('Errors', '$errorCount', Colors.orangeAccent, LogLevel.error),
+                _buildStatCard(
+                  'Errors',
+                  '$errorCount',
+                  Colors.orangeAccent,
+                  LogLevel.error,
+                ),
                 const SizedBox(width: 8),
-                _buildStatCard('Warnings', '$warnCount', AppTheme.primaryAmber, LogLevel.warning),
+                _buildStatCard(
+                  'Warnings',
+                  '$warnCount',
+                  AppTheme.primaryAmber,
+                  LogLevel.warning,
+                ),
               ],
             ),
           ),
@@ -150,15 +190,23 @@ class _CrashReportScreenState extends State<CrashReportScreen> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
             child: Row(
-              children: [
+              children: <Widget>[
                 Expanded(
                   child: TextField(
                     controller: _searchController,
-                    style: GoogleFonts.inter(fontSize: 13, color: AppTheme.textPrimary),
-                    onChanged: (val) => setState(() => _searchQuery = val.trim()),
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      color: AppTheme.textPrimary,
+                    ),
+                    onChanged: (String val) =>
+                        setState(() => _searchQuery = val.trim()),
                     decoration: InputDecoration(
                       hintText: 'Filter by tag or message (e.g. OCR, WOD, Barcode)...',
-                      prefixIcon: const Icon(Icons.search, size: 18, color: AppTheme.textSecondary),
+                      prefixIcon: const Icon(
+                        Icons.search,
+                        size: 18,
+                        color: AppTheme.textSecondary,
+                      ),
                       suffixIcon: _searchQuery.isNotEmpty
                           ? IconButton(
                               icon: const Icon(Icons.clear, size: 16),
@@ -170,8 +218,13 @@ class _CrashReportScreenState extends State<CrashReportScreen> {
                           : null,
                       filled: true,
                       fillColor: AppTheme.surfaceCard,
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: AppTheme.borderColor)),
-                      contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(
+                          color: AppTheme.borderColor,
+                        ),
+                      ),
+                      contentPadding: EdgeInsets.zero,
                     ),
                   ),
                 ),
@@ -180,10 +233,21 @@ class _CrashReportScreenState extends State<CrashReportScreen> {
                   onPressed: _triggerTestException,
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: AppTheme.borderColor),
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 12,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
-                  child: Text('Probe', style: GoogleFonts.inter(fontSize: 11, color: AppTheme.textSecondary)),
+                  child: Text(
+                    'Probe',
+                    style: GoogleFonts.inter(
+                      fontSize: 11,
+                      color: AppTheme.textSecondary,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -194,7 +258,7 @@ class _CrashReportScreenState extends State<CrashReportScreen> {
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             child: Row(
-              children: [
+              children: <Widget>[
                 _buildFilterChip('ALL (${allLogs.length})', null),
                 _buildFilterChip('CRASHES ($crashCount)', LogLevel.crash),
                 _buildFilterChip('ERRORS ($errorCount)', LogLevel.error),
@@ -213,18 +277,28 @@ class _CrashReportScreenState extends State<CrashReportScreen> {
                 ? Center(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.check_circle_outline, size: 48, color: AppTheme.successGreen),
+                      children: <Widget>[
+                        const Icon(
+                          Icons.check_circle_outline,
+                          size: 48,
+                          color: AppTheme.successGreen,
+                        ),
                         const SizedBox(height: 10),
-                        Text('No log entries match your filter', style: GoogleFonts.inter(color: AppTheme.textSecondary)),
+                        Text(
+                          'No log entries match your filter',
+                          style: GoogleFonts.inter(
+                            color: AppTheme.textSecondary,
+                          ),
+                        ),
                       ],
                     ),
                   )
                 : ListView.separated(
                     padding: const EdgeInsets.fromLTRB(16, 6, 16, 20),
                     itemCount: filteredLogs.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 8),
-                    itemBuilder: (ctx, idx) => _buildLogCard(filteredLogs[idx]),
+                    separatorBuilder: (_, _) => const SizedBox(height: 8),
+                    itemBuilder: (BuildContext ctx, int idx) =>
+                        _buildLogCard(filteredLogs[idx]),
                   ),
           ),
         ],
@@ -232,24 +306,49 @@ class _CrashReportScreenState extends State<CrashReportScreen> {
     );
   }
 
-  Widget _buildStatCard(String label, String count, Color color, LogLevel? level) {
-    final isSelected = _filterLevel == level;
+  Widget _buildStatCard(
+    String label,
+    String count,
+    Color color,
+    LogLevel? level,
+  ) {
+    final bool isSelected = _filterLevel == level;
     return Expanded(
       child: InkWell(
-        onTap: () => setState(() => _filterLevel = (_filterLevel == level ? null : level)),
+        onTap: () => setState(
+          () => _filterLevel = (_filterLevel == level ? null : level),
+        ),
         borderRadius: BorderRadius.circular(10),
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
           decoration: BoxDecoration(
-            color: isSelected ? color.withOpacity(0.15) : AppTheme.surfaceCard,
+            color: isSelected
+                ? color.withValues(alpha: 0.15)
+                : AppTheme.surfaceCard,
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: isSelected ? color : AppTheme.borderColor),
+            border: Border.all(
+              color: isSelected ? color : AppTheme.borderColor,
+            ),
           ),
           child: Column(
-            children: [
-              Text(count, style: GoogleFonts.firaCode(fontSize: 16, fontWeight: FontWeight.bold, color: color)),
+            children: <Widget>[
+              Text(
+                count,
+                style: GoogleFonts.firaCode(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: color,
+                ),
+              ),
               const SizedBox(height: 2),
-              Text(label, style: GoogleFonts.inter(fontSize: 9, color: AppTheme.textSecondary), maxLines: 1),
+              Text(
+                label,
+                style: GoogleFonts.inter(
+                  fontSize: 9,
+                  color: AppTheme.textSecondary,
+                ),
+                maxLines: 1,
+              ),
             ],
           ),
         ),
@@ -258,17 +357,28 @@ class _CrashReportScreenState extends State<CrashReportScreen> {
   }
 
   Widget _buildFilterChip(String label, LogLevel? level) {
-    final isSelected = _filterLevel == level;
+    final bool isSelected = _filterLevel == level;
     return Padding(
       padding: const EdgeInsets.only(right: 6),
       child: ChoiceChip(
-        label: Text(label, style: GoogleFonts.inter(fontSize: 10, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
+        label: Text(
+          label,
+          style: GoogleFonts.inter(
+            fontSize: 10,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          ),
+        ),
         selected: isSelected,
-        selectedColor: AppTheme.primaryAmber.withOpacity(0.2),
+        selectedColor: AppTheme.primaryAmber.withValues(alpha: 0.2),
         backgroundColor: AppTheme.surfaceCard,
-        labelStyle: TextStyle(color: isSelected ? AppTheme.primaryAmber : AppTheme.textSecondary),
-        side: BorderSide(color: isSelected ? AppTheme.primaryAmber : AppTheme.borderColor),
-        onSelected: (sel) => setState(() => _filterLevel = sel ? level : null),
+        labelStyle: TextStyle(
+          color: isSelected ? AppTheme.primaryAmber : AppTheme.textSecondary,
+        ),
+        side: BorderSide(
+          color: isSelected ? AppTheme.primaryAmber : AppTheme.borderColor,
+        ),
+        onSelected: (bool sel) =>
+            setState(() => _filterLevel = sel ? level : null),
       ),
     );
   }
@@ -293,7 +403,8 @@ class _CrashReportScreenState extends State<CrashReportScreen> {
         break;
     }
 
-    final hasStack = entry.stackTrace != null && entry.stackTrace!.isNotEmpty;
+    final bool hasStack =
+        entry.stackTrace != null && entry.stackTrace!.isNotEmpty;
 
     return Container(
       decoration: BoxDecoration(
@@ -301,7 +412,7 @@ class _CrashReportScreenState extends State<CrashReportScreen> {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: entry.level == LogLevel.crash || entry.level == LogLevel.error
-              ? badgeColor.withOpacity(0.4)
+              ? badgeColor.withValues(alpha: 0.4)
               : AppTheme.borderColor,
         ),
       ),
@@ -312,40 +423,58 @@ class _CrashReportScreenState extends State<CrashReportScreen> {
           padding: const EdgeInsets.all(12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+            children: <Widget>[
               // Top Row: Level Badge + Tag + Timestamp + Copy Button
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
+                children: <Widget>[
                   Row(
-                    children: [
+                    children: <Widget>[
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
-                          color: badgeColor.withOpacity(0.18),
+                          color: badgeColor.withValues(alpha: 0.18),
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
                           entry.level.name.toUpperCase(),
-                          style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.bold, color: badgeColor),
+                          style: GoogleFonts.inter(
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
+                            color: badgeColor,
+                          ),
                         ),
                       ),
                       const SizedBox(width: 8),
                       Text(
                         '[${entry.tag}]',
-                        style: GoogleFonts.firaCode(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+                        style: GoogleFonts.firaCode(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.textPrimary,
+                        ),
                       ),
                     ],
                   ),
                   Row(
-                    children: [
+                    children: <Widget>[
                       Text(
                         entry.formattedTime,
-                        style: GoogleFonts.firaCode(fontSize: 10, color: AppTheme.textSecondary),
+                        style: GoogleFonts.firaCode(
+                          fontSize: 10,
+                          color: AppTheme.textSecondary,
+                        ),
                       ),
                       const SizedBox(width: 4),
                       IconButton(
-                        icon: const Icon(Icons.copy, size: 14, color: AppTheme.textSecondary),
+                        icon: const Icon(
+                          Icons.copy,
+                          size: 14,
+                          color: AppTheme.textSecondary,
+                        ),
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),
                         tooltip: 'Copy Log Entry',
@@ -361,14 +490,19 @@ class _CrashReportScreenState extends State<CrashReportScreen> {
               // Message
               SelectableText(
                 entry.message,
-                style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textPrimary, height: 1.3),
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  color: AppTheme.textPrimary,
+                  height: 1.3,
+                ),
               ),
 
               // Stack Trace Expander (if present)
-              if (hasStack) ...[
+              if (hasStack) ...<Widget>[
                 const SizedBox(height: 8),
                 Theme(
-                  data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+                  data: Theme.of(context)
+                      .copyWith(dividerColor: Colors.transparent),
                   child: Material(
                     color: Colors.transparent,
                     child: ExpansionTile(
@@ -377,9 +511,13 @@ class _CrashReportScreenState extends State<CrashReportScreen> {
                       dense: true,
                       title: Text(
                         'Stack Trace',
-                        style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.redAccent),
+                        style: GoogleFonts.inter(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.redAccent,
+                        ),
                       ),
-                      children: [
+                      children: <Widget>[
                         Container(
                           width: double.infinity,
                           padding: const EdgeInsets.all(8),
@@ -389,7 +527,10 @@ class _CrashReportScreenState extends State<CrashReportScreen> {
                           ),
                           child: SelectableText(
                             entry.stackTrace!,
-                            style: GoogleFonts.firaCode(fontSize: 10, color: Colors.red[200]),
+                            style: GoogleFonts.firaCode(
+                              fontSize: 10,
+                              color: Colors.red[200],
+                            ),
                           ),
                         ),
                       ],

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:nested/nested.dart';
 import 'package:oly/models/body_composition_entry.dart';
 import 'package:oly/models/daily_nutrition_log.dart';
 import 'package:oly/models/nutrition_entry.dart';
@@ -31,8 +32,8 @@ void main() {
   late SettingsProvider settingsProvider;
 
   setUp(() async {
-    SharedPreferences.setMockInitialValues({});
-    final prefs = await SharedPreferences.getInstance();
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
     storage = StorageService(prefs);
     bodyCompProvider = BodyCompProvider(storage);
     nutritionProvider = NutritionProvider(storage);
@@ -44,7 +45,7 @@ void main() {
 
   Widget buildTestableWidget(Widget child) {
     return MultiProvider(
-      providers: [
+      providers: <SingleChildWidget>[
         ChangeNotifierProvider.value(value: settingsProvider),
         ChangeNotifierProvider.value(value: liftProvider),
         ChangeNotifierProvider.value(value: programProvider),
@@ -52,22 +53,21 @@ void main() {
         ChangeNotifierProvider.value(value: bodyCompProvider),
         ChangeNotifierProvider.value(value: nutritionProvider),
       ],
-      child: MaterialApp(
-        theme: AppTheme.darkTheme,
-        home: child,
-      ),
+      child: MaterialApp(theme: AppTheme.darkTheme, home: child),
     );
   }
 
   group('Nutrition & BodyComp Widget Tests', () {
-    testWidgets('MacroRingCard renders remaining calories and macro bars', (tester) async {
-      final log = DailyNutritionLog.create(
+    testWidgets('MacroRingCard renders remaining calories and macro bars', (
+      WidgetTester tester,
+    ) async {
+      final DailyNutritionLog log = DailyNutritionLog.create(
         date: '2026-07-21',
         targetCalories: 2600,
         targetProteinGrams: 220,
         targetCarbsGrams: 280,
         targetFatGrams: 75,
-        entries: [
+        entries: <NutritionEntry>[
           NutritionEntry.create(
             name: 'Breakfast Burrito',
             calories: 600,
@@ -79,12 +79,12 @@ void main() {
         ],
       );
 
-      await tester.pumpWidget(MaterialApp(
-        theme: AppTheme.darkTheme,
-        home: Scaffold(
-          body: MacroRingCard(log: log),
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.darkTheme,
+          home: Scaffold(body: MacroRingCard(log: log)),
         ),
-      ));
+      );
 
       expect(find.text('DAILY TARGET'), findsOneWidget);
       expect(find.text('2000'), findsOneWidget); // 2600 - 600 = 2000 remaining
@@ -93,8 +93,10 @@ void main() {
       expect(find.text('Fats'), findsOneWidget);
     });
 
-    testWidgets('BodyDonutChart renders Renpho metrics breakdown', (tester) async {
-      final entry = BodyCompositionEntry.create(
+    testWidgets('BodyDonutChart renders Renpho metrics breakdown', (
+      WidgetTester tester,
+    ) async {
+      final BodyCompositionEntry entry = BodyCompositionEntry.create(
         weightLb: 264.8,
         bodyFatLb: 56.2,
         bodyFatPct: 21.2,
@@ -106,12 +108,12 @@ void main() {
         boneMassPct: 3.9,
       );
 
-      await tester.pumpWidget(MaterialApp(
-        theme: AppTheme.darkTheme,
-        home: Scaffold(
-          body: BodyDonutChart(entry: entry),
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.darkTheme,
+          home: Scaffold(body: BodyDonutChart(entry: entry)),
         ),
-      ));
+      );
 
       expect(find.text('BODY COMPOSITION BREAKDOWN'), findsOneWidget);
       expect(find.text('264.8'), findsOneWidget);
@@ -121,20 +123,24 @@ void main() {
       expect(find.text('Bone Mass'), findsOneWidget);
     });
 
-    testWidgets('RenphoStatPill renders metric and deltas', (tester) async {
-      await tester.pumpWidget(MaterialApp(
-        theme: AppTheme.darkTheme,
-        home: const Scaffold(
-          body: RenphoStatPill(
-            icon: Icons.scale,
-            label: 'Fat-Free Mass',
-            value: '208.6',
-            unit: 'lb',
-            status: 'Average',
-            delta: 0.4,
+    testWidgets('RenphoStatPill renders metric and deltas', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.darkTheme,
+          home: const Scaffold(
+            body: RenphoStatPill(
+              icon: Icons.scale,
+              label: 'Fat-Free Mass',
+              value: '208.6',
+              unit: 'lb',
+              status: 'Average',
+              delta: 0.4,
+            ),
           ),
         ),
-      ));
+      );
 
       expect(find.text('Fat-Free Mass'), findsOneWidget);
       expect(find.text('208.6'), findsOneWidget);
@@ -142,8 +148,12 @@ void main() {
       expect(find.text('+0.4'), findsOneWidget);
     });
 
-    testWidgets('NutritionDashboardScreen renders full dashboard', (tester) async {
-      await tester.pumpWidget(buildTestableWidget(const NutritionDashboardScreen()));
+    testWidgets('NutritionDashboardScreen renders full dashboard', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        buildTestableWidget(const NutritionDashboardScreen()),
+      );
       await tester.pumpAndSettle();
 
       expect(find.text('Nutrition & Energy'), findsOneWidget);
@@ -167,8 +177,12 @@ void main() {
       expect(find.textContaining('24 oz'), findsOneWidget);
     });
 
-    testWidgets('BodyCompAnalyticsScreen renders goal calculator and history', (tester) async {
-      await tester.pumpWidget(buildTestableWidget(const BodyCompAnalyticsScreen()));
+    testWidgets('BodyCompAnalyticsScreen renders goal calculator and history', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        buildTestableWidget(const BodyCompAnalyticsScreen()),
+      );
       await tester.pumpAndSettle();
 
       expect(find.text('Body Composition Intelligence'), findsOneWidget);

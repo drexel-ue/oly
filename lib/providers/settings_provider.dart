@@ -1,7 +1,14 @@
 import 'package:flutter/foundation.dart';
-import '../services/storage_service.dart';
+import 'package:oly/services/storage_service.dart';
 
 class SettingsProvider extends ChangeNotifier {
+  SettingsProvider(this._storage) {
+    _isLbs = _storage.loadIsLbs();
+    _barWeight = _storage.loadBarWeight();
+    _collarWeight = _storage.loadCollarWeight();
+    _soundAlertsEnabled = _storage.loadSoundAlerts();
+    _hapticsEnabled = _storage.loadHapticsEnabled();
+  }
   final StorageService _storage;
 
   bool _isLbs = false;
@@ -10,31 +17,31 @@ class SettingsProvider extends ChangeNotifier {
   bool _soundAlertsEnabled = true;
   bool _hapticsEnabled = true;
 
-  SettingsProvider(this._storage) {
-    _isLbs = _storage.loadIsLbs();
-    _barWeight = _storage.loadBarWeight();
-    _collarWeight = _storage.loadCollarWeight();
-    _soundAlertsEnabled = _storage.loadSoundAlerts();
-    _hapticsEnabled = _storage.loadHapticsEnabled();
-  }
-
   bool get isLbs => _isLbs;
   double get barWeight {
     if (_isLbs) {
-      if (_barWeight == 20.0) return 45.0;
+      if (_barWeight == 20.0) {
+        return 45.0;
+      }
       return _barWeight;
     } else {
-      if (_barWeight == 45.0) return 20.0;
+      if (_barWeight == 45.0) {
+        return 20.0;
+      }
       return _barWeight;
     }
   }
+
   double get collarWeight {
     if (_isLbs) {
-      if (_collarWeight == 2.5) return 0.0;
+      if (_collarWeight == 2.5) {
+        return 0.0;
+      }
       return _collarWeight;
     }
     return _collarWeight;
   }
+
   bool get soundAlertsEnabled => _soundAlertsEnabled;
   bool get hapticsEnabled => _hapticsEnabled;
   String get unitLabel => _isLbs ? 'lbs' : 'kg';
@@ -45,7 +52,8 @@ class SettingsProvider extends ChangeNotifier {
 
   double toDisplayWeight(double weightKg) {
     if (_isLbs) {
-      return (kgToLbs(weightKg) / 2.5).round() * 2.5; // Round to nearest 2.5 lbs
+      return (kgToLbs(weightKg) / 2.5).round() *
+          2.5; // Round to nearest 2.5 lbs
     }
     return (weightKg / 0.5).round() * 0.5; // Round to nearest 0.5 kg
   }
@@ -58,27 +66,38 @@ class SettingsProvider extends ChangeNotifier {
   }
 
   String formatWeight(double weightKg, {bool includeUnit = true}) {
-    final val = toDisplayWeight(weightKg);
-    final str = val % 1 == 0 ? val.toInt().toString() : val.toStringAsFixed(1);
+    final double val = toDisplayWeight(weightKg);
+    final String str = val % 1 == 0
+        ? val.toInt().toString()
+        : val.toStringAsFixed(1);
     return includeUnit ? '$str $unitLabel' : str;
   }
 
   /// Converts any inline metric weight references (e.g. "2.5kg" or "8-16kg")
   /// in prose text according to the user's active unit preference (lbs vs kg).
   String formatTextUnits(String text) {
-    if (!_isLbs) return text;
+    if (!_isLbs) {
+      return text;
+    }
 
     return text.replaceAllMapped(
-      RegExp(r'(\d+(?:\.\d+)?)(?:\s*-\s*(\d+(?:\.\d+)?))?\s*kg', caseSensitive: false),
-      (match) {
-        final val1Kg = double.tryParse(match.group(1)!) ?? 0.0;
-        final val1Lbs = (kgToLbs(val1Kg) / 0.5).round() * 0.5;
-        final str1 = val1Lbs % 1 == 0 ? val1Lbs.toInt().toString() : val1Lbs.toStringAsFixed(1);
+      RegExp(
+        r'(\d+(?:\.\d+)?)(?:\s*-\s*(\d+(?:\.\d+)?))?\s*kg',
+        caseSensitive: false,
+      ),
+      (Match match) {
+        final double val1Kg = double.tryParse(match.group(1)!) ?? 0.0;
+        final double val1Lbs = (kgToLbs(val1Kg) / 0.5).round() * 0.5;
+        final String str1 = val1Lbs % 1 == 0
+            ? val1Lbs.toInt().toString()
+            : val1Lbs.toStringAsFixed(1);
 
         if (match.group(2) != null) {
-          final val2Kg = double.tryParse(match.group(2)!) ?? 0.0;
-          final val2Lbs = (kgToLbs(val2Kg) / 0.5).round() * 0.5;
-          final str2 = val2Lbs % 1 == 0 ? val2Lbs.toInt().toString() : val2Lbs.toStringAsFixed(1);
+          final double val2Kg = double.tryParse(match.group(2)!) ?? 0.0;
+          final double val2Lbs = (kgToLbs(val2Kg) / 0.5).round() * 0.5;
+          final String str2 = val2Lbs % 1 == 0
+              ? val2Lbs.toInt().toString()
+              : val2Lbs.toStringAsFixed(1);
           return '$str1-$str2 lbs';
         }
 
@@ -124,7 +143,7 @@ class SettingsProvider extends ChangeNotifier {
   String exportFullDataJson() => _storage.exportFullAppDataJson();
   String exportPrsCsv() => _storage.exportPrsCsv();
   Future<bool> importDataJson(String jsonStr) async {
-    final success = await _storage.importAppDataJson(jsonStr);
+    final bool success = await _storage.importAppDataJson(jsonStr);
     if (success) {
       _isLbs = _storage.loadIsLbs();
       _barWeight = _storage.loadBarWeight();
@@ -137,7 +156,7 @@ class SettingsProvider extends ChangeNotifier {
   }
 
   Future<bool> importDataCsv(String csvStr) async {
-    final success = await _storage.importPrsCsv(csvStr);
+    final bool success = await _storage.importPrsCsv(csvStr);
     if (success) {
       notifyListeners();
     }

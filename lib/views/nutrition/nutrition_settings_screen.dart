@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:oly/models/nutrition_goal_model.dart';
+import 'package:oly/providers/body_comp_provider.dart';
+import 'package:oly/providers/nutrition_provider.dart';
+import 'package:oly/theme/app_theme.dart';
 import 'package:provider/provider.dart';
-import '../../models/nutrition_goal_model.dart';
-import '../../providers/body_comp_provider.dart';
-import '../../providers/nutrition_provider.dart';
-import '../../theme/app_theme.dart';
 
 class NutritionSettingsScreen extends StatefulWidget {
   const NutritionSettingsScreen({super.key});
 
   @override
-  State<NutritionSettingsScreen> createState() => _NutritionSettingsScreenState();
+  State<NutritionSettingsScreen> createState() =>
+      _NutritionSettingsScreenState();
 }
 
 class _NutritionSettingsScreenState extends State<NutritionSettingsScreen> {
@@ -25,7 +26,10 @@ class _NutritionSettingsScreenState extends State<NutritionSettingsScreen> {
   @override
   void initState() {
     super.initState();
-    final goal = Provider.of<NutritionProvider>(context, listen: false).goal;
+    final NutritionGoalModel goal = Provider.of<NutritionProvider>(
+      context,
+      listen: false,
+    ).goal;
     _goalType = goal.goalType;
     _targetBfPct = goal.targetBodyFatPct;
     _proteinMultiplier = goal.proteinGramsPerLbLbm;
@@ -36,10 +40,16 @@ class _NutritionSettingsScreenState extends State<NutritionSettingsScreen> {
   }
 
   void _saveGoal() {
-    final nutrition = Provider.of<NutritionProvider>(context, listen: false);
-    final bodyComp = Provider.of<BodyCompProvider>(context, listen: false);
+    final NutritionProvider nutrition = Provider.of<NutritionProvider>(
+      context,
+      listen: false,
+    );
+    final BodyCompProvider bodyComp = Provider.of<BodyCompProvider>(
+      context,
+      listen: false,
+    );
 
-    final updated = nutrition.goal.copyWith(
+    final NutritionGoalModel updated = nutrition.goal.copyWith(
       goalType: _goalType,
       targetBodyFatPct: _targetBfPct,
       proteinGramsPerLbLbm: _proteinMultiplier,
@@ -60,10 +70,7 @@ class _NutritionSettingsScreenState extends State<NutritionSettingsScreen> {
       appBar: AppBar(
         title: Text(
           'Nutrition & Macro Goals',
-          style: GoogleFonts.outfit(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
+          style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.bold),
         ),
       ),
       body: SafeArea(
@@ -71,7 +78,7 @@ class _NutritionSettingsScreenState extends State<NutritionSettingsScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+            children: <Widget>[
               Text(
                 'PRIMARY STRATEGY',
                 style: GoogleFonts.inter(
@@ -84,40 +91,56 @@ class _NutritionSettingsScreenState extends State<NutritionSettingsScreen> {
               const SizedBox(height: 10),
 
               // Goal Type Selection Cards
-              ...GoalType.values.map((type) {
-                final isSelected = _goalType == type;
+              ...GoalType.values.map((GoalType type) {
+                final bool isSelected = _goalType == type;
                 return GestureDetector(
                   onTap: () {
                     setState(() {
                       _goalType = type;
-                      if (type == GoalType.cutting) _calorieAdjustment = -450;
-                      if (type == GoalType.leanBulking) _calorieAdjustment = 250;
-                      if (type == GoalType.recomposition) _calorieAdjustment = 0;
-                      if (type == GoalType.maintenance) _calorieAdjustment = 0;
+                      if (type == GoalType.cutting) {
+                        _calorieAdjustment = -450;
+                      }
+                      if (type == GoalType.leanBulking) {
+                        _calorieAdjustment = 250;
+                      }
+                      if (type == GoalType.recomposition) {
+                        _calorieAdjustment = 0;
+                      }
+                      if (type == GoalType.maintenance) {
+                        _calorieAdjustment = 0;
+                      }
                     });
                   },
                   child: Container(
                     margin: const EdgeInsets.only(bottom: 10),
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: isSelected ? AppTheme.primaryAmber.withOpacity(0.12) : AppTheme.surfaceCard,
+                      color: isSelected
+                          ? AppTheme.primaryAmber.withValues(alpha: 0.12)
+                          : AppTheme.surfaceCard,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: isSelected ? AppTheme.primaryAmber : AppTheme.borderColor,
+                        color: isSelected
+                            ? AppTheme.primaryAmber
+                            : AppTheme.borderColor,
                         width: isSelected ? 1.5 : 1.0,
                       ),
                     ),
                     child: Row(
-                      children: [
+                      children: <Widget>[
                         Icon(
-                          isSelected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
-                          color: isSelected ? AppTheme.primaryAmber : AppTheme.textSecondary,
+                          isSelected
+                              ? Icons.radio_button_checked
+                              : Icons.radio_button_unchecked,
+                          color: isSelected
+                              ? AppTheme.primaryAmber
+                              : AppTheme.textSecondary,
                         ),
                         const SizedBox(width: 14),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
+                            children: <Widget>[
                               Text(
                                 type.displayName,
                                 style: GoogleFonts.outfit(
@@ -155,10 +178,10 @@ class _NutritionSettingsScreenState extends State<NutritionSettingsScreen> {
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+                  children: <Widget>[
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
+                      children: <Widget>[
                         Text(
                           'Protein Target (per lb Lean Mass)',
                           style: GoogleFonts.inter(
@@ -180,7 +203,10 @@ class _NutritionSettingsScreenState extends State<NutritionSettingsScreen> {
                     const SizedBox(height: 4),
                     Text(
                       'Strength standard: 1.0 to 1.15 g per lb of Fat-Free Mass to prevent muscle loss.',
-                      style: GoogleFonts.inter(fontSize: 11, color: AppTheme.textSecondary),
+                      style: GoogleFonts.inter(
+                        fontSize: 11,
+                        color: AppTheme.textSecondary,
+                      ),
                     ),
                     Slider(
                       value: _proteinMultiplier,
@@ -189,7 +215,8 @@ class _NutritionSettingsScreenState extends State<NutritionSettingsScreen> {
                       divisions: 12,
                       activeColor: AppTheme.secondaryCyan,
                       inactiveColor: Colors.white10,
-                      onChanged: (val) => setState(() => _proteinMultiplier = val),
+                      onChanged: (double val) =>
+                          setState(() => _proteinMultiplier = val),
                     ),
                   ],
                 ),
@@ -206,22 +233,29 @@ class _NutritionSettingsScreenState extends State<NutritionSettingsScreen> {
                   border: Border.all(color: AppTheme.borderColor),
                 ),
                 child: Column(
-                  children: [
+                  children: <Widget>[
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
+                      children: <Widget>[
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
+                            children: <Widget>[
                               Text(
                                 'Periodized Carb Cycling',
-                                style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AppTheme.textPrimary),
+                                style: GoogleFonts.inter(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppTheme.textPrimary,
+                                ),
                               ),
                               const SizedBox(height: 2),
                               Text(
                                 'Automatically boosts carbs and calories on heavy training days.',
-                                style: GoogleFonts.inter(fontSize: 11, color: AppTheme.textSecondary),
+                                style: GoogleFonts.inter(
+                                  fontSize: 11,
+                                  color: AppTheme.textSecondary,
+                                ),
                               ),
                             ],
                           ),
@@ -229,23 +263,31 @@ class _NutritionSettingsScreenState extends State<NutritionSettingsScreen> {
                         const SizedBox(width: 12),
                         Switch.adaptive(
                           value: _carbCyclingEnabled,
-                          activeColor: AppTheme.primaryAmber,
-                          onChanged: (val) => setState(() => _carbCyclingEnabled = val),
+                          activeTrackColor: AppTheme.primaryAmber,
+                          onChanged: (bool val) =>
+                              setState(() => _carbCyclingEnabled = val),
                         ),
                       ],
                     ),
-                    if (_carbCyclingEnabled) ...[
+                    if (_carbCyclingEnabled) ...<Widget>[
                       const Divider(color: AppTheme.borderColor, height: 20),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
+                        children: <Widget>[
                           Text(
                             'Training Day Calorie Bonus',
-                            style: GoogleFonts.inter(fontSize: 13, color: AppTheme.textSecondary),
+                            style: GoogleFonts.inter(
+                              fontSize: 13,
+                              color: AppTheme.textSecondary,
+                            ),
                           ),
                           Text(
                             '+$_trainingBonusCals kcal (+${_trainingBonusCarbs.toStringAsFixed(0)}g Carbs)',
-                            style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.bold, color: AppTheme.primaryAmber),
+                            style: GoogleFonts.outfit(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: AppTheme.primaryAmber,
+                            ),
                           ),
                         ],
                       ),
@@ -266,28 +308,40 @@ class _NutritionSettingsScreenState extends State<NutritionSettingsScreen> {
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+                  children: <Widget>[
                     Row(
-                      children: [
+                      children: <Widget>[
                         Container(
                           padding: const EdgeInsets.all(6),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF00D2FF).withOpacity(0.15),
+                            color: const Color(0xFF00D2FF)
+                                .withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: const Icon(Icons.water_drop, color: Color(0xFF00D2FF), size: 18),
+                          child: const Icon(
+                            Icons.water_drop,
+                            color: Color(0xFF00D2FF),
+                            size: 18,
+                          ),
                         ),
                         const SizedBox(width: 10),
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
+                          children: <Widget>[
                             Text(
                               'Smart Hydration Algorithm',
-                              style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AppTheme.textPrimary),
+                              style: GoogleFonts.inter(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: AppTheme.textPrimary,
+                              ),
                             ),
                             Text(
                               'ACSM / ISSN Lean Body Mass & Exertion Model',
-                              style: GoogleFonts.inter(fontSize: 11, color: AppTheme.textSecondary),
+                              style: GoogleFonts.inter(
+                                fontSize: 11,
+                                color: AppTheme.textSecondary,
+                              ),
                             ),
                           ],
                         ),
@@ -299,7 +353,11 @@ class _NutritionSettingsScreenState extends State<NutritionSettingsScreen> {
                       '• 0.25 oz per lb Fat Mass\n'
                       '• +24 oz on Olympic lifting & training days\n'
                       '• +12 oz recovery boost when Renpho Body Water < 55%',
-                      style: GoogleFonts.inter(fontSize: 11, color: AppTheme.textSecondary, height: 1.4),
+                      style: GoogleFonts.inter(
+                        fontSize: 11,
+                        color: AppTheme.textSecondary,
+                        height: 1.4,
+                      ),
                     ),
                   ],
                 ),
@@ -316,7 +374,9 @@ class _NutritionSettingsScreenState extends State<NutritionSettingsScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.primaryAmber,
                     foregroundColor: Colors.black,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
                   ),
                   child: Text(
                     'Save Nutrition Strategy',

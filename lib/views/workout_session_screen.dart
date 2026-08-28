@@ -1,47 +1,47 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:oly/models/lift_model.dart';
+import 'package:oly/models/program_model.dart';
+import 'package:oly/models/workout_session.dart';
+import 'package:oly/providers/body_comp_provider.dart';
+import 'package:oly/providers/lift_provider.dart';
+import 'package:oly/providers/nutrition_provider.dart';
+import 'package:oly/providers/program_provider.dart';
+import 'package:oly/providers/settings_provider.dart';
+import 'package:oly/theme/app_theme.dart';
+import 'package:oly/views/warmup_session_screen.dart';
+import 'package:oly/widgets/exercise_swap_modal.dart';
+import 'package:oly/widgets/plate_modal.dart';
+import 'package:oly/widgets/rest_timer_widget.dart';
+import 'package:oly/widgets/workout_weight_dialog.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:uuid/uuid.dart';
 
-import '../models/lift_model.dart';
-import '../models/program_model.dart';
-import '../models/workout_session.dart';
-import '../providers/body_comp_provider.dart';
-import '../providers/lift_provider.dart';
-import '../providers/nutrition_provider.dart';
-import '../providers/program_provider.dart';
-import '../providers/settings_provider.dart';
-import '../theme/app_theme.dart';
-import '../widgets/exercise_swap_modal.dart';
-import '../widgets/plate_modal.dart';
-import '../widgets/rest_timer_widget.dart';
-import '../widgets/workout_weight_dialog.dart';
-import 'warmup_session_screen.dart';
-
 class WorkoutSessionScreen extends StatefulWidget {
-  final DayTemplate dayTemplate;
-  final bool isPreviewMode;
-  final int? previewWeek;
-  final ActiveWorkoutDraft? initialDraft;
-
   const WorkoutSessionScreen({
-    super.key,
     required this.dayTemplate,
+    super.key,
     this.isPreviewMode = false,
     this.previewWeek,
     this.initialDraft,
   });
+  final DayTemplate dayTemplate;
+  final bool isPreviewMode;
+  final int? previewWeek;
+  final ActiveWorkoutDraft? initialDraft;
 
   @override
   State<WorkoutSessionScreen> createState() => _WorkoutSessionScreenState();
 }
 
 class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
-  final _uuid = const Uuid();
-  final Map<String, List<CompletedSet>> _exerciseSets = {};
-  final Map<String, TextEditingController> _weightControllers = {};
-  final Map<String, String> _swappedExerciseNames = {};
+  final Uuid _uuid = const Uuid();
+  final Map<String, List<CompletedSet>> _exerciseSets =
+      <String, List<CompletedSet>>{};
+  final Map<String, TextEditingController> _weightControllers =
+      <String, TextEditingController>{};
+  final Map<String, String> _swappedExerciseNames = <String, String>{};
   final TextEditingController _notesController = TextEditingController();
   final FocusNode _notesFocusNode = FocusNode();
 
@@ -49,7 +49,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
   late bool _isLiveMode;
 
   int _selectedRpe = 8;
-  final Set<String> _selectedJointStrains = {};
+  final Set<String> _selectedJointStrains = <String>{};
 
   @override
   void initState() {
@@ -59,38 +59,42 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
         : !widget.isPreviewMode;
     _startTime = widget.initialDraft?.startTime ?? DateTime.now();
 
-    final liftProvider = Provider.of<LiftProvider>(context, listen: false);
-    final programProvider = Provider.of<ProgramProvider>(
+    final LiftProvider liftProvider = Provider.of<LiftProvider>(
+      context,
+      listen: false,
+    );
+    final ProgramProvider programProvider = Provider.of<ProgramProvider>(
       context,
       listen: false,
     );
 
-    final week = widget.previewWeek ??
+    final int week =
+        widget.previewWeek ??
         widget.initialDraft?.weekNumber ??
         programProvider.currentWeek;
-    final maxes = liftProvider.currentMaxes;
+    final Map<String, double> maxes = liftProvider.currentMaxes;
 
     if (widget.initialDraft != null) {
-      final draft = widget.initialDraft!;
+      final ActiveWorkoutDraft draft = widget.initialDraft!;
       _selectedRpe = draft.selectedRpe;
       _selectedJointStrains.addAll(draft.selectedJointStrains);
       _notesController.text = draft.notes;
       _swappedExerciseNames.addAll(draft.swappedExerciseNames);
 
-      draft.exerciseSets.forEach((name, sets) {
+      draft.exerciseSets.forEach((String name, List<CompletedSet> sets) {
         _exerciseSets[name] = List.from(sets);
       });
 
-      draft.exerciseWeights.forEach((name, weight) {
+      draft.exerciseWeights.forEach((String name, double weight) {
         _weightControllers[name] = TextEditingController(
           text: weight.toStringAsFixed(1),
         );
       });
     }
 
-    for (var phase in widget.dayTemplate.phases) {
-      for (var exercise in phase.exercises) {
-        final targetKg = exercise.calculateTargetWeight(
+    for (final PhaseTemplate phase in widget.dayTemplate.phases) {
+      for (final ExerciseTemplate exercise in phase.exercises) {
+        final double targetKg = exercise.calculateTargetWeight(
           week: week,
           currentMaxes: maxes,
         );
@@ -103,20 +107,22 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
 
         if (!_exerciseSets.containsKey(exercise.name)) {
           int setNum = 3;
-          final match = RegExp(r'(\d+)\s+Sets').firstMatch(exercise.setScheme);
+          final RegExpMatch? match = RegExp(r'(\d+)\s+Sets')
+              .firstMatch(exercise.setScheme);
           if (match != null) {
             setNum = int.tryParse(match.group(1)!) ?? 3;
           }
 
           int reps = 5;
-          final repMatch = RegExp(r'(\d+)\s+Reps').firstMatch(exercise.setScheme);
+          final RegExpMatch? repMatch = RegExp(r'(\d+)\s+Reps')
+              .firstMatch(exercise.setScheme);
           if (repMatch != null) {
             reps = int.tryParse(repMatch.group(1)!) ?? 5;
           }
 
           _exerciseSets[exercise.name] = List.generate(
             setNum,
-            (i) => CompletedSet(
+            (int i) => CompletedSet(
               setIndex: i + 1,
               weight: targetKg,
               reps: reps,
@@ -138,15 +144,22 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
   }
 
   void _persistDraft() {
-    if (!_isLiveMode || !mounted) return;
-    final programProvider = Provider.of<ProgramProvider>(context, listen: false);
-    final weights = <String, double>{};
-    _weightControllers.forEach((k, v) {
-      final parsed = double.tryParse(v.text);
-      if (parsed != null) weights[k] = parsed;
+    if (!_isLiveMode || !mounted) {
+      return;
+    }
+    final ProgramProvider programProvider = Provider.of<ProgramProvider>(
+      context,
+      listen: false,
+    );
+    final Map<String, double> weights = <String, double>{};
+    _weightControllers.forEach((String k, TextEditingController v) {
+      final double? parsed = double.tryParse(v.text);
+      if (parsed != null) {
+        weights[k] = parsed;
+      }
     });
 
-    final draft = ActiveWorkoutDraft(
+    final ActiveWorkoutDraft draft = ActiveWorkoutDraft(
       dayNumber: widget.dayTemplate.dayNumber,
       weekNumber: widget.previewWeek ?? programProvider.currentWeek,
       cycleNumber: programProvider.currentCycle,
@@ -165,25 +178,31 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
   }
 
   bool _isDraftEmpty() {
-    final hasCompletedSets = _exerciseSets.values.any(
-      (sets) => sets.any((s) => s.isCompleted),
+    final bool hasCompletedSets = _exerciseSets.values.any(
+      (List<CompletedSet> sets) => sets.any((CompletedSet s) => s.isCompleted),
     );
     return !hasCompletedSets && _notesController.text.trim().isEmpty;
   }
 
   Future<bool?> _showExitPrompt(BuildContext context) async {
-    final programProvider = Provider.of<ProgramProvider>(context, listen: false);
+    final ProgramProvider programProvider = Provider.of<ProgramProvider>(
+      context,
+      listen: false,
+    );
     return showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (BuildContext ctx) => AlertDialog(
         backgroundColor: AppTheme.darkBackground,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
           side: const BorderSide(color: AppTheme.borderColor),
         ),
         title: Row(
-          children: [
-            const Icon(Icons.pause_circle_outline, color: AppTheme.primaryAmber),
+          children: <Widget>[
+            const Icon(
+              Icons.pause_circle_outline,
+              color: AppTheme.primaryAmber,
+            ),
             const SizedBox(width: 8),
             Text(
               'Workout in Progress',
@@ -195,11 +214,13 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
           'Your workout progress has been automatically saved. You can resume this session anytime from the dashboard.',
           style: GoogleFonts.inter(color: AppTheme.textSecondary),
         ),
-        actions: [
+        actions: <Widget>[
           TextButton(
             onPressed: () async {
               await programProvider.clearActiveDraft();
-              if (ctx.mounted) Navigator.pop(ctx, true);
+              if (ctx.mounted) {
+                Navigator.pop(ctx, true);
+              }
             },
             child: const Text(
               'Discard Session',
@@ -224,7 +245,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     _notesController.removeListener(_persistDraft);
     _notesController.dispose();
     _notesFocusNode.dispose();
-    for (var controller in _weightControllers.values) {
+    for (final TextEditingController controller in _weightControllers.values) {
       controller.dispose();
     }
     super.dispose();
@@ -232,9 +253,9 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
 
   void _toggleSetCompletion(String exerciseName, int setIndex) {
     setState(() {
-      final list = _exerciseSets[exerciseName];
+      final List<CompletedSet>? list = _exerciseSets[exerciseName];
       if (list != null && setIndex < list.length) {
-        final current = list[setIndex];
+        final CompletedSet current = list[setIndex];
         list[setIndex] = CompletedSet(
           setIndex: current.setIndex,
           weight: current.weight,
@@ -249,8 +270,9 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
   }
 
   Future<void> _launchExerciseVideo(String exerciseName) async {
-    final query = '$exerciseName Catalyst Athletics weightlifting tutorial';
-    final searchUri = Uri.parse(
+    final String query =
+        '$exerciseName Catalyst Athletics weightlifting tutorial';
+    final Uri searchUri = Uri.parse(
       'https://www.youtube.com/results?search_query=${Uri.encodeComponent(query)}',
     );
 
@@ -278,27 +300,33 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
   }
 
   void _showSwapVariationDialog(ExerciseTemplate exercise) {
-    final liftProvider = Provider.of<LiftProvider>(context, listen: false);
-    final programProvider =
-        Provider.of<ProgramProvider>(context, listen: false);
-    final currentWeek = widget.previewWeek ??
+    final LiftProvider liftProvider = Provider.of<LiftProvider>(
+      context,
+      listen: false,
+    );
+    final ProgramProvider programProvider = Provider.of<ProgramProvider>(
+      context,
+      listen: false,
+    );
+    final int currentWeek =
+        widget.previewWeek ??
         widget.initialDraft?.weekNumber ??
         programProvider.currentWeek;
 
-    final currentSwapped = _swappedExerciseNames[exercise.name];
+    final String? currentSwapped = _swappedExerciseNames[exercise.name];
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
       backgroundColor: Colors.transparent,
-      builder: (ctx) {
+      builder: (BuildContext ctx) {
         return ExerciseSwapModal(
           exercise: exercise,
           currentSwappedName: currentSwapped,
           currentWeek: currentWeek,
           onSwapSelected: (LiftModel newLift) {
-            final targetKg = ExerciseSwapHelper.calculateSwappedWeight(
+            final double targetKg = ExerciseSwapHelper.calculateSwappedWeight(
               newLift: newLift,
               exerciseTemplate: exercise,
               currentWeek: currentWeek,
@@ -307,10 +335,10 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
 
             setState(() {
               _swappedExerciseNames[exercise.name] = newLift.name;
-              _weightControllers[exercise.name]?.text =
-                  targetKg.toStringAsFixed(1);
+              _weightControllers[exercise.name]?.text = targetKg
+                  .toStringAsFixed(1);
 
-              final sets = _exerciseSets[exercise.name];
+              final List<CompletedSet>? sets = _exerciseSets[exercise.name];
               if (sets != null) {
                 for (int i = 0; i < sets.length; i++) {
                   sets[i] = CompletedSet(
@@ -338,17 +366,17 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
             );
           },
           onResetToOriginal: () {
-            final originalTargetKg = exercise.calculateTargetWeight(
+            final double originalTargetKg = exercise.calculateTargetWeight(
               week: currentWeek,
               currentMaxes: liftProvider.currentMaxes,
             );
 
             setState(() {
               _swappedExerciseNames.remove(exercise.name);
-              _weightControllers[exercise.name]?.text =
-                  originalTargetKg.toStringAsFixed(1);
+              _weightControllers[exercise.name]?.text = originalTargetKg
+                  .toStringAsFixed(1);
 
-              final sets = _exerciseSets[exercise.name];
+              final List<CompletedSet>? sets = _exerciseSets[exercise.name];
               if (sets != null) {
                 for (int i = 0; i < sets.length; i++) {
                   sets[i] = CompletedSet(
@@ -367,9 +395,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
 
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(
-                  'Restored to original: ${exercise.name}',
-                ),
+                content: Text('Restored to original: ${exercise.name}'),
                 backgroundColor: AppTheme.secondaryCyan,
                 duration: const Duration(seconds: 3),
               ),
@@ -381,99 +407,107 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
   }
 
   void _showWeightAdjustDialog(ExerciseTemplate exercise) {
-    final liftProvider = Provider.of<LiftProvider>(context, listen: false);
-    final programProvider =
-        Provider.of<ProgramProvider>(context, listen: false);
-    final currentWeek = widget.previewWeek ??
+    final LiftProvider liftProvider = Provider.of<LiftProvider>(
+      context,
+      listen: false,
+    );
+    final ProgramProvider programProvider = Provider.of<ProgramProvider>(
+      context,
+      listen: false,
+    );
+    final int currentWeek =
+        widget.previewWeek ??
         widget.initialDraft?.weekNumber ??
         programProvider.currentWeek;
 
-    final displayName =
+    final String displayName =
         _swappedExerciseNames[exercise.name] ?? exercise.name;
-    final currentWeightKg =
+    final double currentWeightKg =
         double.tryParse(_weightControllers[exercise.name]?.text ?? '0') ??
-            exercise.calculateTargetWeight(
-              week: currentWeek,
-              currentMaxes: liftProvider.currentMaxes,
-            );
+        exercise.calculateTargetWeight(
+          week: currentWeek,
+          currentMaxes: liftProvider.currentMaxes,
+        );
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
       backgroundColor: Colors.transparent,
-      builder: (ctx) {
+      builder: (BuildContext ctx) {
         return WorkoutWeightDialog(
           exercise: exercise,
           displayName: displayName,
           initialWeightKg: currentWeightKg,
           currentWeek: currentWeek,
-          onWeightUpdated: ({
-            required double newWeightKg,
-            required bool update1RM,
-            double? new1RMKg,
-          }) async {
-            setState(() {
-              _weightControllers[exercise.name]?.text =
-                  newWeightKg.toStringAsFixed(1);
+          onWeightUpdated:
+              ({
+                required double newWeightKg,
+                required bool update1RM,
+                double? new1RMKg,
+              }) async {
+                setState(() {
+                  _weightControllers[exercise.name]?.text = newWeightKg
+                      .toStringAsFixed(1);
 
-              final sets = _exerciseSets[exercise.name];
-              if (sets != null) {
-                for (int i = 0; i < sets.length; i++) {
-                  sets[i] = CompletedSet(
-                    setIndex: sets[i].setIndex,
-                    weight: newWeightKg,
-                    reps: sets[i].reps,
-                    rpe: sets[i].rpe,
-                    isCompleted: sets[i].isCompleted,
-                    completedAt: sets[i].completedAt,
+                  final List<CompletedSet>? sets = _exerciseSets[exercise.name];
+                  if (sets != null) {
+                    for (int i = 0; i < sets.length; i++) {
+                      sets[i] = CompletedSet(
+                        setIndex: sets[i].setIndex,
+                        weight: newWeightKg,
+                        reps: sets[i].reps,
+                        rpe: sets[i].rpe,
+                        isCompleted: sets[i].isCompleted,
+                        completedAt: sets[i].completedAt,
+                      );
+                    }
+                  }
+                });
+
+                _persistDraft();
+
+                if (update1RM && new1RMKg != null && new1RMKg > 0) {
+                  final LiftModel targetLift = liftProvider.lifts.firstWhere(
+                    (LiftModel l) =>
+                        l.name.toLowerCase() == displayName.toLowerCase(),
+                    orElse: () => liftProvider.lifts.firstWhere(
+                      (LiftModel l) =>
+                          l.id.toLowerCase() == exercise.liftId.toLowerCase(),
+                      orElse: () => liftProvider.lifts.first,
+                    ),
+                  );
+
+                  await liftProvider.updateMax(
+                    targetLift.id,
+                    new1RMKg,
+                    notes:
+                        'Recalculated from workout ($displayName @ ${newWeightKg.toStringAsFixed(1)} kg)',
+                  );
+
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          '🔥 ${targetLift.name} 1RM updated to ${new1RMKg.toStringAsFixed(1)} kg! Working weight set to ${newWeightKg.toStringAsFixed(1)} kg.',
+                        ),
+                        backgroundColor: AppTheme.primaryAmber,
+                        duration: const Duration(seconds: 4),
+                      ),
+                    );
+                  }
+                } else if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Working weight updated to ${newWeightKg.toStringAsFixed(1)} kg.',
+                      ),
+                      backgroundColor: AppTheme.secondaryCyan,
+                      duration: const Duration(seconds: 2),
+                    ),
                   );
                 }
-              }
-            });
-
-            _persistDraft();
-
-            if (update1RM && new1RMKg != null && new1RMKg > 0) {
-              final targetLift = liftProvider.lifts.firstWhere(
-                (l) => l.name.toLowerCase() == displayName.toLowerCase(),
-                orElse: () => liftProvider.lifts.firstWhere(
-                  (l) =>
-                      l.id.toLowerCase() == exercise.liftId.toLowerCase(),
-                  orElse: () => liftProvider.lifts.first,
-                ),
-              );
-
-              await liftProvider.updateMax(
-                targetLift.id,
-                new1RMKg,
-                notes:
-                    'Recalculated from workout ($displayName @ ${newWeightKg.toStringAsFixed(1)} kg)',
-              );
-
-              if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      '🔥 ${targetLift.name} 1RM updated to ${new1RMKg.toStringAsFixed(1)} kg! Working weight set to ${newWeightKg.toStringAsFixed(1)} kg.',
-                    ),
-                    backgroundColor: AppTheme.primaryAmber,
-                    duration: const Duration(seconds: 4),
-                  ),
-                );
-              }
-            } else if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    'Working weight updated to ${newWeightKg.toStringAsFixed(1)} kg.',
-                  ),
-                  backgroundColor: AppTheme.secondaryCyan,
-                  duration: const Duration(seconds: 2),
-                ),
-              );
-            }
-          },
+              },
         );
       },
     );
@@ -482,15 +516,15 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
   void _finishWorkout() {
     showDialog(
       context: context,
-      builder: (dialogCtx) => StatefulBuilder(
-        builder: (context, setDialogState) {
+      builder: (BuildContext dialogCtx) => StatefulBuilder(
+        builder: (BuildContext context, setDialogState) {
           return AlertDialog(
             backgroundColor: AppTheme.darkBackground,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(20),
             ),
             title: Row(
-              children: [
+              children: <Widget>[
                 const Icon(Icons.insights, color: AppTheme.primaryAmber),
                 const SizedBox(width: 8),
                 Text(
@@ -503,7 +537,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+                children: <Widget>[
                   Text(
                     'Rate Overall Session Intensity (RPE)',
                     style: GoogleFonts.outfit(
@@ -526,7 +560,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                     divisions: 9,
                     activeColor: AppTheme.primaryAmber,
                     inactiveColor: AppTheme.surfaceElevated,
-                    onChanged: (val) {
+                    onChanged: (double val) {
                       setDialogState(() {
                         _selectedRpe = val.round();
                       });
@@ -541,7 +575,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                     ),
                   ),
                   Text(
-                    'Targets tomorrow\'s Active Recovery day routines.',
+                    "Targets tomorrow's Active Recovery day routines.",
                     style: GoogleFonts.inter(
                       fontSize: 12,
                       color: AppTheme.textSecondary,
@@ -552,16 +586,15 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                     spacing: 6,
                     runSpacing: 6,
                     children:
-                        [
+                        <String>[
                           'Shoulders',
                           'Hips',
                           'Lower Back',
                           'Knees',
                           'Wrists',
-                        ].map((tag) {
-                          final isSelected = _selectedJointStrains.contains(
-                            tag,
-                          );
+                        ].map((String tag) {
+                          final bool isSelected = _selectedJointStrains
+                              .contains(tag);
                           return FilterChip(
                             selected: isSelected,
                             label: Text(
@@ -570,7 +603,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                             ),
                             selectedColor: AppTheme.primaryAmber,
                             backgroundColor: AppTheme.surfaceElevated,
-                            onSelected: (val) {
+                            onSelected: (bool val) {
                               setDialogState(() {
                                 if (val) {
                                   _selectedJointStrains.add(tag);
@@ -585,7 +618,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                 ],
               ),
             ),
-            actions: [
+            actions: <Widget>[
               TextButton(
                 onPressed: () => Navigator.pop(dialogCtx),
                 child: const Text('Cancel'),
@@ -632,25 +665,25 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
   }
 
   Future<void> _saveWorkoutSession() async {
-    final programProvider = Provider.of<ProgramProvider>(
+    final ProgramProvider programProvider = Provider.of<ProgramProvider>(
       context,
       listen: false,
     );
-    final durationSecs = DateTime.now().difference(_startTime).inSeconds;
+    final int durationSecs = DateTime.now().difference(_startTime).inSeconds;
 
-    final logs = <ExerciseLog>[];
-    _exerciseSets.forEach((name, sets) {
-      final displayName = _swappedExerciseNames[name] ?? name;
+    final List<ExerciseLog> logs = <ExerciseLog>[];
+    _exerciseSets.forEach((String name, List<CompletedSet> sets) {
+      final String displayName = _swappedExerciseNames[name] ?? name;
       logs.add(
         ExerciseLog(
           exerciseName: displayName,
           liftId: displayName.toLowerCase().replaceAll(' ', '_'),
-          sets: sets.where((s) => s.isCompleted).toList(),
+          sets: sets.where((CompletedSet s) => s.isCompleted).toList(),
         ),
       );
     });
 
-    final session = WorkoutSession(
+    final WorkoutSession session = WorkoutSession(
       id: _uuid.v4(),
       date: DateTime.now(),
       dayNumber: widget.dayTemplate.dayNumber,
@@ -666,14 +699,24 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     await programProvider.saveWorkoutSession(session);
 
     if (mounted) {
-      final bodyComp = Provider.of<BodyCompProvider>(context, listen: false);
-      final nutritionProvider = Provider.of<NutritionProvider>(context, listen: false);
+      final BodyCompProvider bodyComp = Provider.of<BodyCompProvider>(
+        context,
+        listen: false,
+      );
+      final NutritionProvider nutritionProvider =
+          Provider.of<NutritionProvider>(context, listen: false);
       await nutritionProvider.syncWorkoutSession(session, bodyComp.latestEntry);
+
+      if (!mounted) {
+        return;
+      }
 
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('🎉 Workout Session Logged! Active Recovery & Energy synced.'),
+          content: Text(
+            '🎉 Workout Session Logged! Active Recovery & Energy synced.',
+          ),
           backgroundColor: AppTheme.primaryAmber,
         ),
       );
@@ -682,13 +725,15 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final settings = Provider.of<SettingsProvider>(context);
+    final SettingsProvider settings = Provider.of<SettingsProvider>(context);
 
     return PopScope(
       canPop: !_isLiveMode || _isDraftEmpty(),
-      onPopInvokedWithResult: (didPop, result) async {
-        if (didPop) return;
-        final shouldLeave = await _showExitPrompt(context);
+      onPopInvokedWithResult: (bool didPop, Object? result) async {
+        if (didPop) {
+          return;
+        }
+        final bool? shouldLeave = await _showExitPrompt(context);
         if (shouldLeave == true && context.mounted) {
           Navigator.pop(context);
         }
@@ -699,196 +744,195 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
             widget.dayTemplate.title,
             style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
           ),
-        actions: [
-          IconButton(
-            icon: const Icon(
-              Icons.directions_run,
-              color: AppTheme.primaryAmber,
-            ),
-            tooltip: 'Guided Warm-Up',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => WarmupSessionScreen(
-                    dayTemplate: widget.dayTemplate,
+          actions: <Widget>[
+            IconButton(
+              icon: const Icon(
+                Icons.directions_run,
+                color: AppTheme.primaryAmber,
+              ),
+              tooltip: 'Guided Warm-Up',
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        WarmupSessionScreen(dayTemplate: widget.dayTemplate),
                   ),
-                ),
-              );
-            },
-          ),
-        ],
-      ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            if (!_isLiveMode)
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                color: AppTheme.secondaryCyan.withValues(alpha: 0.15),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.explore,
-                      color: AppTheme.secondaryCyan,
-                      size: 18,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'PREVIEW MODE — Viewing Periodization Week ${widget.previewWeek ?? 1}',
-                        style: GoogleFonts.outfit(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.secondaryCyan,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Phases & Exercises
-                    ...widget.dayTemplate.phases.map((phase) {
-                      return _buildPhaseCard(context, phase, settings);
-                    }),
-
-                    const SizedBox(height: 16),
-
-                    // Session Notes input
-                    TextField(
-                      controller: _notesController,
-                      focusNode: _notesFocusNode,
-                      maxLines: 2,
-                      style: GoogleFonts.inter(color: AppTheme.textPrimary),
-                      decoration: InputDecoration(
-                        hintText: 'Workout Notes (RPE, feel, fatigue)...',
-                        hintStyle: GoogleFonts.inter(
-                          color: AppTheme.textSecondary,
-                        ),
-                        filled: true,
-                        fillColor: AppTheme.surfaceCard,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          borderSide: const BorderSide(
-                            color: AppTheme.borderColor,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Action Buttons (Live Mode vs Preview Mode)
-                    if (_isLiveMode)
-                      SizedBox(
-                        width: double.infinity,
-                        height: 52,
-                        child: ElevatedButton.icon(
-                          onPressed: _finishWorkout,
-                          icon: const Icon(
-                            Icons.check_circle_outline,
-                            color: Colors.black,
-                          ),
-                          label: Text(
-                            'Complete & Save Session',
-                            style: GoogleFonts.outfit(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppTheme.primaryAmber,
-                            foregroundColor: Colors.black,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                          ),
-                        ),
-                      )
-                    else
-                      Row(
-                        children: [
-                          Expanded(
-                            child: OutlinedButton(
-                              onPressed: () => Navigator.pop(context),
-                              style: OutlinedButton.styleFrom(
-                                minimumSize: const Size(0, 50),
-                                foregroundColor: AppTheme.textSecondary,
-                                side: const BorderSide(
-                                  color: AppTheme.borderColor,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                              ),
-                              child: Text(
-                                'Exit Preview',
-                                style: GoogleFonts.outfit(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: ElevatedButton.icon(
-                              onPressed: () {
-                                setState(() {
-                                  _isLiveMode = true;
-                                });
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      'Switched to Live Workout! You can now log your sets.',
-                                    ),
-                                    backgroundColor: AppTheme.primaryAmber,
-                                  ),
-                                );
-                              },
-                              icon: const Icon(
-                                Icons.play_arrow,
-                                color: Colors.black,
-                              ),
-                              label: Text(
-                                'Start Live Log',
-                                style: GoogleFonts.outfit(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              style: ElevatedButton.styleFrom(
-                                minimumSize: const Size(0, 50),
-                                backgroundColor: AppTheme.primaryAmber,
-                                foregroundColor: Colors.black,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    const SizedBox(height: 24),
-                  ],
-                ),
-              ),
+                );
+              },
             ),
-            // Embedded Rest Timer at bottom
-            RestTimerWidget(notesFocusNode: _notesFocusNode),
           ],
         ),
+        body: SafeArea(
+          child: Column(
+            children: <Widget>[
+              if (!_isLiveMode)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  color: AppTheme.secondaryCyan.withValues(alpha: 0.15),
+                  child: Row(
+                    children: <Widget>[
+                      const Icon(
+                        Icons.explore,
+                        color: AppTheme.secondaryCyan,
+                        size: 18,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'PREVIEW MODE — Viewing Periodization Week ${widget.previewWeek ?? 1}',
+                          style: GoogleFonts.outfit(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.secondaryCyan,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      // Phases & Exercises
+                      ...widget.dayTemplate.phases.map((PhaseTemplate phase) {
+                        return _buildPhaseCard(context, phase, settings);
+                      }),
+
+                      const SizedBox(height: 16),
+
+                      // Session Notes input
+                      TextField(
+                        controller: _notesController,
+                        focusNode: _notesFocusNode,
+                        maxLines: 2,
+                        style: GoogleFonts.inter(color: AppTheme.textPrimary),
+                        decoration: InputDecoration(
+                          hintText: 'Workout Notes (RPE, feel, fatigue)...',
+                          hintStyle: GoogleFonts.inter(
+                            color: AppTheme.textSecondary,
+                          ),
+                          filled: true,
+                          fillColor: AppTheme.surfaceCard,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: const BorderSide(
+                              color: AppTheme.borderColor,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+
+                      // Action Buttons (Live Mode vs Preview Mode)
+                      if (_isLiveMode)
+                        SizedBox(
+                          width: double.infinity,
+                          height: 52,
+                          child: ElevatedButton.icon(
+                            onPressed: _finishWorkout,
+                            icon: const Icon(
+                              Icons.check_circle_outline,
+                              color: Colors.black,
+                            ),
+                            label: Text(
+                              'Complete & Save Session',
+                              style: GoogleFonts.outfit(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppTheme.primaryAmber,
+                              foregroundColor: Colors.black,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                            ),
+                          ),
+                        )
+                      else
+                        Row(
+                          children: <Widget>[
+                            Expanded(
+                              child: OutlinedButton(
+                                onPressed: () => Navigator.pop(context),
+                                style: OutlinedButton.styleFrom(
+                                  minimumSize: const Size(0, 50),
+                                  foregroundColor: AppTheme.textSecondary,
+                                  side: const BorderSide(
+                                    color: AppTheme.borderColor,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                ),
+                                child: Text(
+                                  'Exit Preview',
+                                  style: GoogleFonts.outfit(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: ElevatedButton.icon(
+                                onPressed: () {
+                                  setState(() {
+                                    _isLiveMode = true;
+                                  });
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        'Switched to Live Workout! You can now log your sets.',
+                                      ),
+                                      backgroundColor: AppTheme.primaryAmber,
+                                    ),
+                                  );
+                                },
+                                icon: const Icon(
+                                  Icons.play_arrow,
+                                  color: Colors.black,
+                                ),
+                                label: Text(
+                                  'Start Live Log',
+                                  style: GoogleFonts.outfit(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  minimumSize: const Size(0, 50),
+                                  backgroundColor: AppTheme.primaryAmber,
+                                  foregroundColor: Colors.black,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      const SizedBox(height: 24),
+                    ],
+                  ),
+                ),
+              ),
+              // Embedded Rest Timer at bottom
+              RestTimerWidget(notesFocusNode: _notesFocusNode),
+            ],
+          ),
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildPhaseCard(
     BuildContext context,
@@ -905,7 +949,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+        children: <Widget>[
           Text(
             phase.name.toUpperCase(),
             style: GoogleFonts.outfit(
@@ -916,12 +960,16 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          ...phase.exercises.map((exercise) {
-            final displayName =
+          ...phase.exercises.map((ExerciseTemplate exercise) {
+            final String displayName =
                 _swappedExerciseNames[exercise.name] ?? exercise.name;
-            final sets = _exerciseSets[exercise.name] ?? [];
-            final weightCtrl = _weightControllers[exercise.name];
-            final isSwapped = _swappedExerciseNames.containsKey(exercise.name);
+            final List<CompletedSet> sets =
+                _exerciseSets[exercise.name] ?? <CompletedSet>[];
+            final TextEditingController? weightCtrl =
+                _weightControllers[exercise.name];
+            final bool isSwapped = _swappedExerciseNames.containsKey(
+              exercise.name,
+            );
 
             return Container(
               margin: const EdgeInsets.only(bottom: 12),
@@ -937,18 +985,18 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+                children: <Widget>[
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+                    children: <Widget>[
                       // Left: Exercise Title & Set Scheme Subtitle
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisSize: MainAxisSize.min,
-                          children: [
+                          children: <Widget>[
                             Row(
-                              children: [
+                              children: <Widget>[
                                 Flexible(
                                   child: Text(
                                     displayName,
@@ -959,7 +1007,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                                     ),
                                   ),
                                 ),
-                                if (isSwapped) ...[
+                                if (isSwapped) ...<Widget>[
                                   const SizedBox(width: 6),
                                   Container(
                                     padding: const EdgeInsets.symmetric(
@@ -967,8 +1015,9 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                                       vertical: 1.5,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: AppTheme.primaryAmber
-                                          .withValues(alpha: 0.15),
+                                      color: AppTheme.primaryAmber.withValues(
+                                        alpha: 0.15,
+                                      ),
                                       borderRadius: BorderRadius.circular(6),
                                     ),
                                     child: Text(
@@ -1000,7 +1049,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                       // Right: Top-Aligned Action Buttons (Video + Swap + Weight Tune + Plate Loader)
                       Row(
                         mainAxisSize: MainAxisSize.min,
-                        children: [
+                        children: <Widget>[
                           IconButton(
                             padding: EdgeInsets.zero,
                             constraints: const BoxConstraints(
@@ -1030,9 +1079,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                                   : AppTheme.accentBlue,
                             ),
                             tooltip: 'Swap Movement Variation',
-                            onPressed: () => _showSwapVariationDialog(
-                              exercise,
-                            ),
+                            onPressed: () => _showSwapVariationDialog(exercise),
                           ),
                           const SizedBox(width: 4),
                           IconButton(
@@ -1063,7 +1110,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                             ),
                             tooltip: 'Plate Loader',
                             onPressed: () {
-                              final currentKg =
+                              final double currentKg =
                                   double.tryParse(weightCtrl?.text ?? '100') ??
                                   100.0;
                               showModalBottomSheet(
@@ -1097,7 +1144,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                         border: Border.all(color: AppTheme.borderColor),
                       ),
                       child: Row(
-                        children: [
+                        children: <Widget>[
                           const Icon(
                             Icons.tune,
                             size: 14,
@@ -1146,8 +1193,8 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
-                    children: List.generate(sets.length, (index) {
-                      final setItem = sets[index];
+                    children: List.generate(sets.length, (int index) {
+                      final CompletedSet setItem = sets[index];
                       return FilterChip(
                         selected: setItem.isCompleted,
                         label: Text(

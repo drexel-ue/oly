@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -10,7 +11,7 @@ void main() {
 
   group('Food Database & Barcode Intelligence Tests', () {
     test('Scales FoodItem macros accurately for serving size multipliers', () {
-      const item = FoodItem(
+      const FoodItem item = FoodItem(
         id: 'staple_chicken',
         name: 'Chicken Breast',
         servingSize: '100g',
@@ -22,7 +23,7 @@ void main() {
         source: 'offline_staple',
       );
 
-      final entry = item.toNutritionEntry(
+      final NutritionEntry entry = item.toNutritionEntry(
         mealCategory: MealCategory.lunch,
         servingMultiplier: 2.0, // 200g
       );
@@ -36,17 +37,17 @@ void main() {
     });
 
     test('Parses Open Food Facts Barcode API responses accurately', () async {
-      final mockClient = MockClient((request) async {
+      final MockClient mockClient = MockClient((http.Request request) async {
         if (request.url.path.contains('737628064502')) {
-          final body = {
+          final Map<String, Object> body = <String, Object>{
             'status': 1,
-            'product': {
+            'product': <String, Object>{
               'code': '737628064502',
               'product_name': 'Pure Protein Bar Chocolate Peanut Butter',
               'brands': 'Pure Protein',
               'serving_size': '50g',
               'serving_quantity': 50,
-              'nutriments': {
+              'nutriments': <String, num>{
                 'energy-kcal_serving': 200,
                 'proteins_serving': 20.0,
                 'carbohydrates_serving': 17.0,
@@ -60,8 +61,10 @@ void main() {
         return http.Response('{"status": 0}', 404);
       });
 
-      final service = FoodDatabaseService(client: mockClient);
-      final item = await service.lookupBarcode('737628064502');
+      final FoodDatabaseService service = FoodDatabaseService(
+        client: mockClient,
+      );
+      final FoodItem? item = await service.lookupBarcode('737628064502');
 
       expect(item, isNotNull);
       expect(item!.name, equals('Pure Protein Bar Chocolate Peanut Butter'));
@@ -76,7 +79,7 @@ void main() {
     });
 
     test('Computes athlete protein density and macro calorie percentages correctly', () {
-      const highProteinFood = FoodItem(
+      const FoodItem highProteinFood = FoodItem(
         id: 'whey_isolate',
         name: 'Whey Protein Isolate',
         servingSize: '30g scoop',
@@ -95,21 +98,33 @@ void main() {
       expect(highProteinFood.proteinCaloriePct, greaterThan(80.0));
     });
 
-    test('Loads and searches bundled staple foods dataset successfully', () async {
-      final service = FoodDatabaseService();
-      final staples = await service.getStapleFoods();
+    test(
+      'Loads and searches bundled staple foods dataset successfully',
+      () async {
+        final FoodDatabaseService service = FoodDatabaseService();
+        final List<FoodItem> staples = await service.getStapleFoods();
 
-      expect(staples.length, greaterThanOrEqualTo(100));
+        expect(staples.length, greaterThanOrEqualTo(100));
 
-      final chickenMatches = await service.searchStapleFoods('chicken');
-      expect(chickenMatches.isNotEmpty, isTrue);
-      expect(chickenMatches.any((f) => f.name.contains('Breast')), isTrue);
+        final List<FoodItem> chickenMatches = await service.searchStapleFoods(
+          'chicken',
+        );
+        expect(chickenMatches.isNotEmpty, isTrue);
+        expect(
+          chickenMatches.any((FoodItem f) => f.name.contains('Breast')),
+          isTrue,
+        );
 
-      final riceMatches = await service.searchStapleFoods('rice');
-      expect(riceMatches.isNotEmpty, isTrue);
+        final List<FoodItem> riceMatches = await service.searchStapleFoods(
+          'rice',
+        );
+        expect(riceMatches.isNotEmpty, isTrue);
 
-      final salmonMatches = await service.searchStapleFoods('salmon');
-      expect(salmonMatches.isNotEmpty, isTrue);
-    });
+        final List<FoodItem> salmonMatches = await service.searchStapleFoods(
+          'salmon',
+        );
+        expect(salmonMatches.isNotEmpty, isTrue);
+      },
+    );
   });
 }

@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../theme/app_theme.dart';
+import 'package:oly/theme/app_theme.dart';
 
 class SplashScreen extends StatefulWidget {
+  const SplashScreen({required this.child, super.key});
   final Widget child;
-
-  const SplashScreen({super.key, required this.child});
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
+class _SplashScreenState extends State<SplashScreen>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
   late Animation<double> _fadeAnimation;
@@ -25,13 +25,15 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       duration: const Duration(milliseconds: 1200),
     );
 
-    _scaleAnimation = Tween<double>(begin: 0.85, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutBack),
-    );
+    _scaleAnimation = Tween<double>(
+      begin: 0.85,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
 
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeIn),
-    );
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeIn));
 
     _controller.forward();
 
@@ -62,22 +64,24 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       body: Center(
         child: AnimatedBuilder(
           animation: _controller,
-          builder: (context, child) {
+          builder: (BuildContext context, Widget? child) {
             return FadeTransition(
               opacity: _fadeAnimation,
               child: ScaleTransition(
                 scale: _scaleAnimation,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
+                  children: <Widget>[
                     Container(
                       width: 140,
                       height: 140,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        boxShadow: [
+                        boxShadow: <BoxShadow>[
                           BoxShadow(
-                            color: AppTheme.primaryAmber.withValues(alpha: 0.25),
+                            color: AppTheme.primaryAmber.withValues(
+                              alpha: 0.25,
+                            ),
                             blurRadius: 30,
                             spreadRadius: 10,
                           ),

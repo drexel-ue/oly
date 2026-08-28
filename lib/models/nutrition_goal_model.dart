@@ -1,5 +1,5 @@
-import 'body_composition_entry.dart';
-import '../services/tdee_calculator_service.dart';
+import 'package:oly/models/body_composition_entry.dart';
+import 'package:oly/services/tdee_calculator_service.dart';
 
 enum GoalType {
   cutting,
@@ -35,16 +35,7 @@ enum GoalType {
 }
 
 class NutritionGoalModel {
-  final GoalType goalType;
-  final double targetBodyFatPct; // e.g. 15.0%
-  final double? targetWeightLb;
-  final double proteinGramsPerLbLbm; // e.g. 1.0 - 1.2 g/lb Lean Body Mass
-  final int dailyCalorieAdjustment; // e.g. -400 for cut, +250 for bulk
-  final bool carbCyclingEnabled;
-  final int trainingDayBonusCalories; // e.g. +200 kcal on Snatch/Clean & Jerk days
-  final double trainingDayCarbBonusGrams; // e.g. +40g Carbs on heavy lifting days
-  final int baseTdeeEstimate;
-  final double? customDailyWaterGoalOz; // Custom water goal override if user sets one
+  // Custom water goal override if user sets one
 
   const NutritionGoalModel({
     this.goalType = GoalType.recomposition,
@@ -59,8 +50,44 @@ class NutritionGoalModel {
     this.customDailyWaterGoalOz,
   });
 
+  factory NutritionGoalModel.fromJson(Map<String, dynamic> json) {
+    return NutritionGoalModel(
+      goalType: GoalType.values.firstWhere(
+        (GoalType g) => g.name == (json['goalType'] as String?),
+        orElse: () => GoalType.recomposition,
+      ),
+      targetBodyFatPct: (json['targetBodyFatPct'] as num?)?.toDouble() ?? 15.0,
+      targetWeightLb: (json['targetWeightLb'] as num?)?.toDouble(),
+      proteinGramsPerLbLbm:
+          (json['proteinGramsPerLbLbm'] as num?)?.toDouble() ?? 1.05,
+      dailyCalorieAdjustment: json['dailyCalorieAdjustment'] as int? ?? 0,
+      carbCyclingEnabled: json['carbCyclingEnabled'] as bool? ?? true,
+      trainingDayBonusCalories: json['trainingDayBonusCalories'] as int? ?? 250,
+      trainingDayCarbBonusGrams:
+          (json['trainingDayCarbBonusGrams'] as num?)?.toDouble() ?? 45.0,
+      baseTdeeEstimate: json['baseTdeeEstimate'] as int? ?? 2800,
+      customDailyWaterGoalOz: (json['customDailyWaterGoalOz'] as num?)
+          ?.toDouble(),
+    );
+  }
+  final GoalType goalType;
+  final double targetBodyFatPct; // e.g. 15.0%
+  final double? targetWeightLb;
+  final double proteinGramsPerLbLbm; // e.g. 1.0 - 1.2 g/lb Lean Body Mass
+  final int dailyCalorieAdjustment; // e.g. -400 for cut, +250 for bulk
+  final bool carbCyclingEnabled;
+  final int
+  trainingDayBonusCalories; // e.g. +200 kcal on Snatch/Clean & Jerk days
+  final double
+  trainingDayCarbBonusGrams; // e.g. +40g Carbs on heavy lifting days
+  final int baseTdeeEstimate;
+  final double? customDailyWaterGoalOz;
+
   /// Calculates dynamic daily water goal based on body composition and training status
-  double getRecommendedWaterGoalOz({BodyCompositionEntry? latestBodyComp, bool isTrainingDay = false}) {
+  double getRecommendedWaterGoalOz({
+    BodyCompositionEntry? latestBodyComp,
+    bool isTrainingDay = false,
+  }) {
     if (customDailyWaterGoalOz != null && customDailyWaterGoalOz! > 0) {
       return customDailyWaterGoalOz! + (isTrainingDay ? 24.0 : 0.0);
     }
@@ -71,7 +98,7 @@ class NutritionGoalModel {
   }
 
   Map<String, dynamic> toJson() {
-    return {
+    return <String, dynamic>{
       'goalType': goalType.name,
       'targetBodyFatPct': targetBodyFatPct,
       'targetWeightLb': targetWeightLb,
@@ -83,24 +110,6 @@ class NutritionGoalModel {
       'baseTdeeEstimate': baseTdeeEstimate,
       'customDailyWaterGoalOz': customDailyWaterGoalOz,
     };
-  }
-
-  factory NutritionGoalModel.fromJson(Map<String, dynamic> json) {
-    return NutritionGoalModel(
-      goalType: GoalType.values.firstWhere(
-        (g) => g.name == (json['goalType'] as String?),
-        orElse: () => GoalType.recomposition,
-      ),
-      targetBodyFatPct: (json['targetBodyFatPct'] as num?)?.toDouble() ?? 15.0,
-      targetWeightLb: (json['targetWeightLb'] as num?)?.toDouble(),
-      proteinGramsPerLbLbm: (json['proteinGramsPerLbLbm'] as num?)?.toDouble() ?? 1.05,
-      dailyCalorieAdjustment: json['dailyCalorieAdjustment'] as int? ?? 0,
-      carbCyclingEnabled: json['carbCyclingEnabled'] as bool? ?? true,
-      trainingDayBonusCalories: json['trainingDayBonusCalories'] as int? ?? 250,
-      trainingDayCarbBonusGrams: (json['trainingDayCarbBonusGrams'] as num?)?.toDouble() ?? 45.0,
-      baseTdeeEstimate: json['baseTdeeEstimate'] as int? ?? 2800,
-      customDailyWaterGoalOz: (json['customDailyWaterGoalOz'] as num?)?.toDouble(),
-    );
   }
 
   NutritionGoalModel copyWith({
@@ -120,12 +129,16 @@ class NutritionGoalModel {
       targetBodyFatPct: targetBodyFatPct ?? this.targetBodyFatPct,
       targetWeightLb: targetWeightLb ?? this.targetWeightLb,
       proteinGramsPerLbLbm: proteinGramsPerLbLbm ?? this.proteinGramsPerLbLbm,
-      dailyCalorieAdjustment: dailyCalorieAdjustment ?? this.dailyCalorieAdjustment,
+      dailyCalorieAdjustment:
+          dailyCalorieAdjustment ?? this.dailyCalorieAdjustment,
       carbCyclingEnabled: carbCyclingEnabled ?? this.carbCyclingEnabled,
-      trainingDayBonusCalories: trainingDayBonusCalories ?? this.trainingDayBonusCalories,
-      trainingDayCarbBonusGrams: trainingDayCarbBonusGrams ?? this.trainingDayCarbBonusGrams,
+      trainingDayBonusCalories:
+          trainingDayBonusCalories ?? this.trainingDayBonusCalories,
+      trainingDayCarbBonusGrams:
+          trainingDayCarbBonusGrams ?? this.trainingDayCarbBonusGrams,
       baseTdeeEstimate: baseTdeeEstimate ?? this.baseTdeeEstimate,
-      customDailyWaterGoalOz: customDailyWaterGoalOz ?? this.customDailyWaterGoalOz,
+      customDailyWaterGoalOz:
+          customDailyWaterGoalOz ?? this.customDailyWaterGoalOz,
     );
   }
 }

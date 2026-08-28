@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:oly/models/lift_model.dart';
+import 'package:oly/models/program_model.dart';
+import 'package:oly/providers/lift_provider.dart';
+import 'package:oly/providers/settings_provider.dart';
+import 'package:oly/theme/app_theme.dart';
 import 'package:provider/provider.dart';
-import '../models/lift_model.dart';
-import '../models/program_model.dart';
-import '../providers/lift_provider.dart';
-import '../providers/settings_provider.dart';
-import '../theme/app_theme.dart';
 
 class ExerciseSwapHelper {
   /// Segments all lifts into suggested variations for the given exercise and other movements.
@@ -13,33 +13,38 @@ class ExerciseSwapHelper {
     required ExerciseTemplate exercise,
     required List<LiftModel> allLifts,
   }) {
-    final lowerName = exercise.name.toLowerCase();
-    final lowerLiftId = exercise.liftId.toLowerCase();
+    final String lowerName = exercise.name.toLowerCase();
+    final String lowerLiftId = exercise.liftId.toLowerCase();
 
-    final isSnatchPullOrDeadlift = lowerName.contains('pull') ||
+    final bool isSnatchPullOrDeadlift =
+        lowerName.contains('pull') ||
         lowerName.contains('deadlift') ||
         lowerName.contains('rdl');
-    final isSnatch = (lowerName.contains('snatch') || lowerLiftId == 'snatch') &&
+    final bool isSnatch =
+        (lowerName.contains('snatch') || lowerLiftId == 'snatch') &&
         !isSnatchPullOrDeadlift;
-    final isClean =
+    final bool isClean =
         (lowerName.contains('clean') || lowerLiftId.contains('clean')) &&
-            !lowerName.contains('squat');
-    final isSquat = lowerName.contains('squat') ||
+        !lowerName.contains('squat');
+    final bool isSquat =
+        lowerName.contains('squat') ||
         lowerLiftId.contains('squat') ||
         lowerName.contains('lunge') ||
         lowerLiftId.contains('lunge');
-    final isOverhead = lowerName.contains('press') ||
+    final bool isOverhead =
+        lowerName.contains('press') ||
         lowerLiftId.contains('press') ||
         (lowerName.contains('jerk') && !isClean);
-    final isPull = isSnatchPullOrDeadlift ||
+    final bool isPull =
+        isSnatchPullOrDeadlift ||
         lowerLiftId.contains('pull') ||
         lowerLiftId.contains('deadlift') ||
         lowerLiftId.contains('rdl');
 
-    final suggested = <LiftModel>[];
-    final others = <LiftModel>[];
+    final List<LiftModel> suggested = <LiftModel>[];
+    final List<LiftModel> others = <LiftModel>[];
 
-    for (final lift in allLifts) {
+    for (final LiftModel lift in allLifts) {
       bool isMatch = false;
 
       if (isSnatch) {
@@ -91,7 +96,7 @@ class ExerciseSwapHelper {
   }) {
     if (exerciseTemplate.weekPercentages != null &&
         exerciseTemplate.weekPercentages!.containsKey(currentWeek)) {
-      final pct = exerciseTemplate.weekPercentages![currentWeek]!;
+      final double pct = exerciseTemplate.weekPercentages![currentWeek]!;
       return newLift.currentMax * (pct / 100.0);
     }
 
@@ -100,7 +105,7 @@ class ExerciseSwapHelper {
     }
 
     if (exerciseTemplate.weeklyWeightIncrementKg != null) {
-      final baseWeight = newLift.currentMax * 0.60;
+      final double baseWeight = newLift.currentMax * 0.60;
       return baseWeight +
           ((currentWeek - 1) * exerciseTemplate.weeklyWeightIncrementKg!);
     }
@@ -115,7 +120,7 @@ class ExerciseSwapHelper {
   }) {
     if (exerciseTemplate.weekPercentages != null &&
         exerciseTemplate.weekPercentages!.containsKey(currentWeek)) {
-      final pct = exerciseTemplate.weekPercentages![currentWeek]!;
+      final double pct = exerciseTemplate.weekPercentages![currentWeek]!;
       return '${pct.toStringAsFixed(0)}%';
     }
 
@@ -132,20 +137,19 @@ class ExerciseSwapHelper {
 }
 
 class ExerciseSwapModal extends StatefulWidget {
+  const ExerciseSwapModal({
+    required this.exercise,
+    required this.currentWeek,
+    required this.onSwapSelected,
+    super.key,
+    this.currentSwappedName,
+    this.onResetToOriginal,
+  });
   final ExerciseTemplate exercise;
   final String? currentSwappedName;
   final int currentWeek;
   final ValueChanged<LiftModel> onSwapSelected;
   final VoidCallback? onResetToOriginal;
-
-  const ExerciseSwapModal({
-    super.key,
-    required this.exercise,
-    this.currentSwappedName,
-    required this.currentWeek,
-    required this.onSwapSelected,
-    this.onResetToOriginal,
-  });
 
   @override
   State<ExerciseSwapModal> createState() => _ExerciseSwapModalState();
@@ -197,35 +201,47 @@ class _ExerciseSwapModalState extends State<ExerciseSwapModal> {
 
   @override
   Widget build(BuildContext context) {
-    final liftProvider = Provider.of<LiftProvider>(context);
-    final settings = Provider.of<SettingsProvider>(context);
-    final allLifts = liftProvider.lifts;
+    final LiftProvider liftProvider = Provider.of<LiftProvider>(context);
+    final SettingsProvider settings = Provider.of<SettingsProvider>(context);
+    final List<LiftModel> allLifts = liftProvider.lifts;
 
-    final segmentation = ExerciseSwapHelper.segmentLifts(
-      exercise: widget.exercise,
-      allLifts: allLifts,
-    );
+    final ({List<LiftModel> others, List<LiftModel> suggested}) segmentation =
+        ExerciseSwapHelper.segmentLifts(
+          exercise: widget.exercise,
+          allLifts: allLifts,
+        );
 
-    final filteredSuggested = segmentation.suggested.where((lift) {
-      if (_searchQuery.isEmpty) return true;
+    final List<LiftModel> filteredSuggested = segmentation.suggested.where((
+      LiftModel lift,
+    ) {
+      if (_searchQuery.isEmpty) {
+        return true;
+      }
       return lift.name.toLowerCase().contains(_searchQuery) ||
           lift.category.name.toLowerCase().contains(_searchQuery);
     }).toList();
 
-    final filteredOthers = segmentation.others.where((lift) {
-      if (_searchQuery.isEmpty) return true;
+    final List<LiftModel> filteredOthers = segmentation.others.where((
+      LiftModel lift,
+    ) {
+      if (_searchQuery.isEmpty) {
+        return true;
+      }
       return lift.name.toLowerCase().contains(_searchQuery) ||
           lift.category.name.toLowerCase().contains(_searchQuery);
     }).toList();
 
-    final activeDisplayName = widget.currentSwappedName ?? widget.exercise.name;
-    final isCurrentlySwapped = widget.currentSwappedName != null &&
+    final String activeDisplayName =
+        widget.currentSwappedName ?? widget.exercise.name;
+    final bool isCurrentlySwapped =
+        widget.currentSwappedName != null &&
         widget.currentSwappedName != widget.exercise.name;
 
-    final periodizationDesc = ExerciseSwapHelper.getPercentageDescription(
-      exerciseTemplate: widget.exercise,
-      currentWeek: widget.currentWeek,
-    );
+    final String periodizationDesc =
+        ExerciseSwapHelper.getPercentageDescription(
+          exerciseTemplate: widget.exercise,
+          currentWeek: widget.currentWeek,
+        );
 
     return Container(
       constraints: BoxConstraints(
@@ -239,7 +255,7 @@ class _ExerciseSwapModalState extends State<ExerciseSwapModal> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+          children: <Widget>[
             // Top Drag Handle
             Center(
               child: Container(
@@ -258,10 +274,10 @@ class _ExerciseSwapModalState extends State<ExerciseSwapModal> {
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+                children: <Widget>[
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
+                    children: <Widget>[
                       Text(
                         'Swap Movement Variation',
                         style: GoogleFonts.outfit(
@@ -286,7 +302,7 @@ class _ExerciseSwapModalState extends State<ExerciseSwapModal> {
                         fontSize: 13,
                         color: AppTheme.textSecondary,
                       ),
-                      children: [
+                      children: <InlineSpan>[
                         const TextSpan(text: 'Targeting: '),
                         TextSpan(
                           text: widget.exercise.name,
@@ -313,7 +329,10 @@ class _ExerciseSwapModalState extends State<ExerciseSwapModal> {
             if (isCurrentlySwapped)
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 10,
+                ),
                 decoration: BoxDecoration(
                   color: AppTheme.primaryAmber.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(14),
@@ -322,7 +341,7 @@ class _ExerciseSwapModalState extends State<ExerciseSwapModal> {
                   ),
                 ),
                 child: Row(
-                  children: [
+                  children: <Widget>[
                     const Icon(
                       Icons.swap_horiz,
                       color: AppTheme.primaryAmber,
@@ -332,7 +351,7 @@ class _ExerciseSwapModalState extends State<ExerciseSwapModal> {
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
+                        children: <Widget>[
                           Text(
                             'Active Swap: $activeDisplayName',
                             style: GoogleFonts.outfit(
@@ -358,8 +377,9 @@ class _ExerciseSwapModalState extends State<ExerciseSwapModal> {
                             horizontal: 10,
                             vertical: 4,
                           ),
-                          backgroundColor:
-                              AppTheme.primaryAmber.withValues(alpha: 0.2),
+                          backgroundColor: AppTheme.primaryAmber.withValues(
+                            alpha: 0.2,
+                          ),
                           foregroundColor: AppTheme.primaryAmber,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
@@ -393,7 +413,7 @@ class _ExerciseSwapModalState extends State<ExerciseSwapModal> {
                 ),
                 child: TextField(
                   controller: _searchController,
-                  onChanged: (val) {
+                  onChanged: (String val) {
                     setState(() {
                       _searchQuery = val.trim().toLowerCase();
                     });
@@ -443,10 +463,13 @@ class _ExerciseSwapModalState extends State<ExerciseSwapModal> {
             // Scrollable List of Segmented Exercises
             Flexible(
               child: ListView(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-                children: [
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 6,
+                ),
+                children: <Widget>[
                   // SECTION 1: SUGGESTED VARIATIONS
-                  if (filteredSuggested.isNotEmpty) ...[
+                  if (filteredSuggested.isNotEmpty) ...<Widget>[
                     _buildSectionHeader(
                       title: 'SUGGESTED SWAPS',
                       icon: Icons.auto_awesome,
@@ -455,8 +478,8 @@ class _ExerciseSwapModalState extends State<ExerciseSwapModal> {
                       subtitle: 'Direct variations matching movement pattern',
                     ),
                     const SizedBox(height: 8),
-                    ...filteredSuggested.map((lift) {
-                      final isCurrent = lift.name == activeDisplayName;
+                    ...filteredSuggested.map((LiftModel lift) {
+                      final bool isCurrent = lift.name == activeDisplayName;
                       return _buildLiftTile(
                         context: context,
                         lift: lift,
@@ -470,17 +493,18 @@ class _ExerciseSwapModalState extends State<ExerciseSwapModal> {
                   ],
 
                   // SECTION 2: OTHER MOVEMENTS
-                  if (filteredOthers.isNotEmpty) ...[
+                  if (filteredOthers.isNotEmpty) ...<Widget>[
                     _buildSectionHeader(
                       title: 'OTHER MOVEMENTS',
                       icon: Icons.fitness_center,
                       iconColor: AppTheme.textSecondary,
                       count: filteredOthers.length,
-                      subtitle: 'All catalog Olympic lifts and strength movements',
+                      subtitle:
+                          'All catalog Olympic lifts and strength movements',
                     ),
                     const SizedBox(height: 8),
-                    ...filteredOthers.map((lift) {
-                      final isCurrent = lift.name == activeDisplayName;
+                    ...filteredOthers.map((LiftModel lift) {
+                      final bool isCurrent = lift.name == activeDisplayName;
                       return _buildLiftTile(
                         context: context,
                         lift: lift,
@@ -493,12 +517,13 @@ class _ExerciseSwapModalState extends State<ExerciseSwapModal> {
                   ],
 
                   // Empty State
-                  if (filteredSuggested.isEmpty && filteredOthers.isEmpty) ...[
+                  if (filteredSuggested.isEmpty &&
+                      filteredOthers.isEmpty) ...<Widget>[
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 40),
                       child: Center(
                         child: Column(
-                          children: [
+                          children: <Widget>[
                             const Icon(
                               Icons.search_off,
                               size: 48,
@@ -537,9 +562,9 @@ class _ExerciseSwapModalState extends State<ExerciseSwapModal> {
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
+      children: <Widget>[
         Row(
-          children: [
+          children: <Widget>[
             Icon(icon, size: 16, color: iconColor),
             const SizedBox(width: 6),
             Text(
@@ -591,15 +616,15 @@ class _ExerciseSwapModalState extends State<ExerciseSwapModal> {
     required SettingsProvider settings,
     required LiftProvider liftProvider,
   }) {
-    final targetKg = ExerciseSwapHelper.calculateSwappedWeight(
+    final double targetKg = ExerciseSwapHelper.calculateSwappedWeight(
       newLift: lift,
       exerciseTemplate: widget.exercise,
       currentWeek: widget.currentWeek,
       currentMaxes: liftProvider.currentMaxes,
     );
 
-    final catColor = _getCategoryColor(lift.category);
-    final catName = _formatCategoryName(lift.category);
+    final Color catColor = _getCategoryColor(lift.category);
+    final String catName = _formatCategoryName(lift.category);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
@@ -612,8 +637,8 @@ class _ExerciseSwapModalState extends State<ExerciseSwapModal> {
           color: isCurrent
               ? AppTheme.primaryAmber
               : isSuggested
-                  ? AppTheme.borderColor.withValues(alpha: 0.9)
-                  : AppTheme.borderColor.withValues(alpha: 0.5),
+              ? AppTheme.borderColor.withValues(alpha: 0.9)
+              : AppTheme.borderColor.withValues(alpha: 0.5),
           width: isCurrent ? 1.5 : 1.0,
         ),
       ),
@@ -629,7 +654,7 @@ class _ExerciseSwapModalState extends State<ExerciseSwapModal> {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Row(
-              children: [
+              children: <Widget>[
                 // Left Indicator Strip / Avatar
                 Container(
                   width: 36,
@@ -643,8 +668,8 @@ class _ExerciseSwapModalState extends State<ExerciseSwapModal> {
                       lift.category == LiftCategory.snatch
                           ? Icons.fitness_center
                           : lift.category == LiftCategory.squat
-                              ? Icons.directions_walk
-                              : Icons.sports_gymnastics,
+                          ? Icons.directions_walk
+                          : Icons.sports_gymnastics,
                       color: catColor,
                       size: 18,
                     ),
@@ -656,9 +681,9 @@ class _ExerciseSwapModalState extends State<ExerciseSwapModal> {
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+                    children: <Widget>[
                       Row(
-                        children: [
+                        children: <Widget>[
                           Flexible(
                             child: Text(
                               lift.name,
@@ -696,7 +721,7 @@ class _ExerciseSwapModalState extends State<ExerciseSwapModal> {
                       ),
                       const SizedBox(height: 3),
                       Row(
-                        children: [
+                        children: <Widget>[
                           Text(
                             '1RM: ${settings.formatWeight(lift.currentMax)}',
                             style: GoogleFonts.inter(

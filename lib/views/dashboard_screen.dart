@@ -1,47 +1,53 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:oly/models/program_model.dart';
+import 'package:oly/models/workout_session.dart';
+import 'package:oly/providers/lift_provider.dart';
+import 'package:oly/providers/program_provider.dart';
+import 'package:oly/providers/recovery_provider.dart';
+import 'package:oly/providers/settings_provider.dart';
+import 'package:oly/services/recovery_engine_service.dart';
+import 'package:oly/theme/app_theme.dart';
+import 'package:oly/views/nutrition/nutrition_dashboard_screen.dart';
+import 'package:oly/views/nutrition/renpho_scanner_sheet.dart';
+import 'package:oly/views/recovery_session_screen.dart';
+import 'package:oly/views/warmup_session_screen.dart';
+import 'package:oly/views/workout_session_screen.dart';
+import 'package:oly/widgets/active_recovery_card.dart';
+import 'package:oly/widgets/plate_modal.dart';
+import 'package:oly/widgets/settings_modal.dart';
 import 'package:provider/provider.dart';
-import '../providers/lift_provider.dart';
-import '../providers/program_provider.dart';
-import '../providers/recovery_provider.dart';
-import '../providers/settings_provider.dart';
-import '../theme/app_theme.dart';
-import '../widgets/active_recovery_card.dart';
-import '../widgets/plate_modal.dart';
-import '../widgets/settings_modal.dart';
-import 'nutrition/nutrition_dashboard_screen.dart';
-import 'nutrition/renpho_scanner_sheet.dart';
-import 'recovery_session_screen.dart';
-import 'warmup_session_screen.dart';
-import 'workout_session_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
-  final Function(int)? onNavigateTab;
-
   const DashboardScreen({super.key, this.onNavigateTab});
+  final Function(int)? onNavigateTab;
 
   @override
   Widget build(BuildContext context) {
-    final program = Provider.of<ProgramProvider>(context);
-    final lifts = Provider.of<LiftProvider>(context);
-    final settings = Provider.of<SettingsProvider>(context);
+    final ProgramProvider program = Provider.of<ProgramProvider>(context);
+    final LiftProvider lifts = Provider.of<LiftProvider>(context);
+    final SettingsProvider settings = Provider.of<SettingsProvider>(context);
 
-    final currentDay = program.currentDayTemplate;
-    final olyTotalKg = lifts.getOlympicTotal();
-    final snatchKg = lifts.getLift('snatch')?.currentMax ?? 0.0;
-    final cjKg = lifts.getLift('clean_and_jerk')?.currentMax ?? 0.0;
+    final DayTemplate currentDay = program.currentDayTemplate;
+    final double olyTotalKg = lifts.getOlympicTotal();
+    final double snatchKg = lifts.getLift('snatch')?.currentMax ?? 0.0;
+    final double cjKg = lifts.getLift('clean_and_jerk')?.currentMax ?? 0.0;
 
     return Scaffold(
       appBar: AppBar(
         title: Row(
-          children: [
+          children: <Widget>[
             Container(
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
                 color: AppTheme.primaryAmber,
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Icon(Icons.fitness_center, color: Colors.black, size: 20),
+              child: const Icon(
+                Icons.fitness_center,
+                color: Colors.black,
+                size: 20,
+              ),
             ),
             const SizedBox(width: 10),
             Text(
@@ -54,7 +60,7 @@ class DashboardScreen extends StatelessWidget {
             ),
           ],
         ),
-        actions: [
+        actions: <Widget>[
           IconButton(
             icon: Icon(
               settings.isLbs ? Icons.scale_outlined : Icons.scale,
@@ -64,7 +70,10 @@ class DashboardScreen extends StatelessWidget {
             onPressed: () => settings.toggleUnit(),
           ),
           IconButton(
-            icon: const Icon(Icons.settings_outlined, color: AppTheme.primaryAmber),
+            icon: const Icon(
+              Icons.settings_outlined,
+              color: AppTheme.primaryAmber,
+            ),
             tooltip: 'Settings & Data Backup',
             onPressed: () {
               showModalBottomSheet(
@@ -82,130 +91,144 @@ class DashboardScreen extends StatelessWidget {
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Active Cycle Banner
-            _buildCycleCard(context, program),
-            const SizedBox(height: 16),
-
-            // Active In-Progress Workout Resume Card (if present)
-            if (program.hasActiveDraft) ...[
-              _buildActiveSessionResumeCard(context, program),
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              // Active Cycle Banner
+              _buildCycleCard(context, program),
               const SizedBox(height: 16),
+
+              // Active In-Progress Workout Resume Card (if present)
+              if (program.hasActiveDraft) ...<Widget>[
+                _buildActiveSessionResumeCard(context, program),
+                const SizedBox(height: 16),
+              ],
+
+              // Today's Scheduled Workout Card
+              _buildTodayWorkoutCard(context, program, currentDay),
+              const SizedBox(height: 16),
+
+              // Active Recovery & Mobility Routine
+              const ActiveRecoveryCard(),
+              const SizedBox(height: 16),
+
+              // Olympic Total & Primary PRs
+              _buildOlympicTotalCard(
+                context,
+                program,
+                lifts,
+                settings,
+                snatchKg,
+                cjKg,
+                olyTotalKg,
+              ),
+              const SizedBox(height: 16),
+
+              // Quick Actions (Warmup & Plate Loader)
+              Row(
+                children: <Widget>[
+                  Expanded(
+                    child: _buildActionCard(
+                      context,
+                      title: 'Guided Warm-Up',
+                      subtitle: 'Row, DROMs & Barbell',
+                      icon: Icons.directions_run,
+                      accentColor: AppTheme.secondaryCyan,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                WarmupSessionScreen(dayTemplate: currentDay),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildActionCard(
+                      context,
+                      title: 'Plate Loader',
+                      subtitle: 'Bar & Bumper Calc',
+                      icon: Icons.pie_chart,
+                      accentColor: AppTheme.primaryAmber,
+                      onTap: () {
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          useSafeArea: true,
+                          backgroundColor: Colors.transparent,
+                          builder: (_) =>
+                              const PlateModal(initialWeightKg: 100.0),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+
+              // Nutrition & Renpho Scale Scanner Row
+              Row(
+                children: <Widget>[
+                  Expanded(
+                    child: _buildActionCard(
+                      context,
+                      title: 'Calorie & Macros',
+                      subtitle: 'Daily Food & Fuel',
+                      icon: Icons.restaurant,
+                      accentColor: AppTheme.primaryAmber,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const NutritionDashboardScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildActionCard(
+                      context,
+                      title: 'Renpho Scale Scan',
+                      subtitle: 'LBM, BF% & BMR',
+                      icon: Icons.document_scanner,
+                      accentColor: AppTheme.successGreen,
+                      onTap: () {
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          useSafeArea: true,
+                          backgroundColor: Colors.transparent,
+                          builder: (_) => const RenphoScannerSheet(),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+
+              // Ratio Balance Glance
+              _buildRatioGlanceCard(context, lifts),
             ],
-
-            // Today's Scheduled Workout Card
-            _buildTodayWorkoutCard(context, program, currentDay),
-            const SizedBox(height: 16),
-
-            // Active Recovery & Mobility Routine
-            const ActiveRecoveryCard(),
-            const SizedBox(height: 16),
-
-            // Olympic Total & Primary PRs
-            _buildOlympicTotalCard(context, program, lifts, settings, snatchKg, cjKg, olyTotalKg),
-            const SizedBox(height: 16),
-
-            // Quick Actions (Warmup & Plate Loader)
-            Row(
-              children: [
-                Expanded(
-                  child: _buildActionCard(
-                    context,
-                    title: 'Guided Warm-Up',
-                    subtitle: 'Row, DROMs & Barbell',
-                    icon: Icons.directions_run,
-                    accentColor: AppTheme.secondaryCyan,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => WarmupSessionScreen(dayTemplate: currentDay),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildActionCard(
-                    context,
-                    title: 'Plate Loader',
-                    subtitle: 'Bar & Bumper Calc',
-                    icon: Icons.pie_chart,
-                    accentColor: AppTheme.primaryAmber,
-                    onTap: () {
-                      showModalBottomSheet(
-                        context: context,
-                        isScrollControlled: true,
-                        useSafeArea: true,
-                        backgroundColor: Colors.transparent,
-                        builder: (_) => const PlateModal(initialWeightKg: 100.0),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-
-            // Nutrition & Renpho Scale Scanner Row
-            Row(
-              children: [
-                Expanded(
-                  child: _buildActionCard(
-                    context,
-                    title: 'Calorie & Macros',
-                    subtitle: 'Daily Food & Fuel',
-                    icon: Icons.restaurant,
-                    accentColor: AppTheme.primaryAmber,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const NutritionDashboardScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildActionCard(
-                    context,
-                    title: 'Renpho Scale Scan',
-                    subtitle: 'LBM, BF% & BMR',
-                    icon: Icons.document_scanner,
-                    accentColor: AppTheme.successGreen,
-                    onTap: () {
-                      showModalBottomSheet(
-                        context: context,
-                        isScrollControlled: true,
-                        useSafeArea: true,
-                        backgroundColor: Colors.transparent,
-                        builder: (_) => const RenphoScannerSheet(),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-
-            // Ratio Balance Glance
-            _buildRatioGlanceCard(context, lifts),
-          ],
+          ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildCycleCard(BuildContext context, ProgramProvider program) {
-    final isRetest = program.isRetestWeek;
-    final weekTitle = isRetest
+    final bool isRetest = program.isRetestWeek;
+    final String weekTitle = isRetest
         ? 'Week 5: 1RM RETEST WEEK'
-        : 'Week ${program.currentWeek} of 4: ${program.currentWeek == 4 ? "Deload & Prep" : program.currentWeek == 3 ? "Peak Loading" : "Base Loading"}';
+        : 'Week ${program.currentWeek} of 4: ${program.currentWeek == 4
+              ? "Deload & Prep"
+              : program.currentWeek == 3
+              ? "Peak Loading"
+              : "Base Loading"}';
 
     return Container(
       width: double.infinity,
@@ -213,22 +236,24 @@ class DashboardScreen extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: isRetest
-              ? [const Color(0xFF8E0000), const Color(0xFF2A0000)]
-              : [AppTheme.surfaceElevated, AppTheme.surfaceCard],
+              ? <Color>[const Color(0xFF8E0000), const Color(0xFF2A0000)]
+              : <Color>[AppTheme.surfaceElevated, AppTheme.surfaceCard],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: isRetest ? Colors.redAccent : AppTheme.primaryAmber.withValues(alpha: 0.3),
+          color: isRetest
+              ? Colors.redAccent
+              : AppTheme.primaryAmber.withValues(alpha: 0.3),
         ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+        children: <Widget>[
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
+            children: <Widget>[
               Text(
                 'CYCLE ${program.currentCycle} PERIODIZATION',
                 style: GoogleFonts.outfit(
@@ -239,7 +264,10 @@ class DashboardScreen extends StatelessWidget {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: isRetest ? Colors.redAccent : AppTheme.primaryAmber,
                   borderRadius: BorderRadius.circular(12),
@@ -268,15 +296,18 @@ class DashboardScreen extends StatelessWidget {
           // Week selection pills (Week 1..4 + Week 5 Retest)
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: List.generate(5, (index) {
-              final w = index + 1;
-              final isSelected = program.currentWeek == w;
-              final label = w == 5 ? 'Retest' : 'W$w';
+            children: List.generate(5, (int index) {
+              final int w = index + 1;
+              final bool isSelected = program.currentWeek == w;
+              final String label = w == 5 ? 'Retest' : 'W$w';
 
               return InkWell(
                 onTap: () => program.selectWeek(w),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: isSelected
                         ? (w == 5 ? Colors.redAccent : AppTheme.primaryAmber)
@@ -307,12 +338,18 @@ class DashboardScreen extends StatelessWidget {
               decoration: BoxDecoration(
                 color: AppTheme.secondaryCyan.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppTheme.secondaryCyan.withValues(alpha: 0.5)),
+                border: Border.all(
+                  color: AppTheme.secondaryCyan.withValues(alpha: 0.5),
+                ),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.explore, color: AppTheme.secondaryCyan, size: 18),
+                children: <Widget>[
+                  const Icon(
+                    Icons.explore,
+                    color: AppTheme.secondaryCyan,
+                    size: 18,
+                  ),
                   const SizedBox(width: 8),
                   Flexible(
                     child: Text(
@@ -333,10 +370,13 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildActiveSessionResumeCard(BuildContext context, ProgramProvider program) {
-    final draft = program.activeDraft!;
-    final matchingDay = program.days.firstWhere(
-      (d) => d.dayNumber == draft.dayNumber,
+  Widget _buildActiveSessionResumeCard(
+    BuildContext context,
+    ProgramProvider program,
+  ) {
+    final ActiveWorkoutDraft draft = program.activeDraft!;
+    final DayTemplate matchingDay = program.days.firstWhere(
+      (DayTemplate d) => d.dayNumber == draft.dayNumber,
       orElse: () => program.currentDayTemplate,
     );
 
@@ -345,16 +385,13 @@ class DashboardScreen extends StatelessWidget {
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF2C1E0A), Color(0xFF19191D)],
+          colors: <Color>[Color(0xFF2C1E0A), Color(0xFF19191D)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: AppTheme.primaryAmber,
-          width: 1.5,
-        ),
-        boxShadow: [
+        border: Border.all(color: AppTheme.primaryAmber, width: 1.5),
+        boxShadow: <BoxShadow>[
           BoxShadow(
             color: AppTheme.primaryAmber.withValues(alpha: 0.15),
             blurRadius: 16,
@@ -364,12 +401,12 @@ class DashboardScreen extends StatelessWidget {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+        children: <Widget>[
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
+            children: <Widget>[
               Row(
-                children: [
+                children: <Widget>[
                   Container(
                     width: 8,
                     height: 8,
@@ -423,13 +460,15 @@ class DashboardScreen extends StatelessWidget {
             child: LinearProgressIndicator(
               value: draft.completionPercentage,
               backgroundColor: AppTheme.surfaceElevated,
-              valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryAmber),
+              valueColor: const AlwaysStoppedAnimation<Color>(
+                AppTheme.primaryAmber,
+              ),
               minHeight: 6,
             ),
           ),
           const SizedBox(height: 14),
           Row(
-            children: [
+            children: <Widget>[
               Expanded(
                 flex: 3,
                 child: ElevatedButton.icon(
@@ -496,14 +535,14 @@ class DashboardScreen extends StatelessWidget {
   void _confirmDiscardDraft(BuildContext context, ProgramProvider program) {
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (BuildContext ctx) => AlertDialog(
         backgroundColor: AppTheme.darkBackground,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
           side: const BorderSide(color: AppTheme.borderColor),
         ),
         title: Row(
-          children: [
+          children: <Widget>[
             const Icon(Icons.delete_outline, color: Colors.redAccent),
             const SizedBox(width: 8),
             Text(
@@ -516,7 +555,7 @@ class DashboardScreen extends StatelessWidget {
           'Are you sure you want to discard your in-progress workout session? This action cannot be undone.',
           style: GoogleFonts.inter(color: AppTheme.textSecondary),
         ),
-        actions: [
+        actions: <Widget>[
           TextButton(
             onPressed: () => Navigator.pop(ctx),
             child: const Text('Cancel'),
@@ -528,7 +567,9 @@ class DashboardScreen extends StatelessWidget {
             ),
             onPressed: () async {
               await program.clearActiveDraft();
-              if (ctx.mounted) Navigator.pop(ctx);
+              if (ctx.mounted) {
+                Navigator.pop(ctx);
+              }
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
@@ -545,7 +586,11 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTodayWorkoutCard(BuildContext context, ProgramProvider program, day) {
+  Widget _buildTodayWorkoutCard(
+    BuildContext context,
+    ProgramProvider program,
+    DayTemplate day,
+  ) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(18),
@@ -556,12 +601,12 @@ class DashboardScreen extends StatelessWidget {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+        children: <Widget>[
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
+            children: <Widget>[
               Text(
-                'TODAY\'S WORKOUT',
+                "TODAY'S WORKOUT",
                 style: GoogleFonts.outfit(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
@@ -571,7 +616,10 @@ class DashboardScreen extends StatelessWidget {
               ),
               if (day.isActiveRecovery)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: AppTheme.secondaryCyan.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(8),
@@ -590,8 +638,8 @@ class DashboardScreen extends StatelessWidget {
           const SizedBox(height: 12),
           // Day Selector Override Pills
           Row(
-            children: program.days.map((d) {
-              final isSelected = program.currentDay == d.dayNumber;
+            children: program.days.map((DayTemplate d) {
+              final bool isSelected = program.currentDay == d.dayNumber;
               String label;
               if (d.dayNumber == 1) {
                 label = 'Day 1';
@@ -613,7 +661,9 @@ class DashboardScreen extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(vertical: 6),
                     decoration: BoxDecoration(
                       color: isSelected
-                          ? (d.isActiveRecovery ? AppTheme.secondaryCyan : AppTheme.primaryAmber)
+                          ? (d.isActiveRecovery
+                                ? AppTheme.secondaryCyan
+                                : AppTheme.primaryAmber)
                           : AppTheme.surfaceElevated,
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
@@ -626,7 +676,9 @@ class DashboardScreen extends StatelessWidget {
                         style: GoogleFonts.outfit(
                           fontSize: 10,
                           fontWeight: FontWeight.bold,
-                          color: isSelected ? Colors.black : AppTheme.textSecondary,
+                          color: isSelected
+                              ? Colors.black
+                              : AppTheme.textSecondary,
                         ),
                       ),
                     ),
@@ -647,22 +699,31 @@ class DashboardScreen extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             day.subtitle,
-            style: GoogleFonts.inter(fontSize: 13, color: AppTheme.textSecondary),
+            style: GoogleFonts.inter(
+              fontSize: 13,
+              color: AppTheme.textSecondary,
+            ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 16),
           Row(
-            children: [
+            children: <Widget>[
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: () {
                     if (day.isActiveRecovery) {
-                      final lifts = Provider.of<LiftProvider>(context, listen: false);
-                      final rec = Provider.of<RecoveryProvider>(context, listen: false);
-                      final routine = rec.getRoutine(
+                      final LiftProvider lifts = Provider.of<LiftProvider>(
+                        context,
+                        listen: false,
+                      );
+                      final RecoveryProvider rec =
+                          Provider.of<RecoveryProvider>(context, listen: false);
+                      final GeneratedRecoveryRoutine routine = rec.getRoutine(
                         ratioAnalyses: lifts.getRatioAnalysis(),
-                        lastSession: program.sessions.isNotEmpty ? program.sessions.first : null,
+                        lastSession: program.sessions.isNotEmpty
+                            ? program.sessions.first
+                            : null,
                       );
                       Navigator.push(
                         context,
@@ -685,15 +746,25 @@ class DashboardScreen extends StatelessWidget {
                       );
                     }
                   },
-                  icon: const Icon(Icons.explore, color: AppTheme.secondaryCyan, size: 18),
+                  icon: const Icon(
+                    Icons.explore,
+                    color: AppTheme.secondaryCyan,
+                    size: 18,
+                  ),
                   label: Text(
                     'Preview Day',
-                    style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.bold, color: AppTheme.secondaryCyan),
+                    style: GoogleFonts.outfit(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.secondaryCyan,
+                    ),
                   ),
                   style: OutlinedButton.styleFrom(
                     minimumSize: const Size(0, 46),
                     side: const BorderSide(color: AppTheme.secondaryCyan),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 ),
               ),
@@ -702,37 +773,56 @@ class DashboardScreen extends StatelessWidget {
                 child: ElevatedButton.icon(
                   onPressed: () {
                     if (day.isActiveRecovery) {
-                      final lifts = Provider.of<LiftProvider>(context, listen: false);
-                      final rec = Provider.of<RecoveryProvider>(context, listen: false);
-                      final routine = rec.getRoutine(
+                      final LiftProvider lifts = Provider.of<LiftProvider>(
+                        context,
+                        listen: false,
+                      );
+                      final RecoveryProvider rec =
+                          Provider.of<RecoveryProvider>(context, listen: false);
+                      final GeneratedRecoveryRoutine routine = rec.getRoutine(
                         ratioAnalyses: lifts.getRatioAnalysis(),
-                        lastSession: program.sessions.isNotEmpty ? program.sessions.first : null,
+                        lastSession: program.sessions.isNotEmpty
+                            ? program.sessions.first
+                            : null,
                       );
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => RecoverySessionScreen(routine: routine),
+                          builder: (_) =>
+                              RecoverySessionScreen(routine: routine),
                         ),
                       );
                     } else {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => WorkoutSessionScreen(dayTemplate: day),
+                          builder: (_) =>
+                              WorkoutSessionScreen(dayTemplate: day),
                         ),
                       );
                     }
                   },
-                  icon: const Icon(Icons.play_arrow_rounded, color: Colors.black, size: 20),
+                  icon: const Icon(
+                    Icons.play_arrow_rounded,
+                    color: Colors.black,
+                    size: 20,
+                  ),
                   label: Text(
                     'Start Live',
-                    style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.bold),
+                    style: GoogleFonts.outfit(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   style: ElevatedButton.styleFrom(
                     minimumSize: const Size(0, 46),
-                    backgroundColor: day.isActiveRecovery ? AppTheme.secondaryCyan : AppTheme.primaryAmber,
+                    backgroundColor: day.isActiveRecovery
+                        ? AppTheme.secondaryCyan
+                        : AppTheme.primaryAmber,
                     foregroundColor: Colors.black,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 ),
               ),
@@ -743,8 +833,15 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildOlympicTotalCard(BuildContext context, ProgramProvider program, LiftProvider lifts, SettingsProvider settings,
-      double snatch, double cj, double total) {
+  Widget _buildOlympicTotalCard(
+    BuildContext context,
+    ProgramProvider program,
+    LiftProvider lifts,
+    SettingsProvider settings,
+    double snatch,
+    double cj,
+    double total,
+  ) {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
@@ -754,10 +851,10 @@ class DashboardScreen extends StatelessWidget {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+        children: <Widget>[
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
+            children: <Widget>[
               Text(
                 'OLYMPIC TOTAL',
                 style: GoogleFonts.outfit(
@@ -781,16 +878,25 @@ class DashboardScreen extends StatelessWidget {
           const Divider(color: AppTheme.borderColor),
           const SizedBox(height: 8),
           Row(
-            children: [
+            children: <Widget>[
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Snatch 1RM', style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textSecondary)),
+                  children: <Widget>[
+                    Text(
+                      'Snatch 1RM',
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: AppTheme.textSecondary,
+                      ),
+                    ),
                     const SizedBox(height: 2),
                     Text(
                       settings.formatWeight(snatch),
-                      style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.bold),
+                      style: GoogleFonts.outfit(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ],
                 ),
@@ -801,12 +907,21 @@ class DashboardScreen extends StatelessWidget {
                   padding: const EdgeInsets.only(left: 16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Clean & Jerk 1RM', style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textSecondary)),
+                    children: <Widget>[
+                      Text(
+                        'Clean & Jerk 1RM',
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          color: AppTheme.textSecondary,
+                        ),
+                      ),
                       const SizedBox(height: 2),
                       Text(
                         settings.formatWeight(cj),
-                        style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.bold),
+                        style: GoogleFonts.outfit(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ],
                   ),
@@ -819,14 +934,21 @@ class DashboardScreen extends StatelessWidget {
           const SizedBox(height: 8),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
+            children: <Widget>[
               Row(
-                children: [
-                  const Icon(Icons.fitness_center, color: AppTheme.secondaryCyan, size: 16),
+                children: <Widget>[
+                  const Icon(
+                    Icons.fitness_center,
+                    color: AppTheme.secondaryCyan,
+                    size: 16,
+                  ),
                   const SizedBox(width: 6),
                   Text(
                     'Lifetime Weight Moved',
-                    style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textSecondary),
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      color: AppTheme.textSecondary,
+                    ),
                   ),
                 ],
               ),
@@ -845,12 +967,14 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildActionCard(BuildContext context,
-      {required String title,
-      required String subtitle,
-      required IconData icon,
-      required Color accentColor,
-      required VoidCallback onTap}) {
+  Widget _buildActionCard(
+    BuildContext context, {
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required Color accentColor,
+    required VoidCallback onTap,
+  }) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
@@ -862,7 +986,7 @@ class DashboardScreen extends StatelessWidget {
           border: Border.all(color: AppTheme.borderColor),
         ),
         child: Row(
-          children: [
+          children: <Widget>[
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
@@ -875,7 +999,7 @@ class DashboardScreen extends StatelessWidget {
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+                children: <Widget>[
                   Text(
                     title,
                     style: GoogleFonts.outfit(
@@ -886,7 +1010,10 @@ class DashboardScreen extends StatelessWidget {
                   ),
                   Text(
                     subtitle,
-                    style: GoogleFonts.inter(fontSize: 11, color: AppTheme.textSecondary),
+                    style: GoogleFonts.inter(
+                      fontSize: 11,
+                      color: AppTheme.textSecondary,
+                    ),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],
@@ -899,7 +1026,7 @@ class DashboardScreen extends StatelessWidget {
   }
 
   Widget _buildRatioGlanceCard(BuildContext context, LiftProvider lifts) {
-    final ratios = lifts.getRatioAnalysis();
+    final List<LiftRatioAnalysis> ratios = lifts.getRatioAnalysis();
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
@@ -909,10 +1036,10 @@ class DashboardScreen extends StatelessWidget {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+        children: <Widget>[
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
+            children: <Widget>[
               Text(
                 'LIFT RATIO BALANCE',
                 style: GoogleFonts.outfit(
@@ -922,22 +1049,32 @@ class DashboardScreen extends StatelessWidget {
                   color: AppTheme.textSecondary,
                 ),
               ),
-              Icon(Icons.analytics_outlined, color: AppTheme.primaryAmber, size: 18),
+              const Icon(
+                Icons.analytics_outlined,
+                color: AppTheme.primaryAmber,
+                size: 18,
+              ),
             ],
           ),
           const SizedBox(height: 12),
           if (ratios.isEmpty)
-            Text('No lift data yet.', style: GoogleFonts.inter(color: AppTheme.textSecondary))
+            Text(
+              'No lift data yet.',
+              style: GoogleFonts.inter(color: AppTheme.textSecondary),
+            )
           else
-            ...ratios.take(2).map((r) {
+            ...ratios.take(2).map((LiftRatioAnalysis r) {
               return Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
+                  children: <Widget>[
                     Text(
                       '${r.lift.name} / ${r.anchorLift.name}',
-                      style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w500),
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                     Text(
                       '${(r.actualRatio * 100).toStringAsFixed(0)}% (Target: ${(r.targetRatio * 100).toStringAsFixed(0)}%)',
@@ -958,7 +1095,10 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  void _showRoutineExplorerSheet(BuildContext context, ProgramProvider program) {
+  void _showRoutineExplorerSheet(
+    BuildContext context,
+    ProgramProvider program,
+  ) {
     int selectedWeek = program.currentWeek;
     int selectedDayNum = program.currentDay;
 
@@ -967,11 +1107,11 @@ class DashboardScreen extends StatelessWidget {
       isScrollControlled: true,
       useSafeArea: true,
       backgroundColor: Colors.transparent,
-      builder: (ctx) {
+      builder: (BuildContext ctx) {
         return StatefulBuilder(
-          builder: (context, setStateModal) {
-            final day = program.days.firstWhere(
-              (d) => d.dayNumber == selectedDayNum,
+          builder: (BuildContext context, setStateModal) {
+            final DayTemplate day = program.days.firstWhere(
+              (DayTemplate d) => d.dayNumber == selectedDayNum,
               orElse: () => program.days.first,
             );
 
@@ -986,7 +1126,7 @@ class DashboardScreen extends StatelessWidget {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+                    children: <Widget>[
                       Center(
                         child: Container(
                           width: 40,
@@ -1000,7 +1140,7 @@ class DashboardScreen extends StatelessWidget {
                       ),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
+                        children: <Widget>[
                           Text(
                             'Routine Explorer',
                             style: GoogleFonts.outfit(
@@ -1010,39 +1150,63 @@ class DashboardScreen extends StatelessWidget {
                             ),
                           ),
                           IconButton(
-                            icon: const Icon(Icons.close, color: AppTheme.textSecondary),
+                            icon: const Icon(
+                              Icons.close,
+                              color: AppTheme.textSecondary,
+                            ),
                             onPressed: () => Navigator.pop(ctx),
                           ),
                         ],
                       ),
                       Text(
                         'Preview any week and routine day without affecting your history or analytics.',
-                        style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textSecondary),
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          color: AppTheme.textSecondary,
+                        ),
                       ),
                       const SizedBox(height: 16),
 
                       // Select Week Pills
-                      Text('SELECT WEEK TO PREVIEW:', style: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.textSecondary)),
+                      Text(
+                        'SELECT WEEK TO PREVIEW:',
+                        style: GoogleFonts.outfit(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.textSecondary,
+                        ),
+                      ),
                       const SizedBox(height: 8),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: List.generate(5, (i) {
-                          final w = i + 1;
-                          final isSel = selectedWeek == w;
+                        children: List.generate(5, (int i) {
+                          final int w = i + 1;
+                          final bool isSel = selectedWeek == w;
                           return InkWell(
                             onTap: () => setStateModal(() => selectedWeek = w),
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
                               decoration: BoxDecoration(
-                                color: isSel ? AppTheme.secondaryCyan : AppTheme.surfaceCard,
+                                color: isSel
+                                    ? AppTheme.secondaryCyan
+                                    : AppTheme.surfaceCard,
                                 borderRadius: BorderRadius.circular(10),
-                                border: Border.all(color: isSel ? Colors.white : AppTheme.borderColor),
+                                border: Border.all(
+                                  color: isSel
+                                      ? Colors.white
+                                      : AppTheme.borderColor,
+                                ),
                               ),
                               child: Text(
                                 w == 5 ? 'Retest' : 'W$w',
                                 style: GoogleFonts.outfit(
                                   fontWeight: FontWeight.bold,
-                                  color: isSel ? Colors.black : AppTheme.textSecondary,
+                                  color: isSel
+                                      ? Colors.black
+                                      : AppTheme.textSecondary,
                                 ),
                               ),
                             ),
@@ -1052,11 +1216,18 @@ class DashboardScreen extends StatelessWidget {
                       const SizedBox(height: 16),
 
                       // Select Day Pills
-                      Text('SELECT ROUTINE DAY:', style: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.textSecondary)),
+                      Text(
+                        'SELECT ROUTINE DAY:',
+                        style: GoogleFonts.outfit(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.textSecondary,
+                        ),
+                      ),
                       const SizedBox(height: 8),
                       Row(
-                        children: program.days.map((d) {
-                          final isSel = selectedDayNum == d.dayNumber;
+                        children: program.days.map((DayTemplate d) {
+                          final bool isSel = selectedDayNum == d.dayNumber;
                           String label;
                           if (d.dayNumber == 1) {
                             label = 'Day 1';
@@ -1072,16 +1243,26 @@ class DashboardScreen extends StatelessWidget {
 
                           return Expanded(
                             child: GestureDetector(
-                              onTap: () => setStateModal(() => selectedDayNum = d.dayNumber),
+                              onTap: () => setStateModal(
+                                () => selectedDayNum = d.dayNumber,
+                              ),
                               child: Container(
                                 margin: const EdgeInsets.only(right: 4),
-                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 8,
+                                ),
                                 decoration: BoxDecoration(
                                   color: isSel
-                                      ? (d.isActiveRecovery ? AppTheme.secondaryCyan : AppTheme.primaryAmber)
+                                      ? (d.isActiveRecovery
+                                            ? AppTheme.secondaryCyan
+                                            : AppTheme.primaryAmber)
                                       : AppTheme.surfaceCard,
                                   borderRadius: BorderRadius.circular(10),
-                                  border: Border.all(color: isSel ? Colors.white : AppTheme.borderColor),
+                                  border: Border.all(
+                                    color: isSel
+                                        ? Colors.white
+                                        : AppTheme.borderColor,
+                                  ),
                                 ),
                                 child: Center(
                                   child: Text(
@@ -1089,7 +1270,9 @@ class DashboardScreen extends StatelessWidget {
                                     style: GoogleFonts.outfit(
                                       fontSize: 11,
                                       fontWeight: FontWeight.bold,
-                                      color: isSel ? Colors.black : AppTheme.textSecondary,
+                                      color: isSel
+                                          ? Colors.black
+                                          : AppTheme.textSecondary,
                                     ),
                                   ),
                                 ),
@@ -1110,10 +1293,22 @@ class DashboardScreen extends StatelessWidget {
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(day.title, style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.bold)),
+                          children: <Widget>[
+                            Text(
+                              day.title,
+                              style: GoogleFonts.outfit(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                             const SizedBox(height: 4),
-                            Text(day.subtitle, style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textSecondary)),
+                            Text(
+                              day.subtitle,
+                              style: GoogleFonts.inter(
+                                fontSize: 12,
+                                color: AppTheme.textSecondary,
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -1121,18 +1316,29 @@ class DashboardScreen extends StatelessWidget {
 
                       // Action buttons: Preview vs Live
                       Row(
-                        children: [
+                        children: <Widget>[
                           Expanded(
                             child: OutlinedButton.icon(
                               onPressed: () {
                                 Navigator.pop(ctx);
                                 if (day.isActiveRecovery) {
-                                  final lifts = Provider.of<LiftProvider>(context, listen: false);
-                                  final rec = Provider.of<RecoveryProvider>(context, listen: false);
-                                  final routine = rec.getRoutine(
-                                    ratioAnalyses: lifts.getRatioAnalysis(),
-                                    lastSession: program.sessions.isNotEmpty ? program.sessions.first : null,
-                                  );
+                                  final LiftProvider lifts =
+                                      Provider.of<LiftProvider>(
+                                        context,
+                                        listen: false,
+                                      );
+                                  final RecoveryProvider rec =
+                                      Provider.of<RecoveryProvider>(
+                                        context,
+                                        listen: false,
+                                      );
+                                  final GeneratedRecoveryRoutine routine = rec
+                                      .getRoutine(
+                                        ratioAnalyses: lifts.getRatioAnalysis(),
+                                        lastSession: program.sessions.isNotEmpty
+                                            ? program.sessions.first
+                                            : null,
+                                      );
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
@@ -1155,12 +1361,25 @@ class DashboardScreen extends StatelessWidget {
                                   );
                                 }
                               },
-                              icon: const Icon(Icons.explore, color: AppTheme.secondaryCyan),
-                              label: Text('Preview', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: AppTheme.secondaryCyan)),
+                              icon: const Icon(
+                                Icons.explore,
+                                color: AppTheme.secondaryCyan,
+                              ),
+                              label: Text(
+                                'Preview',
+                                style: GoogleFonts.outfit(
+                                  fontWeight: FontWeight.bold,
+                                  color: AppTheme.secondaryCyan,
+                                ),
+                              ),
                               style: OutlinedButton.styleFrom(
                                 minimumSize: const Size(0, 48),
-                                side: const BorderSide(color: AppTheme.secondaryCyan),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                side: const BorderSide(
+                                  color: AppTheme.secondaryCyan,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
                               ),
                             ),
                           ),
@@ -1170,16 +1389,29 @@ class DashboardScreen extends StatelessWidget {
                               onPressed: () {
                                 Navigator.pop(ctx);
                                 if (day.isActiveRecovery) {
-                                  final lifts = Provider.of<LiftProvider>(context, listen: false);
-                                  final rec = Provider.of<RecoveryProvider>(context, listen: false);
-                                  final routine = rec.getRoutine(
-                                    ratioAnalyses: lifts.getRatioAnalysis(),
-                                    lastSession: program.sessions.isNotEmpty ? program.sessions.first : null,
-                                  );
+                                  final LiftProvider lifts =
+                                      Provider.of<LiftProvider>(
+                                        context,
+                                        listen: false,
+                                      );
+                                  final RecoveryProvider rec =
+                                      Provider.of<RecoveryProvider>(
+                                        context,
+                                        listen: false,
+                                      );
+                                  final GeneratedRecoveryRoutine routine = rec
+                                      .getRoutine(
+                                        ratioAnalyses: lifts.getRatioAnalysis(),
+                                        lastSession: program.sessions.isNotEmpty
+                                            ? program.sessions.first
+                                            : null,
+                                      );
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (_) => RecoverySessionScreen(routine: routine),
+                                      builder: (_) => RecoverySessionScreen(
+                                        routine: routine,
+                                      ),
                                     ),
                                   );
                                 } else {
@@ -1194,13 +1426,25 @@ class DashboardScreen extends StatelessWidget {
                                   );
                                 }
                               },
-                              icon: const Icon(Icons.play_arrow, color: Colors.black),
-                              label: Text('Start Live Log', style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
+                              icon: const Icon(
+                                Icons.play_arrow,
+                                color: Colors.black,
+                              ),
+                              label: Text(
+                                'Start Live Log',
+                                style: GoogleFonts.outfit(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                               style: ElevatedButton.styleFrom(
                                 minimumSize: const Size(0, 48),
-                                backgroundColor: day.isActiveRecovery ? AppTheme.secondaryCyan : AppTheme.primaryAmber,
+                                backgroundColor: day.isActiveRecovery
+                                    ? AppTheme.secondaryCyan
+                                    : AppTheme.primaryAmber,
                                 foregroundColor: Colors.black,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
                               ),
                             ),
                           ),

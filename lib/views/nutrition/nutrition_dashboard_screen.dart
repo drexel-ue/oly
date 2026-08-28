@@ -1,38 +1,41 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:oly/models/body_composition_entry.dart';
+import 'package:oly/models/daily_activity_entry.dart';
+import 'package:oly/models/daily_nutrition_log.dart';
+import 'package:oly/models/nutrition_entry.dart';
+import 'package:oly/providers/body_comp_provider.dart';
+import 'package:oly/providers/nutrition_provider.dart';
+import 'package:oly/theme/app_theme.dart';
+import 'package:oly/views/nutrition/activity_log_sheet.dart';
+import 'package:oly/views/nutrition/body_comp_analytics_screen.dart';
+import 'package:oly/views/nutrition/food_search_sheet.dart';
+import 'package:oly/views/nutrition/metabolic_science_explainer_screen.dart';
+import 'package:oly/views/nutrition/nutrition_settings_screen.dart';
+import 'package:oly/views/nutrition/quick_macro_log_sheet.dart';
+import 'package:oly/views/nutrition/renpho_scanner_sheet.dart';
+import 'package:oly/widgets/nutrition/energy_balance_card.dart';
+import 'package:oly/widgets/nutrition/macro_ring_card.dart';
 import 'package:provider/provider.dart';
-import '../../models/daily_activity_entry.dart';
-import '../../models/daily_nutrition_log.dart';
-import '../../models/nutrition_entry.dart';
-import '../../providers/body_comp_provider.dart';
-import '../../providers/nutrition_provider.dart';
-import '../../theme/app_theme.dart';
-import '../../widgets/nutrition/energy_balance_card.dart';
-import '../../widgets/nutrition/macro_ring_card.dart';
-import 'activity_log_sheet.dart';
-import 'body_comp_analytics_screen.dart';
-import 'food_search_sheet.dart';
-import 'metabolic_science_explainer_screen.dart';
-import 'nutrition_settings_screen.dart';
-import 'quick_macro_log_sheet.dart';
-import 'renpho_scanner_sheet.dart';
 
 class NutritionDashboardScreen extends StatefulWidget {
   const NutritionDashboardScreen({super.key});
 
   @override
-  State<NutritionDashboardScreen> createState() => _NutritionDashboardScreenState();
+  State<NutritionDashboardScreen> createState() =>
+      _NutritionDashboardScreenState();
 }
 
 class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
-  int _selectedViewIndex = 0; // 0 = Energy Balance (In vs Out), 1 = Macro Targets (P/C/F)
+  int _selectedViewIndex =
+      0; // 0 = Energy Balance (In vs Out), 1 = Macro Targets (P/C/F)
 
   @override
   Widget build(BuildContext context) {
-    final nutrition = Provider.of<NutritionProvider>(context);
-    final bodyComp = Provider.of<BodyCompProvider>(context);
-    final currentLog = nutrition.getDayLog(
+    final NutritionProvider nutrition = Provider.of<NutritionProvider>(context);
+    final BodyCompProvider bodyComp = Provider.of<BodyCompProvider>(context);
+    final DailyNutritionLog currentLog = nutrition.getDayLog(
       nutrition.selectedDateKey,
       latestBodyComp: bodyComp.latestEntry,
     );
@@ -42,14 +45,18 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
       appBar: AppBar(
         title: Row(
           mainAxisSize: MainAxisSize.min,
-          children: [
+          children: <Widget>[
             Container(
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
                 color: AppTheme.primaryAmber,
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Icon(Icons.restaurant, color: Colors.black, size: 20),
+              child: const Icon(
+                Icons.restaurant,
+                color: Colors.black,
+                size: 20,
+              ),
             ),
             const SizedBox(width: 10),
             Flexible(
@@ -64,22 +71,29 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
             ),
           ],
         ),
-        actions: [
+        actions: <Widget>[
           IconButton(
             icon: const Icon(Icons.info_outline, color: AppTheme.primaryAmber),
             tooltip: 'Metabolic Science & Calculations',
             onPressed: () {
               Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const MetabolicScienceExplainerScreen()),
+                MaterialPageRoute(
+                  builder: (_) => const MetabolicScienceExplainerScreen(),
+                ),
               );
             },
           ),
           IconButton(
-            icon: const Icon(Icons.analytics_outlined, color: AppTheme.primaryAmber),
+            icon: const Icon(
+              Icons.analytics_outlined,
+              color: AppTheme.primaryAmber,
+            ),
             tooltip: 'Body Composition Analytics',
             onPressed: () {
               Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const BodyCompAnalyticsScreen()),
+                MaterialPageRoute(
+                  builder: (_) => const BodyCompAnalyticsScreen(),
+                ),
               );
             },
           ),
@@ -88,7 +102,9 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
             tooltip: 'Goal Settings',
             onPressed: () {
               Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const NutritionSettingsScreen()),
+                MaterialPageRoute(
+                  builder: (_) => const NutritionSettingsScreen(),
+                ),
               );
             },
           ),
@@ -99,7 +115,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+            children: <Widget>[
               // Date Switcher Bar
               _buildDateSwitcher(context, nutrition),
               const SizedBox(height: 12),
@@ -120,7 +136,10 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
                 MacroRingCard(
                   log: currentLog,
                   onToggleTrainingDay: () {
-                    nutrition.toggleTrainingDay(!currentLog.isTrainingDay, latestBodyComp: bodyComp.latestEntry);
+                    nutrition.toggleTrainingDay(
+                      !currentLog.isTrainingDay,
+                      latestBodyComp: bodyComp.latestEntry,
+                    );
                   },
                 ),
 
@@ -141,7 +160,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
               // Meal Category Sections
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
+                children: <Widget>[
                   Text(
                     'DAILY MEALS & FOOD LOG',
                     style: GoogleFonts.inter(
@@ -152,18 +171,27 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
                     ),
                   ),
                   TextButton.icon(
-                    onPressed: () => _openFoodSearchSheet(context, MealCategory.lunch),
-                    icon: const Icon(Icons.search, size: 14, color: AppTheme.primaryAmber),
+                    onPressed: () =>
+                        _openFoodSearchSheet(context, MealCategory.lunch),
+                    icon: const Icon(
+                      Icons.search,
+                      size: 14,
+                      color: AppTheme.primaryAmber,
+                    ),
                     label: Text(
                       'Search / Barcode',
-                      style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.primaryAmber),
+                      style: GoogleFonts.inter(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.primaryAmber,
+                      ),
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 8),
 
-              ...MealCategory.values.map((category) {
+              ...MealCategory.values.map((MealCategory category) {
                 return _buildMealCategorySection(
                   context,
                   nutrition,
@@ -184,7 +212,8 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
             context: context,
             isScrollControlled: true,
             backgroundColor: Colors.transparent,
-            builder: (_) => const FoodSearchSheet(defaultCategory: MealCategory.lunch),
+            builder: (_) =>
+                const FoodSearchSheet(defaultCategory: MealCategory.lunch),
           );
         },
         backgroundColor: AppTheme.primaryAmber,
@@ -206,29 +235,45 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
         border: Border.all(color: AppTheme.borderColor),
       ),
       child: Row(
-        children: [
+        children: <Widget>[
           Expanded(
             child: InkWell(
               onTap: () => setState(() => _selectedViewIndex = 0),
-              borderRadius: const BorderRadius.horizontal(left: Radius.circular(12)),
+              borderRadius: const BorderRadius.horizontal(
+                left: Radius.circular(12),
+              ),
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 decoration: BoxDecoration(
-                  color: _selectedViewIndex == 0 ? AppTheme.secondaryCyan.withOpacity(0.15) : Colors.transparent,
-                  borderRadius: const BorderRadius.horizontal(left: Radius.circular(12)),
+                  color: _selectedViewIndex == 0
+                      ? AppTheme.secondaryCyan.withValues(alpha: 0.15)
+                      : Colors.transparent,
+                  borderRadius: const BorderRadius.horizontal(
+                    left: Radius.circular(12),
+                  ),
                 ),
                 child: Center(
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.bolt, size: 15, color: _selectedViewIndex == 0 ? AppTheme.secondaryCyan : AppTheme.textSecondary),
+                    children: <Widget>[
+                      Icon(
+                        Icons.bolt,
+                        size: 15,
+                        color: _selectedViewIndex == 0
+                            ? AppTheme.secondaryCyan
+                            : AppTheme.textSecondary,
+                      ),
                       const SizedBox(width: 6),
                       Text(
                         'Energy In vs Out',
                         style: GoogleFonts.inter(
                           fontSize: 12,
-                          fontWeight: _selectedViewIndex == 0 ? FontWeight.bold : FontWeight.normal,
-                          color: _selectedViewIndex == 0 ? AppTheme.secondaryCyan : AppTheme.textSecondary,
+                          fontWeight: _selectedViewIndex == 0
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                          color: _selectedViewIndex == 0
+                              ? AppTheme.secondaryCyan
+                              : AppTheme.textSecondary,
                         ),
                       ),
                     ],
@@ -240,25 +285,41 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
           Expanded(
             child: InkWell(
               onTap: () => setState(() => _selectedViewIndex = 1),
-              borderRadius: const BorderRadius.horizontal(right: Radius.circular(12)),
+              borderRadius: const BorderRadius.horizontal(
+                right: Radius.circular(12),
+              ),
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 decoration: BoxDecoration(
-                  color: _selectedViewIndex == 1 ? AppTheme.primaryAmber.withOpacity(0.15) : Colors.transparent,
-                  borderRadius: const BorderRadius.horizontal(right: Radius.circular(12)),
+                  color: _selectedViewIndex == 1
+                      ? AppTheme.primaryAmber.withValues(alpha: 0.15)
+                      : Colors.transparent,
+                  borderRadius: const BorderRadius.horizontal(
+                    right: Radius.circular(12),
+                  ),
                 ),
                 child: Center(
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.pie_chart_outline, size: 15, color: _selectedViewIndex == 1 ? AppTheme.primaryAmber : AppTheme.textSecondary),
+                    children: <Widget>[
+                      Icon(
+                        Icons.pie_chart_outline,
+                        size: 15,
+                        color: _selectedViewIndex == 1
+                            ? AppTheme.primaryAmber
+                            : AppTheme.textSecondary,
+                      ),
                       const SizedBox(width: 6),
                       Text(
                         'Macro Targets',
                         style: GoogleFonts.inter(
                           fontSize: 12,
-                          fontWeight: _selectedViewIndex == 1 ? FontWeight.bold : FontWeight.normal,
-                          color: _selectedViewIndex == 1 ? AppTheme.primaryAmber : AppTheme.textSecondary,
+                          fontWeight: _selectedViewIndex == 1
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                          color: _selectedViewIndex == 1
+                              ? AppTheme.primaryAmber
+                              : AppTheme.textSecondary,
                         ),
                       ),
                     ],
@@ -273,7 +334,8 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
   }
 
   Widget _buildDateSwitcher(BuildContext context, NutritionProvider nutrition) {
-    final isToday = DateFormat('yyyy-MM-dd').format(nutrition.selectedDate) ==
+    final bool isToday =
+        DateFormat('yyyy-MM-dd').format(nutrition.selectedDate) ==
         DateFormat('yyyy-MM-dd').format(DateTime.now());
 
     return Container(
@@ -285,19 +347,19 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
+        children: <Widget>[
           IconButton(
             icon: const Icon(Icons.chevron_left, color: AppTheme.textPrimary),
             onPressed: () => nutrition.previousDay(),
           ),
           GestureDetector(
             onTap: () async {
-              final picked = await showDatePicker(
+              final DateTime? picked = await showDatePicker(
                 context: context,
                 initialDate: nutrition.selectedDate,
                 firstDate: DateTime(2024),
                 lastDate: DateTime(2030),
-                builder: (context, child) {
+                builder: (BuildContext context, Widget? child) {
                   return Theme(
                     data: ThemeData.dark().copyWith(
                       colorScheme: const ColorScheme.dark(
@@ -314,11 +376,18 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
               }
             },
             child: Row(
-              children: [
-                Icon(Icons.calendar_today_outlined, size: 16, color: AppTheme.primaryAmber),
+              children: <Widget>[
+                const Icon(
+                  Icons.calendar_today_outlined,
+                  size: 16,
+                  color: AppTheme.primaryAmber,
+                ),
                 const SizedBox(width: 8),
                 Text(
-                  isToday ? 'Today, ${DateFormat('MMM d').format(nutrition.selectedDate)}' : DateFormat('EEEE, MMM d').format(nutrition.selectedDate),
+                  isToday
+                      ? 'Today, ${DateFormat('MMM d').format(nutrition.selectedDate)}'
+                      : DateFormat('EEEE, MMM d')
+                            .format(nutrition.selectedDate),
                   style: GoogleFonts.outfit(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -337,14 +406,17 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
     );
   }
 
-  Widget _buildRenphoGlanceCard(BuildContext context, BodyCompProvider bodyComp) {
-    final latest = bodyComp.latestEntry;
+  Widget _buildRenphoGlanceCard(
+    BuildContext context,
+    BodyCompProvider bodyComp,
+  ) {
+    final BodyCompositionEntry? latest = bodyComp.latestEntry;
     if (latest == null) {
       return const SizedBox();
     }
 
-    final fatDelta = bodyComp.fatMassDeltaVsPrevious;
-    final muscleDelta = bodyComp.skeletalMuscleDeltaVsPrevious;
+    final double fatDelta = bodyComp.fatMassDeltaVsPrevious;
+    final double muscleDelta = bodyComp.skeletalMuscleDeltaVsPrevious;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -355,13 +427,17 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+        children: <Widget>[
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
+            children: <Widget>[
               Row(
-                children: [
-                  const Icon(Icons.monitor_weight_outlined, color: AppTheme.primaryAmber, size: 18),
+                children: <Widget>[
+                  const Icon(
+                    Icons.monitor_weight_outlined,
+                    color: AppTheme.primaryAmber,
+                    size: 18,
+                  ),
                   const SizedBox(width: 8),
                   Text(
                     'RENPHO SCALE BIOMETRICS',
@@ -384,15 +460,24 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
                   );
                 },
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
-                    color: AppTheme.primaryAmber.withOpacity(0.15),
+                    color: AppTheme.primaryAmber.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppTheme.primaryAmber.withOpacity(0.4)),
+                    border: Border.all(
+                      color: AppTheme.primaryAmber.withValues(alpha: 0.4),
+                    ),
                   ),
                   child: Row(
-                    children: [
-                      const Icon(Icons.camera_alt, size: 13, color: AppTheme.primaryAmber),
+                    children: <Widget>[
+                      const Icon(
+                        Icons.camera_alt,
+                        size: 13,
+                        color: AppTheme.primaryAmber,
+                      ),
                       const SizedBox(width: 4),
                       Text(
                         'Scan Scale',
@@ -413,12 +498,14 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
 
           // 4 Grid Metrics
           Row(
-            children: [
+            children: <Widget>[
               Expanded(
                 child: _buildMetricTile(
                   'Weight',
                   '${latest.weightLb.toStringAsFixed(1)} lb',
-                  subtitle: latest.bmi != null ? 'BMI ${latest.bmi!.toStringAsFixed(1)}' : null,
+                  subtitle: latest.bmi != null
+                      ? 'BMI ${latest.bmi!.toStringAsFixed(1)}'
+                      : null,
                   color: AppTheme.textPrimary,
                 ),
               ),
@@ -426,8 +513,12 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
               Expanded(
                 child: _buildMetricTile(
                   'Body Fat',
-                  latest.bodyFatPct != null ? '${latest.bodyFatPct!.toStringAsFixed(1)}%' : '--',
-                  subtitle: fatDelta != 0 ? '${fatDelta > 0 ? '+' : ''}${fatDelta.toStringAsFixed(1)} lb' : null,
+                  latest.bodyFatPct != null
+                      ? '${latest.bodyFatPct!.toStringAsFixed(1)}%'
+                      : '--',
+                  subtitle: fatDelta != 0
+                      ? '${fatDelta > 0 ? '+' : ''}${fatDelta.toStringAsFixed(1)} lb'
+                      : null,
                   isSubtitleGood: fatDelta <= 0,
                   color: AppTheme.warningOrange,
                 ),
@@ -437,7 +528,9 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
                 child: _buildMetricTile(
                   'Lean Mass',
                   '${latest.leanBodyMassLb.toStringAsFixed(1)} lb',
-                  subtitle: muscleDelta != 0 ? '${muscleDelta > 0 ? '+' : ''}${muscleDelta.toStringAsFixed(1)} lb' : null,
+                  subtitle: muscleDelta != 0
+                      ? '${muscleDelta > 0 ? '+' : ''}${muscleDelta.toStringAsFixed(1)} lb'
+                      : null,
                   isSubtitleGood: muscleDelta >= 0,
                   color: AppTheme.secondaryCyan,
                 ),
@@ -461,9 +554,9 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
   Widget _buildMetricTile(
     String title,
     String value, {
+    required Color color,
     String? subtitle,
     bool isSubtitleGood = true,
-    required Color color,
   }) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
@@ -473,10 +566,13 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+        children: <Widget>[
           Text(
             title,
-            style: GoogleFonts.inter(fontSize: 10, color: AppTheme.textSecondary),
+            style: GoogleFonts.inter(
+              fontSize: 10,
+              color: AppTheme.textSecondary,
+            ),
           ),
           const SizedBox(height: 3),
           Text(
@@ -487,14 +583,16 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
               color: color,
             ),
           ),
-          if (subtitle != null) ...[
+          if (subtitle != null) ...<Widget>[
             const SizedBox(height: 2),
             Text(
               subtitle,
               style: GoogleFonts.inter(
                 fontSize: 10,
                 fontWeight: FontWeight.w600,
-                color: isSubtitleGood ? AppTheme.successGreen : AppTheme.warningOrange,
+                color: isSubtitleGood
+                    ? AppTheme.successGreen
+                    : AppTheme.warningOrange,
               ),
             ),
           ],
@@ -503,9 +601,14 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
     );
   }
 
-  Widget _buildWaterTracker(BuildContext context, NutritionProvider nutrition, DailyNutritionLog log) {
-    final progress = log.waterProgress;
-    final isGoalMet = log.waterOz >= log.targetWaterOz && log.targetWaterOz > 0;
+  Widget _buildWaterTracker(
+    BuildContext context,
+    NutritionProvider nutrition,
+    DailyNutritionLog log,
+  ) {
+    final double progress = log.waterProgress;
+    final bool isGoalMet =
+        log.waterOz >= log.targetWaterOz && log.targetWaterOz > 0;
 
     return Container(
       padding: const EdgeInsets.all(14),
@@ -513,33 +616,39 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
         color: AppTheme.surfaceCard,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isGoalMet ? const Color(0xFF00E5FF).withOpacity(0.5) : AppTheme.borderColor,
+          color: isGoalMet
+              ? const Color(0xFF00E5FF).withValues(alpha: 0.5)
+              : AppTheme.borderColor,
         ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+        children: <Widget>[
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
+            children: <Widget>[
               Expanded(
                 child: Row(
-                  children: [
+                  children: <Widget>[
                     Container(
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF00D2FF).withOpacity(0.15),
+                        color: const Color(0xFF00D2FF).withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Icon(Icons.water_drop, color: Color(0xFF00D2FF), size: 16),
+                      child: const Icon(
+                        Icons.water_drop,
+                        color: Color(0xFF00D2FF),
+                        size: 16,
+                      ),
                     ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
+                        children: <Widget>[
                           Row(
-                            children: [
+                            children: <Widget>[
                               Text(
                                 'Daily Hydration',
                                 style: GoogleFonts.inter(
@@ -548,12 +657,16 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
                                   color: AppTheme.textPrimary,
                                 ),
                               ),
-                              if (log.isTrainingDay) ...[
+                              if (log.isTrainingDay) ...<Widget>[
                                 const SizedBox(width: 6),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 5,
+                                    vertical: 1,
+                                  ),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF00D2FF).withOpacity(0.2),
+                                    color: const Color(0xFF00D2FF)
+                                        .withValues(alpha: 0.2),
                                     borderRadius: BorderRadius.circular(4),
                                   ),
                                   child: Text(
@@ -572,8 +685,12 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
                             '${log.waterOz.toStringAsFixed(0)} oz / ${log.targetWaterOz.toStringAsFixed(0)} oz (${(progress * 100).toStringAsFixed(0)}%)',
                             style: GoogleFonts.inter(
                               fontSize: 11,
-                              color: isGoalMet ? const Color(0xFF00E5FF) : AppTheme.textSecondary,
-                              fontWeight: isGoalMet ? FontWeight.bold : FontWeight.normal,
+                              color: isGoalMet
+                                  ? const Color(0xFF00E5FF)
+                                  : AppTheme.textSecondary,
+                              fontWeight: isGoalMet
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
                             ),
                           ),
                         ],
@@ -587,7 +704,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
                 scrollDirection: Axis.horizontal,
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
-                  children: [
+                  children: <Widget>[
                     _buildWaterAddButton(nutrition, 8, '+8oz'),
                     const SizedBox(width: 4),
                     _buildWaterAddButton(nutrition, 16, '+16oz'),
@@ -617,16 +734,22 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
     );
   }
 
-  Widget _buildWaterAddButton(NutritionProvider nutrition, double oz, String label) {
+  Widget _buildWaterAddButton(
+    NutritionProvider nutrition,
+    double oz,
+    String label,
+  ) {
     return InkWell(
       onTap: () => nutrition.addWater(oz),
       borderRadius: BorderRadius.circular(8),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 6),
         decoration: BoxDecoration(
-          color: const Color(0xFF00D2FF).withOpacity(0.12),
+          color: const Color(0xFF00D2FF).withValues(alpha: 0.12),
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: const Color(0xFF00D2FF).withOpacity(0.3)),
+          border: Border.all(
+            color: const Color(0xFF00D2FF).withValues(alpha: 0.3),
+          ),
         ),
         child: Text(
           label,
@@ -646,7 +769,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
     DailyNutritionLog log,
     BodyCompProvider bodyComp,
   ) {
-    final activities = log.activities;
+    final List<DailyActivityEntry> activities = log.activities;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -657,20 +780,24 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+        children: <Widget>[
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
+            children: <Widget>[
               Expanded(
                 child: Row(
-                  children: [
+                  children: <Widget>[
                     Container(
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
-                        color: AppTheme.secondaryCyan.withOpacity(0.15),
+                        color: AppTheme.secondaryCyan.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Icon(Icons.directions_run, color: AppTheme.secondaryCyan, size: 16),
+                      child: const Icon(
+                        Icons.directions_run,
+                        color: AppTheme.secondaryCyan,
+                        size: 16,
+                      ),
                     ),
                     const SizedBox(width: 8),
                     Flexible(
@@ -693,19 +820,32 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
                 onTap: () => _openActivityLogSheet(context),
                 borderRadius: BorderRadius.circular(8),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
-                    color: AppTheme.secondaryCyan.withOpacity(0.15),
+                    color: AppTheme.secondaryCyan.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: AppTheme.secondaryCyan.withOpacity(0.35)),
+                    border: Border.all(
+                      color: AppTheme.secondaryCyan.withValues(alpha: 0.35),
+                    ),
                   ),
                   child: Row(
-                    children: [
-                      const Icon(Icons.add, size: 13, color: AppTheme.secondaryCyan),
+                    children: <Widget>[
+                      const Icon(
+                        Icons.add,
+                        size: 13,
+                        color: AppTheme.secondaryCyan,
+                      ),
                       const SizedBox(width: 3),
                       Text(
                         'Log Activity',
-                        style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.secondaryCyan),
+                        style: GoogleFonts.inter(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.secondaryCyan,
+                        ),
                       ),
                     ],
                   ),
@@ -721,7 +861,10 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: Text(
                 'No activities logged today. Completed workouts and steps will appear here.',
-                style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textSecondary),
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  color: AppTheme.textSecondary,
+                ),
               ),
             )
           else
@@ -729,9 +872,9 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: activities.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 6),
-              itemBuilder: (ctx, idx) {
-                final a = activities[idx];
+              separatorBuilder: (_, _) => const SizedBox(height: 6),
+              itemBuilder: (BuildContext ctx, int idx) {
+                final DailyActivityEntry a = activities[idx];
                 return Dismissible(
                   key: Key(a.id),
                   direction: DismissDirection.endToStart,
@@ -743,32 +886,46 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
                   ),
                   onDismissed: (_) => nutrition.removeActivity(a.id),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
                     decoration: BoxDecoration(
                       color: AppTheme.darkBackground,
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
+                      children: <Widget>[
                         Row(
-                          children: [
+                          children: <Widget>[
                             Icon(
-                              a.activityType == 'workout_wod' ? Icons.fitness_center : Icons.directions_walk,
+                              a.activityType == 'workout_wod'
+                                  ? Icons.fitness_center
+                                  : Icons.directions_walk,
                               size: 16,
-                              color: a.activityType == 'workout_wod' ? AppTheme.primaryAmber : AppTheme.secondaryCyan,
+                              color: a.activityType == 'workout_wod'
+                                  ? AppTheme.primaryAmber
+                                  : AppTheme.secondaryCyan,
                             ),
                             const SizedBox(width: 10),
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
+                              children: <Widget>[
                                 Text(
                                   a.name,
-                                  style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.textPrimary),
+                                  style: GoogleFonts.inter(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppTheme.textPrimary,
+                                  ),
                                 ),
                                 Text(
                                   '${a.durationMinutes.round()} mins • ${a.metValue} MET${a.notes != null ? ' • ${a.notes}' : ''}',
-                                  style: GoogleFonts.inter(fontSize: 10, color: AppTheme.textSecondary),
+                                  style: GoogleFonts.inter(
+                                    fontSize: 10,
+                                    color: AppTheme.textSecondary,
+                                  ),
                                 ),
                               ],
                             ),
@@ -776,7 +933,11 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
                         ),
                         Text(
                           '+${a.caloriesBurned} kcal',
-                          style: GoogleFonts.firaCode(fontSize: 13, fontWeight: FontWeight.bold, color: AppTheme.secondaryCyan),
+                          style: GoogleFonts.firaCode(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.secondaryCyan,
+                          ),
                         ),
                       ],
                     ),
@@ -796,8 +957,8 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
     MealCategory category,
     BodyCompProvider bodyComp,
   ) {
-    final entries = log.getEntriesForCategory(category);
-    final categoryCals = log.getCaloriesForCategory(category);
+    final List<NutritionEntry> entries = log.getEntriesForCategory(category);
+    final int categoryCals = log.getCaloriesForCategory(category);
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -810,14 +971,19 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
       child: ExpansionTile(
         shape: const Border(),
         collapsedShape: const Border(),
-        initiallyExpanded: entries.isNotEmpty || category == MealCategory.breakfast,
+        initiallyExpanded:
+            entries.isNotEmpty || category == MealCategory.breakfast,
         leading: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
             color: AppTheme.surfaceElevated,
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Icon(_getCategoryIcon(category), color: AppTheme.primaryAmber, size: 18),
+          child: Icon(
+            _getCategoryIcon(category),
+            color: AppTheme.primaryAmber,
+            size: 18,
+          ),
         ),
         title: Text(
           category.displayName,
@@ -832,19 +998,28 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
           style: GoogleFonts.inter(
             fontSize: 12,
             fontWeight: FontWeight.w500,
-            color: categoryCals > 0 ? AppTheme.primaryAmber : AppTheme.textSecondary,
+            color: categoryCals > 0
+                ? AppTheme.primaryAmber
+                : AppTheme.textSecondary,
           ),
         ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
-          children: [
+          children: <Widget>[
             IconButton(
-              icon: const Icon(Icons.search, size: 18, color: AppTheme.primaryAmber),
+              icon: const Icon(
+                Icons.search,
+                size: 18,
+                color: AppTheme.primaryAmber,
+              ),
               tooltip: 'Search & Barcode',
               onPressed: () => _openFoodSearchSheet(context, category),
             ),
             IconButton(
-              icon: const Icon(Icons.add_circle_outline, color: AppTheme.primaryAmber),
+              icon: const Icon(
+                Icons.add_circle_outline,
+                color: AppTheme.primaryAmber,
+              ),
               tooltip: 'Quick Macro Log',
               onPressed: () {
                 showModalBottomSheet(
@@ -857,26 +1032,39 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
             ),
           ],
         ),
-        children: [
+        children: <Widget>[
           if (entries.isEmpty)
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
+                children: <Widget>[
                   Flexible(
                     child: Text(
                       'No items logged yet',
-                      style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textSecondary),
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: AppTheme.textSecondary,
+                      ),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
                   TextButton.icon(
-                    onPressed: () => nutrition.copyYesterdayMeal(category, latestBodyComp: bodyComp.latestEntry),
-                    icon: const Icon(Icons.replay, size: 14, color: AppTheme.primaryAmber),
+                    onPressed: () => nutrition.copyYesterdayMeal(
+                      category,
+                      latestBodyComp: bodyComp.latestEntry,
+                    ),
+                    icon: const Icon(
+                      Icons.replay,
+                      size: 14,
+                      color: AppTheme.primaryAmber,
+                    ),
                     label: Text(
                       'Repeat Yesterday',
-                      style: GoogleFonts.inter(fontSize: 12, color: AppTheme.primaryAmber),
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: AppTheme.primaryAmber,
+                      ),
                     ),
                   ),
                 ],
@@ -887,9 +1075,12 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: entries.length,
-              separatorBuilder: (_, __) => Divider(color: AppTheme.borderColor.withOpacity(0.5), height: 1),
-              itemBuilder: (context, index) {
-                final item = entries[index];
+              separatorBuilder: (_, _) => Divider(
+                color: AppTheme.borderColor.withValues(alpha: 0.5),
+                height: 1,
+              ),
+              itemBuilder: (BuildContext context, int index) {
+                final NutritionEntry item = entries[index];
                 return Dismissible(
                   key: Key(item.id),
                   direction: DismissDirection.endToStart,
@@ -901,14 +1092,17 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
                   ),
                   onDismissed: (_) => nutrition.deleteFoodEntry(item.id),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 10,
+                    ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
+                      children: <Widget>[
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
+                            children: <Widget>[
                               Text(
                                 item.name,
                                 style: GoogleFonts.inter(
@@ -920,7 +1114,10 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
                               const SizedBox(height: 2),
                               Text(
                                 '${item.proteinGrams.toStringAsFixed(0)}g P • ${item.carbsGrams.toStringAsFixed(0)}g C • ${item.fatGrams.toStringAsFixed(0)}g F${item.portion != null ? ' • ${item.portion}' : ''}',
-                                style: GoogleFonts.inter(fontSize: 11, color: AppTheme.textSecondary),
+                                style: GoogleFonts.inter(
+                                  fontSize: 11,
+                                  color: AppTheme.textSecondary,
+                                ),
                               ),
                             ],
                           ),

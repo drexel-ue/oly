@@ -1,72 +1,66 @@
-import 'pr_entry.dart';
+import 'package:oly/models/pr_entry.dart';
 
-enum LiftCategory {
-  snatch,
-  cleanAndJerk,
-  squat,
-  pull,
-  overhead,
-  accessory,
-}
+enum LiftCategory { snatch, cleanAndJerk, squat, pull, overhead, accessory }
 
 class LiftModel {
-  final String id;
-  final String name;
-  final LiftCategory category;
-  final String? anchorLiftId; // Reference lift for ratio (e.g. 'snatch' or 'clean_and_jerk')
-  final double targetRatio; // Ideal ratio vs anchor lift (e.g. 0.82 for Power Snatch vs Snatch)
-  double currentMax; // Current 1RM in KG
-  final List<PREntry> history;
-
   LiftModel({
     required this.id,
     required this.name,
     required this.category,
+    required this.currentMax,
     this.anchorLiftId,
     this.targetRatio = 1.0,
-    required this.currentMax,
     List<PREntry>? history,
-  }) : history = history ?? [];
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-      'category': category.name,
-      'anchorLiftId': anchorLiftId,
-      'targetRatio': targetRatio,
-      'currentMax': currentMax,
-      'history': history.map((e) => e.toJson()).toList(),
-    };
-  }
+  }) : history = history ?? <PREntry>[];
 
   factory LiftModel.fromJson(Map<String, dynamic> json) {
     return LiftModel(
       id: json['id'] as String,
       name: json['name'] as String,
       category: LiftCategory.values.firstWhere(
-        (e) => e.name == json['category'],
+        (LiftCategory e) => e.name == json['category'],
         orElse: () => LiftCategory.accessory,
       ),
       anchorLiftId: json['anchorLiftId'] as String?,
       targetRatio: (json['targetRatio'] as num?)?.toDouble() ?? 1.0,
       currentMax: (json['currentMax'] as num).toDouble(),
-      history: (json['history'] as List<dynamic>?)
-              ?.map((e) => PREntry.fromJson(e as Map<String, dynamic>))
+      history:
+          (json['history'] as List<dynamic>?)
+              ?.map((dynamic e) => PREntry.fromJson(e as Map<String, dynamic>))
               .toList() ??
-          [],
+          <PREntry>[],
     );
+  }
+  final String id;
+  final String name;
+  final LiftCategory category;
+  final String?
+  anchorLiftId; // Reference lift for ratio (e.g. 'snatch' or 'clean_and_jerk')
+  final double targetRatio; // Ideal ratio vs anchor lift (e.g. 0.82 for Power Snatch vs Snatch)
+  double currentMax; // Current 1RM in KG
+  final List<PREntry> history;
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'id': id,
+      'name': name,
+      'category': category.name,
+      'anchorLiftId': anchorLiftId,
+      'targetRatio': targetRatio,
+      'currentMax': currentMax,
+      'history': history.map((PREntry e) => e.toJson()).toList(),
+    };
   }
 
   // Pre-configured default Olympic Weightlifting movements catalog
   static List<LiftModel> defaultLifts() {
-    return [
+    return <LiftModel>[
       LiftModel(
         id: 'snatch',
         name: 'Snatch',
         category: LiftCategory.snatch,
         currentMax: 80.0,
-        history: [
+        history: <PREntry>[
           PREntry(
             id: 'init_snatch',
             weight: 80.0,
@@ -81,7 +75,7 @@ class LiftModel {
         name: 'Clean & Jerk',
         category: LiftCategory.cleanAndJerk,
         currentMax: 100.0,
-        history: [
+        history: <PREntry>[
           PREntry(
             id: 'init_cj',
             weight: 100.0,

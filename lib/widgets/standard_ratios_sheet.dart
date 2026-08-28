@@ -1,20 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:oly/models/lift_model.dart';
+import 'package:oly/providers/lift_provider.dart';
+import 'package:oly/providers/settings_provider.dart';
+import 'package:oly/theme/app_theme.dart';
 import 'package:provider/provider.dart';
-import '../providers/lift_provider.dart';
-import '../providers/settings_provider.dart';
-import '../theme/app_theme.dart';
 
 class StandardRatiosSheet extends StatelessWidget {
   const StandardRatiosSheet({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final lifts = Provider.of<LiftProvider>(context);
-    final settings = Provider.of<SettingsProvider>(context);
+    final LiftProvider lifts = Provider.of<LiftProvider>(context);
+    final SettingsProvider settings = Provider.of<SettingsProvider>(context);
 
-    final allLifts = lifts.lifts;
-    final anchorLifts = allLifts.where((l) => l.anchorLiftId != null && l.anchorLiftId!.isNotEmpty).toList();
+    final List<LiftModel> allLifts = lifts.lifts;
+    final List<LiftModel> anchorLifts = allLifts
+        .where(
+          (LiftModel l) => l.anchorLiftId != null && l.anchorLiftId!.isNotEmpty,
+        )
+        .toList();
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -27,7 +32,7 @@ class StandardRatiosSheet extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+            children: <Widget>[
               Center(
                 child: Container(
                   width: 40,
@@ -41,7 +46,7 @@ class StandardRatiosSheet extends StatelessWidget {
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
+                children: <Widget>[
                   Expanded(
                     child: Text(
                       'Olympic Ratio Standards',
@@ -53,14 +58,20 @@ class StandardRatiosSheet extends StatelessWidget {
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close, color: AppTheme.textSecondary),
+                    icon: const Icon(
+                      Icons.close,
+                      color: AppTheme.textSecondary,
+                    ),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
               ),
               Text(
                 'Standard weightlifting variation ratios relative to primary 1RMs.',
-                style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textSecondary),
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  color: AppTheme.textSecondary,
+                ),
               ),
               const SizedBox(height: 16),
 
@@ -72,16 +83,21 @@ class StandardRatiosSheet extends StatelessWidget {
                   border: Border.all(color: AppTheme.borderColor),
                 ),
                 child: Column(
-                  children: [
+                  children: <Widget>[
                     // Table Header
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
                       decoration: const BoxDecoration(
                         color: AppTheme.surfaceElevated,
-                        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                        borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(16),
+                        ),
                       ),
                       child: Row(
-                        children: [
+                        children: <Widget>[
                           Expanded(
                             flex: 3,
                             child: Text(
@@ -134,18 +150,28 @@ class StandardRatiosSheet extends StatelessWidget {
                     const Divider(height: 1, color: AppTheme.borderColor),
 
                     // Table Rows
-                    ...anchorLifts.map((lift) {
-                      final anchor = lifts.getLift(lift.anchorLiftId!);
-                      final anchorMax = anchor?.currentMax ?? 0.0;
-                      final targetMaxKg = anchorMax * lift.targetRatio;
+                    ...anchorLifts.map((LiftModel lift) {
+                      final LiftModel? anchor = lifts.getLift(
+                        lift.anchorLiftId!,
+                      );
+                      final double anchorMax = anchor?.currentMax ?? 0.0;
+                      final double targetMaxKg = anchorMax * lift.targetRatio;
 
                       return Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
                         decoration: const BoxDecoration(
-                          border: Border(bottom: BorderSide(color: AppTheme.borderColor, width: 0.5)),
+                          border: Border(
+                            bottom: BorderSide(
+                              color: AppTheme.borderColor,
+                              width: 0.5,
+                            ),
+                          ),
                         ),
                         child: Row(
-                          children: [
+                          children: <Widget>[
                             Expanded(
                               flex: 3,
                               child: Text(
@@ -182,7 +208,9 @@ class StandardRatiosSheet extends StatelessWidget {
                             Expanded(
                               flex: 2,
                               child: Text(
-                                targetMaxKg > 0 ? settings.formatWeight(targetMaxKg) : '-',
+                                targetMaxKg > 0
+                                    ? settings.formatWeight(targetMaxKg)
+                                    : '-',
                                 textAlign: TextAlign.right,
                                 style: GoogleFonts.outfit(
                                   fontSize: 13,

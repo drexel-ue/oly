@@ -1,21 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:oly/models/body_composition_entry.dart';
+import 'package:oly/providers/body_comp_provider.dart';
+import 'package:oly/providers/nutrition_provider.dart';
+import 'package:oly/theme/app_theme.dart';
+import 'package:oly/views/nutrition/renpho_scanner_sheet.dart';
+import 'package:oly/widgets/nutrition/body_comp_trend_chart.dart';
+import 'package:oly/widgets/nutrition/body_donut_chart.dart';
+import 'package:oly/widgets/nutrition/renpho_stat_pill.dart';
 import 'package:provider/provider.dart';
-import '../../models/body_composition_entry.dart';
-import '../../providers/body_comp_provider.dart';
-import '../../providers/nutrition_provider.dart';
-import '../../theme/app_theme.dart';
-import '../../widgets/nutrition/body_comp_trend_chart.dart';
-import '../../widgets/nutrition/body_donut_chart.dart';
-import '../../widgets/nutrition/renpho_stat_pill.dart';
-import 'renpho_scanner_sheet.dart';
 
 class BodyCompAnalyticsScreen extends StatefulWidget {
   const BodyCompAnalyticsScreen({super.key});
 
   @override
-  State<BodyCompAnalyticsScreen> createState() => _BodyCompAnalyticsScreenState();
+  State<BodyCompAnalyticsScreen> createState() =>
+      _BodyCompAnalyticsScreenState();
 }
 
 class _BodyCompAnalyticsScreenState extends State<BodyCompAnalyticsScreen> {
@@ -23,24 +24,24 @@ class _BodyCompAnalyticsScreenState extends State<BodyCompAnalyticsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final bodyComp = Provider.of<BodyCompProvider>(context);
-    final nutrition = Provider.of<NutritionProvider>(context);
-    final latest = bodyComp.latestEntry;
-    final entries = bodyComp.entries;
+    final BodyCompProvider bodyComp = Provider.of<BodyCompProvider>(context);
+    final NutritionProvider nutrition = Provider.of<NutritionProvider>(context);
+    final BodyCompositionEntry? latest = bodyComp.latestEntry;
+    final List<BodyCompositionEntry> entries = bodyComp.entries;
 
     return Scaffold(
       backgroundColor: AppTheme.darkBackground,
       appBar: AppBar(
         title: Text(
           'Body Composition Intelligence',
-          style: GoogleFonts.outfit(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
+          style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.bold),
         ),
-        actions: [
+        actions: <Widget>[
           IconButton(
-            icon: const Icon(Icons.add_a_photo_outlined, color: AppTheme.primaryAmber),
+            icon: const Icon(
+              Icons.add_a_photo_outlined,
+              color: AppTheme.primaryAmber,
+            ),
             tooltip: 'Scan New Scale Report',
             onPressed: () {
               showModalBottomSheet(
@@ -58,8 +59,8 @@ class _BodyCompAnalyticsScreenState extends State<BodyCompAnalyticsScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (latest != null) ...[
+            children: <Widget>[
+              if (latest != null) ...<Widget>[
                 // Top Donut Breakdown
                 BodyDonutChart(entry: latest),
                 const SizedBox(height: 14),
@@ -74,7 +75,7 @@ class _BodyCompAnalyticsScreenState extends State<BodyCompAnalyticsScreen> {
               const SizedBox(height: 16),
 
               // Full 13-Metric Grid
-              if (latest != null) ...[
+              if (latest != null) ...<Widget>[
                 Text(
                   'LATEST RENPHO BIOMETRICS',
                   style: GoogleFonts.inter(
@@ -110,11 +111,14 @@ class _BodyCompAnalyticsScreenState extends State<BodyCompAnalyticsScreen> {
     );
   }
 
-  Widget _buildGoalTargetCard(BodyCompositionEntry latest, NutritionProvider nutrition) {
-    final lbm = latest.leanBodyMassLb;
-    final targetWeight = latest.targetWeightForBodyFat(_targetBfPct);
-    final fatToLose = latest.fatToLoseForTargetBf(_targetBfPct);
-    final weeksToGoal = (fatToLose / 1.0).ceil(); // ~1 lb fat loss per week
+  Widget _buildGoalTargetCard(
+    BodyCompositionEntry latest,
+    NutritionProvider nutrition,
+  ) {
+    final double lbm = latest.leanBodyMassLb;
+    final double targetWeight = latest.targetWeightForBodyFat(_targetBfPct);
+    final double fatToLose = latest.fatToLoseForTargetBf(_targetBfPct);
+    final int weeksToGoal = (fatToLose / 1.0).ceil(); // ~1 lb fat loss per week
 
     return Container(
       padding: const EdgeInsets.all(18),
@@ -125,13 +129,17 @@ class _BodyCompAnalyticsScreenState extends State<BodyCompAnalyticsScreen> {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+        children: <Widget>[
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
+            children: <Widget>[
               Row(
-                children: [
-                  const Icon(Icons.track_changes, color: AppTheme.primaryAmber, size: 20),
+                children: <Widget>[
+                  const Icon(
+                    Icons.track_changes,
+                    color: AppTheme.primaryAmber,
+                    size: 20,
+                  ),
                   const SizedBox(width: 8),
                   Text(
                     'LEAN MASS PRESERVATION GOAL',
@@ -147,7 +155,7 @@ class _BodyCompAnalyticsScreenState extends State<BodyCompAnalyticsScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: AppTheme.secondaryCyan.withOpacity(0.15),
+                  color: AppTheme.secondaryCyan.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -165,10 +173,13 @@ class _BodyCompAnalyticsScreenState extends State<BodyCompAnalyticsScreen> {
 
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
+            children: <Widget>[
               Text(
                 'Target Body Fat %',
-                style: GoogleFonts.inter(fontSize: 13, color: AppTheme.textPrimary),
+                style: GoogleFonts.inter(
+                  fontSize: 13,
+                  color: AppTheme.textPrimary,
+                ),
               ),
               Text(
                 '${_targetBfPct.toStringAsFixed(1)}%',
@@ -188,7 +199,7 @@ class _BodyCompAnalyticsScreenState extends State<BodyCompAnalyticsScreen> {
             divisions: 44,
             activeColor: AppTheme.primaryAmber,
             inactiveColor: Colors.white10,
-            onChanged: (val) => setState(() => _targetBfPct = val),
+            onChanged: (double val) => setState(() => _targetBfPct = val),
           ),
 
           Container(
@@ -198,16 +209,26 @@ class _BodyCompAnalyticsScreenState extends State<BodyCompAnalyticsScreen> {
               borderRadius: BorderRadius.circular(14),
             ),
             child: Row(
-              children: [
+              children: <Widget>[
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Target Weight', style: GoogleFonts.inter(fontSize: 10, color: AppTheme.textSecondary)),
+                    children: <Widget>[
+                      Text(
+                        'Target Weight',
+                        style: GoogleFonts.inter(
+                          fontSize: 10,
+                          color: AppTheme.textSecondary,
+                        ),
+                      ),
                       const SizedBox(height: 2),
                       Text(
                         '${targetWeight.toStringAsFixed(1)} lb',
-                        style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+                        style: GoogleFonts.outfit(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.textPrimary,
+                        ),
                       ),
                     ],
                   ),
@@ -215,12 +236,22 @@ class _BodyCompAnalyticsScreenState extends State<BodyCompAnalyticsScreen> {
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Pure Fat to Lose', style: GoogleFonts.inter(fontSize: 10, color: AppTheme.textSecondary)),
+                    children: <Widget>[
+                      Text(
+                        'Pure Fat to Lose',
+                        style: GoogleFonts.inter(
+                          fontSize: 10,
+                          color: AppTheme.textSecondary,
+                        ),
+                      ),
                       const SizedBox(height: 2),
                       Text(
                         '-${fatToLose.toStringAsFixed(1)} lb',
-                        style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.warningOrange),
+                        style: GoogleFonts.outfit(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.warningOrange,
+                        ),
                       ),
                     ],
                   ),
@@ -228,12 +259,22 @@ class _BodyCompAnalyticsScreenState extends State<BodyCompAnalyticsScreen> {
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Est. Timeline', style: GoogleFonts.inter(fontSize: 10, color: AppTheme.textSecondary)),
+                    children: <Widget>[
+                      Text(
+                        'Est. Timeline',
+                        style: GoogleFonts.inter(
+                          fontSize: 10,
+                          color: AppTheme.textSecondary,
+                        ),
+                      ),
                       const SizedBox(height: 2),
                       Text(
                         '~$weeksToGoal weeks',
-                        style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.successGreen),
+                        style: GoogleFonts.outfit(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.successGreen,
+                        ),
                       ),
                     ],
                   ),
@@ -246,9 +287,12 @@ class _BodyCompAnalyticsScreenState extends State<BodyCompAnalyticsScreen> {
     );
   }
 
-  Widget _buildBiometricsGrid(BodyCompositionEntry latest, BodyCompProvider bodyComp) {
+  Widget _buildBiometricsGrid(
+    BodyCompositionEntry latest,
+    BodyCompProvider bodyComp,
+  ) {
     return Column(
-      children: [
+      children: <Widget>[
         RenphoStatPill(
           icon: Icons.scale,
           label: 'Weight',
@@ -262,8 +306,12 @@ class _BodyCompAnalyticsScreenState extends State<BodyCompAnalyticsScreen> {
         RenphoStatPill(
           icon: Icons.pie_chart,
           label: 'Body Fat',
-          value: latest.bodyFatPct != null ? '${latest.bodyFatPct!.toStringAsFixed(1)}%' : '--',
-          subtitle: latest.bodyFatLb != null ? '${latest.bodyFatLb!.toStringAsFixed(1)} lb' : null,
+          value: latest.bodyFatPct != null
+              ? '${latest.bodyFatPct!.toStringAsFixed(1)}%'
+              : '--',
+          subtitle: latest.bodyFatLb != null
+              ? '${latest.bodyFatLb!.toStringAsFixed(1)} lb'
+              : null,
           status: 'Average',
           delta: bodyComp.bodyFatPctDeltaVsPrevious,
           isDeltaPositiveGood: false,
@@ -283,9 +331,13 @@ class _BodyCompAnalyticsScreenState extends State<BodyCompAnalyticsScreen> {
         RenphoStatPill(
           icon: Icons.fitness_center,
           label: 'Skeletal Muscle',
-          value: latest.skeletalMuscleLb != null ? latest.skeletalMuscleLb!.toStringAsFixed(1) : '--',
+          value: latest.skeletalMuscleLb != null
+              ? latest.skeletalMuscleLb!.toStringAsFixed(1)
+              : '--',
           unit: 'lb',
-          subtitle: latest.skeletalMusclePct != null ? '${latest.skeletalMusclePct!.toStringAsFixed(1)}%' : null,
+          subtitle: latest.skeletalMusclePct != null
+              ? '${latest.skeletalMusclePct!.toStringAsFixed(1)}%'
+              : null,
           status: 'Average',
           delta: bodyComp.skeletalMuscleDeltaVsPrevious,
           isDeltaPositiveGood: true,
@@ -294,9 +346,13 @@ class _BodyCompAnalyticsScreenState extends State<BodyCompAnalyticsScreen> {
         RenphoStatPill(
           icon: Icons.sports_gymnastics,
           label: 'Muscle Mass',
-          value: latest.muscleMassLb != null ? latest.muscleMassLb!.toStringAsFixed(1) : '--',
+          value: latest.muscleMassLb != null
+              ? latest.muscleMassLb!.toStringAsFixed(1)
+              : '--',
           unit: 'lb',
-          subtitle: latest.muscleMassPct != null ? '${latest.muscleMassPct!.toStringAsFixed(1)}%' : null,
+          subtitle: latest.muscleMassPct != null
+              ? '${latest.muscleMassPct!.toStringAsFixed(1)}%'
+              : null,
           status: 'High',
         ),
         const SizedBox(height: 8),
@@ -318,9 +374,13 @@ class _BodyCompAnalyticsScreenState extends State<BodyCompAnalyticsScreen> {
         RenphoStatPill(
           icon: Icons.water_drop,
           label: 'Body Water',
-          value: latest.bodyWaterLb != null ? latest.bodyWaterLb!.toStringAsFixed(1) : '--',
+          value: latest.bodyWaterLb != null
+              ? latest.bodyWaterLb!.toStringAsFixed(1)
+              : '--',
           unit: 'lb',
-          subtitle: latest.bodyWaterPct != null ? '${latest.bodyWaterPct!.toStringAsFixed(1)}%' : null,
+          subtitle: latest.bodyWaterPct != null
+              ? '${latest.bodyWaterPct!.toStringAsFixed(1)}%'
+              : null,
           status: 'Average',
         ),
         const SizedBox(height: 8),
@@ -334,18 +394,26 @@ class _BodyCompAnalyticsScreenState extends State<BodyCompAnalyticsScreen> {
         RenphoStatPill(
           icon: Icons.health_and_safety,
           label: 'Bone Mass',
-          value: latest.boneMassLb != null ? latest.boneMassLb!.toStringAsFixed(1) : '--',
+          value: latest.boneMassLb != null
+              ? latest.boneMassLb!.toStringAsFixed(1)
+              : '--',
           unit: 'lb',
-          subtitle: latest.boneMassPct != null ? '${latest.boneMassPct!.toStringAsFixed(1)}%' : null,
+          subtitle: latest.boneMassPct != null
+              ? '${latest.boneMassPct!.toStringAsFixed(1)}%'
+              : null,
           status: 'Average',
         ),
         const SizedBox(height: 8),
         RenphoStatPill(
           icon: Icons.egg_alt_outlined,
           label: 'Protein',
-          value: latest.proteinLb != null ? latest.proteinLb!.toStringAsFixed(1) : '--',
+          value: latest.proteinLb != null
+              ? latest.proteinLb!.toStringAsFixed(1)
+              : '--',
           unit: 'lb',
-          subtitle: latest.proteinPct != null ? '${latest.proteinPct!.toStringAsFixed(1)}%' : null,
+          subtitle: latest.proteinPct != null
+              ? '${latest.proteinPct!.toStringAsFixed(1)}%'
+              : null,
           status: 'Average',
         ),
         const SizedBox(height: 8),
@@ -359,14 +427,17 @@ class _BodyCompAnalyticsScreenState extends State<BodyCompAnalyticsScreen> {
     );
   }
 
-  Widget _buildHistoryList(List<BodyCompositionEntry> entries, BodyCompProvider bodyComp) {
+  Widget _buildHistoryList(
+    List<BodyCompositionEntry> entries,
+    BodyCompProvider bodyComp,
+  ) {
     return ListView.separated(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: entries.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 8),
-      itemBuilder: (context, index) {
-        final item = entries[index];
+      separatorBuilder: (_, _) => const SizedBox(height: 8),
+      itemBuilder: (BuildContext context, int index) {
+        final BodyCompositionEntry item = entries[index];
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
@@ -376,10 +447,10 @@ class _BodyCompAnalyticsScreenState extends State<BodyCompAnalyticsScreen> {
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
+            children: <Widget>[
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+                children: <Widget>[
                   Text(
                     DateFormat('MMM d, yyyy • h:mm a').format(item.timestamp),
                     style: GoogleFonts.inter(
@@ -391,12 +462,15 @@ class _BodyCompAnalyticsScreenState extends State<BodyCompAnalyticsScreen> {
                   const SizedBox(height: 4),
                   Text(
                     'LBM: ${item.leanBodyMassLb.toStringAsFixed(1)} lb • BF: ${item.bodyFatPct?.toStringAsFixed(1) ?? '--'}% • BMR: ${item.bmrKcal ?? '--'} kcal',
-                    style: GoogleFonts.inter(fontSize: 11, color: AppTheme.textSecondary),
+                    style: GoogleFonts.inter(
+                      fontSize: 11,
+                      color: AppTheme.textSecondary,
+                    ),
                   ),
                 ],
               ),
               Row(
-                children: [
+                children: <Widget>[
                   Text(
                     '${item.weightLb.toStringAsFixed(1)} lb',
                     style: GoogleFonts.outfit(
@@ -405,10 +479,14 @@ class _BodyCompAnalyticsScreenState extends State<BodyCompAnalyticsScreen> {
                       color: AppTheme.primaryAmber,
                     ),
                   ),
-                  if (entries.length > 1) ...[
+                  if (entries.length > 1) ...<Widget>[
                     const SizedBox(width: 6),
                     IconButton(
-                      icon: const Icon(Icons.delete_outline, size: 18, color: Colors.redAccent),
+                      icon: const Icon(
+                        Icons.delete_outline,
+                        size: 18,
+                        color: Colors.redAccent,
+                      ),
                       onPressed: () => bodyComp.deleteEntry(item.id),
                     ),
                   ],

@@ -1,8 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../theme/app_theme.dart';
+import 'package:oly/theme/app_theme.dart';
 
 class RenphoStatPill extends StatelessWidget {
+  const RenphoStatPill({
+    required this.icon,
+    required this.label,
+    required this.value,
+    super.key,
+    this.unit,
+    this.subtitle,
+    this.status,
+    this.delta,
+    this.isDeltaPositiveGood = true,
+  });
   final IconData icon;
   final String label;
   final String value;
@@ -11,18 +22,6 @@ class RenphoStatPill extends StatelessWidget {
   final String? status; // 'High', 'Average', 'Low'
   final double? delta;
   final bool isDeltaPositiveGood;
-
-  const RenphoStatPill({
-    super.key,
-    required this.icon,
-    required this.label,
-    required this.value,
-    this.unit,
-    this.subtitle,
-    this.status,
-    this.delta,
-    this.isDeltaPositiveGood = true,
-  });
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +42,7 @@ class RenphoStatPill extends StatelessWidget {
         border: Border.all(color: AppTheme.borderColor),
       ),
       child: Row(
-        children: [
+        children: <Widget>[
           // Icon Container
           Container(
             padding: const EdgeInsets.all(10),
@@ -59,9 +58,9 @@ class RenphoStatPill extends StatelessWidget {
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+              children: <Widget>[
                 Row(
-                  children: [
+                  children: <Widget>[
                     Text(
                       label,
                       style: GoogleFonts.inter(
@@ -70,12 +69,15 @@ class RenphoStatPill extends StatelessWidget {
                         color: AppTheme.textPrimary,
                       ),
                     ),
-                    if (status != null) ...[
+                    if (status != null) ...<Widget>[
                       const SizedBox(width: 8),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
-                          color: statusColor.withOpacity(0.15),
+                          color: statusColor.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
@@ -90,7 +92,7 @@ class RenphoStatPill extends StatelessWidget {
                     ],
                   ],
                 ),
-                if (subtitle != null) ...[
+                if (subtitle != null) ...<Widget>[
                   const SizedBox(height: 2),
                   Text(
                     subtitle!,
@@ -107,11 +109,11 @@ class RenphoStatPill extends StatelessWidget {
           // Value & Delta
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
+            children: <Widget>[
               Row(
                 crossAxisAlignment: CrossAxisAlignment.baseline,
                 textBaseline: TextBaseline.alphabetic,
-                children: [
+                children: <Widget>[
                   Text(
                     value,
                     style: GoogleFonts.outfit(
@@ -120,7 +122,7 @@ class RenphoStatPill extends StatelessWidget {
                       color: AppTheme.textPrimary,
                     ),
                   ),
-                  if (unit != null) ...[
+                  if (unit != null) ...<Widget>[
                     const SizedBox(width: 3),
                     Text(
                       unit!,
@@ -132,11 +134,11 @@ class RenphoStatPill extends StatelessWidget {
                   ],
                 ],
               ),
-              if (delta != null && delta != 0.0) ...[
+              if (delta != null && delta != 0.0) ...<Widget>[
                 const SizedBox(height: 2),
                 Row(
                   mainAxisSize: MainAxisSize.min,
-                  children: [
+                  children: <Widget>[
                     Icon(
                       delta! > 0 ? Icons.arrow_upward : Icons.arrow_downward,
                       size: 11,

@@ -11,7 +11,7 @@ void main() {
     });
 
     test('Parses exact Renpho scale export printout text correctly', () {
-      const sampleRenphoText = '''
+      const String sampleRenphoText = '''
 RENPHO
 ikeshpack
 Jul 21, 2026 at 19:30:37 Data from Scale
@@ -41,7 +41,9 @@ Metabolic Age High 35
 Data from RENPHO Scale
 ''';
 
-      final entry = ocrService.parseRecognizedText(sampleRenphoText);
+      final BodyCompositionEntry? entry = ocrService.parseRecognizedText(
+        sampleRenphoText,
+      );
 
       expect(entry, isNotNull);
       expect(entry!.weightLb, closeTo(264.8, 0.01));
@@ -69,7 +71,7 @@ Data from RENPHO Scale
     });
 
     test('Calculates accurate Lean Body Mass and Katch-McArdle BMR', () {
-      final entry = BodyCompositionEntry.create(
+      final BodyCompositionEntry entry = BodyCompositionEntry.create(
         weightLb: 264.8,
         bodyFatPct: 21.2,
         fatFreeMassLb: 208.6,
@@ -82,22 +84,22 @@ Data from RENPHO Scale
     });
 
     test('Calculates accurate target weight to reach 15.0% Body Fat', () {
-      final entry = BodyCompositionEntry.create(
+      final BodyCompositionEntry entry = BodyCompositionEntry.create(
         weightLb: 264.8,
         fatFreeMassLb: 208.6,
       );
 
       // Target weight = 208.6 / (1 - 0.15) = 245.41 lb
-      final targetWeight = entry.targetWeightForBodyFat(15.0);
+      final double targetWeight = entry.targetWeightForBodyFat(15.0);
       expect(targetWeight, closeTo(245.41, 0.1));
 
       // Pure fat to lose = 264.8 - 245.41 = 19.39 lb
-      final fatToLose = entry.fatToLoseForTargetBf(15.0);
+      final double fatToLose = entry.fatToLoseForTargetBf(15.0);
       expect(fatToLose, closeTo(19.39, 0.1));
     });
 
     test('Parses multiline fragmented OCR text from mobile camera roll screenshots', () {
-      const fragmentedText = '''
+      const String fragmentedText = '''
 RENPHO Report
 Jul 21, 2026 at 19:30:37
 
@@ -150,7 +152,9 @@ Metabolic Age
 35
 ''';
 
-      final entry = ocrService.parseRecognizedText(fragmentedText);
+      final BodyCompositionEntry? entry = ocrService.parseRecognizedText(
+        fragmentedText,
+      );
 
       expect(entry, isNotNull);
       expect(entry!.weightLb, closeTo(264.8, 0.01));
@@ -171,8 +175,10 @@ Metabolic Age
       expect(entry.metabolicAge, equals(35));
     });
 
-    test('Parses exact raw multi-column OCR text from user iPhone device scan', () {
-      const userDeviceOcrText = '''
+    test(
+      'Parses exact raw multi-column OCR text from user iPhone device scan',
+      () {
+        const String userDeviceOcrText = '''
 RENPHO
 Data from Scale
 ikeshpack
@@ -231,28 +237,31 @@ purposes only and should not be considered a substitute for
 professional healthcare services.
 ''';
 
-      final entry = ocrService.parseRecognizedText(userDeviceOcrText);
+        final BodyCompositionEntry? entry = ocrService.parseRecognizedText(
+          userDeviceOcrText,
+        );
 
-      expect(entry, isNotNull);
-      expect(entry!.weightLb, closeTo(264.8, 0.01));
-      expect(entry.bmi, closeTo(34.9, 0.01));
-      expect(entry.bodyFatLb, closeTo(56.2, 0.01));
-      expect(entry.bodyFatPct, closeTo(21.2, 0.01));
-      expect(entry.skeletalMuscleLb, closeTo(134.6, 0.01));
-      expect(entry.skeletalMusclePct, closeTo(50.8, 0.01));
-      expect(entry.fatFreeMassLb, closeTo(208.6, 0.01));
-      expect(entry.subcutaneousFatPct, closeTo(16.8, 0.01));
-      expect(entry.visceralFat, equals(17));
-      expect(entry.bodyWaterLb, closeTo(150.6, 0.01));
-      expect(entry.bodyWaterPct, closeTo(56.9, 0.01));
-      expect(entry.muscleMassLb, closeTo(198.4, 0.01));
-      expect(entry.muscleMassPct, closeTo(74.9, 0.01));
-      expect(entry.boneMassLb, closeTo(10.4, 0.01));
-      expect(entry.boneMassPct, closeTo(3.9, 0.01));
-      expect(entry.proteinLb, closeTo(47.6, 0.01));
-      expect(entry.proteinPct, closeTo(18.0, 0.01));
-      expect(entry.bmrKcal, equals(2394));
-      expect(entry.metabolicAge, equals(35));
-    });
+        expect(entry, isNotNull);
+        expect(entry!.weightLb, closeTo(264.8, 0.01));
+        expect(entry.bmi, closeTo(34.9, 0.01));
+        expect(entry.bodyFatLb, closeTo(56.2, 0.01));
+        expect(entry.bodyFatPct, closeTo(21.2, 0.01));
+        expect(entry.skeletalMuscleLb, closeTo(134.6, 0.01));
+        expect(entry.skeletalMusclePct, closeTo(50.8, 0.01));
+        expect(entry.fatFreeMassLb, closeTo(208.6, 0.01));
+        expect(entry.subcutaneousFatPct, closeTo(16.8, 0.01));
+        expect(entry.visceralFat, equals(17));
+        expect(entry.bodyWaterLb, closeTo(150.6, 0.01));
+        expect(entry.bodyWaterPct, closeTo(56.9, 0.01));
+        expect(entry.muscleMassLb, closeTo(198.4, 0.01));
+        expect(entry.muscleMassPct, closeTo(74.9, 0.01));
+        expect(entry.boneMassLb, closeTo(10.4, 0.01));
+        expect(entry.boneMassPct, closeTo(3.9, 0.01));
+        expect(entry.proteinLb, closeTo(47.6, 0.01));
+        expect(entry.proteinPct, closeTo(18.0, 0.01));
+        expect(entry.bmrKcal, equals(2394));
+        expect(entry.metabolicAge, equals(35));
+      },
+    );
   });
 }

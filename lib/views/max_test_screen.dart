@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:oly/models/lift_model.dart';
+import 'package:oly/providers/lift_provider.dart';
+import 'package:oly/providers/program_provider.dart';
+import 'package:oly/providers/settings_provider.dart';
+import 'package:oly/theme/app_theme.dart';
+import 'package:oly/widgets/plate_modal.dart';
+import 'package:oly/widgets/rest_timer_widget.dart';
 import 'package:provider/provider.dart';
-import '../providers/lift_provider.dart';
-import '../providers/program_provider.dart';
-import '../providers/settings_provider.dart';
-import '../theme/app_theme.dart';
-import '../widgets/plate_modal.dart';
-import '../widgets/rest_timer_widget.dart';
 
 class MaxTestScreen extends StatefulWidget {
   const MaxTestScreen({super.key});
@@ -33,49 +34,59 @@ class _MaxTestScreenState extends State<MaxTestScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final lifts = Provider.of<LiftProvider>(context);
-    final program = Provider.of<ProgramProvider>(context);
-    final settings = Provider.of<SettingsProvider>(context);
+    final LiftProvider lifts = Provider.of<LiftProvider>(context);
+    final ProgramProvider program = Provider.of<ProgramProvider>(context);
+    final SettingsProvider settings = Provider.of<SettingsProvider>(context);
 
-    final selectedLift = lifts.getLift(_selectedLiftId) ?? lifts.lifts.first;
-    final currentMaxKg = selectedLift.currentMax;
-    final currentMaxDisplay = settings.toDisplayWeight(currentMaxKg);
+    final LiftModel selectedLift =
+        lifts.getLift(_selectedLiftId) ?? lifts.lifts.first;
+    final double currentMaxKg = selectedLift.currentMax;
+    final double currentMaxDisplay = settings.toDisplayWeight(currentMaxKg);
 
     if (_targetPrController.text.isEmpty) {
       _targetPrController.text = (currentMaxDisplay * 1.025).round().toString();
     }
 
-    final targetPrDisplay = double.tryParse(_targetPrController.text) ?? (currentMaxDisplay * 1.025);
-    final targetPrKg = settings.toBaseKg(targetPrDisplay);
+    final double targetPrDisplay =
+        double.tryParse(_targetPrController.text) ??
+        (currentMaxDisplay * 1.025);
+    final double targetPrKg = settings.toBaseKg(targetPrDisplay);
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('1RM Retest Assistant', style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
+        title: Text(
+          '1RM Retest Assistant',
+          style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
+        ),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+            children: <Widget>[
               // Banner
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
-                    colors: [Color(0xFF8E0000), Color(0xFF2A0000)],
+                    colors: <Color>[Color(0xFF8E0000), Color(0xFF2A0000)],
                   ),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(color: Colors.redAccent),
                 ),
                 child: Row(
-                  children: [
-                    const Icon(Icons.emoji_events, color: Colors.amber, size: 36),
+                  children: <Widget>[
+                    const Icon(
+                      Icons.emoji_events,
+                      color: Colors.amber,
+                      size: 36,
+                    ),
                     const SizedBox(width: 14),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
+                        children: <Widget>[
                           Text(
                             'WEEK 5: MAX TEST PROTOCOL',
                             style: GoogleFonts.outfit(
@@ -86,7 +97,10 @@ class _MaxTestScreenState extends State<MaxTestScreen> {
                           ),
                           Text(
                             'Retest 1RM baselines to reset your training percentages for Cycle ${program.currentCycle + 1}.',
-                            style: GoogleFonts.inter(fontSize: 12, color: Colors.white70),
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              color: Colors.white70,
+                            ),
                           ),
                         ],
                       ),
@@ -106,21 +120,34 @@ class _MaxTestScreenState extends State<MaxTestScreen> {
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('SELECT MOVEMENT', style: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.textSecondary)),
+                  children: <Widget>[
+                    Text(
+                      'SELECT MOVEMENT',
+                      style: GoogleFonts.outfit(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.textSecondary,
+                      ),
+                    ),
                     const SizedBox(height: 8),
                     DropdownButton<String>(
                       value: _selectedLiftId,
                       isExpanded: true,
                       dropdownColor: AppTheme.surfaceCard,
                       underline: const SizedBox(),
-                      items: lifts.lifts.map((l) {
+                      items: lifts.lifts.map((LiftModel l) {
                         return DropdownMenuItem<String>(
                           value: l.id,
-                          child: Text(l.name, style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.bold)),
+                          child: Text(
+                            l.name,
+                            style: GoogleFonts.outfit(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         );
                       }).toList(),
-                      onChanged: (val) {
+                      onChanged: (String? val) {
                         if (val != null) {
                           setState(() {
                             _selectedLiftId = val;
@@ -132,25 +159,50 @@ class _MaxTestScreenState extends State<MaxTestScreen> {
                     const Divider(color: AppTheme.borderColor),
                     const SizedBox(height: 8),
                     Row(
-                      children: [
+                      children: <Widget>[
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Current 1RM', style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textSecondary)),
-                              Text(settings.formatWeight(currentMaxKg), style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.bold)),
+                            children: <Widget>[
+                              Text(
+                                'Current 1RM',
+                                style: GoogleFonts.inter(
+                                  fontSize: 12,
+                                  color: AppTheme.textSecondary,
+                                ),
+                              ),
+                              Text(
+                                settings.formatWeight(currentMaxKg),
+                                style: GoogleFonts.outfit(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                             ],
                           ),
                         ),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Target New PR', style: GoogleFonts.inter(fontSize: 12, color: AppTheme.primaryAmber)),
+                            children: <Widget>[
+                              Text(
+                                'Target New PR',
+                                style: GoogleFonts.inter(
+                                  fontSize: 12,
+                                  color: AppTheme.primaryAmber,
+                                ),
+                              ),
                               TextField(
                                 controller: _targetPrController,
-                                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.primaryAmber),
+                                keyboardType:
+                                    const TextInputType.numberWithOptions(
+                                      decimal: true,
+                                    ),
+                                style: GoogleFonts.outfit(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppTheme.primaryAmber,
+                                ),
                                 decoration: InputDecoration(
                                   suffixText: settings.unitLabel.toUpperCase(),
                                   isDense: true,
@@ -169,16 +221,73 @@ class _MaxTestScreenState extends State<MaxTestScreen> {
               const SizedBox(height: 16),
 
               // Warmup Ramp-Up Table
-              Text('ESTABLISHED RAMP-UP ATTEMPTS', style: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.bold, color: AppTheme.textSecondary)),
+              Text(
+                'ESTABLISHED RAMP-UP ATTEMPTS',
+                style: GoogleFonts.outfit(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.textSecondary,
+                ),
+              ),
               const SizedBox(height: 8),
 
-              _buildRampItem(context, 'Set 1 (Warmup)', '50%', targetPrKg * 0.50, '3 Reps', settings),
-              _buildRampItem(context, 'Set 2 (Warmup)', '60%', targetPrKg * 0.60, '3 Reps', settings),
-              _buildRampItem(context, 'Set 3 (Technique)', '70%', targetPrKg * 0.70, '2 Reps', settings),
-              _buildRampItem(context, 'Set 4 (Speed)', '80%', targetPrKg * 0.80, '1 Rep', settings),
-              _buildRampItem(context, 'Attempt 1 (Opener)', '88%', targetPrKg * 0.88, '1 Rep', settings),
-              _buildRampItem(context, 'Attempt 2 (Match PR)', '95%', targetPrKg * 0.95, '1 Rep', settings),
-              _buildRampItem(context, 'Attempt 3 (NEW PR!)', '100%+', targetPrKg, '1 Rep', settings, isPrAttempt: true),
+              _buildRampItem(
+                context,
+                'Set 1 (Warmup)',
+                '50%',
+                targetPrKg * 0.50,
+                '3 Reps',
+                settings,
+              ),
+              _buildRampItem(
+                context,
+                'Set 2 (Warmup)',
+                '60%',
+                targetPrKg * 0.60,
+                '3 Reps',
+                settings,
+              ),
+              _buildRampItem(
+                context,
+                'Set 3 (Technique)',
+                '70%',
+                targetPrKg * 0.70,
+                '2 Reps',
+                settings,
+              ),
+              _buildRampItem(
+                context,
+                'Set 4 (Speed)',
+                '80%',
+                targetPrKg * 0.80,
+                '1 Rep',
+                settings,
+              ),
+              _buildRampItem(
+                context,
+                'Attempt 1 (Opener)',
+                '88%',
+                targetPrKg * 0.88,
+                '1 Rep',
+                settings,
+              ),
+              _buildRampItem(
+                context,
+                'Attempt 2 (Match PR)',
+                '95%',
+                targetPrKg * 0.95,
+                '1 Rep',
+                settings,
+              ),
+              _buildRampItem(
+                context,
+                'Attempt 3 (NEW PR!)',
+                '100%+',
+                targetPrKg,
+                '1 Rep',
+                settings,
+                isPrAttempt: true,
+              ),
 
               const SizedBox(height: 16),
 
@@ -192,13 +301,19 @@ class _MaxTestScreenState extends State<MaxTestScreen> {
                 height: 50,
                 child: ElevatedButton.icon(
                   onPressed: () async {
-                    await lifts.updateMax(selectedLift.id, targetPrKg, notes: 'Week 5 Max Retest PR!');
+                    await lifts.updateMax(
+                      selectedLift.id,
+                      targetPrKg,
+                      notes: 'Week 5 Max Retest PR!',
+                    );
                     await program.startNewCycle();
 
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text('NEW PR RECORDED! ${settings.formatWeight(targetPrKg)} for ${selectedLift.name}! Cycle ${program.currentCycle} Initialized!'),
+                          content: Text(
+                            'NEW PR RECORDED! ${settings.formatWeight(targetPrKg)} for ${selectedLift.name}! Cycle ${program.currentCycle} Initialized!',
+                          ),
                           backgroundColor: AppTheme.successGreen,
                         ),
                       );
@@ -207,12 +322,17 @@ class _MaxTestScreenState extends State<MaxTestScreen> {
                   icon: const Icon(Icons.stars, color: Colors.black),
                   label: Text(
                     'Record New PR & Start Cycle ${program.currentCycle + 1}',
-                    style: GoogleFonts.outfit(fontSize: 15, fontWeight: FontWeight.bold),
+                    style: GoogleFonts.outfit(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.primaryAmber,
                     foregroundColor: Colors.black,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
                   ),
                 ),
               ),
@@ -224,24 +344,38 @@ class _MaxTestScreenState extends State<MaxTestScreen> {
     );
   }
 
-  Widget _buildRampItem(BuildContext context, String label, String pctLabel, double weightKg, String scheme, SettingsProvider settings, {bool isPrAttempt = false}) {
+  Widget _buildRampItem(
+    BuildContext context,
+    String label,
+    String pctLabel,
+    double weightKg,
+    String scheme,
+    SettingsProvider settings, {
+    bool isPrAttempt = false,
+  }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: isPrAttempt ? AppTheme.primaryAmber.withValues(alpha: 0.15) : AppTheme.surfaceCard,
+        color: isPrAttempt
+            ? AppTheme.primaryAmber.withValues(alpha: 0.15)
+            : AppTheme.surfaceCard,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: isPrAttempt ? AppTheme.primaryAmber : AppTheme.borderColor),
+        border: Border.all(
+          color: isPrAttempt ? AppTheme.primaryAmber : AppTheme.borderColor,
+        ),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
+        children: <Widget>[
           Row(
-            children: [
+            children: <Widget>[
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: isPrAttempt ? AppTheme.primaryAmber : AppTheme.surfaceElevated,
+                  color: isPrAttempt
+                      ? AppTheme.primaryAmber
+                      : AppTheme.surfaceElevated,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -256,21 +390,43 @@ class _MaxTestScreenState extends State<MaxTestScreen> {
               const SizedBox(width: 10),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(label, style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.bold)),
-                  Text(scheme, style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textSecondary)),
+                children: <Widget>[
+                  Text(
+                    label,
+                    style: GoogleFonts.outfit(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    scheme,
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      color: AppTheme.textSecondary,
+                    ),
+                  ),
                 ],
               ),
             ],
           ),
           Row(
-            children: [
+            children: <Widget>[
               Text(
                 settings.formatWeight(weightKg),
-                style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.bold, color: isPrAttempt ? AppTheme.primaryAmber : AppTheme.textPrimary),
+                style: GoogleFonts.outfit(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: isPrAttempt
+                      ? AppTheme.primaryAmber
+                      : AppTheme.textPrimary,
+                ),
               ),
               IconButton(
-                icon: const Icon(Icons.pie_chart_outline, size: 18, color: AppTheme.primaryAmber),
+                icon: const Icon(
+                  Icons.pie_chart_outline,
+                  size: 18,
+                  color: AppTheme.primaryAmber,
+                ),
                 onPressed: () {
                   showModalBottomSheet(
                     context: context,

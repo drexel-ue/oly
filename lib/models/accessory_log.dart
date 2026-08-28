@@ -1,14 +1,4 @@
 class AccessoryLog {
-  final String id;
-  final String exerciseId;
-  final String exerciseName;
-  final double weightKg;
-  final int sets;
-  final int reps;
-  final DateTime date;
-  final String? source; // 'recovery', 'workout', 'warmup'
-  final String? notes;
-
   AccessoryLog({
     required this.id,
     required this.exerciseId,
@@ -20,20 +10,6 @@ class AccessoryLog {
     this.source,
     this.notes,
   });
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'exerciseId': exerciseId,
-      'exerciseName': exerciseName,
-      'weightKg': weightKg,
-      'sets': sets,
-      'reps': reps,
-      'date': date.toIso8601String(),
-      'source': source,
-      'notes': notes,
-    };
-  }
 
   factory AccessoryLog.fromJson(Map<String, dynamic> json) {
     return AccessoryLog(
@@ -47,5 +23,28 @@ class AccessoryLog {
       source: json['source'] as String?,
       notes: json['notes'] as String?,
     );
+  }
+  final String id;
+  final String exerciseId;
+  final String exerciseName;
+  final double weightKg;
+  final int sets;
+  final int reps;
+  final DateTime date;
+  final String? source; // 'recovery', 'workout', 'warmup'
+  final String? notes;
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'id': id,
+      'exerciseId': exerciseId,
+      'exerciseName': exerciseName,
+      'weightKg': weightKg,
+      'sets': sets,
+      'reps': reps,
+      'date': date.toIso8601String(),
+      'source': source,
+      'notes': notes,
+    };
   }
 }

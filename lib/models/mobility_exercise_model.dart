@@ -24,6 +24,47 @@ enum MobilityCategory {
 }
 
 class MobilityExerciseModel {
+  MobilityExerciseModel({
+    required this.id,
+    required this.name,
+    required this.focusArea,
+    required this.category,
+    required this.description,
+    required this.cues,
+    required this.videoUrl,
+    this.durationSeconds = 60,
+    this.defaultSets = 3,
+    this.defaultReps = 10,
+    this.isYoutube = true,
+    this.thumbnailUrl,
+  });
+
+  factory MobilityExerciseModel.fromJson(Map<String, dynamic> json) {
+    return MobilityExerciseModel(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      focusArea: MobilityFocusArea.values.firstWhere(
+        (MobilityFocusArea e) => e.name == json['focusArea'],
+        orElse: () => MobilityFocusArea.hipCapsule,
+      ),
+      category: MobilityCategory.values.firstWhere(
+        (MobilityCategory e) => e.name == json['category'],
+        orElse: () => MobilityCategory.mobilityDrill,
+      ),
+      description: json['description'] as String,
+      cues:
+          (json['cues'] as List<dynamic>?)
+              ?.map((dynamic e) => e as String)
+              .toList() ??
+          <String>[],
+      durationSeconds: json['durationSeconds'] as int? ?? 60,
+      defaultSets: json['defaultSets'] as int? ?? 3,
+      defaultReps: json['defaultReps'] as int? ?? 10,
+      videoUrl: json['videoUrl'] as String? ?? '',
+      isYoutube: json['isYoutube'] as bool? ?? true,
+      thumbnailUrl: json['thumbnailUrl'] as String?,
+    );
+  }
   final String id;
   final String name;
   final MobilityFocusArea focusArea;
@@ -37,23 +78,8 @@ class MobilityExerciseModel {
   final bool isYoutube;
   final String? thumbnailUrl;
 
-  MobilityExerciseModel({
-    required this.id,
-    required this.name,
-    required this.focusArea,
-    required this.category,
-    required this.description,
-    required this.cues,
-    this.durationSeconds = 60,
-    this.defaultSets = 3,
-    this.defaultReps = 10,
-    required this.videoUrl,
-    this.isYoutube = true,
-    this.thumbnailUrl,
-  });
-
   Map<String, dynamic> toJson() {
-    return {
+    return <String, dynamic>{
       'id': id,
       'name': name,
       'focusArea': focusArea.name,
@@ -69,35 +95,12 @@ class MobilityExerciseModel {
     };
   }
 
-  factory MobilityExerciseModel.fromJson(Map<String, dynamic> json) {
-    return MobilityExerciseModel(
-      id: json['id'] as String,
-      name: json['name'] as String,
-      focusArea: MobilityFocusArea.values.firstWhere(
-        (e) => e.name == json['focusArea'],
-        orElse: () => MobilityFocusArea.hipCapsule,
-      ),
-      category: MobilityCategory.values.firstWhere(
-        (e) => e.name == json['category'],
-        orElse: () => MobilityCategory.mobilityDrill,
-      ),
-      description: json['description'] as String,
-      cues: (json['cues'] as List<dynamic>?)?.map((e) => e as String).toList() ?? [],
-      durationSeconds: json['durationSeconds'] as int? ?? 60,
-      defaultSets: json['defaultSets'] as int? ?? 3,
-      defaultReps: json['defaultReps'] as int? ?? 10,
-      videoUrl: json['videoUrl'] as String? ?? '',
-      isYoutube: json['isYoutube'] as bool? ?? true,
-      thumbnailUrl: json['thumbnailUrl'] as String?,
-    );
-  }
-
   static String _youtubeSearchUrl(String query) {
     return 'https://www.youtube.com/results?search_query=${Uri.encodeComponent('$query Catalyst Athletics weightlifting tutorial')}';
   }
 
   static List<MobilityExerciseModel> defaultExercises() {
-    return [
+    return <MobilityExerciseModel>[
       // CARDIO OPENERS
       MobilityExerciseModel(
         id: 'zone2_cardio_row',
@@ -105,10 +108,10 @@ class MobilityExerciseModel {
         focusArea: MobilityFocusArea.cardio,
         category: MobilityCategory.cardioConditioning,
         description: 'Increases core body temperature and heart rate to prime muscles for heavy loading.',
-        cues: [
+        cues: <String>[
           'Row or bike at an easy, conversational pace (3-5 minutes).',
           'Focus on driving through the heels and relaxing upper body.',
-          'Gradually increase stroke rate during the final minute.'
+          'Gradually increase stroke rate during the final minute.',
         ],
         durationSeconds: 180,
         videoUrl: _youtubeSearchUrl('Concept2 Ergometer Rowing Technique'),
@@ -122,10 +125,10 @@ class MobilityExerciseModel {
         focusArea: MobilityFocusArea.thoracicSpine,
         category: MobilityCategory.foamRolling,
         description: 'Mobilizes upper back extension necessary for upright catch positions in snatch & front squat.',
-        cues: [
+        cues: <String>[
           'Support your head with your hands, elbows pointed forward.',
           'Gently arch over the roller without letting your ribs flare.',
-          'Pause and take 3 deep breaths at each stiff segment.'
+          'Pause and take 3 deep breaths at each stiff segment.',
         ],
         durationSeconds: 90,
         videoUrl: _youtubeSearchUrl('Thoracic Spine Extension Foam Roller'),
@@ -137,9 +140,9 @@ class MobilityExerciseModel {
         focusArea: MobilityFocusArea.quadriceps,
         category: MobilityCategory.foamRolling,
         description: 'Releases quad and upper lat stiffness before squatting and turnover pulls.',
-        cues: [
+        cues: <String>[
           'Roll 8-10 slow passes along the front of quads and side of lats.',
-          'Pause on tender spots for 5-10 seconds to allow tissue release.'
+          'Pause on tender spots for 5-10 seconds to allow tissue release.',
         ],
         durationSeconds: 90,
         videoUrl: _youtubeSearchUrl('Foam Rolling Quads and Lats'),
@@ -153,10 +156,10 @@ class MobilityExerciseModel {
         focusArea: MobilityFocusArea.shoulderOverhead,
         category: MobilityCategory.mobilityDrill,
         description: 'Preps wrists and elbows for front rack and snatch overhead catch positions.',
-        cues: [
+        cues: <String>[
           'Interlock fingers and rotate wrists in 15 clockwise and counter-clockwise circles.',
           'Perform 10 elbow rotations inside and out.',
-          'Stretch wrists back against floor in all-fours position.'
+          'Stretch wrists back against floor in all-fours position.',
         ],
         durationSeconds: 60,
         videoUrl: 'https://www.youtube.com/watch?v=mSZWSQSSEjE',
@@ -168,10 +171,10 @@ class MobilityExerciseModel {
         focusArea: MobilityFocusArea.shoulderOverhead,
         category: MobilityCategory.mobilityDrill,
         description: 'Opens up lat and chest tightness to improve the snatch lock-out and overhead jerk receiver.',
-        cues: [
+        cues: <String>[
           'Grip PVC pipe wide with straight arms.',
           'Rotate over your head and touch your lower back smoothly.',
-          'Keep core braced and avoid arching your lower back.'
+          'Keep core braced and avoid arching your lower back.',
         ],
         durationSeconds: 60,
         videoUrl: _youtubeSearchUrl('PVC Shoulder Dislocates Pass Throughs'),
@@ -183,10 +186,10 @@ class MobilityExerciseModel {
         focusArea: MobilityFocusArea.hipCapsule,
         category: MobilityCategory.mobilityDrill,
         description: 'Mobilizes internal and external hip rotation for deep squat receiving positions.',
-        cues: [
+        cues: <String>[
           'Sit on floor with knees bent at 90-degree angles.',
           'Rotate hips to transition from left side to right side smoothly.',
-          'Keep chest tall and avoid leaning far back.'
+          'Keep chest tall and avoid leaning far back.',
         ],
         durationSeconds: 90,
         videoUrl: _youtubeSearchUrl('90 90 Hip Mobility Switches'),
@@ -198,10 +201,10 @@ class MobilityExerciseModel {
         focusArea: MobilityFocusArea.ankleDorsiflexion,
         category: MobilityCategory.mobilityDrill,
         description: 'Clears anterior ankle joint pinching to allow deeper, upright squat positioning.',
-        cues: [
+        cues: <String>[
           'Attach heavy resistance band low on rig and loop around ankle talus bone.',
           'Step forward into tension and drive knee over pinky toe.',
-          'Oscillate gently forward and backward for 60 seconds per ankle.'
+          'Oscillate gently forward and backward for 60 seconds per ankle.',
         ],
         durationSeconds: 90,
         videoUrl: _youtubeSearchUrl('Banded Ankle Dorsiflexion Mobilization'),
@@ -215,11 +218,11 @@ class MobilityExerciseModel {
         focusArea: MobilityFocusArea.barbellSnatch,
         category: MobilityCategory.barbellPrep,
         description: 'The standard Olympic lifting warmup complex for snatch trajectory, speed, and extension.',
-        cues: [
+        cues: <String>[
           'Perform 5 reps of: Dip & Drive (Down & Up).',
           '5 reps of: Dip-Drive & Elbows High and Outside.',
           '5 reps of: Muscle Snatch.',
-          '5 reps of: Snatch Lands (Footwork) & Snatch Drops.'
+          '5 reps of: Snatch Lands (Footwork) & Snatch Drops.',
         ],
         defaultSets: 1,
         defaultReps: 5,
@@ -232,10 +235,10 @@ class MobilityExerciseModel {
         focusArea: MobilityFocusArea.barbellSnatch,
         category: MobilityCategory.barbellPrep,
         description: 'Builds extreme overhead stability and hip/ankle flexibility in the bottom of the snatch.',
-        cues: [
+        cues: <String>[
           'Sit in deep snatch squat with empty barbell or PVC pipe.',
           'Press bar straight up overhead without standing up.',
-          'Lock elbows firmly and hold top position for 2 seconds.'
+          'Lock elbows firmly and hold top position for 2 seconds.',
         ],
         defaultSets: 2,
         defaultReps: 5,
@@ -250,11 +253,11 @@ class MobilityExerciseModel {
         focusArea: MobilityFocusArea.barbellCleanJerk,
         category: MobilityCategory.barbellPrep,
         description: 'Preps front rack delivery, dip-and-drive verticality, and jerk split receiver.',
-        cues: [
+        cues: <String>[
           'Perform 5 reps of: Empty Bar Front Squats.',
           '5 reps of: Tall Cleans (High Pull + Quick Drop under).',
           '5 reps of: Push Press.',
-          '5 reps of: Split Jerk footwork drops.'
+          '5 reps of: Split Jerk footwork drops.',
         ],
         defaultSets: 1,
         defaultReps: 5,
@@ -269,10 +272,10 @@ class MobilityExerciseModel {
         focusArea: MobilityFocusArea.barbellSquat,
         category: MobilityCategory.barbellPrep,
         description: 'Primes deep squat positioning, adductors, and core bracing under barbell load.',
-        cues: [
+        cues: <String>[
           'Perform 5 empty bar Front or Back Squats with a 3-second pause in the hole.',
           'Focus on driving knees out and keeping chest upright.',
-          'Perform 5 explosive squat jumps with empty bar.'
+          'Perform 5 explosive squat jumps with empty bar.',
         ],
         defaultSets: 2,
         defaultReps: 5,
@@ -287,10 +290,10 @@ class MobilityExerciseModel {
         focusArea: MobilityFocusArea.shoulderOverhead,
         category: MobilityCategory.liftingAccessory,
         description: 'Popularized by Lu Xiaojun; strengthens deltoids and upper traps across full overhead extension.',
-        cues: [
+        cues: <String>[
           'Use 1.25kg - 2.5kg micro plates or light dumbbells.',
           'Raise arms outward and overhead until plates touch at top.',
-          'Lower smoothly under control for a 3-second eccentric.'
+          'Lower smoothly under control for a 3-second eccentric.',
         ],
         defaultSets: 3,
         defaultReps: 12,
@@ -303,10 +306,10 @@ class MobilityExerciseModel {
         focusArea: MobilityFocusArea.hipCapsule,
         category: MobilityCategory.liftingAccessory,
         description: 'Increases groin, adductor, and ankle flexibility while strengthening lateral hip stability.',
-        cues: [
+        cues: <String>[
           'Take a wide stance and squat deep onto one side.',
           'Keep working heel glued to floor and opposite toe pointing up.',
-          'Drive through working heel to return to center.'
+          'Drive through working heel to return to center.',
         ],
         defaultSets: 3,
         defaultReps: 8,
@@ -319,10 +322,10 @@ class MobilityExerciseModel {
         focusArea: MobilityFocusArea.posteriorChain,
         category: MobilityCategory.liftingAccessory,
         description: 'Strengthens and lengthens spinal erectors and hamstrings through full flexed mobility.',
-        cues: [
+        cues: <String>[
           'Stand on box with light kettlebell or empty bar (8-16kg).',
           'Tuck chin and roll down spine segment by segment.',
-          'Reach down past toes smoothly, then roll up sequentially.'
+          'Reach down past toes smoothly, then roll up sequentially.',
         ],
         defaultSets: 3,
         defaultReps: 6,
@@ -335,10 +338,10 @@ class MobilityExerciseModel {
         focusArea: MobilityFocusArea.quadriceps,
         category: MobilityCategory.mobilityDrill,
         description: 'Relieves intense quad and hip flexor tightness resulting from heavy squat cycles.',
-        cues: [
+        cues: <String>[
           'Place back shin flush against wall with knee on floor pad.',
           'Bring front foot flat on floor in 90-degree angle.',
-          'Squeeze back glute and lift torso upright.'
+          'Squeeze back glute and lift torso upright.',
         ],
         durationSeconds: 90,
         videoUrl: _youtubeSearchUrl('Couch Stretch Quad Hip Flexor'),
@@ -350,10 +353,10 @@ class MobilityExerciseModel {
         focusArea: MobilityFocusArea.arms,
         category: MobilityCategory.hypertrophyCore,
         description: 'Builds elbow flexor strength and bicep tendon resilience for heavy clean catches.',
-        cues: [
+        cues: <String>[
           'Stand tall with dumbbells at sides, palms facing forward.',
           'Curl weights up keeping elbows pinned to your ribs.',
-          'Squeeze biceps hard at top contraction, then lower with a 2-second tempo.'
+          'Squeeze biceps hard at top contraction, then lower with a 2-second tempo.',
         ],
         defaultSets: 3,
         defaultReps: 12,
@@ -366,10 +369,10 @@ class MobilityExerciseModel {
         focusArea: MobilityFocusArea.arms,
         category: MobilityCategory.hypertrophyCore,
         description: 'Strengthens tricep long-head for punch-out power in snatch & jerk lockouts.',
-        cues: [
+        cues: <String>[
           'Hold dumbbell overhead with both hands supporting top plate.',
           'Lower weight behind head keeping elbows pointed straight forward.',
-          'Extend arms fully overhead to lockout without flaring elbows.'
+          'Extend arms fully overhead to lockout without flaring elbows.',
         ],
         defaultSets: 3,
         defaultReps: 12,
@@ -382,10 +385,10 @@ class MobilityExerciseModel {
         focusArea: MobilityFocusArea.absCore,
         category: MobilityCategory.hypertrophyCore,
         description: 'Strengthens lower abs and hip flexors for bracing under heavy squat & pull loads.',
-        cues: [
+        cues: <String>[
           'Hang from pull-up bar with straight active shoulders.',
           'Raise legs up to parallel (or toes to bar) without swinging body.',
-          'Lower legs under control to prevent momentum.'
+          'Lower legs under control to prevent momentum.',
         ],
         defaultSets: 3,
         defaultReps: 12,
@@ -398,10 +401,10 @@ class MobilityExerciseModel {
         focusArea: MobilityFocusArea.absCore,
         category: MobilityCategory.hypertrophyCore,
         description: 'Develops anti-extension core strength to prevent lumbar arching under heavy overhead loads.',
-        cues: [
+        cues: <String>[
           'Kneel on pad and roll wheel out keeping spine slightly rounded (hollow body).',
           'Squeeze abs hard at full extension before pulling back to knees.',
-          'Alternatively hold a forearm plank for 60 seconds.'
+          'Alternatively hold a forearm plank for 60 seconds.',
         ],
         durationSeconds: 60,
         defaultSets: 3,
@@ -411,14 +414,14 @@ class MobilityExerciseModel {
       ),
       MobilityExerciseModel(
         id: 'farmers_carries',
-        name: 'Heavy Farmer\'s Carries',
+        name: "Heavy Farmer's Carries",
         focusArea: MobilityFocusArea.gripStrength,
         category: MobilityCategory.hypertrophyCore,
         description: 'Builds crushed grip, trap, and oblique stability required for heavy pulling volume.',
-        cues: [
+        cues: <String>[
           'Pick up heavy dumbbells or kettlebells with flat back.',
           'Walk 30-40 meters with tall posture, shoulders pulled back.',
-          'Do not let weights bounce against your legs.'
+          'Do not let weights bounce against your legs.',
         ],
         durationSeconds: 45,
         defaultSets: 3,
@@ -432,10 +435,10 @@ class MobilityExerciseModel {
         focusArea: MobilityFocusArea.gripStrength,
         category: MobilityCategory.hypertrophyCore,
         description: 'Decompresses spine after heavy squatting while building forearm grip endurance.',
-        cues: [
+        cues: <String>[
           'Grip pull-up bar with overhand hook or double overhand grip.',
           'Relax lower body completely and let spine stretch out.',
-          'Hold grip firmly for 45-60 seconds per set.'
+          'Hold grip firmly for 45-60 seconds per set.',
         ],
         durationSeconds: 45,
         defaultSets: 3,

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:oly/theme/app_theme.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../theme/app_theme.dart';
 
 class MetabolicScienceExplainerScreen extends StatelessWidget {
   const MetabolicScienceExplainerScreen({super.key});
@@ -17,19 +17,25 @@ class MetabolicScienceExplainerScreen extends StatelessWidget {
           elevation: 0,
           title: Text(
             'Metabolic Science & Calculations',
-            style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 18),
+            style: GoogleFonts.outfit(
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+            ),
           ),
           bottom: TabBar(
             isScrollable: true,
             indicatorColor: AppTheme.primaryAmber,
             labelColor: AppTheme.primaryAmber,
             unselectedLabelColor: AppTheme.textSecondary,
-            labelStyle: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 13),
-            tabs: const [
+            labelStyle: GoogleFonts.inter(
+              fontWeight: FontWeight.w600,
+              fontSize: 13,
+            ),
+            tabs: const <Widget>[
               Tab(
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
-                  children: [
+                  children: <Widget>[
                     Icon(Icons.bolt, size: 16),
                     SizedBox(width: 6),
                     Text('Energy & TDEE'),
@@ -39,7 +45,7 @@ class MetabolicScienceExplainerScreen extends StatelessWidget {
               Tab(
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
-                  children: [
+                  children: <Widget>[
                     Icon(Icons.science_outlined, size: 16),
                     SizedBox(width: 6),
                     Text('Algorithm B (METs)'),
@@ -49,7 +55,7 @@ class MetabolicScienceExplainerScreen extends StatelessWidget {
               Tab(
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
-                  children: [
+                  children: <Widget>[
                     Icon(Icons.fitness_center, size: 16),
                     SizedBox(width: 6),
                     Text('WOD & Lifting Physics'),
@@ -59,7 +65,7 @@ class MetabolicScienceExplainerScreen extends StatelessWidget {
               Tab(
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
-                  children: [
+                  children: <Widget>[
                     Icon(Icons.water_drop_outlined, size: 16),
                     SizedBox(width: 6),
                     Text('Hydration Model'),
@@ -69,7 +75,7 @@ class MetabolicScienceExplainerScreen extends StatelessWidget {
               Tab(
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
-                  children: [
+                  children: <Widget>[
                     Icon(Icons.menu_book_outlined, size: 16),
                     SizedBox(width: 6),
                     Text('Open-Source Sources'),
@@ -80,7 +86,7 @@ class MetabolicScienceExplainerScreen extends StatelessWidget {
           ),
         ),
         body: const TabBarView(
-          children: [
+          children: <Widget>[
             _EnergyAndTdeeTab(),
             _AlgorithmBTab(),
             _WodPhysicsTab(),
@@ -105,7 +111,7 @@ class _EnergyAndTdeeTab extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+        children: <Widget>[
           _buildHeroHeader(
             icon: Icons.bolt,
             title: 'Total Daily Energy Expenditure (TDEE)',
@@ -150,7 +156,7 @@ class _AlgorithmBTab extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+        children: <Widget>[
           _buildHeroHeader(
             icon: Icons.biotech_outlined,
             title: 'Algorithm B: Personalized REE Scaling',
@@ -185,7 +191,7 @@ class _WodPhysicsTab extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+        children: <Widget>[
           _buildHeroHeader(
             icon: Icons.fitness_center,
             title: 'Workout of the Day (WOD) Caloric Physics',
@@ -225,7 +231,7 @@ class _HydrationModelTab extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+        children: <Widget>[
           _buildHeroHeader(
             icon: Icons.water_drop,
             title: 'Biometric Hydration Turnover Model',
@@ -258,7 +264,7 @@ class _OpenSourcesTab extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+        children: <Widget>[
           _buildHeroHeader(
             icon: Icons.menu_book_outlined,
             title: 'Open-Source Databases & Scientific Literature',
@@ -288,7 +294,8 @@ class _OpenSourcesTab extends StatelessWidget {
           const SizedBox(height: 12),
           _buildResourceTile(
             title: 'Katch-McArdle Energy Expenditure Model',
-            source: 'Exercise Physiology: Nutrition, Energy, and Human Performance',
+            source:
+                'Exercise Physiology: Nutrition, Energy, and Human Performance',
             description: 'Peer-reviewed formula establishing that basal energy expenditure is determined by fat-free mass rather than total mass.',
             url: 'https://en.wikipedia.org/wiki/Basal_metabolic_rate#BMR_estimation_formulas',
           ),
@@ -302,7 +309,11 @@ class _OpenSourcesTab extends StatelessWidget {
 // HELPER WIDGETS
 // ---------------------------------------------------------------------------
 
-Widget _buildHeroHeader({required IconData icon, required String title, required String subtitle}) {
+Widget _buildHeroHeader({
+  required IconData icon,
+  required String title,
+  required String subtitle,
+}) {
   return Container(
     padding: const EdgeInsets.all(16),
     decoration: BoxDecoration(
@@ -311,11 +322,11 @@ Widget _buildHeroHeader({required IconData icon, required String title, required
       border: Border.all(color: AppTheme.borderColor),
     ),
     child: Row(
-      children: [
+      children: <Widget>[
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: AppTheme.primaryAmber.withOpacity(0.15),
+            color: AppTheme.primaryAmber.withValues(alpha: 0.15),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Icon(icon, color: AppTheme.primaryAmber, size: 28),
@@ -324,15 +335,23 @@ Widget _buildHeroHeader({required IconData icon, required String title, required
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+            children: <Widget>[
               Text(
                 title,
-                style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+                style: GoogleFonts.outfit(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.textPrimary,
+                ),
               ),
               const SizedBox(height: 4),
               Text(
                 subtitle,
-                style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textSecondary, height: 1.3),
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  color: AppTheme.textSecondary,
+                  height: 1.3,
+                ),
               ),
             ],
           ),
@@ -357,26 +376,34 @@ Widget _buildFormulaCard({
     ),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
+      children: <Widget>[
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
+          children: <Widget>[
             Expanded(
               child: Text(
                 title,
-                style: GoogleFonts.outfit(fontSize: 15, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+                style: GoogleFonts.outfit(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.textPrimary,
+                ),
               ),
             ),
             const SizedBox(width: 8),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
               decoration: BoxDecoration(
-                color: AppTheme.primaryAmber.withOpacity(0.12),
+                color: AppTheme.primaryAmber.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Text(
                 badge,
-                style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.primaryAmber),
+                style: GoogleFonts.inter(
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.primaryAmber,
+                ),
               ),
             ),
           ],
@@ -386,9 +413,11 @@ Widget _buildFormulaCard({
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.4),
+            color: Colors.black.withValues(alpha: 0.4),
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: AppTheme.secondaryCyan.withOpacity(0.3)),
+            border: Border.all(
+              color: AppTheme.secondaryCyan.withValues(alpha: 0.3),
+            ),
           ),
           child: Text(
             formula,
@@ -402,7 +431,11 @@ Widget _buildFormulaCard({
         const SizedBox(height: 10),
         Text(
           description,
-          style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textSecondary, height: 1.45),
+          style: GoogleFonts.inter(
+            fontSize: 12,
+            color: AppTheme.textSecondary,
+            height: 1.45,
+          ),
         ),
       ],
     ),
@@ -419,10 +452,14 @@ Widget _buildComparisonCard() {
     ),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
+      children: <Widget>[
         Text(
           'Generic Apps (Algorithm A) vs. Oly (Algorithm B)',
-          style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+          style: GoogleFonts.outfit(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: AppTheme.textPrimary,
+          ),
         ),
         const SizedBox(height: 6),
         Text(
@@ -431,23 +468,45 @@ Widget _buildComparisonCard() {
         ),
         const SizedBox(height: 12),
         Row(
-          children: [
+          children: <Widget>[
             Expanded(
               child: Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: Colors.redAccent.withOpacity(0.08),
+                  color: Colors.redAccent.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.redAccent.withOpacity(0.3)),
+                  border: Border.all(
+                    color: Colors.redAccent.withValues(alpha: 0.3),
+                  ),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Algorithm A (Generic)', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.redAccent)),
+                  children: <Widget>[
+                    Text(
+                      'Algorithm A (Generic)',
+                      style: GoogleFonts.inter(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.redAccent,
+                      ),
+                    ),
                     const SizedBox(height: 4),
-                    Text('360 kcal', style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.redAccent)),
+                    Text(
+                      '360 kcal',
+                      style: GoogleFonts.outfit(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.redAccent,
+                      ),
+                    ),
                     const SizedBox(height: 2),
-                    Text('+25% Overestimate (Assumes fat burns same energy as muscle)', style: GoogleFonts.inter(fontSize: 10, color: AppTheme.textSecondary)),
+                    Text(
+                      '+25% Overestimate (Assumes fat burns same energy as muscle)',
+                      style: GoogleFonts.inter(
+                        fontSize: 10,
+                        color: AppTheme.textSecondary,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -457,18 +516,40 @@ Widget _buildComparisonCard() {
               child: Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: AppTheme.successGreen.withOpacity(0.08),
+                  color: AppTheme.successGreen.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: AppTheme.successGreen.withOpacity(0.3)),
+                  border: Border.all(
+                    color: AppTheme.successGreen.withValues(alpha: 0.3),
+                  ),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Algorithm B (Oly LBM)', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.successGreen)),
+                  children: <Widget>[
+                    Text(
+                      'Algorithm B (Oly LBM)',
+                      style: GoogleFonts.inter(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.successGreen,
+                      ),
+                    ),
                     const SizedBox(height: 4),
-                    Text('287 kcal', style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.successGreen)),
+                    Text(
+                      '287 kcal',
+                      style: GoogleFonts.outfit(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.successGreen,
+                      ),
+                    ),
                     const SizedBox(height: 2),
-                    Text('Physiologically accurate to your actual Lean Body Mass', style: GoogleFonts.inter(fontSize: 10, color: AppTheme.textSecondary)),
+                    Text(
+                      'Physiologically accurate to your actual Lean Body Mass',
+                      style: GoogleFonts.inter(
+                        fontSize: 10,
+                        color: AppTheme.textSecondary,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -481,15 +562,16 @@ Widget _buildComparisonCard() {
 }
 
 Widget _buildMetReferenceTable() {
-  const activities = [
-    ('Walking 3.5 mph (Brisk)', '17151', '3.8 MET', '8.0 kcal/min'),
-    ('Rucking (25 lb pack)', '17165', '6.0 MET', '12.6 kcal/min'),
-    ('Assault Bike (Moderate)', '02010', '7.0 MET', '14.7 kcal/min'),
-    ('Assault Bike (Sprint HIIT)', '02015', '11.5 MET', '24.1 kcal/min'),
-    ('Concept2 Rowing (150W)', '02070', '7.0 MET', '14.7 kcal/min'),
-    ('Olympic Lifting (Session)', '02050', '6.5 MET', '13.6 kcal/min'),
-    ('Mobility & Stretching Flow', '02100', '2.8 MET', '5.9 kcal/min'),
-  ];
+  const List<(String, String, String, String)> activities =
+      <(String, String, String, String)>[
+        ('Walking 3.5 mph (Brisk)', '17151', '3.8 MET', '8.0 kcal/min'),
+        ('Rucking (25 lb pack)', '17165', '6.0 MET', '12.6 kcal/min'),
+        ('Assault Bike (Moderate)', '02010', '7.0 MET', '14.7 kcal/min'),
+        ('Assault Bike (Sprint HIIT)', '02015', '11.5 MET', '24.1 kcal/min'),
+        ('Concept2 Rowing (150W)', '02070', '7.0 MET', '14.7 kcal/min'),
+        ('Olympic Lifting (Session)', '02050', '6.5 MET', '13.6 kcal/min'),
+        ('Mobility & Stretching Flow', '02100', '2.8 MET', '5.9 kcal/min'),
+      ];
 
   return Container(
     padding: const EdgeInsets.all(16),
@@ -500,38 +582,84 @@ Widget _buildMetReferenceTable() {
     ),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
+      children: <Widget>[
         Text(
           'Compendium MET Reference Catalog (208.6 lb LBM)',
-          style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+          style: GoogleFonts.outfit(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: AppTheme.textPrimary,
+          ),
         ),
         const SizedBox(height: 12),
-        ...activities.map((a) => Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Text(a.$1, style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textPrimary)),
+        ...activities.map(
+          ((String, String, String, String) a) => Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                Expanded(
+                  child: Text(
+                    a.$1,
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      color: AppTheme.textPrimary,
+                    ),
                   ),
-                  Text(a.$3, style: GoogleFonts.firaCode(fontSize: 11, color: AppTheme.primaryAmber)),
-                  const SizedBox(width: 12),
-                  Text(a.$4, style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.secondaryCyan)),
-                ],
-              ),
-            )),
+                ),
+                Text(
+                  a.$3,
+                  style: GoogleFonts.firaCode(
+                    fontSize: 11,
+                    color: AppTheme.primaryAmber,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  a.$4,
+                  style: GoogleFonts.inter(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.secondaryCyan,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ],
     ),
   );
 }
 
 Widget _buildMovementTiersCard() {
-  const tiers = [
-    ('Explosive Olympic Lifts', 'Snatch, Clean & Jerk, Power Snatch, Jerk', '6.5 MET', '0.45 - 0.55 kcal/rep'),
-    ('Heavy Compound Squats & Pulls', 'Back Squat, Front Squat, Clean Pull, Deadlift', '6.0 MET', '0.40 - 0.50 kcal/rep'),
-    ('Overhead Presses & Bench', 'Push Press, Strict Press, Snatch Push Press', '5.0 MET', '0.25 - 0.35 kcal/rep'),
-    ('Accessory Hypertrophy & Core', 'Split Squats, Hyperextensions, Arms, Abs', '4.5 MET', '0.15 - 0.25 kcal/rep'),
-  ];
+  const List<(String, String, String, String)> tiers =
+      <(String, String, String, String)>[
+        (
+          'Explosive Olympic Lifts',
+          'Snatch, Clean & Jerk, Power Snatch, Jerk',
+          '6.5 MET',
+          '0.45 - 0.55 kcal/rep',
+        ),
+        (
+          'Heavy Compound Squats & Pulls',
+          'Back Squat, Front Squat, Clean Pull, Deadlift',
+          '6.0 MET',
+          '0.40 - 0.50 kcal/rep',
+        ),
+        (
+          'Overhead Presses & Bench',
+          'Push Press, Strict Press, Snatch Push Press',
+          '5.0 MET',
+          '0.25 - 0.35 kcal/rep',
+        ),
+        (
+          'Accessory Hypertrophy & Core',
+          'Split Squats, Hyperextensions, Arms, Abs',
+          '4.5 MET',
+          '0.15 - 0.25 kcal/rep',
+        ),
+      ];
 
   return Container(
     padding: const EdgeInsets.all(16),
@@ -542,32 +670,57 @@ Widget _buildMovementTiersCard() {
     ),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
+      children: <Widget>[
         Text(
           'Movement Metabolic Intensity Tiers',
-          style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+          style: GoogleFonts.outfit(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: AppTheme.textPrimary,
+          ),
         ),
         const SizedBox(height: 12),
-        ...tiers.map((t) => Padding(
-              padding: const EdgeInsets.symmetric(vertical: 6),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(t.$1, style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.textPrimary)),
+        ...tiers.map(
+          ((String, String, String, String) t) => Padding(
+            padding: const EdgeInsets.symmetric(vertical: 6),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    Expanded(
+                      child: Text(
+                        t.$1,
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.textPrimary,
+                        ),
                       ),
-                      const SizedBox(width: 8),
-                      Text(t.$3, style: GoogleFonts.firaCode(fontSize: 11, color: AppTheme.primaryAmber)),
-                    ],
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      t.$3,
+                      style: GoogleFonts.firaCode(
+                        fontSize: 11,
+                        color: AppTheme.primaryAmber,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  t.$2,
+                  style: GoogleFonts.inter(
+                    fontSize: 11,
+                    color: AppTheme.textSecondary,
                   ),
-                  const SizedBox(height: 2),
-                  Text(t.$2, style: GoogleFonts.inter(fontSize: 11, color: AppTheme.textSecondary)),
-                ],
-              ),
-            )),
+                ),
+              ],
+            ),
+          ),
+        ),
       ],
     ),
   );
@@ -583,15 +736,29 @@ Widget _buildSampleCalculationCard() {
     ),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
+      children: <Widget>[
         Text(
           'Sample Target for 208.6 lb LBM / 56.2 lb Fat:',
-          style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+          style: GoogleFonts.outfit(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: AppTheme.textPrimary,
+          ),
         ),
         const SizedBox(height: 10),
-        Text('• Rest Day Baseline: (208.6 × 0.65) + (56.2 × 0.25) = 150.0 oz (~4.4 L)', style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textPrimary)),
+        Text(
+          '• Rest Day Baseline: (208.6 × 0.65) + (56.2 × 0.25) = 150.0 oz (~4.4 L)',
+          style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textPrimary),
+        ),
         const SizedBox(height: 4),
-        Text('• Training Day Goal: 150.0 + 24.0 oz = 174.0 oz (~5.1 L)', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.secondaryCyan)),
+        Text(
+          '• Training Day Goal: 150.0 + 24.0 oz = 174.0 oz (~5.1 L)',
+          style: GoogleFonts.inter(
+            fontSize: 12,
+            fontWeight: FontWeight.bold,
+            color: AppTheme.secondaryCyan,
+          ),
+        ),
       ],
     ),
   );
@@ -612,22 +779,30 @@ Widget _buildResourceTile({
     ),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
+      children: <Widget>[
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
+          children: <Widget>[
             Expanded(
               child: Text(
                 title,
-                style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+                style: GoogleFonts.outfit(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.textPrimary,
+                ),
               ),
             ),
             IconButton(
-              icon: const Icon(Icons.open_in_new, size: 16, color: AppTheme.primaryAmber),
+              icon: const Icon(
+                Icons.open_in_new,
+                size: 16,
+                color: AppTheme.primaryAmber,
+              ),
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(),
               onPressed: () async {
-                final uri = Uri.parse(url);
+                final Uri uri = Uri.parse(url);
                 if (await canLaunchUrl(uri)) {
                   await launchUrl(uri, mode: LaunchMode.externalApplication);
                 }
@@ -638,12 +813,20 @@ Widget _buildResourceTile({
         const SizedBox(height: 2),
         Text(
           source,
-          style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.secondaryCyan),
+          style: GoogleFonts.inter(
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+            color: AppTheme.secondaryCyan,
+          ),
         ),
         const SizedBox(height: 6),
         Text(
           description,
-          style: GoogleFonts.inter(fontSize: 11, color: AppTheme.textSecondary, height: 1.35),
+          style: GoogleFonts.inter(
+            fontSize: 11,
+            color: AppTheme.textSecondary,
+            height: 1.35,
+          ),
         ),
       ],
     ),

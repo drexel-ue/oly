@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart';
+
 import 'package:oly/models/accessory_log.dart';
 import 'package:oly/models/body_composition_entry.dart';
 import 'package:oly/models/lift_model.dart';
@@ -7,18 +7,19 @@ import 'package:oly/models/pr_entry.dart';
 import 'package:oly/models/program_model.dart';
 import 'package:oly/models/workout_session.dart';
 import 'package:oly/services/storage_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MockDataHelper {
   static List<LiftModel> getMockLifts() {
-    final now = DateTime.now();
+    final DateTime now = DateTime.now();
 
-    return [
+    return <LiftModel>[
       LiftModel(
         id: 'snatch',
         name: 'Snatch',
         category: LiftCategory.snatch,
         currentMax: 95.0,
-        history: [
+        history: <PREntry>[
           PREntry(
             id: 'pr_sn_1',
             weight: 95.0,
@@ -47,7 +48,7 @@ class MockDataHelper {
         name: 'Clean & Jerk',
         category: LiftCategory.cleanAndJerk,
         currentMax: 120.0,
-        history: [
+        history: <PREntry>[
           PREntry(
             id: 'pr_cj_1',
             weight: 120.0,
@@ -124,7 +125,7 @@ class MockDataHelper {
         anchorLiftId: 'clean_and_jerk',
         targetRatio: 1.35,
         currentMax: 160.0,
-        history: [
+        history: <PREntry>[
           PREntry(
             id: 'pr_bs_1',
             weight: 160.0,
@@ -196,7 +197,7 @@ class MockDataHelper {
       currentCycle: 1,
       currentWeek: 2, // Heavy loading week (70%)
       currentDay: 1, // Day 1: Snatch & Clean Strength
-      completedSessionIds: [
+      completedSessionIds: <String>[
         'sess_w1_d1',
         'sess_w1_d2',
         'sess_w1_d3',
@@ -207,9 +208,9 @@ class MockDataHelper {
   }
 
   static List<WorkoutSession> getMockWorkoutSessions() {
-    final now = DateTime.now();
+    final DateTime now = DateTime.now();
 
-    return [
+    return <WorkoutSession>[
       WorkoutSession(
         id: 'sess_w1_d1',
         date: now.subtract(const Duration(days: 6)),
@@ -218,37 +219,98 @@ class MockDataHelper {
         cycleNumber: 1,
         durationSeconds: 3240, // 54m
         sessionRpe: 8,
-        jointStrainTags: ['Wrists', 'Knees'],
-        notes: 'Great opening week session. Snatch felt crisp, clean was smooth.',
-        logs: [
+        jointStrainTags: <String>['Wrists', 'Knees'],
+        notes:
+            'Great opening week session. Snatch felt crisp, clean was smooth.',
+        logs: <ExerciseLog>[
           ExerciseLog(
             exerciseName: 'Power Snatch + Overhead Squat',
             liftId: 'snatch',
-            sets: [
-              CompletedSet(setIndex: 1, weight: 61.5, reps: 2, isCompleted: true),
-              CompletedSet(setIndex: 2, weight: 61.5, reps: 2, isCompleted: true),
-              CompletedSet(setIndex: 3, weight: 61.5, reps: 2, isCompleted: true),
-              CompletedSet(setIndex: 4, weight: 61.5, reps: 2, isCompleted: true),
+            sets: <CompletedSet>[
+              CompletedSet(
+                setIndex: 1,
+                weight: 61.5,
+                reps: 2,
+                isCompleted: true,
+              ),
+              CompletedSet(
+                setIndex: 2,
+                weight: 61.5,
+                reps: 2,
+                isCompleted: true,
+              ),
+              CompletedSet(
+                setIndex: 3,
+                weight: 61.5,
+                reps: 2,
+                isCompleted: true,
+              ),
+              CompletedSet(
+                setIndex: 4,
+                weight: 61.5,
+                reps: 2,
+                isCompleted: true,
+              ),
             ],
           ),
           ExerciseLog(
             exerciseName: 'Hang Clean',
             liftId: 'clean_and_jerk',
-            sets: [
-              CompletedSet(setIndex: 1, weight: 78.0, reps: 3, isCompleted: true),
-              CompletedSet(setIndex: 2, weight: 78.0, reps: 3, isCompleted: true),
-              CompletedSet(setIndex: 3, weight: 78.0, reps: 3, isCompleted: true),
-              CompletedSet(setIndex: 4, weight: 78.0, reps: 3, isCompleted: true),
+            sets: <CompletedSet>[
+              CompletedSet(
+                setIndex: 1,
+                weight: 78.0,
+                reps: 3,
+                isCompleted: true,
+              ),
+              CompletedSet(
+                setIndex: 2,
+                weight: 78.0,
+                reps: 3,
+                isCompleted: true,
+              ),
+              CompletedSet(
+                setIndex: 3,
+                weight: 78.0,
+                reps: 3,
+                isCompleted: true,
+              ),
+              CompletedSet(
+                setIndex: 4,
+                weight: 78.0,
+                reps: 3,
+                isCompleted: true,
+              ),
             ],
           ),
           ExerciseLog(
             exerciseName: 'Back Squat',
             liftId: 'back_squat',
-            sets: [
-              CompletedSet(setIndex: 1, weight: 104.0, reps: 6, isCompleted: true),
-              CompletedSet(setIndex: 2, weight: 104.0, reps: 6, isCompleted: true),
-              CompletedSet(setIndex: 3, weight: 104.0, reps: 6, isCompleted: true),
-              CompletedSet(setIndex: 4, weight: 104.0, reps: 6, isCompleted: true),
+            sets: <CompletedSet>[
+              CompletedSet(
+                setIndex: 1,
+                weight: 104.0,
+                reps: 6,
+                isCompleted: true,
+              ),
+              CompletedSet(
+                setIndex: 2,
+                weight: 104.0,
+                reps: 6,
+                isCompleted: true,
+              ),
+              CompletedSet(
+                setIndex: 3,
+                weight: 104.0,
+                reps: 6,
+                isCompleted: true,
+              ),
+              CompletedSet(
+                setIndex: 4,
+                weight: 104.0,
+                reps: 6,
+                isCompleted: true,
+              ),
             ],
           ),
         ],
@@ -261,26 +323,61 @@ class MockDataHelper {
         cycleNumber: 1,
         durationSeconds: 3480, // 58m
         sessionRpe: 9,
-        jointStrainTags: ['Shoulders'],
+        jointStrainTags: <String>['Shoulders'],
         notes: 'Explosive block cleans. Push press was fast.',
-        logs: [
+        logs: <ExerciseLog>[
           ExerciseLog(
             exerciseName: 'Muscle Snatch',
             liftId: 'snatch',
-            sets: [
-              CompletedSet(setIndex: 1, weight: 47.5, reps: 3, isCompleted: true),
-              CompletedSet(setIndex: 2, weight: 47.5, reps: 3, isCompleted: true),
-              CompletedSet(setIndex: 3, weight: 47.5, reps: 3, isCompleted: true),
+            sets: <CompletedSet>[
+              CompletedSet(
+                setIndex: 1,
+                weight: 47.5,
+                reps: 3,
+                isCompleted: true,
+              ),
+              CompletedSet(
+                setIndex: 2,
+                weight: 47.5,
+                reps: 3,
+                isCompleted: true,
+              ),
+              CompletedSet(
+                setIndex: 3,
+                weight: 47.5,
+                reps: 3,
+                isCompleted: true,
+              ),
             ],
           ),
           ExerciseLog(
             exerciseName: 'Block Clean',
             liftId: 'clean_and_jerk',
-            sets: [
-              CompletedSet(setIndex: 1, weight: 84.0, reps: 3, isCompleted: true),
-              CompletedSet(setIndex: 2, weight: 84.0, reps: 3, isCompleted: true),
-              CompletedSet(setIndex: 3, weight: 84.0, reps: 3, isCompleted: true),
-              CompletedSet(setIndex: 4, weight: 84.0, reps: 3, isCompleted: true),
+            sets: <CompletedSet>[
+              CompletedSet(
+                setIndex: 1,
+                weight: 84.0,
+                reps: 3,
+                isCompleted: true,
+              ),
+              CompletedSet(
+                setIndex: 2,
+                weight: 84.0,
+                reps: 3,
+                isCompleted: true,
+              ),
+              CompletedSet(
+                setIndex: 3,
+                weight: 84.0,
+                reps: 3,
+                isCompleted: true,
+              ),
+              CompletedSet(
+                setIndex: 4,
+                weight: 84.0,
+                reps: 3,
+                isCompleted: true,
+              ),
             ],
           ),
         ],
@@ -293,17 +390,37 @@ class MockDataHelper {
         cycleNumber: 1,
         durationSeconds: 2940, // 49m
         sessionRpe: 7,
-        jointStrainTags: ['Hips'],
+        jointStrainTags: <String>['Hips'],
         notes: 'Front squats felt strong and stable. Ready for Week 2.',
-        logs: [
+        logs: <ExerciseLog>[
           ExerciseLog(
             exerciseName: 'Front Squat',
             liftId: 'clean_and_jerk',
-            sets: [
-              CompletedSet(setIndex: 1, weight: 90.0, reps: 5, isCompleted: true),
-              CompletedSet(setIndex: 2, weight: 90.0, reps: 5, isCompleted: true),
-              CompletedSet(setIndex: 3, weight: 90.0, reps: 5, isCompleted: true),
-              CompletedSet(setIndex: 4, weight: 90.0, reps: 5, isCompleted: true),
+            sets: <CompletedSet>[
+              CompletedSet(
+                setIndex: 1,
+                weight: 90.0,
+                reps: 5,
+                isCompleted: true,
+              ),
+              CompletedSet(
+                setIndex: 2,
+                weight: 90.0,
+                reps: 5,
+                isCompleted: true,
+              ),
+              CompletedSet(
+                setIndex: 3,
+                weight: 90.0,
+                reps: 5,
+                isCompleted: true,
+              ),
+              CompletedSet(
+                setIndex: 4,
+                weight: 90.0,
+                reps: 5,
+                isCompleted: true,
+              ),
             ],
           ),
         ],
@@ -312,15 +429,15 @@ class MockDataHelper {
   }
 
   static List<Map<String, dynamic>> getMockRecoveryLogs() {
-    final now = DateTime.now();
+    final DateTime now = DateTime.now();
 
-    return [
-      {
+    return <Map<String, dynamic>>[
+      <String, dynamic>{
         'id': 'rec_log_1',
         'date': now.subtract(const Duration(days: 1)).toIso8601String(),
         'durationSeconds': 900,
-        'focusAreas': ['Wrists', 'Knees', 'Thoracic Spine'],
-        'completedExerciseNames': [
+        'focusAreas': <String>['Wrists', 'Knees', 'Thoracic Spine'],
+        'completedExerciseNames': <String>[
           'Thoracic Spine Foam Roller Openers',
           'Deep Squat Ankle Mobilization',
           'Wrist Extension & Flexion Flow',
@@ -330,9 +447,9 @@ class MockDataHelper {
   }
 
   static List<AccessoryLog> getMockAccessoryLogs() {
-    final now = DateTime.now();
+    final DateTime now = DateTime.now();
 
-    return [
+    return <AccessoryLog>[
       AccessoryLog(
         id: 'acc_1',
         exerciseId: 'bicep_curls',
@@ -427,7 +544,7 @@ class MockDataHelper {
   }
 
   static BodyCompositionEntry getMockBodyComp() {
-    final now = DateTime.now();
+    final DateTime now = DateTime.now();
     return BodyCompositionEntry(
       id: 'body_comp_latest',
       timestamp: now.subtract(const Duration(hours: 4)),
@@ -448,13 +565,13 @@ class MockDataHelper {
   }
 
   static Map<String, dynamic> getMockNutritionData() {
-    final todayKey = DateTime.now().toIso8601String().substring(0, 10);
-    return {
-      todayKey: {
+    final String todayKey = DateTime.now().toIso8601String().substring(0, 10);
+    return <String, dynamic>{
+      todayKey: <String, Object>{
         'date': todayKey,
         'waterMl': 3500,
-        'entries': [
-          {
+        'entries': <Map<String, Object>>[
+          <String, Object>{
             'id': 'food_1',
             'name': 'Rolled Oats with Whey & Blueberries',
             'category': 'breakfast',
@@ -463,9 +580,11 @@ class MockDataHelper {
             'carbsGrams': 68.0,
             'fatGrams': 9.0,
             'portion': '1.5 cups',
-            'timestamp': DateTime.now().subtract(const Duration(hours: 9)).toIso8601String(),
+            'timestamp': DateTime.now()
+                .subtract(const Duration(hours: 9))
+                .toIso8601String(),
           },
-          {
+          <String, Object>{
             'id': 'food_2',
             'name': 'Grilled Chicken Breast with Basmati Rice & Broccoli',
             'category': 'lunch',
@@ -474,9 +593,11 @@ class MockDataHelper {
             'carbsGrams': 72.0,
             'fatGrams': 11.0,
             'portion': '250g chicken / 1.5c rice',
-            'timestamp': DateTime.now().subtract(const Duration(hours: 5)).toIso8601String(),
+            'timestamp': DateTime.now()
+                .subtract(const Duration(hours: 5))
+                .toIso8601String(),
           },
-          {
+          <String, Object>{
             'id': 'food_3',
             'name': 'Top Sirloin Steak with Roasted Sweet Potato',
             'category': 'dinner',
@@ -485,9 +606,11 @@ class MockDataHelper {
             'carbsGrams': 54.0,
             'fatGrams': 22.0,
             'portion': '8 oz steak / 1 med potato',
-            'timestamp': DateTime.now().subtract(const Duration(hours: 1)).toIso8601String(),
+            'timestamp': DateTime.now()
+                .subtract(const Duration(hours: 1))
+                .toIso8601String(),
           },
-          {
+          <String, Object>{
             'id': 'food_4',
             'name': 'Nonfat Greek Yogurt with Raw Honey',
             'category': 'snack',
@@ -496,11 +619,13 @@ class MockDataHelper {
             'carbsGrams': 26.0,
             'fatGrams': 1.0,
             'portion': '1 cup (170g)',
-            'timestamp': DateTime.now().subtract(const Duration(minutes: 30)).toIso8601String(),
+            'timestamp': DateTime.now()
+                .subtract(const Duration(minutes: 30))
+                .toIso8601String(),
           },
         ],
-        'activities': [
-          {
+        'activities': <Map<String, Object>>[
+          <String, Object>{
             'id': 'act_wod',
             'title': 'Heavy Olympic Lifting & Snatch Session',
             'category': 'strengthWod',
@@ -508,9 +633,11 @@ class MockDataHelper {
             'caloriesBurned': 485,
             'metValue': 6.0,
             'isAutoSynced': true,
-            'timestamp': DateTime.now().subtract(const Duration(hours: 3)).toIso8601String(),
+            'timestamp': DateTime.now()
+                .subtract(const Duration(hours: 3))
+                .toIso8601String(),
           },
-          {
+          <String, Object>{
             'id': 'act_walk',
             'title': 'Daily Incline Walk / NEAT Steps',
             'category': 'walking',
@@ -520,7 +647,9 @@ class MockDataHelper {
             'stepCount': 8600,
             'distanceMiles': 4.0,
             'isAutoSynced': false,
-            'timestamp': DateTime.now().subtract(const Duration(hours: 7)).toIso8601String(),
+            'timestamp': DateTime.now()
+                .subtract(const Duration(hours: 7))
+                .toIso8601String(),
           },
         ],
       },
@@ -529,14 +658,22 @@ class MockDataHelper {
 
   /// Seeds SharedPreferences with comprehensive mock data
   static Future<StorageService> setupMockStorage() async {
-    final liftsJson = jsonEncode(getMockLifts().map((e) => e.toJson()).toList());
-    final cycleJson = jsonEncode(getMockProgramCycle().toJson());
-    final sessionsJson = jsonEncode(getMockWorkoutSessions().map((e) => e.toJson()).toList());
-    final recoveryJson = jsonEncode(getMockRecoveryLogs());
-    final accessoryJson = jsonEncode(getMockAccessoryLogs().map((e) => e.toJson()).toList());
-    final bodyCompJson = jsonEncode([getMockBodyComp().toJson()]);
-    final nutritionJson = jsonEncode(getMockNutritionData());
-    final goalJson = jsonEncode({
+    final String liftsJson = jsonEncode(
+      getMockLifts().map((LiftModel e) => e.toJson()).toList(),
+    );
+    final String cycleJson = jsonEncode(getMockProgramCycle().toJson());
+    final String sessionsJson = jsonEncode(
+      getMockWorkoutSessions().map((WorkoutSession e) => e.toJson()).toList(),
+    );
+    final String recoveryJson = jsonEncode(getMockRecoveryLogs());
+    final String accessoryJson = jsonEncode(
+      getMockAccessoryLogs().map((AccessoryLog e) => e.toJson()).toList(),
+    );
+    final String bodyCompJson = jsonEncode(<Map<String, dynamic>>[
+      getMockBodyComp().toJson(),
+    ]);
+    final String nutritionJson = jsonEncode(getMockNutritionData());
+    final String goalJson = jsonEncode(<String, num>{
       'dailyCalorieTarget': 2400,
       'dailyProteinGrams': 210,
       'dailyCarbsGrams': 240,
@@ -546,7 +683,7 @@ class MockDataHelper {
       'targetBodyFatPct': 15.0,
     });
 
-    SharedPreferences.setMockInitialValues({
+    SharedPreferences.setMockInitialValues(<String, Object>{
       'oly_lifts_v1': liftsJson,
       'oly_cycle_v1': cycleJson,
       'oly_sessions_v1': sessionsJson,
@@ -562,7 +699,7 @@ class MockDataHelper {
       'oly_haptics_enabled_v1': true,
     });
 
-    final prefs = await SharedPreferences.getInstance();
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
     return StorageService(prefs);
   }
 }

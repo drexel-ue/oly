@@ -1,23 +1,19 @@
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:fl_chart/fl_chart.dart';
-import '../../models/body_composition_entry.dart';
-import '../../theme/app_theme.dart';
+import 'package:oly/models/body_composition_entry.dart';
+import 'package:oly/theme/app_theme.dart';
 
 class BodyDonutChart extends StatelessWidget {
+  const BodyDonutChart({required this.entry, super.key});
   final BodyCompositionEntry entry;
-
-  const BodyDonutChart({
-    super.key,
-    required this.entry,
-  });
 
   @override
   Widget build(BuildContext context) {
-    final waterLb = entry.bodyWaterLb ?? (entry.weightLb * 0.55);
-    final proteinLb = entry.proteinLb ?? (entry.weightLb * 0.18);
-    final fatLb = entry.bodyFatLb ?? (entry.weightLb * 0.21);
-    final boneLb = entry.boneMassLb ?? (entry.weightLb * 0.04);
+    final double waterLb = entry.bodyWaterLb ?? (entry.weightLb * 0.55);
+    final double proteinLb = entry.proteinLb ?? (entry.weightLb * 0.18);
+    final double fatLb = entry.bodyFatLb ?? (entry.weightLb * 0.21);
+    final double boneLb = entry.boneMassLb ?? (entry.weightLb * 0.04);
 
     return Container(
       padding: const EdgeInsets.all(18),
@@ -28,10 +24,10 @@ class BodyDonutChart extends StatelessWidget {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+        children: <Widget>[
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
+            children: <Widget>[
               Text(
                 'BODY COMPOSITION BREAKDOWN',
                 style: GoogleFonts.inter(
@@ -44,7 +40,7 @@ class BodyDonutChart extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: AppTheme.primaryAmber.withOpacity(0.12),
+                  color: AppTheme.primaryAmber.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
@@ -60,19 +56,19 @@ class BodyDonutChart extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Row(
-            children: [
+            children: <Widget>[
               // Donut Chart
               SizedBox(
                 height: 140,
                 width: 140,
                 child: Stack(
                   alignment: Alignment.center,
-                  children: [
+                  children: <Widget>[
                     PieChart(
                       PieChartData(
                         sectionsSpace: 2,
                         centerSpaceRadius: 44,
-                        sections: [
+                        sections: <PieChartSectionData>[
                           PieChartSectionData(
                             value: waterLb,
                             color: const Color(0xFF00D2FF),
@@ -102,7 +98,7 @@ class BodyDonutChart extends StatelessWidget {
                     ),
                     Column(
                       mainAxisSize: MainAxisSize.min,
-                      children: [
+                      children: <Widget>[
                         Text(
                           'Weight',
                           style: GoogleFonts.inter(
@@ -136,33 +132,41 @@ class BodyDonutChart extends StatelessWidget {
               // Legend
               Expanded(
                 child: Column(
-                  children: [
+                  children: <Widget>[
                     _buildLegendItem(
                       color: const Color(0xFF00D2FF),
                       label: 'Body Water',
                       value: '${waterLb.toStringAsFixed(1)} lb',
-                      pct: entry.bodyWaterPct != null ? '${entry.bodyWaterPct!.toStringAsFixed(1)}%' : null,
+                      pct: entry.bodyWaterPct != null
+                          ? '${entry.bodyWaterPct!.toStringAsFixed(1)}%'
+                          : null,
                     ),
                     const SizedBox(height: 6),
                     _buildLegendItem(
                       color: const Color(0xFF30D158),
                       label: 'Protein / Muscle',
                       value: '${proteinLb.toStringAsFixed(1)} lb',
-                      pct: entry.proteinPct != null ? '${entry.proteinPct!.toStringAsFixed(1)}%' : null,
+                      pct: entry.proteinPct != null
+                          ? '${entry.proteinPct!.toStringAsFixed(1)}%'
+                          : null,
                     ),
                     const SizedBox(height: 6),
                     _buildLegendItem(
                       color: const Color(0xFFFF9F0A),
                       label: 'Body Fat',
                       value: '${fatLb.toStringAsFixed(1)} lb',
-                      pct: entry.bodyFatPct != null ? '${entry.bodyFatPct!.toStringAsFixed(1)}%' : null,
+                      pct: entry.bodyFatPct != null
+                          ? '${entry.bodyFatPct!.toStringAsFixed(1)}%'
+                          : null,
                     ),
                     const SizedBox(height: 6),
                     _buildLegendItem(
                       color: const Color(0xFFFF453A),
                       label: 'Bone Mass',
                       value: '${boneLb.toStringAsFixed(1)} lb',
-                      pct: entry.boneMassPct != null ? '${entry.boneMassPct!.toStringAsFixed(1)}%' : null,
+                      pct: entry.boneMassPct != null
+                          ? '${entry.boneMassPct!.toStringAsFixed(1)}%'
+                          : null,
                     ),
                   ],
                 ),
@@ -182,18 +186,15 @@ class BodyDonutChart extends StatelessWidget {
   }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
+      children: <Widget>[
         Expanded(
           child: Row(
             mainAxisSize: MainAxisSize.min,
-            children: [
+            children: <Widget>[
               Container(
                 width: 8,
                 height: 8,
-                decoration: BoxDecoration(
-                  color: color,
-                  shape: BoxShape.circle,
-                ),
+                decoration: BoxDecoration(color: color, shape: BoxShape.circle),
               ),
               const SizedBox(width: 8),
               Flexible(
@@ -211,7 +212,7 @@ class BodyDonutChart extends StatelessWidget {
         ),
         const SizedBox(width: 4),
         Row(
-          children: [
+          children: <Widget>[
             Text(
               value,
               style: GoogleFonts.outfit(
@@ -220,7 +221,7 @@ class BodyDonutChart extends StatelessWidget {
                 color: AppTheme.textPrimary,
               ),
             ),
-            if (pct != null) ...[
+            if (pct != null) ...<Widget>[
               const SizedBox(width: 4),
               Text(
                 '($pct)',

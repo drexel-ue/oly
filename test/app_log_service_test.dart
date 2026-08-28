@@ -8,53 +8,69 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   setUp(() async {
-    SharedPreferences.setMockInitialValues({});
-    final prefs = await SharedPreferences.getInstance();
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
     await AppLogService.instance.init(prefs);
     await AppLogService.instance.clearLogs();
   });
 
   group('AppLogService & Crash Reporting Tests', () {
-    test('Logs messages with correct levels and extracts formatted strings', () {
-      final logger = AppLogService.instance;
+    test(
+      'Logs messages with correct levels and extracts formatted strings',
+      () {
+        final AppLogService logger = AppLogService.instance;
 
-      logger.info('TEST_TAG', 'User started session');
-      logger.warning('TEST_TAG', 'Low battery warning');
-      logger.error('TEST_TAG', 'Network timeout', error: 'SocketException');
-      logger.crash('TEST_TAG', 'NullPointerException', stackTrace: StackTrace.current);
+        logger.info('TEST_TAG', 'User started session');
+        logger.warning('TEST_TAG', 'Low battery warning');
+        logger.error('TEST_TAG', 'Network timeout', error: 'SocketException');
+        logger.crash(
+          'TEST_TAG',
+          'NullPointerException',
+          stackTrace: StackTrace.current,
+        );
 
-      expect(logger.logs.length, equals(4));
-      expect(logger.crashAndErrorLogs.length, equals(2));
+        expect(logger.logs.length, equals(4));
+        expect(logger.crashAndErrorLogs.length, equals(2));
 
-      final export = logger.exportFullLogsText();
-      expect(export.contains('OLY SYSTEM DIAGNOSTICS'), isTrue);
-      expect(export.contains('NullPointerException'), isTrue);
-      expect(export.contains('Network timeout'), isTrue);
-    });
+        final String export = logger.exportFullLogsText();
+        expect(export.contains('OLY SYSTEM DIAGNOSTICS'), isTrue);
+        expect(export.contains('NullPointerException'), isTrue);
+        expect(export.contains('Network timeout'), isTrue);
+      },
+    );
 
     test('Persists errors and crashes across app restarts', () async {
-      final prefs = await SharedPreferences.getInstance();
-      final logger = AppLogService.instance;
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final AppLogService logger = AppLogService.instance;
 
-      logger.crash('OCR', 'MLKit model missing', stackTrace: StackTrace.current);
+      logger.crash(
+        'OCR',
+        'MLKit model missing',
+        stackTrace: StackTrace.current,
+      );
       logger.error('NUTRITION', 'Invalid JSON response');
 
       // Simulate re-init on fresh app launch
       await logger.init(prefs);
 
       expect(logger.crashAndErrorLogs.length, greaterThanOrEqualTo(2));
-      expect(logger.logs.any((l) => l.message.contains('MLKit model missing')), isTrue);
+      expect(
+        logger.logs.any(
+          (LogEntry l) => l.message.contains('MLKit model missing'),
+        ),
+        isTrue,
+      );
     });
 
-    testWidgets('CrashReportScreen renders log stats, filters, and probes', (tester) async {
-      final logger = AppLogService.instance;
+    testWidgets('CrashReportScreen renders log stats, filters, and probes', (
+      WidgetTester tester,
+    ) async {
+      final AppLogService logger = AppLogService.instance;
       logger.info('AUTH', 'User login');
       logger.error('CAMERA', 'Camera permission denied');
       logger.crash('ENGINE', 'Fatal unhandled exception');
 
-      await tester.pumpWidget(const MaterialApp(
-        home: CrashReportScreen(),
-      ));
+      await tester.pumpWidget(const MaterialApp(home: CrashReportScreen()));
       await tester.pumpAndSettle();
 
       expect(find.text('Diagnostics & Crash Logs'), findsOneWidget);

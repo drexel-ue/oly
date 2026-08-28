@@ -1,22 +1,21 @@
 import 'package:flutter/foundation.dart';
-import '../models/program_model.dart';
-import '../models/workout_session.dart';
-import '../services/storage_service.dart';
+import 'package:oly/models/program_model.dart';
+import 'package:oly/models/workout_session.dart';
+import 'package:oly/services/storage_service.dart';
 
 class ProgramProvider extends ChangeNotifier {
-  final StorageService _storage;
-
-  late ProgramCycle _cycle;
-  late List<DayTemplate> _days;
-  late List<WorkoutSession> _sessions;
-  ActiveWorkoutDraft? _activeDraft;
-
   ProgramProvider(this._storage) {
     _cycle = _storage.loadProgramCycle();
     _days = ProgramCycle.getBuiltInProgram();
     _sessions = _storage.loadWorkoutSessions();
     _activeDraft = _storage.loadActiveWorkoutDraft();
   }
+  final StorageService _storage;
+
+  late ProgramCycle _cycle;
+  late List<DayTemplate> _days;
+  late List<WorkoutSession> _sessions;
+  ActiveWorkoutDraft? _activeDraft;
 
   ProgramCycle get cycle => _cycle;
   List<DayTemplate> get days => List.unmodifiable(_days);
@@ -29,22 +28,27 @@ class ProgramProvider extends ChangeNotifier {
   int get currentCycle => _cycle.currentCycle;
   bool get isRetestWeek => _cycle.currentWeek == 5;
 
-  double get totalVolumeKg => _sessions.fold(0.0, (sum, s) => sum + s.totalVolumeKg);
+  double get totalVolumeKg => _sessions.fold(
+    0.0,
+    (double sum, WorkoutSession s) => sum + s.totalVolumeKg,
+  );
   double get totalTonsMetric => totalVolumeKg / 1000.0;
   double get totalTonsUs => (totalVolumeKg * 2.20462) / 2000.0;
-  int get totalCompletedSets => _sessions.fold(0, (sum, s) => sum + s.totalSets);
-  int get totalCompletedReps => _sessions.fold(0, (sum, s) => sum + s.totalReps);
+  int get totalCompletedSets =>
+      _sessions.fold(0, (int sum, WorkoutSession s) => sum + s.totalSets);
+  int get totalCompletedReps =>
+      _sessions.fold(0, (int sum, WorkoutSession s) => sum + s.totalReps);
 
   String formatTotalTons({required bool isLbs}) {
     if (isLbs) {
-      final tons = totalTonsUs;
+      final double tons = totalTonsUs;
       if (tons < 1.0) {
-        final lbs = totalVolumeKg * 2.20462;
+        final double lbs = totalVolumeKg * 2.20462;
         return '${lbs.toStringAsFixed(0)} lbs';
       }
       return '${tons.toStringAsFixed(2)} Tons';
     } else {
-      final tons = totalTonsMetric;
+      final double tons = totalTonsMetric;
       if (tons < 1.0) {
         return '${totalVolumeKg.toStringAsFixed(0)} kg';
       }
@@ -54,7 +58,7 @@ class ProgramProvider extends ChangeNotifier {
 
   DayTemplate get currentDayTemplate {
     return _days.firstWhere(
-      (d) => d.dayNumber == _cycle.currentDay,
+      (DayTemplate d) => d.dayNumber == _cycle.currentDay,
       orElse: () => _days.first,
     );
   }

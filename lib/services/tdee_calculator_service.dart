@@ -1,27 +1,28 @@
-import '../models/body_composition_entry.dart';
-import '../models/daily_nutrition_log.dart';
-import '../models/nutrition_goal_model.dart';
+import 'package:oly/models/body_composition_entry.dart';
+import 'package:oly/models/daily_nutrition_log.dart';
+import 'package:oly/models/nutrition_goal_model.dart';
 
 class MacroTargets {
-  final int calories;
-  final double proteinGrams;
-  final double carbsGrams;
-  final double fatGrams;
-
   const MacroTargets({
     required this.calories,
     required this.proteinGrams,
     required this.carbsGrams,
     required this.fatGrams,
   });
+  final int calories;
+  final double proteinGrams;
+  final double carbsGrams;
+  final double fatGrams;
 }
 
 class TdeeCalculatorService {
   /// Baseline Katch-McArdle BMR calculation using Lean Body Mass:
   /// BMR = 370 + (21.6 * LBM in kg)
   static int calculateKatchMcArdleBmr(double leanBodyMassLb) {
-    if (leanBodyMassLb <= 0) return 2000;
-    final lbmKg = leanBodyMassLb / 2.20462;
+    if (leanBodyMassLb <= 0) {
+      return 2000;
+    }
+    final double lbmKg = leanBodyMassLb / 2.20462;
     return (370 + (21.6 * lbmKg)).round();
   }
 
@@ -29,7 +30,10 @@ class TdeeCalculatorService {
   /// Activity multiplier for Olympic lifting athletes:
   /// - 3-4 days/week training: ~1.50 - 1.55
   /// - 5 days/week training: ~1.65
-  static int calculateBaselineTdee(int bmr, {double activityMultiplier = 1.55}) {
+  static int calculateBaselineTdee(
+    int bmr, {
+    double activityMultiplier = 1.55,
+  }) {
     return (bmr * activityMultiplier).round();
   }
 
@@ -54,12 +58,13 @@ class TdeeCalculatorService {
   }) {
     double baseWaterOz;
     if (latestBodyComp != null && latestBodyComp.weightLb > 0) {
-      final lbm = latestBodyComp.leanBodyMassLb;
-      final fat = latestBodyComp.fatMassLb;
+      final double lbm = latestBodyComp.leanBodyMassLb;
+      final double fat = latestBodyComp.fatMassLb;
       baseWaterOz = (lbm * 0.65) + (fat * 0.25);
 
       // Low hydration compensation from Renpho scale readings (<55% in athletic adults)
-      if (latestBodyComp.bodyWaterPct != null && latestBodyComp.bodyWaterPct! < 55.0) {
+      if (latestBodyComp.bodyWaterPct != null &&
+          latestBodyComp.bodyWaterPct! < 55.0) {
         baseWaterOz += 12.0;
       }
     } else {
@@ -70,7 +75,7 @@ class TdeeCalculatorService {
       baseWaterOz += 24.0; // Sports hydration bonus for training session
     }
 
-    return (baseWaterOz.roundToDouble()).clamp(64.0, 250.0);
+    return baseWaterOz.roundToDouble().clamp(64.0, 250.0);
   }
 
   /// Calculates dynamic expenditure from nutrition intake history and body composition changes
@@ -82,27 +87,39 @@ class TdeeCalculatorService {
     if (recentLogs.isEmpty) {
       return endComp.bmrKcal != null
           ? calculateBaselineTdee(endComp.bmrKcal!)
-          : calculateBaselineTdee(calculateKatchMcArdleBmr(endComp.leanBodyMassLb));
+          : calculateBaselineTdee(
+              calculateKatchMcArdleBmr(endComp.leanBodyMassLb),
+            );
     }
 
-    final totalLoggedCalories = recentLogs.fold(0, (sum, log) => sum + log.totalCalories);
-    final daysCount = recentLogs.length.clamp(1, 365);
-    final avgDailyIntake = totalLoggedCalories / daysCount;
+    final int totalLoggedCalories = recentLogs.fold(
+      0,
+      (int sum, DailyNutritionLog log) => sum + log.totalCalories,
+    );
+    final int daysCount = recentLogs.length.clamp(1, 365);
+    final double avgDailyIntake = totalLoggedCalories / daysCount;
 
-    final daysBetweenScans = endComp.timestamp.difference(startComp.timestamp).inDays;
+    final int daysBetweenScans = endComp.timestamp
+        .difference(startComp.timestamp)
+        .inDays;
     if (daysBetweenScans < 5) {
       // Too short to reliably deduce expenditure; fallback to baseline
-      return calculateBaselineTdee(endComp.bmrKcal ?? calculateKatchMcArdleBmr(endComp.leanBodyMassLb));
+      return calculateBaselineTdee(
+        endComp.bmrKcal ?? calculateKatchMcArdleBmr(endComp.leanBodyMassLb),
+      );
     }
 
-    final fatDeltaLb = endComp.fatMassLb - startComp.fatMassLb;
-    final leanDeltaLb = endComp.leanBodyMassLb - startComp.leanBodyMassLb;
+    final double fatDeltaLb = endComp.fatMassLb - startComp.fatMassLb;
+    final double leanDeltaLb =
+        endComp.leanBodyMassLb - startComp.leanBodyMassLb;
 
     // Fat tissue ~3500 kcal/lb, Muscle tissue ~800 kcal/lb
-    final totalTissueEnergyDelta = (fatDeltaLb * 3500.0) + (leanDeltaLb * 800.0);
-    final dailyTissueEnergyRate = totalTissueEnergyDelta / daysBetweenScans;
+    final double totalTissueEnergyDelta =
+        (fatDeltaLb * 3500.0) + (leanDeltaLb * 800.0);
+    final double dailyTissueEnergyRate =
+        totalTissueEnergyDelta / daysBetweenScans;
 
-    final adaptiveTdee = (avgDailyIntake - dailyTissueEnergyRate).round();
+    final int adaptiveTdee = (avgDailyIntake - dailyTissueEnergyRate).round();
     return adaptiveTdee.clamp(1500, 5000);
   }
 
@@ -121,10 +138,14 @@ class TdeeCalculatorService {
     // Apply goal adjustments
     switch (goal.goalType) {
       case GoalType.cutting:
-        targetCalories -= (goal.dailyCalorieAdjustment != 0 ? goal.dailyCalorieAdjustment.abs() : 450);
+        targetCalories -= (goal.dailyCalorieAdjustment != 0
+            ? goal.dailyCalorieAdjustment.abs()
+            : 450);
         break;
       case GoalType.leanBulking:
-        targetCalories += (goal.dailyCalorieAdjustment != 0 ? goal.dailyCalorieAdjustment.abs() : 250);
+        targetCalories += (goal.dailyCalorieAdjustment != 0
+            ? goal.dailyCalorieAdjustment.abs()
+            : 250);
         break;
       case GoalType.recomposition:
         targetCalories += goal.dailyCalorieAdjustment; // usually close to 0
@@ -140,7 +161,8 @@ class TdeeCalculatorService {
     }
 
     // Protein: 1.0 - 1.2 g per lb of Fat-Free Mass
-    final double targetProteinGrams = (lbmLb * goal.proteinGramsPerLbLbm).roundToDouble();
+    final double targetProteinGrams = (lbmLb * goal.proteinGramsPerLbLbm)
+        .roundToDouble();
     final double proteinCalories = targetProteinGrams * 4.0;
 
     // Fat: ~22% (training day) or ~28% (rest day) of total calories
@@ -149,11 +171,16 @@ class TdeeCalculatorService {
     final double targetFatGrams = (fatCalories / 9.0).roundToDouble();
 
     // Carbs: Remaining calories / 4
-    final double remainingCalories = targetCalories - proteinCalories - (targetFatGrams * 9.0);
-    final double targetCarbsGrams = (remainingCalories / 4.0).clamp(50.0, 800.0).roundToDouble();
+    final double remainingCalories =
+        targetCalories - proteinCalories - (targetFatGrams * 9.0);
+    final double targetCarbsGrams = (remainingCalories / 4.0)
+        .clamp(50.0, 800.0)
+        .roundToDouble();
 
     // Recalibrate final calorie sum
-    final finalCalories = (targetProteinGrams * 4 + targetCarbsGrams * 4 + targetFatGrams * 9).round();
+    final int finalCalories =
+        (targetProteinGrams * 4 + targetCarbsGrams * 4 + targetFatGrams * 9)
+            .round();
 
     return MacroTargets(
       calories: finalCalories,

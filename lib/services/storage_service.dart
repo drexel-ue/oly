@@ -1,15 +1,17 @@
 import 'dart:convert';
+
+import 'package:oly/models/accessory_log.dart';
+import 'package:oly/models/body_composition_entry.dart';
+import 'package:oly/models/daily_nutrition_log.dart';
+import 'package:oly/models/lift_model.dart';
+import 'package:oly/models/nutrition_entry.dart';
+import 'package:oly/models/nutrition_goal_model.dart';
+import 'package:oly/models/program_model.dart';
+import 'package:oly/models/workout_session.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../models/accessory_log.dart';
-import '../models/body_composition_entry.dart';
-import '../models/daily_nutrition_log.dart';
-import '../models/lift_model.dart';
-import '../models/nutrition_entry.dart';
-import '../models/nutrition_goal_model.dart';
-import '../models/program_model.dart';
-import '../models/workout_session.dart';
 
 class StorageService {
+  StorageService(this._prefs);
   static const String _keyLifts = 'oly_lifts_v1';
   static const String _keyCycle = 'oly_cycle_v1';
   static const String _keySessions = 'oly_sessions_v1';
@@ -30,40 +32,43 @@ class StorageService {
 
   final SharedPreferences _prefs;
 
-  StorageService(this._prefs);
-
   static Future<StorageService> init() async {
-    final prefs = await SharedPreferences.getInstance();
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
     return StorageService(prefs);
   }
 
   // --- LIFTS STORAGE ---
   List<LiftModel> loadLifts() {
-    final jsonStr = _prefs.getString(_keyLifts);
+    final String? jsonStr = _prefs.getString(_keyLifts);
     if (jsonStr == null || jsonStr.isEmpty) {
       return LiftModel.defaultLifts();
     }
     try {
       final List<dynamic> list = jsonDecode(jsonStr);
-      return list.map((e) => LiftModel.fromJson(e as Map<String, dynamic>)).toList();
+      return list
+          .map((e) => LiftModel.fromJson(e as Map<String, dynamic>))
+          .toList();
     } catch (_) {
       return LiftModel.defaultLifts();
     }
   }
 
   Future<void> saveLifts(List<LiftModel> lifts) async {
-    final jsonStr = jsonEncode(lifts.map((e) => e.toJson()).toList());
+    final String jsonStr = jsonEncode(
+      lifts.map((LiftModel e) => e.toJson()).toList(),
+    );
     await _prefs.setString(_keyLifts, jsonStr);
   }
 
   // --- PROGRAM CYCLE STORAGE ---
   ProgramCycle loadProgramCycle() {
-    final jsonStr = _prefs.getString(_keyCycle);
+    final String? jsonStr = _prefs.getString(_keyCycle);
     if (jsonStr == null || jsonStr.isEmpty) {
       return ProgramCycle();
     }
     try {
-      final map = jsonDecode(jsonStr) as Map<String, dynamic>;
+      final Map<String, dynamic> map =
+          jsonDecode(jsonStr) as Map<String, dynamic>;
       return ProgramCycle.fromJson(map);
     } catch (_) {
       return ProgramCycle();
@@ -71,35 +76,42 @@ class StorageService {
   }
 
   Future<void> saveProgramCycle(ProgramCycle cycle) async {
-    final jsonStr = jsonEncode(cycle.toJson());
+    final String jsonStr = jsonEncode(cycle.toJson());
     await _prefs.setString(_keyCycle, jsonStr);
   }
 
   // --- WORKOUT SESSIONS STORAGE ---
   List<WorkoutSession> loadWorkoutSessions() {
-    final jsonStr = _prefs.getString(_keySessions);
+    final String? jsonStr = _prefs.getString(_keySessions);
     if (jsonStr == null || jsonStr.isEmpty) {
-      return [];
+      return <WorkoutSession>[];
     }
     try {
       final List<dynamic> list = jsonDecode(jsonStr);
-      return list.map((e) => WorkoutSession.fromJson(e as Map<String, dynamic>)).toList();
+      return list
+          .map((e) => WorkoutSession.fromJson(e as Map<String, dynamic>))
+          .toList();
     } catch (_) {
-      return [];
+      return <WorkoutSession>[];
     }
   }
 
   Future<void> saveWorkoutSessions(List<WorkoutSession> sessions) async {
-    final jsonStr = jsonEncode(sessions.map((e) => e.toJson()).toList());
+    final String jsonStr = jsonEncode(
+      sessions.map((WorkoutSession e) => e.toJson()).toList(),
+    );
     await _prefs.setString(_keySessions, jsonStr);
   }
 
   // --- ACTIVE WORKOUT DRAFT STORAGE ---
   ActiveWorkoutDraft? loadActiveWorkoutDraft() {
-    final jsonStr = _prefs.getString(_keyActiveDraft);
-    if (jsonStr == null || jsonStr.isEmpty) return null;
+    final String? jsonStr = _prefs.getString(_keyActiveDraft);
+    if (jsonStr == null || jsonStr.isEmpty) {
+      return null;
+    }
     try {
-      final map = jsonDecode(jsonStr) as Map<String, dynamic>;
+      final Map<String, dynamic> map =
+          jsonDecode(jsonStr) as Map<String, dynamic>;
       return ActiveWorkoutDraft.fromJson(map);
     } catch (_) {
       return null;
@@ -107,7 +119,7 @@ class StorageService {
   }
 
   Future<void> saveActiveWorkoutDraft(ActiveWorkoutDraft draft) async {
-    final jsonStr = jsonEncode(draft.toJson());
+    final String jsonStr = jsonEncode(draft.toJson());
     await _prefs.setString(_keyActiveDraft, jsonStr);
   }
 
@@ -117,51 +129,63 @@ class StorageService {
 
   // --- SETTINGS STORAGE ---
   bool loadIsLbs() => _prefs.getBool(_keyUnit) ?? false;
-  Future<void> saveIsLbs(bool isLbs) async => await _prefs.setBool(_keyUnit, isLbs);
+  Future<void> saveIsLbs(bool isLbs) async => _prefs.setBool(_keyUnit, isLbs);
 
   double loadBarWeight() => _prefs.getDouble(_keyBarWeight) ?? 20.0;
-  Future<void> saveBarWeight(double weight) async => await _prefs.setDouble(_keyBarWeight, weight);
+  Future<void> saveBarWeight(double weight) async =>
+      _prefs.setDouble(_keyBarWeight, weight);
 
   double loadCollarWeight() => _prefs.getDouble(_keyCollarWeight) ?? 2.5;
-  Future<void> saveCollarWeight(double weight) async => await _prefs.setDouble(_keyCollarWeight, weight);
+  Future<void> saveCollarWeight(double weight) async =>
+      _prefs.setDouble(_keyCollarWeight, weight);
 
   // --- RECOVERY LOGS STORAGE ---
   List<Map<String, dynamic>> loadRawRecoveryLogs() {
-    final jsonStr = _prefs.getString(_keyRecoveryLogs);
-    if (jsonStr == null || jsonStr.isEmpty) return [];
+    final String? jsonStr = _prefs.getString(_keyRecoveryLogs);
+    if (jsonStr == null || jsonStr.isEmpty) {
+      return <Map<String, dynamic>>[];
+    }
     try {
       final List<dynamic> list = jsonDecode(jsonStr);
       return list.cast<Map<String, dynamic>>();
     } catch (_) {
-      return [];
+      return <Map<String, dynamic>>[];
     }
   }
 
   Future<void> saveRawRecoveryLogs(List<Map<String, dynamic>> logs) async {
-    final jsonStr = jsonEncode(logs);
+    final String jsonStr = jsonEncode(logs);
     await _prefs.setString(_keyRecoveryLogs, jsonStr);
   }
 
   bool loadSoundAlerts() => _prefs.getBool(_keySoundAlerts) ?? true;
-  Future<void> saveSoundAlerts(bool value) async => await _prefs.setBool(_keySoundAlerts, value);
+  Future<void> saveSoundAlerts(bool value) async =>
+      _prefs.setBool(_keySoundAlerts, value);
 
   bool loadHapticsEnabled() => _prefs.getBool(_keyHapticsEnabled) ?? true;
-  Future<void> saveHapticsEnabled(bool value) async => await _prefs.setBool(_keyHapticsEnabled, value);
+  Future<void> saveHapticsEnabled(bool value) async =>
+      _prefs.setBool(_keyHapticsEnabled, value);
 
   // --- ACCESSORY LOGS STORAGE ---
   List<AccessoryLog> loadAccessoryLogs() {
-    final jsonStr = _prefs.getString(_keyAccessoryLogs);
-    if (jsonStr == null || jsonStr.isEmpty) return [];
+    final String? jsonStr = _prefs.getString(_keyAccessoryLogs);
+    if (jsonStr == null || jsonStr.isEmpty) {
+      return <AccessoryLog>[];
+    }
     try {
       final List<dynamic> list = jsonDecode(jsonStr);
-      return list.map((e) => AccessoryLog.fromJson(e as Map<String, dynamic>)).toList();
+      return list
+          .map((e) => AccessoryLog.fromJson(e as Map<String, dynamic>))
+          .toList();
     } catch (_) {
-      return [];
+      return <AccessoryLog>[];
     }
   }
 
   Future<void> saveAccessoryLogs(List<AccessoryLog> logs) async {
-    final jsonStr = jsonEncode(logs.map((e) => e.toJson()).toList());
+    final String jsonStr = jsonEncode(
+      logs.map((AccessoryLog e) => e.toJson()).toList(),
+    );
     await _prefs.setString(_keyAccessoryLogs, jsonStr);
   }
 
@@ -174,8 +198,8 @@ class StorageService {
     String? source,
     String? notes,
   }) async {
-    final currentLogs = loadAccessoryLogs();
-    final newEntry = AccessoryLog(
+    final List<AccessoryLog> currentLogs = loadAccessoryLogs();
+    final AccessoryLog newEntry = AccessoryLog(
       id: 'acc_${DateTime.now().millisecondsSinceEpoch}',
       exerciseId: exerciseId,
       exerciseName: exerciseName,
@@ -192,32 +216,40 @@ class StorageService {
 
   List<AccessoryLog> getAccessoryHistory(String exerciseId) {
     return loadAccessoryLogs()
-        .where((l) => l.exerciseId == exerciseId || l.exerciseName.toLowerCase() == exerciseId.toLowerCase())
+        .where(
+          (AccessoryLog l) =>
+              l.exerciseId == exerciseId ||
+              l.exerciseName.toLowerCase() == exerciseId.toLowerCase(),
+        )
         .toList()
-      ..sort((a, b) => b.date.compareTo(a.date));
+      ..sort((AccessoryLog a, AccessoryLog b) => b.date.compareTo(a.date));
   }
 
   AccessoryLog? getLatestAccessoryLog(String exerciseId) {
-    final history = getAccessoryHistory(exerciseId);
+    final List<AccessoryLog> history = getAccessoryHistory(exerciseId);
     return history.isNotEmpty ? history.first : null;
   }
 
   double getAccessoryPersonalBest(String exerciseId) {
-    final history = getAccessoryHistory(exerciseId);
-    if (history.isEmpty) return 0.0;
-    return history.map((e) => e.weightKg).reduce((a, b) => a > b ? a : b);
+    final List<AccessoryLog> history = getAccessoryHistory(exerciseId);
+    if (history.isEmpty) {
+      return 0.0;
+    }
+    return history
+        .map((AccessoryLog e) => e.weightKg)
+        .reduce((double a, double b) => a > b ? a : b);
   }
 
   // --- EXPORT & IMPORT UTILITIES ---
   String exportFullAppDataJson() {
-    final map = {
+    final Map<String, dynamic> map = <String, dynamic>{
       'exportedAt': DateTime.now().toIso8601String(),
       'lifts': jsonDecode(_prefs.getString(_keyLifts) ?? '[]'),
       'cycle': jsonDecode(_prefs.getString(_keyCycle) ?? '{}'),
       'workoutSessions': jsonDecode(_prefs.getString(_keySessions) ?? '[]'),
       'recoveryLogs': jsonDecode(_prefs.getString(_keyRecoveryLogs) ?? '[]'),
       'accessoryLogs': jsonDecode(_prefs.getString(_keyAccessoryLogs) ?? '[]'),
-      'settings': {
+      'settings': <String, Object>{
         'isLbs': loadIsLbs(),
         'barWeight': loadBarWeight(),
         'collarWeight': loadCollarWeight(),
@@ -229,19 +261,24 @@ class StorageService {
   }
 
   String exportPrsCsv() {
-    final lifts = loadLifts();
-    final buffer = StringBuffer();
-    buffer.writeln('Lift Name,Category,1RM (KG),1RM (LBS),Target Ratio,Anchor Lift ID');
-    for (var lift in lifts) {
-      final lbs = (lift.currentMax * 2.20462).toStringAsFixed(1);
-      buffer.writeln('${lift.name},${lift.category.name},${lift.currentMax.toStringAsFixed(1)},$lbs,${lift.targetRatio},${lift.anchorLiftId ?? ''}');
+    final List<LiftModel> lifts = loadLifts();
+    final StringBuffer buffer = StringBuffer();
+    buffer.writeln(
+      'Lift Name,Category,1RM (KG),1RM (LBS),Target Ratio,Anchor Lift ID',
+    );
+    for (final LiftModel lift in lifts) {
+      final String lbs = (lift.currentMax * 2.20462).toStringAsFixed(1);
+      buffer.writeln(
+        '${lift.name},${lift.category.name},${lift.currentMax.toStringAsFixed(1)},$lbs,${lift.targetRatio},${lift.anchorLiftId ?? ''}',
+      );
     }
     return buffer.toString();
   }
 
   Future<bool> importAppDataJson(String jsonStr) async {
     try {
-      final map = jsonDecode(jsonStr) as Map<String, dynamic>;
+      final Map<String, dynamic> map =
+          jsonDecode(jsonStr) as Map<String, dynamic>;
       if (map.containsKey('lifts')) {
         await _prefs.setString(_keyLifts, jsonEncode(map['lifts']));
       }
@@ -249,21 +286,40 @@ class StorageService {
         await _prefs.setString(_keyCycle, jsonEncode(map['cycle']));
       }
       if (map.containsKey('workoutSessions')) {
-        await _prefs.setString(_keySessions, jsonEncode(map['workoutSessions']));
+        await _prefs.setString(
+          _keySessions,
+          jsonEncode(map['workoutSessions']),
+        );
       }
       if (map.containsKey('recoveryLogs')) {
-        await _prefs.setString(_keyRecoveryLogs, jsonEncode(map['recoveryLogs']));
+        await _prefs.setString(
+          _keyRecoveryLogs,
+          jsonEncode(map['recoveryLogs']),
+        );
       }
       if (map.containsKey('accessoryLogs')) {
-        await _prefs.setString(_keyAccessoryLogs, jsonEncode(map['accessoryLogs']));
+        await _prefs.setString(
+          _keyAccessoryLogs,
+          jsonEncode(map['accessoryLogs']),
+        );
       }
       if (map.containsKey('settings')) {
-        final s = map['settings'] as Map<String, dynamic>;
-        if (s.containsKey('isLbs')) await saveIsLbs(s['isLbs'] as bool);
-        if (s.containsKey('barWeight')) await saveBarWeight((s['barWeight'] as num).toDouble());
-        if (s.containsKey('collarWeight')) await saveCollarWeight((s['collarWeight'] as num).toDouble());
-        if (s.containsKey('soundAlerts')) await saveSoundAlerts(s['soundAlerts'] as bool);
-        if (s.containsKey('hapticsEnabled')) await saveHapticsEnabled(s['hapticsEnabled'] as bool);
+        final Map<String, dynamic> s = map['settings'] as Map<String, dynamic>;
+        if (s.containsKey('isLbs')) {
+          await saveIsLbs(s['isLbs'] as bool);
+        }
+        if (s.containsKey('barWeight')) {
+          await saveBarWeight((s['barWeight'] as num).toDouble());
+        }
+        if (s.containsKey('collarWeight')) {
+          await saveCollarWeight((s['collarWeight'] as num).toDouble());
+        }
+        if (s.containsKey('soundAlerts')) {
+          await saveSoundAlerts(s['soundAlerts'] as bool);
+        }
+        if (s.containsKey('hapticsEnabled')) {
+          await saveHapticsEnabled(s['hapticsEnabled'] as bool);
+        }
       }
       return true;
     } catch (_) {
@@ -273,28 +329,36 @@ class StorageService {
 
   Future<bool> importPrsCsv(String csvStr) async {
     try {
-      final lines = csvStr
+      final List<String> lines = csvStr
           .split(RegExp(r'\r?\n'))
-          .where((l) => l.trim().isNotEmpty)
+          .where((String l) => l.trim().isNotEmpty)
           .toList();
-      if (lines.isEmpty) return false;
+      if (lines.isEmpty) {
+        return false;
+      }
 
-      final lifts = loadLifts();
+      final List<LiftModel> lifts = loadLifts();
       bool updated = false;
 
-      final startIndex =
-          lines.first.toLowerCase().contains('lift name') ? 1 : 0;
+      final int startIndex = lines.first.toLowerCase().contains('lift name')
+          ? 1
+          : 0;
 
       for (int i = startIndex; i < lines.length; i++) {
-        final parts = lines[i].split(',').map((p) => p.trim()).toList();
-        if (parts.length < 3) continue;
+        final List<String> parts = lines[i]
+            .split(',')
+            .map((String p) => p.trim())
+            .toList();
+        if (parts.length < 3) {
+          continue;
+        }
 
-        final liftName = parts[0];
-        final maxKg = double.tryParse(parts[2]);
+        final String liftName = parts[0];
+        final double? maxKg = double.tryParse(parts[2]);
 
         if (maxKg != null && maxKg > 0) {
-          final liftIndex = lifts.indexWhere(
-            (l) => l.name.toLowerCase() == liftName.toLowerCase(),
+          final int liftIndex = lifts.indexWhere(
+            (LiftModel l) => l.name.toLowerCase() == liftName.toLowerCase(),
           );
           if (liftIndex != -1) {
             lifts[liftIndex].currentMax = maxKg;
@@ -314,53 +378,68 @@ class StorageService {
 
   // --- BODY COMPOSITION STORAGE ---
   List<BodyCompositionEntry> loadBodyCompEntries() {
-    final jsonStr = _prefs.getString(_keyBodyCompEntries);
+    final String? jsonStr = _prefs.getString(_keyBodyCompEntries);
     if (jsonStr == null || jsonStr.isEmpty) {
-      return [];
+      return <BodyCompositionEntry>[];
     }
     try {
       final List<dynamic> list = jsonDecode(jsonStr);
-      final entries = list.map((e) => BodyCompositionEntry.fromJson(e as Map<String, dynamic>)).toList();
-      entries.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+      final List<BodyCompositionEntry> entries = list
+          .map((e) => BodyCompositionEntry.fromJson(e as Map<String, dynamic>))
+          .toList();
+      entries.sort(
+        (BodyCompositionEntry a, BodyCompositionEntry b) =>
+            b.timestamp.compareTo(a.timestamp),
+      );
       return entries;
     } catch (_) {
-      return [];
+      return <BodyCompositionEntry>[];
     }
   }
 
   Future<void> saveBodyCompEntries(List<BodyCompositionEntry> entries) async {
-    final jsonStr = jsonEncode(entries.map((e) => e.toJson()).toList());
+    final String jsonStr = jsonEncode(
+      entries.map((BodyCompositionEntry e) => e.toJson()).toList(),
+    );
     await _prefs.setString(_keyBodyCompEntries, jsonStr);
   }
 
   // --- DAILY NUTRITION LOGS STORAGE ---
   Map<String, DailyNutritionLog> loadDailyNutritionLogs() {
-    final jsonStr = _prefs.getString(_keyNutritionLogs);
+    final String? jsonStr = _prefs.getString(_keyNutritionLogs);
     if (jsonStr == null || jsonStr.isEmpty) {
-      return {};
+      return <String, DailyNutritionLog>{};
     }
     try {
       final Map<String, dynamic> map = jsonDecode(jsonStr);
-      return map.map((k, v) => MapEntry(k, DailyNutritionLog.fromJson(v as Map<String, dynamic>)));
+      return map.map(
+        (String k, v) =>
+            MapEntry(k, DailyNutritionLog.fromJson(v as Map<String, dynamic>)),
+      );
     } catch (_) {
-      return {};
+      return <String, DailyNutritionLog>{};
     }
   }
 
-  Future<void> saveDailyNutritionLogs(Map<String, DailyNutritionLog> logs) async {
-    final map = logs.map((k, v) => MapEntry(k, v.toJson()));
-    final jsonStr = jsonEncode(map);
+  Future<void> saveDailyNutritionLogs(
+    Map<String, DailyNutritionLog> logs,
+  ) async {
+    final Map<String, Map<String, dynamic>> map = logs.map(
+      (String k, DailyNutritionLog v) => MapEntry(k, v.toJson()),
+    );
+    final String jsonStr = jsonEncode(map);
     await _prefs.setString(_keyNutritionLogs, jsonStr);
   }
 
   // --- NUTRITION GOAL STORAGE ---
   NutritionGoalModel loadNutritionGoal() {
-    final jsonStr = _prefs.getString(_keyNutritionGoal);
+    final String? jsonStr = _prefs.getString(_keyNutritionGoal);
     if (jsonStr == null || jsonStr.isEmpty) {
       return const NutritionGoalModel();
     }
     try {
-      final map = jsonDecode(jsonStr) as Map<String, dynamic>;
+      final Map<String, dynamic> map =
+          jsonDecode(jsonStr) as Map<String, dynamic>;
       return NutritionGoalModel.fromJson(map);
     } catch (_) {
       return const NutritionGoalModel();
@@ -368,51 +447,60 @@ class StorageService {
   }
 
   Future<void> saveNutritionGoal(NutritionGoalModel goal) async {
-    final jsonStr = jsonEncode(goal.toJson());
+    final String jsonStr = jsonEncode(goal.toJson());
     await _prefs.setString(_keyNutritionGoal, jsonStr);
   }
 
   // --- MEAL TEMPLATES / FAVORITES STORAGE ---
   List<NutritionEntry> loadMealTemplates() {
-    final jsonStr = _prefs.getString(_keyMealTemplates);
+    final String? jsonStr = _prefs.getString(_keyMealTemplates);
     if (jsonStr == null || jsonStr.isEmpty) {
-      return [];
+      return <NutritionEntry>[];
     }
     try {
       final List<dynamic> list = jsonDecode(jsonStr);
-      return list.map((e) => NutritionEntry.fromJson(e as Map<String, dynamic>)).toList();
+      return list
+          .map((e) => NutritionEntry.fromJson(e as Map<String, dynamic>))
+          .toList();
     } catch (_) {
-      return [];
+      return <NutritionEntry>[];
     }
   }
 
   Future<void> saveMealTemplates(List<NutritionEntry> templates) async {
-    final jsonStr = jsonEncode(templates.map((e) => e.toJson()).toList());
+    final String jsonStr = jsonEncode(
+      templates.map((NutritionEntry e) => e.toJson()).toList(),
+    );
     await _prefs.setString(_keyMealTemplates, jsonStr);
   }
 
   // --- PRODUCT CACHING STORAGE ---
   Map<String, Map<String, dynamic>> loadCachedProductsJson() {
-    final jsonStr = _prefs.getString(_keyCachedProducts);
+    final String? jsonStr = _prefs.getString(_keyCachedProducts);
     if (jsonStr == null || jsonStr.isEmpty) {
-      return {};
+      return <String, Map<String, dynamic>>{};
     }
     try {
       final Map<String, dynamic> decoded = jsonDecode(jsonStr);
-      return decoded.map((k, v) => MapEntry(k, Map<String, dynamic>.from(v as Map)));
+      return decoded.map(
+        (String k, v) => MapEntry(k, Map<String, dynamic>.from(v as Map)),
+      );
     } catch (_) {
-      return {};
+      return <String, Map<String, dynamic>>{};
     }
   }
 
-  Future<void> saveCachedProductJson(String barcode, Map<String, dynamic> jsonMap) async {
-    final current = loadCachedProductsJson();
+  Future<void> saveCachedProductJson(
+    String barcode,
+    Map<String, dynamic> jsonMap,
+  ) async {
+    final Map<String, Map<String, dynamic>> current = loadCachedProductsJson();
     current[barcode] = jsonMap;
     await _prefs.setString(_keyCachedProducts, jsonEncode(current));
   }
 
   Future<void> removeCachedProduct(String barcode) async {
-    final current = loadCachedProductsJson();
+    final Map<String, Map<String, dynamic>> current = loadCachedProductsJson();
     if (current.containsKey(barcode)) {
       current.remove(barcode);
       await _prefs.setString(_keyCachedProducts, jsonEncode(current));
@@ -421,13 +509,13 @@ class StorageService {
 
   // --- RECENT SCANNED BARCODES STORAGE ---
   List<String> loadRecentScannedBarcodes() {
-    final list = _prefs.getStringList(_keyRecentScans);
-    return list ?? [];
+    final List<String>? list = _prefs.getStringList(_keyRecentScans);
+    return list ?? <String>[];
   }
 
   Future<void> addRecentScannedBarcode(String barcode) async {
-    final list = loadRecentScannedBarcodes();
-    list.removeWhere((b) => b == barcode);
+    final List<String> list = loadRecentScannedBarcodes();
+    list.removeWhere((String b) => b == barcode);
     list.insert(0, barcode);
     if (list.length > 20) {
       list.removeRange(20, list.length);
@@ -439,4 +527,3 @@ class StorageService {
     await _prefs.remove(_keyRecentScans);
   }
 }
-

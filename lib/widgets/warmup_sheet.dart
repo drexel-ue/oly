@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../theme/app_theme.dart';
+import 'package:oly/theme/app_theme.dart';
 
 class WarmupSheet extends StatefulWidget {
   const WarmupSheet({super.key});
@@ -22,7 +22,7 @@ class _WarmupSheetState extends State<WarmupSheet> {
   int _foamPasses = 0;
 
   // DROM Checkboxes
-  final Map<String, bool> _droms = {
+  final Map<String, bool> _droms = <String, bool>{
     'Wrists (10-15 reps)': false,
     'Elbows (10-15 reps)': false,
     'Shoulders (10-15 reps)': false,
@@ -47,7 +47,7 @@ class _WarmupSheetState extends State<WarmupSheet> {
       setState(() => _isTimerRunning = false);
     } else {
       setState(() => _isTimerRunning = true);
-      _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      _timer = Timer.periodic(const Duration(seconds: 1), (Timer timer) {
         if (_secondsRemaining > 0) {
           setState(() => _secondsRemaining--);
         } else {
@@ -67,8 +67,8 @@ class _WarmupSheetState extends State<WarmupSheet> {
   }
 
   String get _formattedTime {
-    final mins = _secondsRemaining ~/ 60;
-    final secs = _secondsRemaining % 60;
+    final int mins = _secondsRemaining ~/ 60;
+    final int secs = _secondsRemaining % 60;
     return '${mins.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}';
   }
 
@@ -83,311 +83,325 @@ class _WarmupSheetState extends State<WarmupSheet> {
       child: SafeArea(
         child: SingleChildScrollView(
           child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: 16),
-                decoration: BoxDecoration(
-                  color: AppTheme.borderColor,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Guided Olympic Warm-Up',
-                  style: GoogleFonts.outfit(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.textPrimary,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: AppTheme.borderColor,
+                    borderRadius: BorderRadius.circular(2),
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.close, color: AppTheme.textSecondary),
-                  onPressed: () => Navigator.pop(context),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-
-            // Step 1: General Warm Up
-            _buildSectionHeader(
-              '1. General Warm Up (Cardio)',
-              Icons.directions_bike,
-            ),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppTheme.surfaceCard,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppTheme.borderColor),
               ),
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Row / Bike (Row Preferred)',
-                        style: GoogleFonts.inter(fontWeight: FontWeight.w600),
-                      ),
-                      Text(
-                        _formattedTime,
-                        style: GoogleFonts.outfit(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.primaryAmber,
-                        ),
-                      ),
-                    ],
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  Text(
+                    'Guided Olympic Warm-Up',
+                    style: GoogleFonts.outfit(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.textPrimary,
+                    ),
                   ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      ElevatedButton.icon(
-                        onPressed: _toggleTimer,
-                        icon: Icon(
-                          _isTimerRunning ? Icons.pause : Icons.play_arrow,
-                        ),
-                        label: Text(_isTimerRunning ? 'Pause' : 'Start'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppTheme.primaryAmber,
-                          foregroundColor: Colors.black,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      OutlinedButton(
-                        onPressed: () => _resetTimer(180),
-                        child: const Text('3 Min'),
-                      ),
-                      const SizedBox(width: 8),
-                      OutlinedButton(
-                        onPressed: () => _resetTimer(300),
-                        child: const Text('5 Min'),
-                      ),
-                    ],
+                  IconButton(
+                    icon: const Icon(
+                      Icons.close,
+                      color: AppTheme.textSecondary,
+                    ),
+                    onPressed: () => Navigator.pop(context),
                   ),
                 ],
               ),
-            ),
-            const SizedBox(height: 16),
+              const SizedBox(height: 16),
 
-            // Step 2: Foam Rolling
-            _buildSectionHeader('2. Foam Rolling', Icons.fitness_center),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppTheme.surfaceCard,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppTheme.borderColor),
+              // Step 1: General Warm Up
+              _buildSectionHeader(
+                '1. General Warm Up (Cardio)',
+                Icons.directions_bike,
               ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppTheme.surfaceCard,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppTheme.borderColor),
+                ),
+                child: Column(
+                  children: <Widget>[
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: <Widget>[
                         Text(
-                          'Thoracic Spine Focus',
+                          'Row / Bike (Row Preferred)',
                           style: GoogleFonts.inter(fontWeight: FontWeight.w600),
                         ),
                         Text(
-                          '8-10 passes per muscle group',
-                          style: GoogleFonts.inter(
-                            fontSize: 12,
-                            color: AppTheme.textSecondary,
+                          _formattedTime,
+                          style: GoogleFonts.outfit(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.primaryAmber,
                           ),
                         ),
                       ],
                     ),
-                  ),
-                  Row(
-                    children: [
-                      IconButton(
-                        icon: const Icon(
-                          Icons.remove_circle_outline,
-                          color: AppTheme.primaryAmber,
+                    const SizedBox(height: 12),
+                    Row(
+                      children: <Widget>[
+                        ElevatedButton.icon(
+                          onPressed: _toggleTimer,
+                          icon: Icon(
+                            _isTimerRunning ? Icons.pause : Icons.play_arrow,
+                          ),
+                          label: Text(_isTimerRunning ? 'Pause' : 'Start'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppTheme.primaryAmber,
+                            foregroundColor: Colors.black,
+                          ),
                         ),
-                        onPressed: _foamPasses > 0
-                            ? () => setState(() => _foamPasses--)
-                            : null,
-                      ),
-                      Text(
-                        '$_foamPasses / 10',
-                        style: GoogleFonts.outfit(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                        const SizedBox(width: 8),
+                        OutlinedButton(
+                          onPressed: () => _resetTimer(180),
+                          child: const Text('3 Min'),
                         ),
-                      ),
-                      IconButton(
-                        icon: const Icon(
-                          Icons.add_circle_outline,
-                          color: AppTheme.primaryAmber,
+                        const SizedBox(width: 8),
+                        OutlinedButton(
+                          onPressed: () => _resetTimer(300),
+                          child: const Text('5 Min'),
                         ),
-                        onPressed: () => setState(() => _foamPasses++),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Step 3: DROMs
-            _buildSectionHeader(
-              '3. Dynamic Mobility (DROMs)',
-              Icons.accessibility_new,
-            ),
-            Container(
-              decoration: BoxDecoration(
-                color: AppTheme.surfaceCard,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppTheme.borderColor),
-              ),
-              child: Material(
-                color: Colors.transparent,
-                borderRadius: BorderRadius.circular(16),
-                clipBehavior: Clip.antiAlias,
-                child: Column(
-                  children: _droms.keys.map((key) {
-                    return CheckboxListTile(
-                      title: Text(key, style: GoogleFonts.inter(fontSize: 14)),
-                      value: _droms[key],
-                      activeColor: AppTheme.primaryAmber,
-                      checkColor: Colors.black,
-                      onChanged: (val) =>
-                          setState(() => _droms[key] = val ?? false),
-                    );
-                  }).toList(),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Step 4: Static Stretching
-            _buildSectionHeader('4. Static Stretching', Icons.self_improvement),
-            Container(
-              decoration: BoxDecoration(
-                color: AppTheme.surfaceCard,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppTheme.borderColor),
-              ),
-              child: Material(
-                color: Colors.transparent,
-                borderRadius: BorderRadius.circular(16),
-                clipBehavior: Clip.antiAlias,
-                child: Column(
-                  children: [
-                    CheckboxListTile(
-                      title: Text(
-                        'Shoulders (30s hold per side)',
-                        style: GoogleFonts.inter(fontSize: 14),
-                      ),
-                      value: _stretchShoulders,
-                      activeColor: AppTheme.primaryAmber,
-                      checkColor: Colors.black,
-                      onChanged: (val) =>
-                          setState(() => _stretchShoulders = val ?? false),
-                    ),
-                    CheckboxListTile(
-                      title: Text(
-                        'Ankles (Dorsiflexion 30s per leg)',
-                        style: GoogleFonts.inter(fontSize: 14),
-                      ),
-                      value: _stretchAnkles,
-                      activeColor: AppTheme.primaryAmber,
-                      checkColor: Colors.black,
-                      onChanged: (val) =>
-                          setState(() => _stretchAnkles = val ?? false),
+                      ],
                     ),
                   ],
                 ),
               ),
-            ),
-            const SizedBox(height: 16),
+              const SizedBox(height: 16),
 
-            // Step 5: Barbell Warmup
-            _buildSectionHeader('5. Barbell Warm-Up', Icons.sports_gymnastics),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppTheme.surfaceElevated,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: AppTheme.primaryAmber.withValues(alpha: 0.4),
+              // Step 2: Foam Rolling
+              _buildSectionHeader('2. Foam Rolling', Icons.fitness_center),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppTheme.surfaceCard,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppTheme.borderColor),
+                ),
+                child: Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Text(
+                            'Thoracic Spine Focus',
+                            style: GoogleFonts.inter(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          Text(
+                            '8-10 passes per muscle group',
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              color: AppTheme.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Row(
+                      children: <Widget>[
+                        IconButton(
+                          icon: const Icon(
+                            Icons.remove_circle_outline,
+                            color: AppTheme.primaryAmber,
+                          ),
+                          onPressed: _foamPasses > 0
+                              ? () => setState(() => _foamPasses--)
+                              : null,
+                        ),
+                        Text(
+                          '$_foamPasses / 10',
+                          style: GoogleFonts.outfit(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(
+                            Icons.add_circle_outline,
+                            color: AppTheme.primaryAmber,
+                          ),
+                          onPressed: () => setState(() => _foamPasses++),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Empty Barbell Specific Prep:',
-                    style: GoogleFonts.inter(
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.primaryAmber,
+              const SizedBox(height: 16),
+
+              // Step 3: DROMs
+              _buildSectionHeader(
+                '3. Dynamic Mobility (DROMs)',
+                Icons.accessibility_new,
+              ),
+              Container(
+                decoration: BoxDecoration(
+                  color: AppTheme.surfaceCard,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppTheme.borderColor),
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  borderRadius: BorderRadius.circular(16),
+                  clipBehavior: Clip.antiAlias,
+                  child: Column(
+                    children: _droms.keys.map((String key) {
+                      return CheckboxListTile(
+                        title: Text(
+                          key,
+                          style: GoogleFonts.inter(fontSize: 14),
+                        ),
+                        value: _droms[key],
+                        activeColor: AppTheme.primaryAmber,
+                        checkColor: Colors.black,
+                        onChanged: (bool? val) =>
+                            setState(() => _droms[key] = val ?? false),
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Step 4: Static Stretching
+              _buildSectionHeader(
+                '4. Static Stretching',
+                Icons.self_improvement,
+              ),
+              Container(
+                decoration: BoxDecoration(
+                  color: AppTheme.surfaceCard,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppTheme.borderColor),
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  borderRadius: BorderRadius.circular(16),
+                  clipBehavior: Clip.antiAlias,
+                  child: Column(
+                    children: <Widget>[
+                      CheckboxListTile(
+                        title: Text(
+                          'Shoulders (30s hold per side)',
+                          style: GoogleFonts.inter(fontSize: 14),
+                        ),
+                        value: _stretchShoulders,
+                        activeColor: AppTheme.primaryAmber,
+                        checkColor: Colors.black,
+                        onChanged: (bool? val) =>
+                            setState(() => _stretchShoulders = val ?? false),
+                      ),
+                      CheckboxListTile(
+                        title: Text(
+                          'Ankles (Dorsiflexion 30s per leg)',
+                          style: GoogleFonts.inter(fontSize: 14),
+                        ),
+                        value: _stretchAnkles,
+                        activeColor: AppTheme.primaryAmber,
+                        checkColor: Colors.black,
+                        onChanged: (bool? val) =>
+                            setState(() => _stretchAnkles = val ?? false),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Step 5: Barbell Warmup
+              _buildSectionHeader(
+                '5. Barbell Warm-Up',
+                Icons.sports_gymnastics,
+              ),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppTheme.surfaceElevated,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: AppTheme.primaryAmber.withValues(alpha: 0.4),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      'Empty Barbell Specific Prep:',
+                      style: GoogleFonts.inter(
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.primaryAmber,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '• 5 Tall Muscle Snatches / Cleans',
+                      style: GoogleFonts.inter(fontSize: 13),
+                    ),
+                    Text(
+                      '• 5 Overhead Squats / Front Squats',
+                      style: GoogleFonts.inter(fontSize: 13),
+                    ),
+                    Text(
+                      '• 5 Press in Snatch / Push Press',
+                      style: GoogleFonts.inter(fontSize: 13),
+                    ),
+                    Text(
+                      '• 3 Warmup Sets with progressive weight loading',
+                      style: GoogleFonts.inter(fontSize: 13),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primaryAmber,
+                    foregroundColor: Colors.black,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    '• 5 Tall Muscle Snatches / Cleans',
-                    style: GoogleFonts.inter(fontSize: 13),
-                  ),
-                  Text(
-                    '• 5 Overhead Squats / Front Squats',
-                    style: GoogleFonts.inter(fontSize: 13),
-                  ),
-                  Text(
-                    '• 5 Press in Snatch / Push Press',
-                    style: GoogleFonts.inter(fontSize: 13),
-                  ),
-                  Text(
-                    '• 3 Warmup Sets with progressive weight loading',
-                    style: GoogleFonts.inter(fontSize: 13),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: ElevatedButton(
-                onPressed: () => Navigator.pop(context),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primaryAmber,
-                  foregroundColor: Colors.black,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                ),
-                child: Text(
-                  'Complete Warm-Up & Start Workout',
-                  style: GoogleFonts.outfit(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
+                  child: Text(
+                    'Complete Warm-Up & Start Workout',
+                    style: GoogleFonts.outfit(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
-    ),
-  );
+    );
   }
 
   Widget _buildSectionHeader(String title, IconData icon) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
-        children: [
+        children: <Widget>[
           Icon(icon, color: AppTheme.primaryAmber, size: 20),
           const SizedBox(width: 8),
           Text(

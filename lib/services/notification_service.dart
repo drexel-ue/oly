@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -8,22 +9,25 @@ import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
 class NotificationService {
-  static final NotificationService _instance = NotificationService._internal();
   factory NotificationService() => _instance;
   NotificationService._internal();
+  static final NotificationService _instance = NotificationService._internal();
 
-  final FlutterLocalNotificationsPlugin _notifications = FlutterLocalNotificationsPlugin();
+  final FlutterLocalNotificationsPlugin _notifications =
+      FlutterLocalNotificationsPlugin();
   final AudioPlayer _audioPlayer = AudioPlayer();
   bool _initialized = false;
 
   Future<void> init() async {
-    if (_initialized) return;
+    if (_initialized) {
+      return;
+    }
 
     // Detect actual native device timezone with safe fallback
     try {
       tz.initializeTimeZones();
       try {
-        final timeZoneName = await FlutterTimezone.getLocalTimezone();
+        final String timeZoneName = await FlutterTimezone.getLocalTimezone();
         tz.setLocalLocation(tz.getLocation(timeZoneName));
       } catch (e) {
         debugPrint('Timezone lookup fallback: $e');
@@ -38,12 +42,12 @@ class NotificationService {
         AudioContext(
           iOS: AudioContextIOS(
             category: AVAudioSessionCategory.playback,
-            options: {
+            options: const <AVAudioSessionOptions>{
               AVAudioSessionOptions.mixWithOthers,
               AVAudioSessionOptions.duckOthers,
             },
           ),
-          android: AudioContextAndroid(
+          android: const AudioContextAndroid(
             usageType: AndroidUsageType.alarm,
             contentType: AndroidContentType.sonification,
             audioFocus: AndroidAudioFocus.gainTransientMayDuck,
@@ -54,14 +58,16 @@ class NotificationService {
       debugPrint('AudioContext init error: $e');
     }
 
-    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
-    const iosSettings = DarwinInitializationSettings(
-      requestAlertPermission: true,
-      requestBadgePermission: true,
-      requestSoundPermission: true,
-    );
+    const AndroidInitializationSettings androidSettings =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
+    const DarwinInitializationSettings iosSettings =
+        DarwinInitializationSettings(
+          requestAlertPermission: true,
+          requestBadgePermission: true,
+          requestSoundPermission: true,
+        );
 
-    const initSettings = InitializationSettings(
+    const InitializationSettings initSettings = InitializationSettings(
       android: androidSettings,
       iOS: iosSettings,
     );
@@ -98,29 +104,33 @@ class NotificationService {
     await init();
     await cancelTimerNotification();
 
-    if (secondsRemaining <= 0) return;
+    if (secondsRemaining <= 0) {
+      return;
+    }
 
     try {
-      final scheduledDate = tz.TZDateTime.now(tz.local).add(Duration(seconds: secondsRemaining));
+      final tz.TZDateTime scheduledDate = tz.TZDateTime.now(tz.local)
+          .add(Duration(seconds: secondsRemaining));
 
-      const androidDetails = AndroidNotificationDetails(
-        'oly_rest_timer',
-        'Rest Timer Alerts',
-        channelDescription: 'Alarm alerts when rest timer reaches 0s',
-        importance: Importance.max,
-        priority: Priority.high,
-        playSound: true,
-        enableVibration: true,
-      );
+      const AndroidNotificationDetails androidDetails =
+          AndroidNotificationDetails(
+            'oly_rest_timer',
+            'Rest Timer Alerts',
+            channelDescription: 'Alarm alerts when rest timer reaches 0s',
+            importance: Importance.max,
+            priority: Priority.high,
+            playSound: true,
+            enableVibration: true,
+          );
 
-      const iosDetails = DarwinNotificationDetails(
+      const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
         presentAlert: true,
         presentSound: true,
         presentBadge: true,
         sound: 'default',
       );
 
-      const details = NotificationDetails(
+      const NotificationDetails details = NotificationDetails(
         android: androidDetails,
         iOS: iosDetails,
       );

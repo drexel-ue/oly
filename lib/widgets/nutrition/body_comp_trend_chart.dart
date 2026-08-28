@@ -1,23 +1,15 @@
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
-import '../../models/body_composition_entry.dart';
-import '../../theme/app_theme.dart';
+import 'package:oly/models/body_composition_entry.dart';
+import 'package:oly/theme/app_theme.dart';
 
-enum ChartMetricType {
-  weightAndLeanMass,
-  bodyFatPercentage,
-  muscleMass,
-}
+enum ChartMetricType { weightAndLeanMass, bodyFatPercentage, muscleMass }
 
 class BodyCompTrendChart extends StatefulWidget {
+  const BodyCompTrendChart({required this.entries, super.key});
   final List<BodyCompositionEntry> entries;
-
-  const BodyCompTrendChart({
-    super.key,
-    required this.entries,
-  });
 
   @override
   State<BodyCompTrendChart> createState() => _BodyCompTrendChartState();
@@ -44,8 +36,11 @@ class _BodyCompTrendChartState extends State<BodyCompTrendChart> {
       );
     }
 
-    final sortedEntries = List<BodyCompositionEntry>.from(widget.entries)
-      ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
+    final List<BodyCompositionEntry> sortedEntries =
+        List<BodyCompositionEntry>.from(widget.entries)..sort(
+          (BodyCompositionEntry a, BodyCompositionEntry b) =>
+              a.timestamp.compareTo(b.timestamp),
+        );
 
     return Container(
       padding: const EdgeInsets.all(18),
@@ -56,11 +51,11 @@ class _BodyCompTrendChartState extends State<BodyCompTrendChart> {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+        children: <Widget>[
           // Header & Metric Segment Toggle
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
+            children: <Widget>[
               Text(
                 'BODY COMPOSITION TREND',
                 style: GoogleFonts.inter(
@@ -77,9 +72,15 @@ class _BodyCompTrendChartState extends State<BodyCompTrendChart> {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Row(
-                  children: [
-                    _buildSegmentButton('Weight/LBM', ChartMetricType.weightAndLeanMass),
-                    _buildSegmentButton('BF %', ChartMetricType.bodyFatPercentage),
+                  children: <Widget>[
+                    _buildSegmentButton(
+                      'Weight/LBM',
+                      ChartMetricType.weightAndLeanMass,
+                    ),
+                    _buildSegmentButton(
+                      'BF %',
+                      ChartMetricType.bodyFatPercentage,
+                    ),
                     _buildSegmentButton('Muscle', ChartMetricType.muscleMass),
                   ],
                 ),
@@ -92,9 +93,7 @@ class _BodyCompTrendChartState extends State<BodyCompTrendChart> {
           // Chart
           SizedBox(
             height: 180,
-            child: LineChart(
-              _buildChartData(sortedEntries),
-            ),
+            child: LineChart(_buildChartData(sortedEntries)),
           ),
 
           const SizedBox(height: 12),
@@ -107,7 +106,7 @@ class _BodyCompTrendChartState extends State<BodyCompTrendChart> {
   }
 
   Widget _buildSegmentButton(String label, ChartMetricType type) {
-    final isSelected = _selectedType == type;
+    final bool isSelected = _selectedType == type;
     return GestureDetector(
       onTap: () => setState(() => _selectedType = type),
       child: Container(
@@ -129,20 +128,24 @@ class _BodyCompTrendChartState extends State<BodyCompTrendChart> {
   }
 
   LineChartData _buildChartData(List<BodyCompositionEntry> entries) {
-    List<LineChartBarData> lines = [];
+    List<LineChartBarData> lines = <LineChartBarData>[];
 
     if (_selectedType == ChartMetricType.weightAndLeanMass) {
       // Line 1: Total Weight
-      final weightSpots = entries.asMap().entries.map((e) {
+      final List<FlSpot> weightSpots = entries.asMap().entries.map((
+        MapEntry<int, BodyCompositionEntry> e,
+      ) {
         return FlSpot(e.key.toDouble(), e.value.weightLb);
       }).toList();
 
       // Line 2: Lean Body Mass (LBM)
-      final leanSpots = entries.asMap().entries.map((e) {
+      final List<FlSpot> leanSpots = entries.asMap().entries.map((
+        MapEntry<int, BodyCompositionEntry> e,
+      ) {
         return FlSpot(e.key.toDouble(), e.value.leanBodyMassLb);
       }).toList();
 
-      lines = [
+      lines = <LineChartBarData>[
         LineChartBarData(
           spots: weightSpots,
           isCurved: true,
@@ -161,11 +164,13 @@ class _BodyCompTrendChartState extends State<BodyCompTrendChart> {
         ),
       ];
     } else if (_selectedType == ChartMetricType.bodyFatPercentage) {
-      final bfSpots = entries.asMap().entries.map((e) {
+      final List<FlSpot> bfSpots = entries.asMap().entries.map((
+        MapEntry<int, BodyCompositionEntry> e,
+      ) {
         return FlSpot(e.key.toDouble(), e.value.bodyFatPct ?? 0);
       }).toList();
 
-      lines = [
+      lines = <LineChartBarData>[
         LineChartBarData(
           spots: bfSpots,
           isCurved: true,
@@ -176,11 +181,16 @@ class _BodyCompTrendChartState extends State<BodyCompTrendChart> {
         ),
       ];
     } else {
-      final muscleSpots = entries.asMap().entries.map((e) {
-        return FlSpot(e.key.toDouble(), e.value.skeletalMuscleLb ?? (e.value.weightLb * 0.5));
+      final List<FlSpot> muscleSpots = entries.asMap().entries.map((
+        MapEntry<int, BodyCompositionEntry> e,
+      ) {
+        return FlSpot(
+          e.key.toDouble(),
+          e.value.skeletalMuscleLb ?? (e.value.weightLb * 0.5),
+        );
       }).toList();
 
-      lines = [
+      lines = <LineChartBarData>[
         LineChartBarData(
           spots: muscleSpots,
           isCurved: true,
@@ -196,33 +206,41 @@ class _BodyCompTrendChartState extends State<BodyCompTrendChart> {
       gridData: FlGridData(
         show: true,
         drawVerticalLine: false,
-        getDrawingHorizontalLine: (value) => FlLine(
-          color: AppTheme.borderColor.withOpacity(0.5),
+        getDrawingHorizontalLine: (double value) => FlLine(
+          color: AppTheme.borderColor.withValues(alpha: 0.5),
           strokeWidth: 1,
         ),
       ),
       titlesData: FlTitlesData(
         topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-        rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+        rightTitles: const AxisTitles(
+          sideTitles: SideTitles(showTitles: false),
+        ),
         leftTitles: AxisTitles(
           sideTitles: SideTitles(
             showTitles: true,
             reservedSize: 42,
-            getTitlesWidget: (value, meta) => Text(
+            getTitlesWidget: (double value, TitleMeta meta) => Text(
               value.toStringAsFixed(0),
-              style: GoogleFonts.inter(fontSize: 10, color: AppTheme.textSecondary),
+              style: GoogleFonts.inter(
+                fontSize: 10,
+                color: AppTheme.textSecondary,
+              ),
             ),
           ),
         ),
         bottomTitles: AxisTitles(
           sideTitles: SideTitles(
             showTitles: true,
-            getTitlesWidget: (value, meta) {
-              final index = value.toInt();
+            getTitlesWidget: (double value, TitleMeta meta) {
+              final int index = value.toInt();
               if (index >= 0 && index < entries.length) {
                 return Text(
                   DateFormat('MM/dd').format(entries[index].timestamp),
-                  style: GoogleFonts.inter(fontSize: 10, color: AppTheme.textSecondary),
+                  style: GoogleFonts.inter(
+                    fontSize: 10,
+                    color: AppTheme.textSecondary,
+                  ),
                 );
               }
               return const SizedBox();
@@ -239,7 +257,7 @@ class _BodyCompTrendChartState extends State<BodyCompTrendChart> {
     if (_selectedType == ChartMetricType.weightAndLeanMass) {
       return Row(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: [
+        children: <Widget>[
           _buildLegendIndicator(const Color(0xFF00D2FF), 'Total Weight (lb)'),
           const SizedBox(width: 16),
           _buildLegendIndicator(const Color(0xFF30D158), 'Lean Body Mass (lb)'),
@@ -248,15 +266,18 @@ class _BodyCompTrendChartState extends State<BodyCompTrendChart> {
     } else if (_selectedType == ChartMetricType.bodyFatPercentage) {
       return Row(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: [
+        children: <Widget>[
           _buildLegendIndicator(const Color(0xFFFF9F0A), 'Body Fat %'),
         ],
       );
     } else {
       return Row(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          _buildLegendIndicator(const Color(0xFF30D158), 'Skeletal Muscle (lb)'),
+        children: <Widget>[
+          _buildLegendIndicator(
+            const Color(0xFF30D158),
+            'Skeletal Muscle (lb)',
+          ),
         ],
       );
     }
@@ -265,7 +286,7 @@ class _BodyCompTrendChartState extends State<BodyCompTrendChart> {
   Widget _buildLegendIndicator(Color color, String text) {
     return Row(
       mainAxisSize: MainAxisSize.min,
-      children: [
+      children: <Widget>[
         Container(
           width: 10,
           height: 10,

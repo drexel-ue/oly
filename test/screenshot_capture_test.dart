@@ -1,10 +1,13 @@
 import 'dart:io';
 import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:golden_toolkit/golden_toolkit.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
+import 'package:nested/nested.dart';
 import 'package:oly/models/mobility_exercise_model.dart';
 import 'package:oly/models/nutrition_entry.dart';
 import 'package:oly/models/program_model.dart';
@@ -28,9 +31,6 @@ import 'package:oly/views/nutrition/food_search_sheet.dart';
 import 'package:oly/views/nutrition/live_barcode_scanner_sheet.dart';
 import 'package:oly/views/nutrition/metabolic_science_explainer_screen.dart';
 import 'package:oly/views/nutrition/nutrition_dashboard_screen.dart';
-import 'dart:io';
-import 'package:flutter/services.dart';
-import 'package:golden_toolkit/golden_toolkit.dart';
 import 'package:oly/views/nutrition/renpho_scanner_sheet.dart';
 import 'package:oly/views/plate_calculator_screen.dart';
 import 'package:oly/views/recovery_session_screen.dart';
@@ -41,88 +41,90 @@ import 'package:oly/widgets/mobility_exercise_swap_modal.dart';
 import 'package:oly/widgets/nutrition/smart_portion_drawer.dart';
 import 'package:oly/widgets/standard_ratios_sheet.dart';
 import 'package:oly/widgets/workout_weight_dialog.dart';
+import 'package:provider/provider.dart';
+
 import 'utils/mock_data_helper.dart';
 
 Future<void> _loadAllFontVariants() async {
-  final fontMap = <String, List<String>>{
-    'Outfit': [
+  final Map<String, List<String>> fontMap = <String, List<String>>{
+    'Outfit': <String>[
       'assets/fonts/Outfit-Regular.ttf',
       'assets/fonts/Outfit-Bold.ttf',
       'assets/fonts/Outfit-SemiBold.ttf',
     ],
-    'Outfit_regular': ['assets/fonts/Outfit-Regular.ttf'],
-    'Outfit_bold': ['assets/fonts/Outfit-Bold.ttf'],
-    'Outfit_semibold': ['assets/fonts/Outfit-SemiBold.ttf'],
-    'Outfit_700': ['assets/fonts/Outfit-Bold.ttf'],
-    'Outfit_600': ['assets/fonts/Outfit-SemiBold.ttf'],
-    'Outfit_400': ['assets/fonts/Outfit-Regular.ttf'],
+    'Outfit_regular': <String>['assets/fonts/Outfit-Regular.ttf'],
+    'Outfit_bold': <String>['assets/fonts/Outfit-Bold.ttf'],
+    'Outfit_semibold': <String>['assets/fonts/Outfit-SemiBold.ttf'],
+    'Outfit_700': <String>['assets/fonts/Outfit-Bold.ttf'],
+    'Outfit_600': <String>['assets/fonts/Outfit-SemiBold.ttf'],
+    'Outfit_400': <String>['assets/fonts/Outfit-Regular.ttf'],
 
-    'Inter': [
+    'Inter': <String>[
       'assets/fonts/Inter-Regular.ttf',
       'assets/fonts/Inter-Bold.ttf',
       'assets/fonts/Inter-SemiBold.ttf',
       'assets/fonts/Inter-Medium.ttf',
     ],
-    'Inter_regular': ['assets/fonts/Inter-Regular.ttf'],
-    'Inter_bold': ['assets/fonts/Inter-Bold.ttf'],
-    'Inter_semibold': ['assets/fonts/Inter-SemiBold.ttf'],
-    'Inter_medium': ['assets/fonts/Inter-Medium.ttf'],
-    'Inter_700': ['assets/fonts/Inter-Bold.ttf'],
-    'Inter_600': ['assets/fonts/Inter-SemiBold.ttf'],
-    'Inter_500': ['assets/fonts/Inter-Medium.ttf'],
-    'Inter_400': ['assets/fonts/Inter-Regular.ttf'],
+    'Inter_regular': <String>['assets/fonts/Inter-Regular.ttf'],
+    'Inter_bold': <String>['assets/fonts/Inter-Bold.ttf'],
+    'Inter_semibold': <String>['assets/fonts/Inter-SemiBold.ttf'],
+    'Inter_medium': <String>['assets/fonts/Inter-Medium.ttf'],
+    'Inter_700': <String>['assets/fonts/Inter-Bold.ttf'],
+    'Inter_600': <String>['assets/fonts/Inter-SemiBold.ttf'],
+    'Inter_500': <String>['assets/fonts/Inter-Medium.ttf'],
+    'Inter_400': <String>['assets/fonts/Inter-Regular.ttf'],
 
-    'FiraCode': [
+    'FiraCode': <String>[
       'assets/fonts/FiraCode-Regular.ttf',
       'assets/fonts/FiraCode-Bold.ttf',
       'assets/fonts/FiraCode-SemiBold.ttf',
     ],
-    'FiraCode_regular': ['assets/fonts/FiraCode-Regular.ttf'],
-    'FiraCode_bold': ['assets/fonts/FiraCode-Bold.ttf'],
-    'FiraCode_semibold': ['assets/fonts/FiraCode-SemiBold.ttf'],
-    'FiraCode_700': ['assets/fonts/FiraCode-Bold.ttf'],
-    'FiraCode_600': ['assets/fonts/FiraCode-SemiBold.ttf'],
-    'FiraCode_400': ['assets/fonts/FiraCode-Regular.ttf'],
-    'Fira Code': [
+    'FiraCode_regular': <String>['assets/fonts/FiraCode-Regular.ttf'],
+    'FiraCode_bold': <String>['assets/fonts/FiraCode-Bold.ttf'],
+    'FiraCode_semibold': <String>['assets/fonts/FiraCode-SemiBold.ttf'],
+    'FiraCode_700': <String>['assets/fonts/FiraCode-Bold.ttf'],
+    'FiraCode_600': <String>['assets/fonts/FiraCode-SemiBold.ttf'],
+    'FiraCode_400': <String>['assets/fonts/FiraCode-Regular.ttf'],
+    'Fira Code': <String>[
       'assets/fonts/FiraCode-Regular.ttf',
       'assets/fonts/FiraCode-Bold.ttf',
       'assets/fonts/FiraCode-SemiBold.ttf',
     ],
 
-    'Roboto': [
+    'Roboto': <String>[
       'assets/fonts/Inter-Regular.ttf',
       'assets/fonts/Inter-Bold.ttf',
       'assets/fonts/Inter-SemiBold.ttf',
       'assets/fonts/Inter-Medium.ttf',
     ],
-    '.AppleSystemUIFont': [
+    '.AppleSystemUIFont': <String>[
       'assets/fonts/Inter-Regular.ttf',
       'assets/fonts/Inter-Bold.ttf',
       'assets/fonts/Inter-SemiBold.ttf',
       'assets/fonts/Inter-Medium.ttf',
     ],
-    '.SF Pro Text': [
+    '.SF Pro Text': <String>[
       'assets/fonts/Inter-Regular.ttf',
       'assets/fonts/Inter-Bold.ttf',
       'assets/fonts/Inter-SemiBold.ttf',
       'assets/fonts/Inter-Medium.ttf',
     ],
-    'Ahem': [
+    'Ahem': <String>[
       'assets/fonts/Inter-Regular.ttf',
       'assets/fonts/Inter-Bold.ttf',
     ],
-    'packages/flutter_test/Ahem': [
+    'packages/flutter_test/Ahem': <String>[
       'assets/fonts/Inter-Regular.ttf',
       'assets/fonts/Inter-Bold.ttf',
     ],
   };
 
-  for (final entry in fontMap.entries) {
-    final loader = FontLoader(entry.key);
-    for (final path in entry.value) {
-      final file = File(path);
+  for (final MapEntry<String, List<String>> entry in fontMap.entries) {
+    final FontLoader loader = FontLoader(entry.key);
+    for (final String path in entry.value) {
+      final File file = File(path);
       if (file.existsSync()) {
-        final bytes = file.readAsBytesSync();
+        final Uint8List bytes = file.readAsBytesSync();
         loader.addFont(Future.value(ByteData.view(bytes.buffer)));
       }
     }
@@ -162,7 +164,7 @@ void main() {
   Widget buildTestScreen(Widget child) {
     boundaryKey = GlobalKey();
     return MultiProvider(
-      providers: [
+      providers: <SingleChildWidget>[
         ChangeNotifierProvider.value(value: settingsProvider),
         ChangeNotifierProvider.value(value: liftProvider),
         ChangeNotifierProvider.value(value: programProvider),
@@ -175,10 +177,7 @@ void main() {
         theme: AppTheme.darkTheme,
         home: Scaffold(
           backgroundColor: AppTheme.darkBackground,
-          body: RepaintBoundary(
-            key: boundaryKey,
-            child: child,
-          ),
+          body: RepaintBoundary(key: boundaryKey, child: child),
         ),
       ),
     );
@@ -187,23 +186,31 @@ void main() {
   Future<void> captureScreen(WidgetTester tester, String filename) async {
     await tester.pump(const Duration(milliseconds: 200));
     await tester.runAsync(() async {
-      final boundary = boundaryKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
+      final RenderRepaintBoundary? boundary =
+          boundaryKey.currentContext?.findRenderObject()
+              as RenderRepaintBoundary?;
       if (boundary != null) {
-        final image = await boundary.toImage(pixelRatio: 2.0);
-        final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+        final ui.Image image = await boundary.toImage(pixelRatio: 2.0);
+        final ByteData? byteData = await image.toByteData(
+          format: ui.ImageByteFormat.png,
+        );
         if (byteData != null) {
-          final file = File('screenshots/$filename.png');
+          final File file = File('screenshots/$filename.png');
           file.parent.createSync(recursive: true);
           await file.writeAsBytes(byteData.buffer.asUint8List());
           // ignore: avoid_print
-          print('📸 Generated screenshot: screenshots/$filename.png (${byteData.lengthInBytes} bytes)');
+          print(
+            '📸 Generated screenshot: screenshots/$filename.png (${byteData.lengthInBytes} bytes)',
+          );
         }
       }
     });
   }
 
   group('Mock Data & Screen Rendering Verification Suite', () {
-    testWidgets('01 Renders Dashboard Screen with mock data', (tester) async {
+    testWidgets('01 Renders Dashboard Screen with mock data', (
+      WidgetTester tester,
+    ) async {
       tester.view.physicalSize = const Size(1170, 2532);
       tester.view.devicePixelRatio = 2.0;
       addTearDown(() => tester.view.resetPhysicalSize());
@@ -212,7 +219,7 @@ void main() {
       await captureScreen(tester, '01_dashboard_screen');
 
       // Scrolling screenshot
-      final scrollable = find.byType(Scrollable);
+      final Finder scrollable = find.byType(Scrollable);
       if (scrollable.evaluate().isNotEmpty) {
         await tester.drag(scrollable.first, const Offset(0, -600));
         await captureScreen(tester, '01_dashboard_screen_scrolled');
@@ -222,24 +229,29 @@ void main() {
       expect(find.text('Week 2 of 4: Base Loading'), findsOneWidget);
     });
 
-    testWidgets('02 Renders Lifts Matrix Screen with expanded percentage matrix', (tester) async {
-      tester.view.physicalSize = const Size(1170, 2532);
-      tester.view.devicePixelRatio = 2.0;
-      addTearDown(() => tester.view.resetPhysicalSize());
+    testWidgets(
+      '02 Renders Lifts Matrix Screen with expanded percentage matrix',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(1170, 2532);
+        tester.view.devicePixelRatio = 2.0;
+        addTearDown(() => tester.view.resetPhysicalSize());
 
-      await tester.pumpWidget(buildTestScreen(const LiftsScreen()));
-      await tester.pump(const Duration(milliseconds: 200));
-
-      if (find.text('Snatch').evaluate().isNotEmpty) {
-        await tester.tap(find.text('Snatch').first);
+        await tester.pumpWidget(buildTestScreen(const LiftsScreen()));
         await tester.pump(const Duration(milliseconds: 200));
-      }
 
-      await captureScreen(tester, '02_lifts_matrix_screen');
-      expect(find.text('Snatch'), findsWidgets);
-    });
+        if (find.text('Snatch').evaluate().isNotEmpty) {
+          await tester.tap(find.text('Snatch').first);
+          await tester.pump(const Duration(milliseconds: 200));
+        }
 
-    testWidgets('03 Renders Lift Ratios Screen with balance statuses', (tester) async {
+        await captureScreen(tester, '02_lifts_matrix_screen');
+        expect(find.text('Snatch'), findsWidgets);
+      },
+    );
+
+    testWidgets('03 Renders Lift Ratios Screen with balance statuses', (
+      WidgetTester tester,
+    ) async {
       tester.view.physicalSize = const Size(1170, 2532);
       tester.view.devicePixelRatio = 2.0;
       addTearDown(() => tester.view.resetPhysicalSize());
@@ -253,10 +265,15 @@ void main() {
       }
 
       await captureScreen(tester, '03_lift_ratios_screen');
-      expect(find.text('Olympic Ratio Standards Reference Chart'), findsOneWidget);
+      expect(
+        find.text('Olympic Ratio Standards Reference Chart'),
+        findsOneWidget,
+      );
     });
 
-    testWidgets('04 Renders Standard Ratios Sheet', (tester) async {
+    testWidgets('04 Renders Standard Ratios Sheet', (
+      WidgetTester tester,
+    ) async {
       tester.view.physicalSize = const Size(1170, 2532);
       tester.view.devicePixelRatio = 2.0;
       addTearDown(() => tester.view.resetPhysicalSize());
@@ -266,7 +283,9 @@ void main() {
       expect(find.text('Olympic Ratio Standards'), findsOneWidget);
     });
 
-    testWidgets('05 Renders Plate Calculator Screen', (tester) async {
+    testWidgets('05 Renders Plate Calculator Screen', (
+      WidgetTester tester,
+    ) async {
       tester.view.physicalSize = const Size(1170, 2532);
       tester.view.devicePixelRatio = 2.0;
       addTearDown(() => tester.view.resetPhysicalSize());
@@ -276,7 +295,9 @@ void main() {
       expect(find.text('BAR & COLLAR SPECIFICATIONS'), findsOneWidget);
     });
 
-    testWidgets('06 Renders Max Test Calculator Screen', (tester) async {
+    testWidgets('06 Renders Max Test Calculator Screen', (
+      WidgetTester tester,
+    ) async {
       tester.view.physicalSize = const Size(1170, 2532);
       tester.view.devicePixelRatio = 2.0;
       addTearDown(() => tester.view.resetPhysicalSize());
@@ -286,7 +307,9 @@ void main() {
       expect(find.text('WEEK 5: MAX TEST PROTOCOL'), findsOneWidget);
     });
 
-    testWidgets('07 Renders Analytics Screen with volume progression', (tester) async {
+    testWidgets('07 Renders Analytics Screen with volume progression', (
+      WidgetTester tester,
+    ) async {
       tester.view.physicalSize = const Size(1170, 2532);
       tester.view.devicePixelRatio = 2.0;
       addTearDown(() => tester.view.resetPhysicalSize());
@@ -295,7 +318,7 @@ void main() {
       await captureScreen(tester, '07_analytics_screen');
 
       // Scrolling screenshot
-      final scrollable = find.byType(Scrollable);
+      final Finder scrollable = find.byType(Scrollable);
       if (scrollable.evaluate().isNotEmpty) {
         await tester.drag(scrollable.first, const Offset(0, -600));
         await captureScreen(tester, '07_analytics_screen_scrolled');
@@ -304,47 +327,62 @@ void main() {
       expect(find.text('TOTAL WEIGHT MOVED'), findsOneWidget);
     });
 
-    testWidgets('07b Renders Accessory Progressions Screen with movement delta chips', (tester) async {
-      tester.view.physicalSize = const Size(1170, 2532);
-      tester.view.devicePixelRatio = 2.0;
-      addTearDown(() => tester.view.resetPhysicalSize());
+    testWidgets(
+      '07b Renders Accessory Progressions Screen with movement delta chips',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(1170, 2532);
+        tester.view.devicePixelRatio = 2.0;
+        addTearDown(() => tester.view.resetPhysicalSize());
 
-      await tester.pumpWidget(buildTestScreen(const AnalyticsScreen()));
-      await tester.pump(const Duration(milliseconds: 200));
-
-      if (find.text('Accessories').evaluate().isNotEmpty) {
-        await tester.tap(find.text('Accessories'));
+        await tester.pumpWidget(buildTestScreen(const AnalyticsScreen()));
         await tester.pump(const Duration(milliseconds: 200));
-      }
 
-      await captureScreen(tester, '07b_accessory_progressions_screen');
-      expect(find.text('ACCESSORY WEIGHT PROGRESSIONS'), findsOneWidget);
-    });
+        if (find.text('Accessories').evaluate().isNotEmpty) {
+          await tester.tap(find.text('Accessories'));
+          await tester.pump(const Duration(milliseconds: 200));
+        }
 
-    testWidgets('08 Renders Warmup Session Screen', (tester) async {
+        await captureScreen(tester, '07b_accessory_progressions_screen');
+        expect(find.text('ACCESSORY WEIGHT PROGRESSIONS'), findsOneWidget);
+      },
+    );
+
+    testWidgets('08 Renders Warmup Session Screen', (
+      WidgetTester tester,
+    ) async {
       tester.view.physicalSize = const Size(1170, 2532);
       tester.view.devicePixelRatio = 2.0;
       addTearDown(() => tester.view.resetPhysicalSize());
 
-      final day1 = ProgramCycle.getBuiltInProgram().first;
-      await tester.pumpWidget(buildTestScreen(WarmupSessionScreen(dayTemplate: day1)));
+      final DayTemplate day1 = ProgramCycle.getBuiltInProgram().first;
+      await tester.pumpWidget(
+        buildTestScreen(WarmupSessionScreen(dayTemplate: day1)),
+      );
       await captureScreen(tester, '08_warmup_session_screen');
       expect(find.text('Guided Olympic Warm-Up'), findsOneWidget);
     });
 
-    testWidgets('09 Renders Workout Session Screen with periodized sets', (tester) async {
+    testWidgets('09 Renders Workout Session Screen with periodized sets', (
+      WidgetTester tester,
+    ) async {
       tester.view.physicalSize = const Size(1170, 2532);
       tester.view.devicePixelRatio = 2.0;
       addTearDown(() => tester.view.resetPhysicalSize());
 
-      final day1 = ProgramCycle.getBuiltInProgram().first;
+      final DayTemplate day1 = ProgramCycle.getBuiltInProgram().first;
       await tester.pumpWidget(
-        buildTestScreen(WorkoutSessionScreen(dayTemplate: day1, previewWeek: 2, isPreviewMode: true)),
+        buildTestScreen(
+          WorkoutSessionScreen(
+            dayTemplate: day1,
+            previewWeek: 2,
+            isPreviewMode: true,
+          ),
+        ),
       );
       await captureScreen(tester, '09_workout_session_screen');
 
       // Scrolling screenshot
-      final scrollable = find.byType(Scrollable);
+      final Finder scrollable = find.byType(Scrollable);
       if (scrollable.evaluate().isNotEmpty) {
         await tester.drag(scrollable.first, const Offset(0, -600));
         await captureScreen(tester, '09_workout_session_screen_scrolled');
@@ -353,25 +391,27 @@ void main() {
       expect(find.textContaining('PREVIEW MODE'), findsOneWidget);
     });
 
-    testWidgets('10 Renders Workout Swap Modal with Suggested Swaps', (tester) async {
+    testWidgets('10 Renders Workout Swap Modal with Suggested Swaps', (
+      WidgetTester tester,
+    ) async {
       tester.view.physicalSize = const Size(1170, 2532);
       tester.view.devicePixelRatio = 2.0;
       addTearDown(() => tester.view.resetPhysicalSize());
 
-      final day1 = ProgramCycle.getBuiltInProgram().first;
-      final exercise = ExerciseTemplate(
+      final DayTemplate day1 = ProgramCycle.getBuiltInProgram().first;
+      final ExerciseTemplate exercise = ExerciseTemplate(
         name: 'Power Snatch + Overhead Squat',
         liftId: 'snatch',
         setScheme: '4 Sets of 2 Reps',
-        weekPercentages: {1: 65.0, 2: 70.0, 3: 75.0, 4: 70.0},
+        weekPercentages: <int, double>{1: 65.0, 2: 70.0, 3: 75.0, 4: 70.0},
       );
 
       await tester.pumpWidget(
         buildTestScreen(
           Stack(
-            children: [
+            children: <Widget>[
               WorkoutSessionScreen(dayTemplate: day1, previewWeek: 2),
-              Container(color: Colors.black.withOpacity(0.65)),
+              Container(color: Colors.black.withValues(alpha: 0.65)),
               Align(
                 alignment: Alignment.bottomCenter,
                 child: ExerciseSwapModal(
@@ -388,16 +428,18 @@ void main() {
       expect(find.text('Swap Movement Variation'), findsOneWidget);
     });
 
-    testWidgets('11 Renders Workout Weight Dialog with 1RM estimate', (tester) async {
+    testWidgets('11 Renders Workout Weight Dialog with 1RM estimate', (
+      WidgetTester tester,
+    ) async {
       tester.view.physicalSize = const Size(1170, 2532);
       tester.view.devicePixelRatio = 2.0;
       addTearDown(() => tester.view.resetPhysicalSize());
 
-      final exercise = ExerciseTemplate(
+      final ExerciseTemplate exercise = ExerciseTemplate(
         name: 'Power Snatch + Overhead Squat',
         liftId: 'snatch',
         setScheme: '4 Sets of 2 Reps',
-        weekPercentages: {1: 65.0, 2: 70.0, 3: 75.0, 4: 70.0},
+        weekPercentages: <int, double>{1: 65.0, 2: 70.0, 3: 75.0, 4: 70.0},
       );
 
       await tester.pumpWidget(
@@ -419,17 +461,20 @@ void main() {
       expect(find.text('Update Working Weight & 1RM'), findsOneWidget);
     });
 
-    testWidgets('12 Renders Active Recovery Session Screen', (tester) async {
+    testWidgets('12 Renders Active Recovery Session Screen', (
+      WidgetTester tester,
+    ) async {
       tester.view.physicalSize = const Size(1170, 2532);
       tester.view.devicePixelRatio = 2.0;
       addTearDown(() => tester.view.resetPhysicalSize());
 
-      final routine = RecoveryEngineService.generateRoutine(
-        ratioAnalyses: liftProvider.getRatioAnalysis(),
-        lastSession: programProvider.sessions.isNotEmpty
-            ? programProvider.sessions.first
-            : null,
-      );
+      final GeneratedRecoveryRoutine routine =
+          RecoveryEngineService.generateRoutine(
+            ratioAnalyses: liftProvider.getRatioAnalysis(),
+            lastSession: programProvider.sessions.isNotEmpty
+                ? programProvider.sessions.first
+                : null,
+          );
 
       await tester.pumpWidget(
         buildTestScreen(RecoverySessionScreen(routine: routine)),
@@ -437,7 +482,7 @@ void main() {
       await captureScreen(tester, '12_recovery_session_screen');
 
       // Scrolling screenshot
-      final scrollable = find.byType(Scrollable);
+      final Finder scrollable = find.byType(Scrollable);
       if (scrollable.evaluate().isNotEmpty) {
         await tester.drag(scrollable.first, const Offset(0, -600));
         await captureScreen(tester, '12_recovery_session_screen_scrolled');
@@ -446,45 +491,52 @@ void main() {
       expect(find.text('Active Recovery Routine'), findsOneWidget);
     });
 
-    testWidgets('13 Renders Mobility Exercise Swap Modal with Suggested Alternatives', (tester) async {
+    testWidgets(
+      '13 Renders Mobility Exercise Swap Modal with Suggested Alternatives',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(1170, 2532);
+        tester.view.devicePixelRatio = 2.0;
+        addTearDown(() => tester.view.resetPhysicalSize());
+
+        final MobilityExerciseModel mobilityEx = MobilityExerciseModel(
+          id: 'db_bicep_curls',
+          name: 'Dumbbell Bicep Curls',
+          focusArea: MobilityFocusArea.arms,
+          category: MobilityCategory.hypertrophyCore,
+          description: 'Builds elbow flexor strength and bicep tendon resilience for heavy clean catches.',
+          cues: <String>['Keep elbows tucked.', 'Squeeze biceps.'],
+          defaultSets: 3,
+          defaultReps: 12,
+          videoUrl: 'https://youtube.com',
+        );
+
+        await tester.pumpWidget(
+          buildTestScreen(
+            MobilityExerciseSwapModal(
+              exercise: mobilityEx,
+              onSwapSelected: (_) {},
+            ),
+          ),
+        );
+        await captureScreen(tester, '13_mobility_swap_modal');
+        expect(find.text('Swap Movement'), findsOneWidget);
+      },
+    );
+
+    testWidgets('14 Renders Nutrition & Energy Balance Dashboard Screen', (
+      WidgetTester tester,
+    ) async {
       tester.view.physicalSize = const Size(1170, 2532);
       tester.view.devicePixelRatio = 2.0;
       addTearDown(() => tester.view.resetPhysicalSize());
-
-      final mobilityEx = MobilityExerciseModel(
-        id: 'db_bicep_curls',
-        name: 'Dumbbell Bicep Curls',
-        focusArea: MobilityFocusArea.arms,
-        category: MobilityCategory.hypertrophyCore,
-        description: 'Builds elbow flexor strength and bicep tendon resilience for heavy clean catches.',
-        cues: ['Keep elbows tucked.', 'Squeeze biceps.'],
-        defaultSets: 3,
-        defaultReps: 12,
-        videoUrl: 'https://youtube.com',
-      );
 
       await tester.pumpWidget(
-        buildTestScreen(
-          MobilityExerciseSwapModal(
-            exercise: mobilityEx,
-            onSwapSelected: (_) {},
-          ),
-        ),
+        buildTestScreen(const NutritionDashboardScreen()),
       );
-      await captureScreen(tester, '13_mobility_swap_modal');
-      expect(find.text('Swap Movement'), findsOneWidget);
-    });
-
-    testWidgets('14 Renders Nutrition & Energy Balance Dashboard Screen', (tester) async {
-      tester.view.physicalSize = const Size(1170, 2532);
-      tester.view.devicePixelRatio = 2.0;
-      addTearDown(() => tester.view.resetPhysicalSize());
-
-      await tester.pumpWidget(buildTestScreen(const NutritionDashboardScreen()));
       await captureScreen(tester, '14_nutrition_dashboard_screen');
 
       // Scrolling screenshot
-      final scrollable = find.byType(Scrollable);
+      final Finder scrollable = find.byType(Scrollable);
       if (scrollable.evaluate().isNotEmpty) {
         await tester.drag(scrollable.first, const Offset(0, -700));
         await captureScreen(tester, '14_nutrition_dashboard_screen_scrolled');
@@ -495,26 +547,36 @@ void main() {
       expect(find.text('Breakfast'), findsWidgets);
     });
 
-    testWidgets('15 Renders Metabolic Science Explainer Screen with interactive tabs', (tester) async {
-      tester.view.physicalSize = const Size(1170, 2532);
-      tester.view.devicePixelRatio = 2.0;
-      addTearDown(() => tester.view.resetPhysicalSize());
+    testWidgets(
+      '15 Renders Metabolic Science Explainer Screen with interactive tabs',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(1170, 2532);
+        tester.view.devicePixelRatio = 2.0;
+        addTearDown(() => tester.view.resetPhysicalSize());
 
-      await tester.pumpWidget(buildTestScreen(const MetabolicScienceExplainerScreen()));
-      await captureScreen(tester, '15_metabolic_science_explainer_screen');
+        await tester.pumpWidget(
+          buildTestScreen(const MetabolicScienceExplainerScreen()),
+        );
+        await captureScreen(tester, '15_metabolic_science_explainer_screen');
 
-      // Scrolling screenshot
-      final scrollable = find.byType(Scrollable);
-      if (scrollable.evaluate().isNotEmpty) {
-        await tester.drag(scrollable.first, const Offset(0, -700));
-        await captureScreen(tester, '15_metabolic_science_explainer_screen_scrolled');
-      }
+        // Scrolling screenshot
+        final Finder scrollable = find.byType(Scrollable);
+        if (scrollable.evaluate().isNotEmpty) {
+          await tester.drag(scrollable.first, const Offset(0, -700));
+          await captureScreen(
+            tester,
+            '15_metabolic_science_explainer_screen_scrolled',
+          );
+        }
 
-      expect(find.text('Metabolic Science & Calculations'), findsOneWidget);
-      expect(find.text('Energy & TDEE'), findsOneWidget);
-    });
+        expect(find.text('Metabolic Science & Calculations'), findsOneWidget);
+        expect(find.text('Energy & TDEE'), findsOneWidget);
+      },
+    );
 
-    testWidgets('16 Renders Food Search & Recent Pantry Items Sheet', (tester) async {
+    testWidgets('16 Renders Food Search & Recent Pantry Items Sheet', (
+      WidgetTester tester,
+    ) async {
       tester.view.physicalSize = const Size(1170, 2532);
       tester.view.devicePixelRatio = 2.0;
       addTearDown(() => tester.view.resetPhysicalSize());
@@ -524,34 +586,47 @@ void main() {
       expect(find.text('Search Foods & Barcodes'), findsOneWidget);
     });
 
-    testWidgets('17 Renders Athlete Smart Portion Drawer with Protein Density metric', (tester) async {
-      tester.view.physicalSize = const Size(1170, 2532);
-      tester.view.devicePixelRatio = 2.0;
-      addTearDown(() => tester.view.resetPhysicalSize());
+    testWidgets(
+      '17 Renders Athlete Smart Portion Drawer with Protein Density metric',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(1170, 2532);
+        tester.view.devicePixelRatio = 2.0;
+        addTearDown(() => tester.view.resetPhysicalSize());
 
-      const testFood = FoodItem(
-        id: 'whey_isolate_vanilla',
-        name: '100% Whey Protein Isolate (Vanilla)',
-        brand: 'Optimum Nutrition',
-        servingSize: '1 scoop (31g)',
-        servingWeightGrams: 31,
-        calories: 120,
-        protein: 25.0,
-        carbs: 1.0,
-        fat: 1.0,
-        barcode: '748927028669',
-        source: 'open_food_facts',
-      );
+        const FoodItem testFood = FoodItem(
+          id: 'whey_isolate_vanilla',
+          name: '100% Whey Protein Isolate (Vanilla)',
+          brand: 'Optimum Nutrition',
+          servingSize: '1 scoop (31g)',
+          servingWeightGrams: 31,
+          calories: 120,
+          protein: 25.0,
+          carbs: 1.0,
+          fat: 1.0,
+          barcode: '748927028669',
+          source: 'open_food_facts',
+        );
 
-      await tester.pumpWidget(
-        buildTestScreen(const SmartPortionDrawer(initialFoodItem: testFood, defaultCategory: MealCategory.snack)),
-      );
-      await captureScreen(tester, '17_smart_portion_drawer');
-      expect(find.text('OPTIMUM NUTRITION'), findsOneWidget);
-      expect(find.text('100% Whey Protein Isolate (Vanilla)'), findsOneWidget);
-    });
+        await tester.pumpWidget(
+          buildTestScreen(
+            const SmartPortionDrawer(
+              initialFoodItem: testFood,
+              defaultCategory: MealCategory.snack,
+            ),
+          ),
+        );
+        await captureScreen(tester, '17_smart_portion_drawer');
+        expect(find.text('OPTIMUM NUTRITION'), findsOneWidget);
+        expect(
+          find.text('100% Whey Protein Isolate (Vanilla)'),
+          findsOneWidget,
+        );
+      },
+    );
 
-    testWidgets('18 Renders Live Continuous Barcode Scanner Sheet', (tester) async {
+    testWidgets('18 Renders Live Continuous Barcode Scanner Sheet', (
+      WidgetTester tester,
+    ) async {
       tester.view.physicalSize = const Size(1170, 2532);
       tester.view.devicePixelRatio = 2.0;
       addTearDown(() => tester.view.resetPhysicalSize());
@@ -563,26 +638,43 @@ void main() {
       expect(find.text('Enter Barcode Manually'), findsOneWidget);
     });
 
-    testWidgets('19 Renders Renpho Scale OCR Scanner & Body Composition Donut Chart', (tester) async {
-      tester.view.physicalSize = const Size(1170, 2532);
-      tester.view.devicePixelRatio = 2.0;
-      addTearDown(() => tester.view.resetPhysicalSize());
+    testWidgets(
+      '19 Renders Renpho Scale OCR Scanner & Body Composition Donut Chart',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(1170, 2532);
+        tester.view.devicePixelRatio = 2.0;
+        addTearDown(() => tester.view.resetPhysicalSize());
 
-      await tester.pumpWidget(buildTestScreen(const RenphoScannerSheet()));
-      await captureScreen(tester, '19_renpho_scanner_sheet');
-      expect(find.text('BODY COMPOSITION BREAKDOWN'), findsOneWidget);
-    });
+        await tester.pumpWidget(buildTestScreen(const RenphoScannerSheet()));
+        await captureScreen(tester, '19_renpho_scanner_sheet');
+        expect(find.text('BODY COMPOSITION BREAKDOWN'), findsOneWidget);
+      },
+    );
 
-    testWidgets('20 Renders System Diagnostics & Crash Report Screen', (tester) async {
+    testWidgets('20 Renders System Diagnostics & Crash Report Screen', (
+      WidgetTester tester,
+    ) async {
       tester.view.physicalSize = const Size(1170, 2532);
       tester.view.devicePixelRatio = 2.0;
       addTearDown(() => tester.view.resetPhysicalSize());
 
       AppLogService.instance.info('BOOT', 'Oly Application Core initialized');
-      AppLogService.instance.debug('FOOD_DB', '107 whole staple foods loaded into memory');
-      AppLogService.instance.info('OCR', 'Renpho biometric scale data parsed (LBM: 208.6 lb)');
-      AppLogService.instance.warning('NETWORK', 'Offline mode: Open Food Facts local cache active');
-      AppLogService.instance.error('SYNC', 'Simulated handled non-fatal socket timeout');
+      AppLogService.instance.debug(
+        'FOOD_DB',
+        '107 whole staple foods loaded into memory',
+      );
+      AppLogService.instance.info(
+        'OCR',
+        'Renpho biometric scale data parsed (LBM: 208.6 lb)',
+      );
+      AppLogService.instance.warning(
+        'NETWORK',
+        'Offline mode: Open Food Facts local cache active',
+      );
+      AppLogService.instance.error(
+        'SYNC',
+        'Simulated handled non-fatal socket timeout',
+      );
 
       await tester.pumpWidget(buildTestScreen(const CrashReportScreen()));
       await captureScreen(tester, '20_crash_report_screen');

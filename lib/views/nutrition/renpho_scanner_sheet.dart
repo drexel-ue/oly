@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:oly/models/body_composition_entry.dart';
+import 'package:oly/providers/body_comp_provider.dart';
+import 'package:oly/services/renpho_ocr_service.dart';
+import 'package:oly/theme/app_theme.dart';
+import 'package:oly/widgets/nutrition/body_donut_chart.dart';
 import 'package:provider/provider.dart';
-import '../../models/body_composition_entry.dart';
-import '../../providers/body_comp_provider.dart';
-import '../../services/renpho_ocr_service.dart';
-import '../../theme/app_theme.dart';
-import '../../widgets/nutrition/body_donut_chart.dart';
 
 class RenphoScannerSheet extends StatefulWidget {
   const RenphoScannerSheet({super.key});
@@ -23,12 +23,12 @@ class _RenphoScannerSheetState extends State<RenphoScannerSheet> {
   BodyCompositionEntry? _parsedEntry;
   String? _errorMessage;
   String? _rawOcrText;
-  int _extractedFieldsCount = 0;
 
   // Controllers for verification
   final TextEditingController _weightController = TextEditingController();
   final TextEditingController _bodyFatPctController = TextEditingController();
-  final TextEditingController _skeletalMuscleController = TextEditingController();
+  final TextEditingController _skeletalMuscleController =
+      TextEditingController();
   final TextEditingController _fatFreeMassController = TextEditingController();
   final TextEditingController _bmiController = TextEditingController();
   final TextEditingController _bmrController = TextEditingController();
@@ -44,7 +44,10 @@ class _RenphoScannerSheetState extends State<RenphoScannerSheet> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final bodyComp = Provider.of<BodyCompProvider>(context, listen: false);
+      final BodyCompProvider bodyComp = Provider.of<BodyCompProvider>(
+        context,
+        listen: false,
+      );
       if (bodyComp.latestEntry != null) {
         _populateFromEntry(bodyComp.latestEntry!);
       }
@@ -54,10 +57,14 @@ class _RenphoScannerSheetState extends State<RenphoScannerSheet> {
   void _populateFromEntry(BodyCompositionEntry entry) {
     setState(() {
       _parsedEntry = entry;
-      _weightController.text = entry.weightLb > 0 ? entry.weightLb.toStringAsFixed(1) : '';
+      _weightController.text = entry.weightLb > 0
+          ? entry.weightLb.toStringAsFixed(1)
+          : '';
       _bodyFatPctController.text = entry.bodyFatPct?.toStringAsFixed(1) ?? '';
-      _skeletalMuscleController.text = entry.skeletalMuscleLb?.toStringAsFixed(1) ?? '';
-      _fatFreeMassController.text = entry.fatFreeMassLb?.toStringAsFixed(1) ?? '';
+      _skeletalMuscleController.text =
+          entry.skeletalMuscleLb?.toStringAsFixed(1) ?? '';
+      _fatFreeMassController.text =
+          entry.fatFreeMassLb?.toStringAsFixed(1) ?? '';
       _bmiController.text = entry.bmi?.toStringAsFixed(1) ?? '';
       _bmrController.text = entry.bmrKcal?.toString() ?? '';
       _waterPctController.text = entry.bodyWaterPct?.toStringAsFixed(1) ?? '';
@@ -65,7 +72,8 @@ class _RenphoScannerSheetState extends State<RenphoScannerSheet> {
       _boneMassController.text = entry.boneMassLb?.toStringAsFixed(1) ?? '';
       _proteinPctController.text = entry.proteinPct?.toStringAsFixed(1) ?? '';
       _visceralController.text = entry.visceralFat?.toString() ?? '';
-      _subcutaneousController.text = entry.subcutaneousFatPct?.toStringAsFixed(1) ?? '';
+      _subcutaneousController.text =
+          entry.subcutaneousFatPct?.toStringAsFixed(1) ?? '';
       _metabolicAgeController.text = entry.metabolicAge?.toString() ?? '';
     });
   }
@@ -96,12 +104,13 @@ class _RenphoScannerSheetState extends State<RenphoScannerSheet> {
     });
 
     try {
-      final pickedFile = await _picker.pickImage(source: source);
+      final XFile? pickedFile = await _picker.pickImage(source: source);
       if (pickedFile != null) {
-        final result = await _ocrService.processImage(pickedFile.path);
+        final OcrScanResult result = await _ocrService.processImage(
+          pickedFile.path,
+        );
         setState(() {
           _rawOcrText = result.rawText;
-          _extractedFieldsCount = result.fieldsFound;
         });
 
         if (result.isSuccess && result.entry != null) {
@@ -109,7 +118,9 @@ class _RenphoScannerSheetState extends State<RenphoScannerSheet> {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('✓ Extracted ${result.fieldsFound} metrics from scale scan!'),
+                content: Text(
+                  '✓ Extracted ${result.fieldsFound} metrics from scale scan!',
+                ),
                 backgroundColor: AppTheme.successGreen,
                 duration: const Duration(seconds: 3),
               ),
@@ -133,7 +144,7 @@ class _RenphoScannerSheetState extends State<RenphoScannerSheet> {
   }
 
   void _loadSampleData() {
-    const sampleRenphoText = '''
+    const String sampleRenphoText = '''
 RENPHO
 Jul 21, 2026 at 19:30:37 Data from Scale
 Weight 264.8 lb
@@ -150,17 +161,20 @@ Protein 47.6 lb, 18.0 %
 BMR 2394 kcal
 Metabolic Age 35
 ''';
-    final entry = _ocrService.parseRecognizedText(sampleRenphoText);
+    final BodyCompositionEntry? entry = _ocrService.parseRecognizedText(
+      sampleRenphoText,
+    );
     if (entry != null) {
       setState(() {
         _rawOcrText = sampleRenphoText;
         _errorMessage = null;
-        _extractedFieldsCount = 13;
       });
       _populateFromEntry(entry);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('✓ Loaded Renpho scale benchmark profile (13 biometrics)'),
+          content: Text(
+            '✓ Loaded Renpho scale benchmark profile (13 biometrics)',
+          ),
           backgroundColor: AppTheme.primaryAmber,
           duration: Duration(seconds: 2),
         ),
@@ -171,22 +185,33 @@ Metabolic Age 35
   void _showRawTextDialog() {
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (BuildContext ctx) => AlertDialog(
         backgroundColor: AppTheme.surfaceCard,
-        title: Text('Raw OCR Extracted Text', style: GoogleFonts.outfit(color: AppTheme.textPrimary)),
+        title: Text(
+          'Raw OCR Extracted Text',
+          style: GoogleFonts.outfit(color: AppTheme.textPrimary),
+        ),
         content: SizedBox(
           width: double.maxFinite,
           child: SingleChildScrollView(
             child: Text(
-              _rawOcrText != null && _rawOcrText!.isNotEmpty ? _rawOcrText! : 'No raw text available yet. Please select an image.',
-              style: GoogleFonts.firaCode(fontSize: 12, color: AppTheme.textSecondary),
+              _rawOcrText != null && _rawOcrText!.isNotEmpty
+                  ? _rawOcrText!
+                  : 'No raw text available yet. Please select an image.',
+              style: GoogleFonts.firaCode(
+                fontSize: 12,
+                color: AppTheme.textSecondary,
+              ),
             ),
           ),
         ),
-        actions: [
+        actions: <Widget>[
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Close', style: TextStyle(color: AppTheme.primaryAmber)),
+            child: const Text(
+              'Close',
+              style: TextStyle(color: AppTheme.primaryAmber),
+            ),
           ),
         ],
       ),
@@ -194,10 +219,12 @@ Metabolic Age 35
   }
 
   void _saveScan() {
-    final weight = double.tryParse(_weightController.text) ?? 0.0;
-    if (weight <= 0) return;
+    final double weight = double.tryParse(_weightController.text) ?? 0.0;
+    if (weight <= 0) {
+      return;
+    }
 
-    final entry = BodyCompositionEntry.create(
+    final BodyCompositionEntry entry = BodyCompositionEntry.create(
       timestamp: DateTime.now(),
       weightLb: weight,
       bmi: double.tryParse(_bmiController.text),
@@ -215,7 +242,10 @@ Metabolic Age 35
       source: 'renpho_ocr',
     );
 
-    final provider = Provider.of<BodyCompProvider>(context, listen: false);
+    final BodyCompProvider provider = Provider.of<BodyCompProvider>(
+      context,
+      listen: false,
+    );
     provider.addEntry(entry);
     Navigator.of(context).pop();
   }
@@ -229,22 +259,26 @@ Metabolic Age 35
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       child: Column(
-        children: [
+        children: <Widget>[
           // Header
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 16, 16, 12),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
+              children: <Widget>[
                 Row(
-                  children: [
+                  children: <Widget>[
                     Container(
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
                         color: AppTheme.primaryAmber,
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Icon(Icons.document_scanner, color: Colors.black, size: 20),
+                      child: const Icon(
+                        Icons.document_scanner,
+                        color: Colors.black,
+                        size: 20,
+                      ),
                     ),
                     const SizedBox(width: 10),
                     Text(
@@ -270,10 +304,10 @@ Metabolic Age 35
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+                children: <Widget>[
                   // Action Buttons: Gallery, Camera
                   Row(
-                    children: [
+                    children: <Widget>[
                       Expanded(
                         child: _buildActionPickerButton(
                           icon: Icons.photo_library_outlined,
@@ -295,31 +329,47 @@ Metabolic Age 35
                   const SizedBox(height: 10),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
+                    children: <Widget>[
                       TextButton.icon(
                         onPressed: _loadSampleData,
-                        icon: const Icon(Icons.flash_on, size: 14, color: AppTheme.primaryAmber),
+                        icon: const Icon(
+                          Icons.flash_on,
+                          size: 14,
+                          color: AppTheme.primaryAmber,
+                        ),
                         label: Text(
                           'Test Sample Data',
-                          style: GoogleFonts.inter(fontSize: 12, color: AppTheme.primaryAmber),
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            color: AppTheme.primaryAmber,
+                          ),
                         ),
                       ),
                       if (_rawOcrText != null && _rawOcrText!.isNotEmpty)
                         TextButton.icon(
                           onPressed: _showRawTextDialog,
-                          icon: const Icon(Icons.article_outlined, size: 14, color: AppTheme.secondaryCyan),
+                          icon: const Icon(
+                            Icons.article_outlined,
+                            size: 14,
+                            color: AppTheme.secondaryCyan,
+                          ),
                           label: Text(
                             'View Raw OCR Text',
-                            style: GoogleFonts.inter(fontSize: 12, color: AppTheme.secondaryCyan),
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              color: AppTheme.secondaryCyan,
+                            ),
                           ),
                         ),
                     ],
                   ),
 
-                  if (_isProcessing) ...[
+                  if (_isProcessing) ...<Widget>[
                     const SizedBox(height: 20),
                     const Center(
-                      child: CircularProgressIndicator(color: AppTheme.primaryAmber),
+                      child: CircularProgressIndicator(
+                        color: AppTheme.primaryAmber,
+                      ),
                     ),
                     const SizedBox(height: 10),
                     Center(
@@ -330,18 +380,23 @@ Metabolic Age 35
                     ),
                   ],
 
-                  if (_errorMessage != null) ...[
+                  if (_errorMessage != null) ...<Widget>[
                     const SizedBox(height: 12),
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.redAccent.withOpacity(0.1),
+                        color: Colors.redAccent.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.redAccent.withOpacity(0.4)),
+                        border: Border.all(
+                          color: Colors.redAccent.withValues(alpha: 0.4),
+                        ),
                       ),
                       child: Text(
                         _errorMessage!,
-                        style: GoogleFonts.inter(fontSize: 12, color: Colors.redAccent),
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          color: Colors.redAccent,
+                        ),
                       ),
                     ),
                   ],
@@ -349,7 +404,7 @@ Metabolic Age 35
                   const SizedBox(height: 16),
 
                   // Donut Preview
-                  if (_parsedEntry != null) ...[
+                  if (_parsedEntry != null) ...<Widget>[
                     BodyDonutChart(entry: _parsedEntry!),
                     const SizedBox(height: 18),
                   ],
@@ -366,29 +421,89 @@ Metabolic Age 35
                   ),
                   const SizedBox(height: 12),
 
-                  _buildEditableRow('Weight (lb)', _weightController, 'e.g. 264.8', AppTheme.primaryAmber),
+                  _buildEditableRow(
+                    'Weight (lb)',
+                    _weightController,
+                    'e.g. 264.8',
+                    AppTheme.primaryAmber,
+                  ),
                   const SizedBox(height: 8),
-                  _buildEditableRow('Body Fat %', _bodyFatPctController, 'e.g. 21.2', AppTheme.primaryAmber),
+                  _buildEditableRow(
+                    'Body Fat %',
+                    _bodyFatPctController,
+                    'e.g. 21.2',
+                    AppTheme.primaryAmber,
+                  ),
                   const SizedBox(height: 8),
-                  _buildEditableRow('Fat-Free Mass / LBM (lb)', _fatFreeMassController, 'e.g. 208.6', AppTheme.secondaryCyan),
+                  _buildEditableRow(
+                    'Fat-Free Mass / LBM (lb)',
+                    _fatFreeMassController,
+                    'e.g. 208.6',
+                    AppTheme.secondaryCyan,
+                  ),
                   const SizedBox(height: 8),
-                  _buildEditableRow('Skeletal Muscle (lb)', _skeletalMuscleController, 'e.g. 134.6', AppTheme.successGreen),
+                  _buildEditableRow(
+                    'Skeletal Muscle (lb)',
+                    _skeletalMuscleController,
+                    'e.g. 134.6',
+                    AppTheme.successGreen,
+                  ),
                   const SizedBox(height: 8),
-                  _buildEditableRow('Muscle Mass (lb)', _muscleMassController, 'e.g. 198.4', AppTheme.successGreen),
+                  _buildEditableRow(
+                    'Muscle Mass (lb)',
+                    _muscleMassController,
+                    'e.g. 198.4',
+                    AppTheme.successGreen,
+                  ),
                   const SizedBox(height: 8),
-                  _buildEditableRow('BMR (kcal)', _bmrController, 'e.g. 2394', AppTheme.textPrimary),
+                  _buildEditableRow(
+                    'BMR (kcal)',
+                    _bmrController,
+                    'e.g. 2394',
+                    AppTheme.textPrimary,
+                  ),
                   const SizedBox(height: 8),
-                  _buildEditableRow('Body Water %', _waterPctController, 'e.g. 56.9', AppTheme.secondaryCyan),
+                  _buildEditableRow(
+                    'Body Water %',
+                    _waterPctController,
+                    'e.g. 56.9',
+                    AppTheme.secondaryCyan,
+                  ),
                   const SizedBox(height: 8),
-                  _buildEditableRow('Bone Mass (lb)', _boneMassController, 'e.g. 10.4', const Color(0xFFFF453A)),
+                  _buildEditableRow(
+                    'Bone Mass (lb)',
+                    _boneMassController,
+                    'e.g. 10.4',
+                    const Color(0xFFFF453A),
+                  ),
                   const SizedBox(height: 8),
-                  _buildEditableRow('Protein %', _proteinPctController, 'e.g. 18.0', AppTheme.successGreen),
+                  _buildEditableRow(
+                    'Protein %',
+                    _proteinPctController,
+                    'e.g. 18.0',
+                    AppTheme.successGreen,
+                  ),
                   const SizedBox(height: 8),
-                  _buildEditableRow('Visceral Fat', _visceralController, 'e.g. 17', AppTheme.warningOrange),
+                  _buildEditableRow(
+                    'Visceral Fat',
+                    _visceralController,
+                    'e.g. 17',
+                    AppTheme.warningOrange,
+                  ),
                   const SizedBox(height: 8),
-                  _buildEditableRow('Subcutaneous Fat %', _subcutaneousController, 'e.g. 16.8', AppTheme.warningOrange),
+                  _buildEditableRow(
+                    'Subcutaneous Fat %',
+                    _subcutaneousController,
+                    'e.g. 16.8',
+                    AppTheme.warningOrange,
+                  ),
                   const SizedBox(height: 8),
-                  _buildEditableRow('Metabolic Age', _metabolicAgeController, 'e.g. 35', AppTheme.textSecondary),
+                  _buildEditableRow(
+                    'Metabolic Age',
+                    _metabolicAgeController,
+                    'e.g. 35',
+                    AppTheme.textSecondary,
+                  ),
 
                   const SizedBox(height: 28),
                 ],
@@ -399,7 +514,7 @@ Metabolic Age 35
           // Save Footer
           Container(
             padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: AppTheme.surfaceCard,
               border: Border(top: BorderSide(color: AppTheme.borderColor)),
             ),
@@ -411,13 +526,19 @@ Metabolic Age 35
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.successGreen,
                   foregroundColor: Colors.black,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                   elevation: 0,
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.check_circle, color: Colors.black, size: 20),
+                  children: <Widget>[
+                    const Icon(
+                      Icons.check_circle,
+                      color: Colors.black,
+                      size: 20,
+                    ),
                     const SizedBox(width: 8),
                     Text(
                       'Save Scan to Body History',
@@ -452,7 +573,7 @@ Metabolic Age 35
           border: Border.all(color: AppTheme.borderColor),
         ),
         child: Column(
-          children: [
+          children: <Widget>[
             Icon(icon, color: AppTheme.primaryAmber, size: 24),
             const SizedBox(height: 6),
             Text(
@@ -483,7 +604,7 @@ Metabolic Age 35
         border: Border.all(color: AppTheme.borderColor),
       ),
       child: Row(
-        children: [
+        children: <Widget>[
           Expanded(
             flex: 3,
             child: Text(
@@ -499,7 +620,9 @@ Metabolic Age 35
             flex: 2,
             child: TextField(
               controller: controller,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               textAlign: TextAlign.end,
               style: GoogleFonts.outfit(
                 fontSize: 16,
@@ -508,7 +631,10 @@ Metabolic Age 35
               ),
               decoration: InputDecoration(
                 hintText: hint,
-                hintStyle: GoogleFonts.inter(color: AppTheme.textSecondary, fontSize: 13),
+                hintStyle: GoogleFonts.inter(
+                  color: AppTheme.textSecondary,
+                  fontSize: 13,
+                ),
                 isDense: true,
                 contentPadding: const EdgeInsets.symmetric(vertical: 6),
                 border: InputBorder.none,

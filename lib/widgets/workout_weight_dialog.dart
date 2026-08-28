@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:oly/models/lift_model.dart';
+import 'package:oly/models/program_model.dart';
+import 'package:oly/providers/lift_provider.dart';
+import 'package:oly/providers/settings_provider.dart';
+import 'package:oly/theme/app_theme.dart';
 import 'package:provider/provider.dart';
-import '../models/lift_model.dart';
-import '../models/program_model.dart';
-import '../providers/lift_provider.dart';
-import '../providers/settings_provider.dart';
-import '../theme/app_theme.dart';
 
 class WorkoutWeightHelper {
   /// Calculates the implied 1RM given the working weight and periodization rules.
@@ -14,11 +14,13 @@ class WorkoutWeightHelper {
     required ExerciseTemplate exerciseTemplate,
     required int currentWeek,
   }) {
-    if (workingWeightKg <= 0) return 0.0;
+    if (workingWeightKg <= 0) {
+      return 0.0;
+    }
 
     if (exerciseTemplate.weekPercentages != null &&
         exerciseTemplate.weekPercentages!.containsKey(currentWeek)) {
-      final pct = exerciseTemplate.weekPercentages![currentWeek]!;
+      final double pct = exerciseTemplate.weekPercentages![currentWeek]!;
       if (pct > 0) {
         return workingWeightKg / (pct / 100.0);
       }
@@ -30,9 +32,9 @@ class WorkoutWeightHelper {
     }
 
     if (exerciseTemplate.weeklyWeightIncrementKg != null) {
-      final inc = exerciseTemplate.weeklyWeightIncrementKg!;
-      final incTotal = (currentWeek - 1) * inc;
-      final adjusted = workingWeightKg - incTotal;
+      final double inc = exerciseTemplate.weeklyWeightIncrementKg!;
+      final double incTotal = (currentWeek - 1) * inc;
+      final double adjusted = workingWeightKg - incTotal;
       if (adjusted > 0) {
         return adjusted / 0.60;
       }
@@ -48,8 +50,12 @@ class WorkoutWeightHelper {
     required double workingWeightKg,
     required int reps,
   }) {
-    if (workingWeightKg <= 0) return 0.0;
-    if (reps <= 1) return workingWeightKg;
+    if (workingWeightKg <= 0) {
+      return 0.0;
+    }
+    if (reps <= 1) {
+      return workingWeightKg;
+    }
     return workingWeightKg * (1.0 + reps / 30.0);
   }
 
@@ -70,7 +76,10 @@ class WorkoutWeightHelper {
 
   /// Extracts the target reps count from setScheme (e.g. '4 Sets of 2 Reps' -> 2)
   static int extractRepsCount(String setScheme) {
-    final repMatch = RegExp(r'(\d+)\s+Reps', caseSensitive: false).firstMatch(setScheme);
+    final RegExpMatch? repMatch = RegExp(
+      r'(\d+)\s+Reps',
+      caseSensitive: false,
+    ).firstMatch(setScheme);
     if (repMatch != null) {
       return int.tryParse(repMatch.group(1)!) ?? 1;
     }
@@ -79,6 +88,14 @@ class WorkoutWeightHelper {
 }
 
 class WorkoutWeightDialog extends StatefulWidget {
+  const WorkoutWeightDialog({
+    required this.exercise,
+    required this.displayName,
+    required this.initialWeightKg,
+    required this.currentWeek,
+    required this.onWeightUpdated,
+    super.key,
+  });
   final ExerciseTemplate exercise;
   final String displayName;
   final double initialWeightKg;
@@ -87,16 +104,8 @@ class WorkoutWeightDialog extends StatefulWidget {
     required double newWeightKg,
     required bool update1RM,
     double? new1RMKg,
-  }) onWeightUpdated;
-
-  const WorkoutWeightDialog({
-    super.key,
-    required this.exercise,
-    required this.displayName,
-    required this.initialWeightKg,
-    required this.currentWeek,
-    required this.onWeightUpdated,
-  });
+  })
+  onWeightUpdated;
 
   @override
   State<WorkoutWeightDialog> createState() => _WorkoutWeightDialogState();
@@ -125,11 +134,14 @@ class _WorkoutWeightDialogState extends State<WorkoutWeightDialog> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final settings = Provider.of<SettingsProvider>(context, listen: false);
-    final displayWeight = settings.toDisplayWeight(_currentWeightKg);
+    final SettingsProvider settings = Provider.of<SettingsProvider>(
+      context,
+      listen: false,
+    );
+    final double displayWeight = settings.toDisplayWeight(_currentWeightKg);
     _weightController.text = _formatNumber(displayWeight);
 
-    final display1RM = settings.toDisplayWeight(_calculated1RMKg);
+    final double display1RM = settings.toDisplayWeight(_calculated1RMKg);
     _target1RMController.text = _formatNumber(display1RM);
   }
 
@@ -146,7 +158,9 @@ class _WorkoutWeightDialogState extends State<WorkoutWeightDialog> {
 
   void _recalculate1RM() {
     if (_useEpleyFormula) {
-      final reps = WorkoutWeightHelper.extractRepsCount(widget.exercise.setScheme);
+      final int reps = WorkoutWeightHelper.extractRepsCount(
+        widget.exercise.setScheme,
+      );
       _calculated1RMKg = WorkoutWeightHelper.calculateImplied1RMEpley(
         workingWeightKg: _currentWeightKg,
         reps: reps,
@@ -161,33 +175,37 @@ class _WorkoutWeightDialogState extends State<WorkoutWeightDialog> {
   }
 
   void _updateWeight(double newWeightKg, SettingsProvider settings) {
-    if (newWeightKg < 0) return;
+    if (newWeightKg < 0) {
+      return;
+    }
     setState(() {
       _currentWeightKg = newWeightKg;
       _recalculate1RM();
 
-      final displayWeight = settings.toDisplayWeight(_currentWeightKg);
+      final double displayWeight = settings.toDisplayWeight(_currentWeightKg);
       _weightController.text = _formatNumber(displayWeight);
 
-      final display1RM = settings.toDisplayWeight(_calculated1RMKg);
+      final double display1RM = settings.toDisplayWeight(_calculated1RMKg);
       _target1RMController.text = _formatNumber(display1RM);
     });
   }
 
   void _adjustWeight(double deltaDisplay, SettingsProvider settings) {
-    final currentDisplay = double.tryParse(_weightController.text) ??
+    final double currentDisplay =
+        double.tryParse(_weightController.text) ??
         settings.toDisplayWeight(_currentWeightKg);
-    final newDisplay = (currentDisplay + deltaDisplay).clamp(0.0, 999.0);
-    final newKg = settings.toBaseKg(newDisplay);
+    final double newDisplay = (currentDisplay + deltaDisplay).clamp(0.0, 999.0);
+    final double newKg = settings.toBaseKg(newDisplay);
     _updateWeight(newKg, settings);
   }
 
   LiftModel _resolveTargetLift(LiftProvider liftProvider) {
     // 1. Try finding by displayName (if swapped)
-    final byName = liftProvider.lifts.firstWhere(
-      (l) => l.name.toLowerCase() == widget.displayName.toLowerCase(),
+    final LiftModel byName = liftProvider.lifts.firstWhere(
+      (LiftModel l) => l.name.toLowerCase() == widget.displayName.toLowerCase(),
       orElse: () => liftProvider.lifts.firstWhere(
-        (l) => l.id.toLowerCase() == widget.exercise.liftId.toLowerCase(),
+        (LiftModel l) =>
+            l.id.toLowerCase() == widget.exercise.liftId.toLowerCase(),
         orElse: () => liftProvider.lifts.first,
       ),
     );
@@ -196,23 +214,25 @@ class _WorkoutWeightDialogState extends State<WorkoutWeightDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final liftProvider = Provider.of<LiftProvider>(context);
-    final settings = Provider.of<SettingsProvider>(context);
-    final targetLift = _resolveTargetLift(liftProvider);
-    final reps = WorkoutWeightHelper.extractRepsCount(widget.exercise.setScheme);
+    final LiftProvider liftProvider = Provider.of<LiftProvider>(context);
+    final SettingsProvider settings = Provider.of<SettingsProvider>(context);
+    final LiftModel targetLift = _resolveTargetLift(liftProvider);
+    final int reps = WorkoutWeightHelper.extractRepsCount(
+      widget.exercise.setScheme,
+    );
 
-    final targetPct = WorkoutWeightHelper.getPeriodizationPercentage(
+    final double? targetPct = WorkoutWeightHelper.getPeriodizationPercentage(
       exerciseTemplate: widget.exercise,
       currentWeek: widget.currentWeek,
     );
 
-    final deltaKg = _calculated1RMKg - targetLift.currentMax;
-    final deltaDisplay = settings.toDisplayWeight(deltaKg);
-    final deltaSign = deltaKg >= 0 ? '+' : '';
+    final double deltaKg = _calculated1RMKg - targetLift.currentMax;
+    final double deltaDisplay = settings.toDisplayWeight(deltaKg);
+    final String deltaSign = deltaKg >= 0 ? '+' : '';
 
-    final steppers = settings.isLbs
-        ? [-10.0, -5.0, -2.5, 2.5, 5.0, 10.0]
-        : [-5.0, -2.5, -1.0, 1.0, 2.5, 5.0];
+    final List<double> steppers = settings.isLbs
+        ? <double>[-10.0, -5.0, -2.5, 2.5, 5.0, 10.0]
+        : <double>[-5.0, -2.5, -1.0, 1.0, 2.5, 5.0];
 
     return Container(
       constraints: BoxConstraints(
@@ -228,7 +248,7 @@ class _WorkoutWeightDialogState extends State<WorkoutWeightDialog> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+            children: <Widget>[
               // Top Drag Handle
               Center(
                 child: Container(
@@ -245,11 +265,11 @@ class _WorkoutWeightDialogState extends State<WorkoutWeightDialog> {
               // Title Bar
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
+                children: <Widget>[
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
+                      children: <Widget>[
                         Text(
                           'Update Working Weight & 1RM',
                           style: GoogleFonts.outfit(
@@ -271,7 +291,10 @@ class _WorkoutWeightDialogState extends State<WorkoutWeightDialog> {
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close, color: AppTheme.textSecondary),
+                    icon: const Icon(
+                      Icons.close,
+                      color: AppTheme.textSecondary,
+                    ),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
@@ -288,7 +311,7 @@ class _WorkoutWeightDialogState extends State<WorkoutWeightDialog> {
                   border: Border.all(color: AppTheme.borderColor),
                 ),
                 child: Row(
-                  children: [
+                  children: <Widget>[
                     Container(
                       width: 36,
                       height: 36,
@@ -306,7 +329,7 @@ class _WorkoutWeightDialogState extends State<WorkoutWeightDialog> {
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
+                        children: <Widget>[
                           Text(
                             'Catalog Lift: ${targetLift.name}',
                             style: GoogleFonts.outfit(
@@ -363,14 +386,17 @@ class _WorkoutWeightDialogState extends State<WorkoutWeightDialog> {
               const SizedBox(height: 8),
 
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   color: AppTheme.surfaceCard,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: AppTheme.primaryAmber, width: 1.5),
                 ),
                 child: Row(
-                  children: [
+                  children: <Widget>[
                     Expanded(
                       child: TextField(
                         controller: _weightController,
@@ -390,16 +416,15 @@ class _WorkoutWeightDialogState extends State<WorkoutWeightDialog> {
                             color: AppTheme.textSecondary,
                           ),
                         ),
-                        onChanged: (val) {
-                          final parsed = double.tryParse(val);
+                        onChanged: (String val) {
+                          final double? parsed = double.tryParse(val);
                           if (parsed != null && parsed >= 0) {
-                            final baseKg = settings.toBaseKg(parsed);
+                            final double baseKg = settings.toBaseKg(parsed);
                             setState(() {
                               _currentWeightKg = baseKg;
                               _recalculate1RM();
-                              final display1RM = settings.toDisplayWeight(
-                                _calculated1RMKg,
-                              );
+                              final double display1RM = settings
+                                  .toDisplayWeight(_calculated1RMKg);
                               _target1RMController.text = _formatNumber(
                                 display1RM,
                               );
@@ -426,9 +451,9 @@ class _WorkoutWeightDialogState extends State<WorkoutWeightDialog> {
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
-                  children: steppers.map((delta) {
-                    final isPositive = delta > 0;
-                    final text = isPositive ? '+$delta' : '$delta';
+                  children: steppers.map((double delta) {
+                    final bool isPositive = delta > 0;
+                    final String text = isPositive ? '+$delta' : '$delta';
                     return Padding(
                       padding: const EdgeInsets.only(right: 6),
                       child: ActionChip(
@@ -469,16 +494,16 @@ class _WorkoutWeightDialogState extends State<WorkoutWeightDialog> {
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+                  children: <Widget>[
                     Wrap(
                       alignment: WrapAlignment.spaceBetween,
                       crossAxisAlignment: WrapCrossAlignment.center,
                       spacing: 8,
                       runSpacing: 6,
-                      children: [
+                      children: <Widget>[
                         Row(
                           mainAxisSize: MainAxisSize.min,
-                          children: [
+                          children: <Widget>[
                             const Icon(
                               Icons.auto_awesome,
                               color: AppTheme.secondaryCyan,
@@ -502,9 +527,8 @@ class _WorkoutWeightDialogState extends State<WorkoutWeightDialog> {
                             setState(() {
                               _useEpleyFormula = !_useEpleyFormula;
                               _recalculate1RM();
-                              final display1RM = settings.toDisplayWeight(
-                                _calculated1RMKg,
-                              );
+                              final double display1RM = settings
+                                  .toDisplayWeight(_calculated1RMKg);
                               _target1RMController.text = _formatNumber(
                                 display1RM,
                               );
@@ -541,7 +565,7 @@ class _WorkoutWeightDialogState extends State<WorkoutWeightDialog> {
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.baseline,
                       textBaseline: TextBaseline.alphabetic,
-                      children: [
+                      children: <Widget>[
                         Text(
                           settings.formatWeight(_calculated1RMKg),
                           style: GoogleFonts.outfit(
@@ -559,7 +583,9 @@ class _WorkoutWeightDialogState extends State<WorkoutWeightDialog> {
                           decoration: BoxDecoration(
                             color: deltaKg >= 0
                                 ? AppTheme.successGreen.withValues(alpha: 0.15)
-                                : AppTheme.warningOrange.withValues(alpha: 0.15),
+                                : AppTheme.warningOrange.withValues(
+                                    alpha: 0.15,
+                                  ),
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
@@ -580,7 +606,7 @@ class _WorkoutWeightDialogState extends State<WorkoutWeightDialog> {
 
                     // Editable Fine-tune 1RM Field
                     Row(
-                      children: [
+                      children: <Widget>[
                         Expanded(
                           child: TextField(
                             controller: _target1RMController,
@@ -631,7 +657,7 @@ class _WorkoutWeightDialogState extends State<WorkoutWeightDialog> {
 
               // ACTION BUTTONS
               Row(
-                children: [
+                children: <Widget>[
                   // Button 1: Update Workout Weight Only
                   Expanded(
                     child: OutlinedButton(
@@ -675,10 +701,10 @@ class _WorkoutWeightDialogState extends State<WorkoutWeightDialog> {
                         ),
                       ),
                       onPressed: () {
-                        final parsed1RMDisplay = double.tryParse(
+                        final double? parsed1RMDisplay = double.tryParse(
                           _target1RMController.text,
                         );
-                        final final1RMKg = parsed1RMDisplay != null
+                        final double final1RMKg = parsed1RMDisplay != null
                             ? settings.toBaseKg(parsed1RMDisplay)
                             : _calculated1RMKg;
 
@@ -691,7 +717,7 @@ class _WorkoutWeightDialogState extends State<WorkoutWeightDialog> {
                       },
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
+                        children: <Widget>[
                           const Icon(Icons.sync_alt, size: 18),
                           const SizedBox(width: 6),
                           Text(

@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:oly/models/mobility_exercise_model.dart';
+import 'package:oly/models/program_model.dart';
+import 'package:oly/providers/settings_provider.dart';
+import 'package:oly/services/warmup_engine_service.dart';
+import 'package:oly/theme/app_theme.dart';
+import 'package:oly/widgets/video_player_card.dart';
 import 'package:provider/provider.dart';
-import '../models/mobility_exercise_model.dart';
-import '../models/program_model.dart';
-import '../providers/settings_provider.dart';
-import '../services/warmup_engine_service.dart';
-import '../theme/app_theme.dart';
-import '../widgets/video_player_card.dart';
 
 class WarmupSessionScreen extends StatefulWidget {
-  final DayTemplate? dayTemplate;
-
   const WarmupSessionScreen({super.key, this.dayTemplate});
+  final DayTemplate? dayTemplate;
 
   @override
   State<WarmupSessionScreen> createState() => _WarmupSessionScreenState();
@@ -19,21 +18,26 @@ class WarmupSessionScreen extends StatefulWidget {
 
 class _WarmupSessionScreenState extends State<WarmupSessionScreen> {
   int _currentIndex = 0;
-  final Set<String> _completedExerciseIds = {};
-  final Map<String, MobilityExerciseModel> _swappedExercises = {};
+  final Set<String> _completedExerciseIds = <String>{};
+  final Map<String, MobilityExerciseModel> _swappedExercises =
+      <String, MobilityExerciseModel>{};
   late GeneratedWarmupRoutine _warmupRoutine;
 
   final ScrollController _phaseScrollController = ScrollController();
-  final List<GlobalKey> _phaseKeys = [];
+  final List<GlobalKey> _phaseKeys = <GlobalKey<State<StatefulWidget>>>[];
 
   @override
   void initState() {
     super.initState();
-    _warmupRoutine = WarmupEngineService.generateWarmup(dayTemplate: widget.dayTemplate);
+    _warmupRoutine = WarmupEngineService.generateWarmup(
+      dayTemplate: widget.dayTemplate,
+    );
     _phaseKeys.addAll(
       List.generate(_warmupRoutine.phaseGroups.length, (_) => GlobalKey()),
     );
-    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToCurrentPhase());
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => _scrollToCurrentPhase(),
+    );
   }
 
   @override
@@ -44,8 +48,11 @@ class _WarmupSessionScreenState extends State<WarmupSessionScreen> {
 
   void _scrollToCurrentPhase() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      final currentEx = _warmupRoutine.exercises[_currentIndex];
+      if (!mounted) {
+        return;
+      }
+      final MobilityExerciseModel currentEx =
+          _warmupRoutine.exercises[_currentIndex];
       int currentPhaseIndex = -1;
       for (int i = 0; i < _warmupRoutine.phaseGroups.length; i++) {
         if (_warmupRoutine.phaseGroups[i].exercises.contains(currentEx)) {
@@ -55,7 +62,8 @@ class _WarmupSessionScreenState extends State<WarmupSessionScreen> {
       }
 
       if (currentPhaseIndex != -1 && currentPhaseIndex < _phaseKeys.length) {
-        final keyContext = _phaseKeys[currentPhaseIndex].currentContext;
+        final BuildContext? keyContext =
+            _phaseKeys[currentPhaseIndex].currentContext;
         if (keyContext != null) {
           Scrollable.ensureVisible(
             keyContext,
@@ -107,13 +115,14 @@ class _WarmupSessionScreenState extends State<WarmupSessionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final settings = Provider.of<SettingsProvider>(context);
-    final exercises = _warmupRoutine.exercises;
-    final originalEx = exercises[_currentIndex];
-    final activeEx = _swappedExercises[originalEx.id] ?? originalEx;
-    final isSwapped = _swappedExercises.containsKey(originalEx.id);
-    final currentEx = activeEx;
-    final progress = (_currentIndex + 1) / exercises.length;
+    final SettingsProvider settings = Provider.of<SettingsProvider>(context);
+    final List<MobilityExerciseModel> exercises = _warmupRoutine.exercises;
+    final MobilityExerciseModel originalEx = exercises[_currentIndex];
+    final MobilityExerciseModel activeEx =
+        _swappedExercises[originalEx.id] ?? originalEx;
+    final bool isSwapped = _swappedExercises.containsKey(originalEx.id);
+    final MobilityExerciseModel currentEx = activeEx;
+    final double progress = (_currentIndex + 1) / exercises.length;
 
     return Scaffold(
       appBar: AppBar(
@@ -126,7 +135,9 @@ class _WarmupSessionScreenState extends State<WarmupSessionScreen> {
           child: LinearProgressIndicator(
             value: progress,
             backgroundColor: AppTheme.surfaceElevated,
-            valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryAmber),
+            valueColor: const AlwaysStoppedAnimation<Color>(
+              AppTheme.primaryAmber,
+            ),
           ),
         ),
       ),
@@ -135,7 +146,7 @@ class _WarmupSessionScreenState extends State<WarmupSessionScreen> {
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+            children: <Widget>[
               // Workout Context Header
               Container(
                 width: double.infinity,
@@ -144,17 +155,23 @@ class _WarmupSessionScreenState extends State<WarmupSessionScreen> {
                 decoration: BoxDecoration(
                   color: AppTheme.surfaceElevated,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppTheme.primaryAmber.withValues(alpha: 0.3)),
+                  border: Border.all(
+                    color: AppTheme.primaryAmber.withValues(alpha: 0.3),
+                  ),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+                  children: <Widget>[
                     Row(
-                      children: [
-                        const Icon(Icons.sports_gymnastics, color: AppTheme.primaryAmber, size: 18),
+                      children: <Widget>[
+                        const Icon(
+                          Icons.sports_gymnastics,
+                          color: AppTheme.primaryAmber,
+                          size: 18,
+                        ),
                         const SizedBox(width: 8),
                         Text(
-                          'PREPPING FOR TODAY\'S SESSION',
+                          "PREPPING FOR TODAY'S SESSION",
                           style: GoogleFonts.outfit(
                             fontSize: 11,
                             fontWeight: FontWeight.bold,
@@ -167,14 +184,22 @@ class _WarmupSessionScreenState extends State<WarmupSessionScreen> {
                     const SizedBox(height: 4),
                     Text(
                       _warmupRoutine.workoutTitle,
-                      style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.bold),
+                      style: GoogleFonts.outfit(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                    if (_warmupRoutine.diagnosticReasons.isNotEmpty) ...[
+                    if (_warmupRoutine
+                        .diagnosticReasons
+                        .isNotEmpty) ...<Widget>[
                       const SizedBox(height: 6),
-                      ..._warmupRoutine.diagnosticReasons.map((reason) {
+                      ..._warmupRoutine.diagnosticReasons.map((String reason) {
                         return Text(
                           '• ${settings.formatTextUnits(reason)}',
-                          style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textSecondary),
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            color: AppTheme.textSecondary,
+                          ),
                         );
                       }),
                     ],
@@ -187,31 +212,49 @@ class _WarmupSessionScreenState extends State<WarmupSessionScreen> {
                 controller: _phaseScrollController,
                 scrollDirection: Axis.horizontal,
                 child: Row(
-                  children: List.generate(_warmupRoutine.phaseGroups.length, (index) {
-                    final group = _warmupRoutine.phaseGroups[index];
-                    final isCurrentGroup = group.exercises.contains(currentEx);
+                  children: List.generate(_warmupRoutine.phaseGroups.length, (
+                    int index,
+                  ) {
+                    final WarmupPhaseGroup group =
+                        _warmupRoutine.phaseGroups[index];
+                    final bool isCurrentGroup = group.exercises.contains(
+                      currentEx,
+                    );
                     return GestureDetector(
                       key: index < _phaseKeys.length ? _phaseKeys[index] : null,
                       onTap: () {
-                        final firstIndex = exercises.indexOf(group.exercises.first);
+                        final int firstIndex = exercises.indexOf(
+                          group.exercises.first,
+                        );
                         if (firstIndex != -1) {
                           _setExerciseIndex(firstIndex);
                         }
                       },
                       child: Container(
                         margin: const EdgeInsets.only(right: 8),
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
                         decoration: BoxDecoration(
-                          color: isCurrentGroup ? AppTheme.primaryAmber : AppTheme.surfaceElevated,
+                          color: isCurrentGroup
+                              ? AppTheme.primaryAmber
+                              : AppTheme.surfaceElevated,
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: isCurrentGroup ? Colors.white : AppTheme.borderColor),
+                          border: Border.all(
+                            color: isCurrentGroup
+                                ? Colors.white
+                                : AppTheme.borderColor,
+                          ),
                         ),
                         child: Text(
                           'P${group.phaseNumber}: ${group.title.replaceAll("Phase ${group.phaseNumber}: ", "")}',
                           style: GoogleFonts.outfit(
                             fontSize: 11,
                             fontWeight: FontWeight.bold,
-                            color: isCurrentGroup ? Colors.black : AppTheme.textSecondary,
+                            color: isCurrentGroup
+                                ? Colors.black
+                                : AppTheme.textSecondary,
                           ),
                         ),
                       ),
@@ -224,7 +267,7 @@ class _WarmupSessionScreenState extends State<WarmupSessionScreen> {
               // Stepper Header Bar
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
+                children: <Widget>[
                   Text(
                     'EXERCISE ${_currentIndex + 1} OF ${exercises.length}',
                     style: GoogleFonts.outfit(
@@ -235,7 +278,7 @@ class _WarmupSessionScreenState extends State<WarmupSessionScreen> {
                     ),
                   ),
                   Row(
-                    children: [
+                    children: <Widget>[
                       IconButton(
                         onPressed: _currentIndex > 0 ? _prevExercise : null,
                         icon: const Icon(Icons.arrow_back_ios_new, size: 18),
@@ -258,7 +301,7 @@ class _WarmupSessionScreenState extends State<WarmupSessionScreen> {
                 exercise: activeEx,
                 originalExercise: originalEx,
                 isSwapped: isSwapped,
-                onSwapExercise: (replacement) {
+                onSwapExercise: (MobilityExerciseModel replacement) {
                   setState(() {
                     _swappedExercises[originalEx.id] = replacement;
                   });
@@ -275,15 +318,20 @@ class _WarmupSessionScreenState extends State<WarmupSessionScreen> {
               // Bottom Navigation Controls
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
+                children: <Widget>[
                   if (_currentIndex > 0)
                     OutlinedButton.icon(
                       onPressed: _prevExercise,
                       style: OutlinedButton.styleFrom(
                         foregroundColor: AppTheme.textSecondary,
                         side: const BorderSide(color: AppTheme.borderColor),
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                       icon: const Icon(Icons.chevron_left),
                       label: const Text('PREVIOUS'),
@@ -295,14 +343,23 @@ class _WarmupSessionScreenState extends State<WarmupSessionScreen> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.primaryAmber,
                       foregroundColor: Colors.black,
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 12,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                     icon: Icon(
-                      _currentIndex == exercises.length - 1 ? Icons.check_circle : Icons.chevron_right,
+                      _currentIndex == exercises.length - 1
+                          ? Icons.check_circle
+                          : Icons.chevron_right,
                     ),
                     label: Text(
-                      _currentIndex == exercises.length - 1 ? 'START WORKOUT' : 'NEXT PREP DRILL',
+                      _currentIndex == exercises.length - 1
+                          ? 'START WORKOUT'
+                          : 'NEXT PREP DRILL',
                       style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
                     ),
                   ),

@@ -1,27 +1,36 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:oly/models/workout_session.dart';
+import 'package:oly/providers/lift_provider.dart';
+import 'package:oly/providers/program_provider.dart';
+import 'package:oly/providers/recovery_provider.dart';
+import 'package:oly/providers/settings_provider.dart';
+import 'package:oly/services/recovery_engine_service.dart';
+import 'package:oly/theme/app_theme.dart';
+import 'package:oly/views/recovery_session_screen.dart';
 import 'package:provider/provider.dart';
-import '../providers/lift_provider.dart';
-import '../providers/program_provider.dart';
-import '../providers/recovery_provider.dart';
-import '../providers/settings_provider.dart';
-import '../theme/app_theme.dart';
-import '../views/recovery_session_screen.dart';
 
 class ActiveRecoveryCard extends StatelessWidget {
   const ActiveRecoveryCard({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final liftProvider = Provider.of<LiftProvider>(context);
-    final programProvider = Provider.of<ProgramProvider>(context);
-    final recoveryProvider = Provider.of<RecoveryProvider>(context);
-    final settings = Provider.of<SettingsProvider>(context);
+    final LiftProvider liftProvider = Provider.of<LiftProvider>(context);
+    final ProgramProvider programProvider = Provider.of<ProgramProvider>(
+      context,
+    );
+    final RecoveryProvider recoveryProvider = Provider.of<RecoveryProvider>(
+      context,
+    );
+    final SettingsProvider settings = Provider.of<SettingsProvider>(context);
 
-    final ratioAnalyses = liftProvider.getRatioAnalysis();
-    final lastSession = programProvider.sessions.isNotEmpty ? programProvider.sessions.first : null;
+    final List<LiftRatioAnalysis> ratioAnalyses = liftProvider
+        .getRatioAnalysis();
+    final WorkoutSession? lastSession = programProvider.sessions.isNotEmpty
+        ? programProvider.sessions.first
+        : null;
 
-    final routine = recoveryProvider.getRoutine(
+    final GeneratedRecoveryRoutine routine = recoveryProvider.getRoutine(
       ratioAnalyses: ratioAnalyses,
       lastSession: lastSession,
     );
@@ -31,13 +40,16 @@ class ActiveRecoveryCard extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [AppTheme.surfaceCard, AppTheme.surfaceElevated],
+          colors: <Color>[AppTheme.surfaceCard, AppTheme.surfaceElevated],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppTheme.accentBlue.withValues(alpha: 0.4), width: 1.5),
-        boxShadow: [
+        border: Border.all(
+          color: AppTheme.accentBlue.withValues(alpha: 0.4),
+          width: 1.5,
+        ),
+        boxShadow: <BoxShadow>[
           BoxShadow(
             color: AppTheme.accentBlue.withValues(alpha: 0.1),
             blurRadius: 20,
@@ -47,13 +59,13 @@ class ActiveRecoveryCard extends StatelessWidget {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+        children: <Widget>[
           // Header Badge & Duration Pill
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
+            children: <Widget>[
               Row(
-                children: [
+                children: <Widget>[
                   const Icon(Icons.bolt, color: AppTheme.accentBlue, size: 22),
                   const SizedBox(width: 6),
                   Text(
@@ -68,11 +80,16 @@ class ActiveRecoveryCard extends StatelessWidget {
                 ],
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: AppTheme.accentBlue.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppTheme.accentBlue.withValues(alpha: 0.4)),
+                  border: Border.all(
+                    color: AppTheme.accentBlue.withValues(alpha: 0.4),
+                  ),
                 ),
                 child: Text(
                   '${routine.totalEstimatedMinutes} MINS',
@@ -99,15 +116,19 @@ class ActiveRecoveryCard extends StatelessWidget {
           const SizedBox(height: 8),
 
           // Diagnostic Reasons list
-          ...routine.diagnosticReasons.take(2).map((reason) {
+          ...routine.diagnosticReasons.take(2).map((String reason) {
             return Padding(
               padding: const EdgeInsets.only(bottom: 4),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+                children: <Widget>[
                   const Padding(
                     padding: EdgeInsets.only(top: 3, right: 6),
-                    child: Icon(Icons.auto_awesome, size: 13, color: AppTheme.primaryAmber),
+                    child: Icon(
+                      Icons.auto_awesome,
+                      size: 13,
+                      color: AppTheme.primaryAmber,
+                    ),
                   ),
                   Expanded(
                     child: Text(
@@ -130,7 +151,7 @@ class ActiveRecoveryCard extends StatelessWidget {
           Wrap(
             spacing: 6,
             runSpacing: 6,
-            children: routine.phaseGroups.map((group) {
+            children: routine.phaseGroups.map((RecoveryPhaseGroup group) {
               return Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
@@ -154,7 +175,7 @@ class ActiveRecoveryCard extends StatelessWidget {
 
           // CTA Launch Button & Quick Stats
           Row(
-            children: [
+            children: <Widget>[
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: () {
@@ -172,9 +193,15 @@ class ActiveRecoveryCard extends StatelessWidget {
                     foregroundColor: AppTheme.accentBlue,
                     side: const BorderSide(color: AppTheme.accentBlue),
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
                   ),
-                  icon: const Icon(Icons.explore, color: AppTheme.accentBlue, size: 18),
+                  icon: const Icon(
+                    Icons.explore,
+                    color: AppTheme.accentBlue,
+                    size: 18,
+                  ),
                   label: Text(
                     'PREVIEW',
                     style: GoogleFonts.outfit(
@@ -202,10 +229,15 @@ class ActiveRecoveryCard extends StatelessWidget {
                     backgroundColor: AppTheme.accentBlue,
                     foregroundColor: Colors.black,
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
                     elevation: 4,
                   ),
-                  icon: const Icon(Icons.play_arrow_rounded, color: Colors.black),
+                  icon: const Icon(
+                    Icons.play_arrow_rounded,
+                    color: Colors.black,
+                  ),
                   label: Text(
                     'START FLOW',
                     style: GoogleFonts.outfit(
@@ -218,7 +250,7 @@ class ActiveRecoveryCard extends StatelessWidget {
               ),
             ],
           ),
-          if (recoveryProvider.totalSessionsCompleted > 0) ...[
+          if (recoveryProvider.totalSessionsCompleted > 0) ...<Widget>[
             const SizedBox(height: 12),
             Center(
               child: Text(

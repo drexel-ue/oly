@@ -1,28 +1,30 @@
 import 'dart:ui';
+
 import 'package:flutter/material.dart';
+import 'package:nested/nested.dart';
+import 'package:oly/models/program_model.dart';
+import 'package:oly/providers/body_comp_provider.dart';
+import 'package:oly/providers/lift_provider.dart';
+import 'package:oly/providers/nutrition_provider.dart';
+import 'package:oly/providers/program_provider.dart';
+import 'package:oly/providers/recovery_provider.dart';
+import 'package:oly/providers/settings_provider.dart';
+import 'package:oly/services/app_log_service.dart';
+import 'package:oly/services/notification_service.dart';
+import 'package:oly/services/recovery_engine_service.dart';
+import 'package:oly/services/storage_service.dart';
+import 'package:oly/theme/app_theme.dart';
+import 'package:oly/views/analytics_screen.dart';
+import 'package:oly/views/dashboard_screen.dart';
+import 'package:oly/views/lifts_screen.dart';
+import 'package:oly/views/max_test_screen.dart';
+import 'package:oly/views/nutrition/nutrition_dashboard_screen.dart';
+import 'package:oly/views/plate_calculator_screen.dart';
+import 'package:oly/views/recovery_session_screen.dart';
+import 'package:oly/views/splash_screen.dart';
+import 'package:oly/views/warmup_session_screen.dart';
+import 'package:oly/views/workout_session_screen.dart';
 import 'package:provider/provider.dart';
-import 'providers/body_comp_provider.dart';
-import 'providers/lift_provider.dart';
-import 'providers/nutrition_provider.dart';
-import 'providers/program_provider.dart';
-import 'providers/recovery_provider.dart';
-import 'providers/settings_provider.dart';
-import 'services/notification_service.dart';
-import 'services/storage_service.dart';
-import 'theme/app_theme.dart';
-import 'models/program_model.dart';
-import 'services/recovery_engine_service.dart';
-import 'views/analytics_screen.dart';
-import 'views/dashboard_screen.dart';
-import 'views/lifts_screen.dart';
-import 'views/max_test_screen.dart';
-import 'views/nutrition/nutrition_dashboard_screen.dart';
-import 'views/plate_calculator_screen.dart';
-import 'services/app_log_service.dart';
-import 'views/recovery_session_screen.dart';
-import 'views/splash_screen.dart';
-import 'views/warmup_session_screen.dart';
-import 'views/workout_session_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -50,20 +52,35 @@ void main() async {
     return true; // prevent application from dying
   };
 
-  final storageService = await StorageService.init();
+  final StorageService storageService = await StorageService.init();
   await NotificationService().init();
 
-  AppLogService.instance.info('SYSTEM', 'Oly application initialized successfully');
+  AppLogService.instance.info(
+    'SYSTEM',
+    'Oly application initialized successfully',
+  );
 
   runApp(
     MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => SettingsProvider(storageService)),
-        ChangeNotifierProvider(create: (_) => LiftProvider(storageService)),
-        ChangeNotifierProvider(create: (_) => ProgramProvider(storageService)),
-        ChangeNotifierProvider(create: (_) => RecoveryProvider(storageService)),
-        ChangeNotifierProvider(create: (_) => BodyCompProvider(storageService)),
-        ChangeNotifierProvider(create: (_) => NutritionProvider(storageService)),
+      providers: <SingleChildWidget>[
+        ChangeNotifierProvider<SettingsProvider>(
+          create: (BuildContext _) => SettingsProvider(storageService),
+        ),
+        ChangeNotifierProvider<LiftProvider>(
+          create: (BuildContext _) => LiftProvider(storageService),
+        ),
+        ChangeNotifierProvider<ProgramProvider>(
+          create: (BuildContext _) => ProgramProvider(storageService),
+        ),
+        ChangeNotifierProvider<RecoveryProvider>(
+          create: (BuildContext _) => RecoveryProvider(storageService),
+        ),
+        ChangeNotifierProvider<BodyCompProvider>(
+          create: (BuildContext _) => BodyCompProvider(storageService),
+        ),
+        ChangeNotifierProvider<NutritionProvider>(
+          create: (BuildContext _) => NutritionProvider(storageService),
+        ),
       ],
       child: const OlyApp(),
     ),
@@ -76,36 +93,33 @@ class OlyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Oly - Olympic Weightlifting',
-      debugShowCheckedModeBanner: false,
+      title: 'OLY',
       theme: AppTheme.darkTheme,
-      builder: (context, child) {
+      debugShowCheckedModeBanner: false,
+      builder: (BuildContext context, Widget? child) {
         return GestureDetector(
           onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
           behavior: HitTestBehavior.translucent,
           child: child,
         );
       },
-      onGenerateRoute: (settings) {
+      onGenerateRoute: (RouteSettings settings) {
         if (settings.name == '/warmup') {
-          final dayTemplate = settings.arguments as DayTemplate?;
-          final defaultDay = ProgramCycle.getBuiltInProgram().first;
-          return MaterialPageRoute(
-            builder: (_) => WarmupSessionScreen(
-              dayTemplate: dayTemplate ?? defaultDay,
-            ),
+          final DayTemplate? dayTemplate = settings.arguments as DayTemplate?;
+          final DayTemplate defaultDay = ProgramCycle.getBuiltInProgram().first;
+          return MaterialPageRoute<void>(
+            builder: (BuildContext _) =>
+                WarmupSessionScreen(dayTemplate: dayTemplate ?? defaultDay),
           );
         }
         return null;
       },
-      home: SplashScreen(
-        child: _buildHomeScreen(),
-      ),
+      home: SplashScreen(child: _buildHomeScreen()),
     );
   }
 
   Widget _buildHomeScreen() {
-    const screen = String.fromEnvironment('SCREEN');
+    const String screen = String.fromEnvironment('SCREEN');
     if (screen == 'workout') {
       return WorkoutSessionScreen(
         dayTemplate: ProgramCycle.getBuiltInProgram().first,
@@ -113,7 +127,7 @@ class OlyApp extends StatelessWidget {
     } else if (screen == 'recovery') {
       return RecoverySessionScreen(
         routine: RecoveryEngineService.generateRoutine(
-          ratioAnalyses: [],
+          ratioAnalyses: <LiftRatioAnalysis>[],
           lastSession: null,
         ),
       );
@@ -125,12 +139,12 @@ class OlyApp extends StatelessWidget {
 }
 
 class MainNavigationContainer extends StatefulWidget {
+  const MainNavigationContainer({super.key, this.initialIndex = 0});
   final int initialIndex;
 
-  const MainNavigationContainer({super.key, this.initialIndex = 0});
-
   @override
-  State<MainNavigationContainer> createState() => _MainNavigationContainerState();
+  State<MainNavigationContainer> createState() =>
+      _MainNavigationContainerState();
 }
 
 class _MainNavigationContainerState extends State<MainNavigationContainer> {
@@ -142,7 +156,7 @@ class _MainNavigationContainerState extends State<MainNavigationContainer> {
     _currentIndex = widget.initialIndex;
   }
 
-  final List<Widget> _screens = [
+  final List<Widget> _screens = <Widget>[
     const DashboardScreen(),
     const LiftsScreen(),
     const NutritionDashboardScreen(),
@@ -155,15 +169,12 @@ class _MainNavigationContainerState extends State<MainNavigationContainer> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: IndexedStack(
-          index: _currentIndex,
-          children: _screens,
-        ),
+        child: IndexedStack(index: _currentIndex, children: _screens),
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
-        onTap: (index) => setState(() => _currentIndex = index),
-        items: const [
+        onTap: (int index) => setState(() => _currentIndex = index),
+        items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(Icons.dashboard_outlined),
             activeIcon: Icon(Icons.dashboard),

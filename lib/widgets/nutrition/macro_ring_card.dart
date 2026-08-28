@@ -1,22 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../models/daily_nutrition_log.dart';
-import '../../theme/app_theme.dart';
+import 'package:oly/models/daily_nutrition_log.dart';
+import 'package:oly/theme/app_theme.dart';
 
 class MacroRingCard extends StatelessWidget {
+  const MacroRingCard({required this.log, super.key, this.onToggleTrainingDay});
   final DailyNutritionLog log;
   final VoidCallback? onToggleTrainingDay;
 
-  const MacroRingCard({
-    super.key,
-    required this.log,
-    this.onToggleTrainingDay,
-  });
-
   @override
   Widget build(BuildContext context) {
-    final remainingCals = log.remainingCalories;
-    final isSurplus = remainingCals < 0;
+    final int remainingCals = log.remainingCalories;
+    final bool isSurplus = remainingCals < 0;
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -24,23 +19,23 @@ class MacroRingCard extends StatelessWidget {
         color: AppTheme.surfaceCard,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: AppTheme.borderColor),
-        boxShadow: [
+        boxShadow: <BoxShadow>[
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withValues(alpha: 0.3),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Column(
-        children: [
+        children: <Widget>[
           // Header Row: Calorie Summary & Training Day Toggle
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
+            children: <Widget>[
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+                children: <Widget>[
                   Text(
                     'DAILY TARGET',
                     style: GoogleFonts.inter(
@@ -54,13 +49,15 @@ class MacroRingCard extends StatelessWidget {
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.baseline,
                     textBaseline: TextBaseline.alphabetic,
-                    children: [
+                    children: <Widget>[
                       Text(
                         '${isSurplus ? '+' : ''}${remainingCals.abs()}',
                         style: GoogleFonts.outfit(
                           fontSize: 36,
                           fontWeight: FontWeight.bold,
-                          color: isSurplus ? AppTheme.warningOrange : AppTheme.textPrimary,
+                          color: isSurplus
+                              ? AppTheme.warningOrange
+                              : AppTheme.textPrimary,
                         ),
                       ),
                       const SizedBox(width: 6),
@@ -81,23 +78,30 @@ class MacroRingCard extends StatelessWidget {
                 onTap: onToggleTrainingDay,
                 borderRadius: BorderRadius.circular(20),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: log.isTrainingDay
-                        ? AppTheme.primaryAmber.withOpacity(0.15)
+                        ? AppTheme.primaryAmber.withValues(alpha: 0.15)
                         : AppTheme.surfaceElevated,
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: log.isTrainingDay ? AppTheme.primaryAmber : AppTheme.borderColor,
+                      color: log.isTrainingDay
+                          ? AppTheme.primaryAmber
+                          : AppTheme.borderColor,
                     ),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
-                    children: [
+                    children: <Widget>[
                       Icon(
                         Icons.bolt,
                         size: 16,
-                        color: log.isTrainingDay ? AppTheme.primaryAmber : AppTheme.textSecondary,
+                        color: log.isTrainingDay
+                            ? AppTheme.primaryAmber
+                            : AppTheme.textSecondary,
                       ),
                       const SizedBox(width: 4),
                       Text(
@@ -105,7 +109,9 @@ class MacroRingCard extends StatelessWidget {
                         style: GoogleFonts.inter(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
-                          color: log.isTrainingDay ? AppTheme.primaryAmber : AppTheme.textSecondary,
+                          color: log.isTrainingDay
+                              ? AppTheme.primaryAmber
+                              : AppTheme.textSecondary,
                         ),
                       ),
                     ],
@@ -119,7 +125,7 @@ class MacroRingCard extends StatelessWidget {
 
           // Macro Sub-bars (Protein, Carbs, Fats)
           Row(
-            children: [
+            children: <Widget>[
               Expanded(
                 child: _buildMacroBar(
                   label: 'Protein',
@@ -157,7 +163,7 @@ class MacroRingCard extends StatelessWidget {
           // Total Eaten vs Goal Footer
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
+            children: <Widget>[
               Text(
                 'Eaten: ${log.totalCalories} kcal',
                 style: GoogleFonts.inter(
@@ -188,22 +194,24 @@ class MacroRingCard extends StatelessWidget {
     required Color color,
     required String unit,
   }) {
-    final progress = target > 0 ? (current / target).clamp(0.0, 1.0) : 0.0;
-    final isTargetMet = current >= target;
+    final double progress = target > 0
+        ? (current / target).clamp(0.0, 1.0)
+        : 0.0;
+    final bool isTargetMet = current >= target;
 
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: AppTheme.surfaceElevated,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppTheme.borderColor.withOpacity(0.6)),
+        border: Border.all(color: AppTheme.borderColor.withValues(alpha: 0.6)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+        children: <Widget>[
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
+            children: <Widget>[
               Text(
                 label,
                 style: GoogleFonts.inter(
@@ -213,14 +221,18 @@ class MacroRingCard extends StatelessWidget {
                 ),
               ),
               if (isTargetMet)
-                const Icon(Icons.check_circle, size: 14, color: AppTheme.successGreen),
+                const Icon(
+                  Icons.check_circle,
+                  size: 14,
+                  color: AppTheme.successGreen,
+                ),
             ],
           ),
           const SizedBox(height: 6),
           Row(
             crossAxisAlignment: CrossAxisAlignment.baseline,
             textBaseline: TextBaseline.alphabetic,
-            children: [
+            children: <Widget>[
               Text(
                 current.toStringAsFixed(0),
                 style: GoogleFonts.outfit(

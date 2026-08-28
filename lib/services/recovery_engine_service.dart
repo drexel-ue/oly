@@ -1,34 +1,32 @@
-import '../models/lift_model.dart';
-import '../models/mobility_exercise_model.dart';
-import '../models/workout_session.dart';
-import '../providers/lift_provider.dart';
+import 'package:oly/models/lift_model.dart';
+import 'package:oly/models/mobility_exercise_model.dart';
+import 'package:oly/models/workout_session.dart';
+import 'package:oly/providers/lift_provider.dart';
 
 class RecoveryPhaseGroup {
-  final int phaseNumber;
-  final String title;
-  final String subtitle;
-  final List<MobilityExerciseModel> exercises;
-
   RecoveryPhaseGroup({
     required this.phaseNumber,
     required this.title,
     required this.subtitle,
     required this.exercises,
   });
+  final int phaseNumber;
+  final String title;
+  final String subtitle;
+  final List<MobilityExerciseModel> exercises;
 }
 
 class GeneratedRecoveryRoutine {
-  final List<RecoveryPhaseGroup> phaseGroups;
-  final List<MobilityExerciseModel> exercises;
-  final List<String> diagnosticReasons;
-  final int totalEstimatedMinutes;
-
   GeneratedRecoveryRoutine({
     required this.phaseGroups,
     required this.exercises,
     required this.diagnosticReasons,
     required this.totalEstimatedMinutes,
   });
+  final List<RecoveryPhaseGroup> phaseGroups;
+  final List<MobilityExerciseModel> exercises;
+  final List<String> diagnosticReasons;
+  final int totalEstimatedMinutes;
 }
 
 class RecoveryEngineService {
@@ -37,14 +35,17 @@ class RecoveryEngineService {
     required WorkoutSession? lastSession,
     List<MobilityExerciseModel>? customCatalog,
   }) {
-    final catalog = customCatalog ?? MobilityExerciseModel.defaultExercises();
-    final targetFocusAreas = <MobilityFocusArea>{};
-    final diagnosticReasons = <String>[];
+    final List<MobilityExerciseModel> catalog =
+        customCatalog ?? MobilityExerciseModel.defaultExercises();
+    final Set<MobilityFocusArea> targetFocusAreas = <MobilityFocusArea>{};
+    final List<String> diagnosticReasons = <String>[];
 
     // 1. Inspect Ratio Balance Chart Gaps
-    final underdeveloped = ratioAnalyses.where((a) => a.status == 'Underdeveloped').toList();
+    final List<LiftRatioAnalysis> underdeveloped = ratioAnalyses
+        .where((LiftRatioAnalysis a) => a.status == 'Underdeveloped')
+        .toList();
 
-    for (var analysis in underdeveloped) {
+    for (final LiftRatioAnalysis analysis in underdeveloped) {
       switch (analysis.lift.category) {
         case LiftCategory.overhead:
           targetFocusAreas.add(MobilityFocusArea.thoracicSpine);
@@ -90,35 +91,54 @@ class RecoveryEngineService {
       bool hadOverhead = false;
       bool hadPulls = false;
 
-      for (var log in lastSession.logs) {
-        final name = log.exerciseName.toLowerCase();
-        if (name.contains('squat')) hadSquats = true;
-        if (name.contains('snatch') || name.contains('jerk') || name.contains('press')) hadOverhead = true;
-        if (name.contains('pull') || name.contains('deadlift') || name.contains('rdl')) hadPulls = true;
+      for (final ExerciseLog log in lastSession.logs) {
+        final String name = log.exerciseName.toLowerCase();
+        if (name.contains('squat')) {
+          hadSquats = true;
+        }
+        if (name.contains('snatch') ||
+            name.contains('jerk') ||
+            name.contains('press')) {
+          hadOverhead = true;
+        }
+        if (name.contains('pull') ||
+            name.contains('deadlift') ||
+            name.contains('rdl')) {
+          hadPulls = true;
+        }
       }
 
-      if (lastSession.jointStrainTags != null && lastSession.jointStrainTags!.isNotEmpty) {
-        for (var tag in lastSession.jointStrainTags!) {
+      if (lastSession.jointStrainTags != null &&
+          lastSession.jointStrainTags!.isNotEmpty) {
+        for (final String tag in lastSession.jointStrainTags!) {
           switch (tag) {
             case 'Shoulders':
               targetFocusAreas.add(MobilityFocusArea.shoulderOverhead);
               targetFocusAreas.add(MobilityFocusArea.thoracicSpine);
-              diagnosticReasons.add('Athlete Feedback: Shoulder strain reported in last check-in.');
+              diagnosticReasons.add(
+                'Athlete Feedback: Shoulder strain reported in last check-in.',
+              );
               break;
             case 'Hips':
             case 'Knees':
               targetFocusAreas.add(MobilityFocusArea.hipCapsule);
               targetFocusAreas.add(MobilityFocusArea.ankleDorsiflexion);
               targetFocusAreas.add(MobilityFocusArea.quadriceps);
-              diagnosticReasons.add('Athlete Feedback: Lower body joint strain reported in last check-in.');
+              diagnosticReasons.add(
+                'Athlete Feedback: Lower body joint strain reported in last check-in.',
+              );
               break;
             case 'Lower Back':
               targetFocusAreas.add(MobilityFocusArea.posteriorChain);
-              diagnosticReasons.add('Athlete Feedback: Posterior chain strain reported in last check-in.');
+              diagnosticReasons.add(
+                'Athlete Feedback: Posterior chain strain reported in last check-in.',
+              );
               break;
             case 'Wrists':
               targetFocusAreas.add(MobilityFocusArea.shoulderOverhead);
-              diagnosticReasons.add('Athlete Feedback: Wrist & front rack tension targeted.');
+              diagnosticReasons.add(
+                'Athlete Feedback: Wrist & front rack tension targeted.',
+              );
               break;
           }
         }
@@ -151,7 +171,7 @@ class RecoveryEngineService {
 
     // Baseline fallback if no gaps or session logs found
     if (targetFocusAreas.isEmpty) {
-      targetFocusAreas.addAll([
+      targetFocusAreas.addAll(<MobilityFocusArea>[
         MobilityFocusArea.thoracicSpine,
         MobilityFocusArea.hipCapsule,
         MobilityFocusArea.ankleDorsiflexion,
@@ -164,53 +184,83 @@ class RecoveryEngineService {
     // --- BUILD THE 5 PHASES ---
 
     // Phase 1: Zone 2 Cardio
-    final phase1Exercises = catalog.where((ex) => ex.focusArea == MobilityFocusArea.cardio).toList();
+    final List<MobilityExerciseModel> phase1Exercises = catalog
+        .where(
+          (MobilityExerciseModel ex) =>
+              ex.focusArea == MobilityFocusArea.cardio,
+        )
+        .toList();
 
     // Phase 2: Dynamic Mobility & Weak-Point Accessories
-    final selectedMobility = catalog
-        .where((ex) =>
-            ex.category == MobilityCategory.mobilityDrill &&
-            targetFocusAreas.contains(ex.focusArea))
+    final List<MobilityExerciseModel> selectedMobility = catalog
+        .where(
+          (MobilityExerciseModel ex) =>
+              ex.category == MobilityCategory.mobilityDrill &&
+              targetFocusAreas.contains(ex.focusArea),
+        )
         .take(3)
         .toList();
 
     if (selectedMobility.length < 3) {
-      final remaining = catalog
-          .where((ex) =>
-              ex.category == MobilityCategory.mobilityDrill &&
-              !selectedMobility.contains(ex))
+      final Iterable<MobilityExerciseModel> remaining = catalog
+          .where(
+            (MobilityExerciseModel ex) =>
+                ex.category == MobilityCategory.mobilityDrill &&
+                !selectedMobility.contains(ex),
+          )
           .take(3 - selectedMobility.length);
       selectedMobility.addAll(remaining);
     }
 
-    final selectedAccessories = catalog
-        .where((ex) =>
-            ex.category == MobilityCategory.liftingAccessory &&
-            targetFocusAreas.contains(ex.focusArea))
+    final List<MobilityExerciseModel> selectedAccessories = catalog
+        .where(
+          (MobilityExerciseModel ex) =>
+              ex.category == MobilityCategory.liftingAccessory &&
+              targetFocusAreas.contains(ex.focusArea),
+        )
         .take(2)
         .toList();
 
     if (selectedAccessories.length < 2) {
-      final remaining = catalog
-          .where((ex) =>
-              ex.category == MobilityCategory.liftingAccessory &&
-              !selectedAccessories.contains(ex))
+      final Iterable<MobilityExerciseModel> remaining = catalog
+          .where(
+            (MobilityExerciseModel ex) =>
+                ex.category == MobilityCategory.liftingAccessory &&
+                !selectedAccessories.contains(ex),
+          )
           .take(2 - selectedAccessories.length);
       selectedAccessories.addAll(remaining);
     }
 
-    final phase2Exercises = [...selectedMobility, ...selectedAccessories];
+    final List<MobilityExerciseModel> phase2Exercises = <MobilityExerciseModel>[
+      ...selectedMobility,
+      ...selectedAccessories,
+    ];
 
     // Phase 3: Arms & Upper Hypertrophy
-    final phase3Exercises = catalog.where((ex) => ex.focusArea == MobilityFocusArea.arms).toList();
+    final List<MobilityExerciseModel> phase3Exercises = catalog
+        .where(
+          (MobilityExerciseModel ex) => ex.focusArea == MobilityFocusArea.arms,
+        )
+        .toList();
 
     // Phase 4: Abs & Core Stability
-    final phase4Exercises = catalog.where((ex) => ex.focusArea == MobilityFocusArea.absCore).toList();
+    final List<MobilityExerciseModel> phase4Exercises = catalog
+        .where(
+          (MobilityExerciseModel ex) =>
+              ex.focusArea == MobilityFocusArea.absCore,
+        )
+        .toList();
 
     // Phase 5: Grip Strength
-    final phase5Exercises = catalog.where((ex) => ex.focusArea == MobilityFocusArea.gripStrength).toList();
+    final List<MobilityExerciseModel> phase5Exercises = catalog
+        .where(
+          (MobilityExerciseModel ex) =>
+              ex.focusArea == MobilityFocusArea.gripStrength,
+        )
+        .toList();
 
-    final phaseGroups = [
+    final List<RecoveryPhaseGroup> phaseGroups = <RecoveryPhaseGroup>[
       RecoveryPhaseGroup(
         phaseNumber: 1,
         title: 'Phase 1: Zone 2 Cardio',
@@ -243,13 +293,16 @@ class RecoveryEngineService {
       ),
     ];
 
-    final allExercises = phaseGroups.expand((g) => g.exercises).toList();
+    final List<MobilityExerciseModel> allExercises = phaseGroups
+        .expand((RecoveryPhaseGroup g) => g.exercises)
+        .toList();
 
     return GeneratedRecoveryRoutine(
       phaseGroups: phaseGroups,
       exercises: allExercises,
       diagnosticReasons: diagnosticReasons.toSet().toList(),
-      totalEstimatedMinutes: 35, // 15m cardio + 10m mobility + 10m arms/abs/grip
+      totalEstimatedMinutes:
+          35, // 15m cardio + 10m mobility + 10m arms/abs/grip
     );
   }
 }

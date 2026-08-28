@@ -1,32 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:oly/models/accessory_log.dart';
+import 'package:oly/models/mobility_exercise_model.dart';
+import 'package:oly/providers/recovery_provider.dart';
+import 'package:oly/providers/settings_provider.dart';
+import 'package:oly/theme/app_theme.dart';
+import 'package:oly/widgets/mobility_exercise_swap_modal.dart';
+import 'package:oly/widgets/rest_timer_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../models/mobility_exercise_model.dart';
-import '../providers/recovery_provider.dart';
-import '../providers/settings_provider.dart';
-import '../theme/app_theme.dart';
-import 'mobility_exercise_swap_modal.dart';
-import 'rest_timer_widget.dart';
 
 class VideoPlayerCard extends StatefulWidget {
+  const VideoPlayerCard({
+    required this.exercise,
+    required this.onCompleted,
+    super.key,
+    this.originalExercise,
+    this.isSwapped = false,
+    this.onSwapExercise,
+    this.onResetExercise,
+  });
   final MobilityExerciseModel exercise;
   final MobilityExerciseModel? originalExercise;
   final bool isSwapped;
   final ValueChanged<MobilityExerciseModel>? onSwapExercise;
   final VoidCallback? onResetExercise;
   final VoidCallback onCompleted;
-
-  const VideoPlayerCard({
-    super.key,
-    required this.exercise,
-    this.originalExercise,
-    this.isSwapped = false,
-    this.onSwapExercise,
-    this.onResetExercise,
-    required this.onCompleted,
-  });
 
   @override
   State<VideoPlayerCard> createState() => _VideoPlayerCardState();
@@ -43,7 +43,9 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
   void initState() {
     super.initState();
     _setsCompleted = List.filled(widget.exercise.defaultSets, false);
-    _accessoryWeight = widget.exercise.category == MobilityCategory.barbellPrep ? 20.0 : 10.0;
+    _accessoryWeight = widget.exercise.category == MobilityCategory.barbellPrep
+        ? 20.0
+        : 10.0;
     _weightController = TextEditingController(
       text: _accessoryWeight > 0 ? _accessoryWeight.toStringAsFixed(1) : '0',
     );
@@ -53,8 +55,13 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (!_initializedWeight) {
-      final recovery = Provider.of<RecoveryProvider>(context, listen: false);
-      final latest = recovery.getLatestAccessoryLog(widget.exercise.id);
+      final RecoveryProvider recovery = Provider.of<RecoveryProvider>(
+        context,
+        listen: false,
+      );
+      final AccessoryLog? latest = recovery.getLatestAccessoryLog(
+        widget.exercise.id,
+      );
       if (latest != null && latest.weightKg > 0) {
         _accessoryWeight = latest.weightKg;
         _weightController.text = _accessoryWeight.toStringAsFixed(1);
@@ -68,14 +75,24 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.exercise.id != widget.exercise.id) {
       _setsCompleted = List.filled(widget.exercise.defaultSets, false);
-      final recovery = Provider.of<RecoveryProvider>(context, listen: false);
-      final latest = recovery.getLatestAccessoryLog(widget.exercise.id);
+      final RecoveryProvider recovery = Provider.of<RecoveryProvider>(
+        context,
+        listen: false,
+      );
+      final AccessoryLog? latest = recovery.getLatestAccessoryLog(
+        widget.exercise.id,
+      );
       if (latest != null && latest.weightKg > 0) {
         _accessoryWeight = latest.weightKg;
       } else {
-        _accessoryWeight = widget.exercise.category == MobilityCategory.barbellPrep ? 20.0 : 10.0;
+        _accessoryWeight =
+            widget.exercise.category == MobilityCategory.barbellPrep
+            ? 20.0
+            : 10.0;
       }
-      _weightController.text = _accessoryWeight > 0 ? _accessoryWeight.toStringAsFixed(1) : '0';
+      _weightController.text = _accessoryWeight > 0
+          ? _accessoryWeight.toStringAsFixed(1)
+          : '0';
       _showAccessoryRestTimer = false;
     }
   }
@@ -108,15 +125,21 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
     bool launched = false;
     if (primaryUri != null && await canLaunchUrl(primaryUri)) {
       try {
-        launched = await launchUrl(primaryUri, mode: LaunchMode.externalApplication);
+        launched = await launchUrl(
+          primaryUri,
+          mode: LaunchMode.externalApplication,
+        );
       } catch (_) {
         launched = false;
       }
     }
 
     if (!launched) {
-      final query = '${widget.exercise.name} Catalyst Athletics weightlifting tutorial';
-      final searchUri = Uri.parse('https://www.youtube.com/results?search_query=${Uri.encodeComponent(query)}');
+      final String query =
+          '${widget.exercise.name} Catalyst Athletics weightlifting tutorial';
+      final Uri searchUri = Uri.parse(
+        'https://www.youtube.com/results?search_query=${Uri.encodeComponent(query)}',
+      );
 
       if (await canLaunchUrl(searchUri)) {
         await launchUrl(searchUri, mode: LaunchMode.externalApplication);
@@ -131,10 +154,16 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
     }
   }
 
-  void _showAccessoryHistorySheet(BuildContext context, RecoveryProvider recovery, SettingsProvider settings) {
-    final history = recovery.getAccessoryHistory(widget.exercise.id);
-    final pb = recovery.getAccessoryPersonalBest(widget.exercise.id);
-    final unit = settings.unitLabel.toUpperCase();
+  void _showAccessoryHistorySheet(
+    BuildContext context,
+    RecoveryProvider recovery,
+    SettingsProvider settings,
+  ) {
+    final List<AccessoryLog> history = recovery.getAccessoryHistory(
+      widget.exercise.id,
+    );
+    final double pb = recovery.getAccessoryPersonalBest(widget.exercise.id);
+    final String unit = settings.unitLabel.toUpperCase();
 
     showModalBottomSheet(
       context: context,
@@ -142,14 +171,14 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (ctx) {
+      builder: (BuildContext ctx) {
         return SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(20),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+              children: <Widget>[
                 Center(
                   child: Container(
                     width: 40,
@@ -163,25 +192,34 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
                 const SizedBox(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
+                  children: <Widget>[
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
+                        children: <Widget>[
                           Text(
                             widget.exercise.name,
-                            style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.bold),
+                            style: GoogleFonts.outfit(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                           Text(
                             'Weight Progression History',
-                            style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textSecondary),
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              color: AppTheme.textSecondary,
+                            ),
                           ),
                         ],
                       ),
                     ),
                     if (pb > 0)
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 6,
+                        ),
                         decoration: BoxDecoration(
                           color: AppTheme.primaryAmber.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(10),
@@ -208,7 +246,10 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
                       child: Text(
                         'No logged sets for this movement yet.\nComplete sets to start tracking weight progression!',
                         textAlign: TextAlign.center,
-                        style: GoogleFonts.inter(color: AppTheme.textSecondary, fontSize: 13),
+                        style: GoogleFonts.inter(
+                          color: AppTheme.textSecondary,
+                          fontSize: 13,
+                        ),
                       ),
                     ),
                   )
@@ -217,15 +258,22 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
                     child: ListView.builder(
                       shrinkWrap: true,
                       itemCount: history.length,
-                      itemBuilder: (ctx, idx) {
-                        final item = history[idx];
-                        final dateStr = DateFormat('MMM d, yyyy • h:mm a').format(item.date);
-                        final itemWeight = settings.toDisplayWeight(item.weightKg);
-                        final isPb = item.weightKg >= pb && pb > 0;
+                      itemBuilder: (BuildContext ctx, int idx) {
+                        final AccessoryLog item = history[idx];
+                        final String dateStr = DateFormat(
+                          'MMM d, yyyy • h:mm a',
+                        ).format(item.date);
+                        final double itemWeight = settings.toDisplayWeight(
+                          item.weightKg,
+                        );
+                        final bool isPb = item.weightKg >= pb && pb > 0;
 
                         return Container(
                           margin: const EdgeInsets.only(bottom: 8),
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 10,
+                          ),
                           decoration: BoxDecoration(
                             color: AppTheme.surfaceElevated,
                             borderRadius: BorderRadius.circular(12),
@@ -237,26 +285,35 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
                           ),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
+                            children: <Widget>[
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
+                                children: <Widget>[
                                   Text(
                                     dateStr,
-                                    style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textSecondary),
+                                    style: GoogleFonts.inter(
+                                      fontSize: 12,
+                                      color: AppTheme.textSecondary,
+                                    ),
                                   ),
                                   Text(
                                     '${item.sets} Sets × ${item.reps} Reps',
-                                    style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w500),
+                                    style: GoogleFonts.inter(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                    ),
                                   ),
                                 ],
                               ),
                               Row(
-                                children: [
+                                children: <Widget>[
                                   if (isPb)
                                     Container(
                                       margin: const EdgeInsets.only(right: 8),
-                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 6,
+                                        vertical: 2,
+                                      ),
                                       decoration: BoxDecoration(
                                         color: AppTheme.primaryAmber,
                                         borderRadius: BorderRadius.circular(6),
@@ -277,7 +334,9 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
                                     style: GoogleFonts.outfit(
                                       fontSize: 15,
                                       fontWeight: FontWeight.bold,
-                                      color: isPb ? AppTheme.primaryAmber : AppTheme.textPrimary,
+                                      color: isPb
+                                          ? AppTheme.primaryAmber
+                                          : AppTheme.textPrimary,
                                     ),
                                   ),
                                 ],
@@ -301,10 +360,10 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => MobilityExerciseSwapModal(
+      builder: (BuildContext ctx) => MobilityExerciseSwapModal(
         exercise: widget.exercise,
         originalExercise: widget.originalExercise,
-        onSwapSelected: (replacement) {
+        onSwapSelected: (MobilityExerciseModel replacement) {
           if (widget.onSwapExercise != null) {
             widget.onSwapExercise!(replacement);
           }
@@ -316,10 +375,12 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
 
   @override
   Widget build(BuildContext context) {
-    final settings = Provider.of<SettingsProvider>(context);
-    final ex = widget.exercise;
-    final isMobility = ex.category == MobilityCategory.mobilityDrill || ex.category == MobilityCategory.foamRolling;
-    final isCardio = ex.category == MobilityCategory.cardioConditioning;
+    final SettingsProvider settings = Provider.of<SettingsProvider>(context);
+    final MobilityExerciseModel ex = widget.exercise;
+    final bool isMobility =
+        ex.category == MobilityCategory.mobilityDrill ||
+        ex.category == MobilityCategory.foamRolling;
+    final bool isCardio = ex.category == MobilityCategory.cardioConditioning;
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -327,7 +388,7 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
         color: AppTheme.surfaceCard,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: AppTheme.borderColor),
-        boxShadow: [
+        boxShadow: <BoxShadow>[
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.2),
             blurRadius: 16,
@@ -337,32 +398,35 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+        children: <Widget>[
           // Header Category Badges & Swap Button
           Wrap(
             alignment: WrapAlignment.spaceBetween,
             crossAxisAlignment: WrapCrossAlignment.center,
             spacing: 8,
             runSpacing: 6,
-            children: [
+            children: <Widget>[
               Row(
                 mainAxisSize: MainAxisSize.min,
-                children: [
+                children: <Widget>[
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: isCardio
                           ? Colors.tealAccent.withValues(alpha: 0.15)
                           : isMobility
-                              ? AppTheme.accentBlue.withValues(alpha: 0.15)
-                              : AppTheme.primaryAmber.withValues(alpha: 0.15),
+                          ? AppTheme.accentBlue.withValues(alpha: 0.15)
+                          : AppTheme.primaryAmber.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
                         color: isCardio
                             ? Colors.tealAccent.withValues(alpha: 0.5)
                             : isMobility
-                                ? AppTheme.accentBlue.withValues(alpha: 0.5)
-                                : AppTheme.primaryAmber.withValues(alpha: 0.5),
+                            ? AppTheme.accentBlue.withValues(alpha: 0.5)
+                            : AppTheme.primaryAmber.withValues(alpha: 0.5),
                       ),
                     ),
                     child: Text(
@@ -373,15 +437,18 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
                         color: isCardio
                             ? Colors.tealAccent
                             : isMobility
-                                ? AppTheme.accentBlue
-                                : AppTheme.primaryAmber,
+                            ? AppTheme.accentBlue
+                            : AppTheme.primaryAmber,
                         letterSpacing: 1.0,
                       ),
                     ),
                   ),
                   const SizedBox(width: 6),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: AppTheme.surfaceElevated,
                       borderRadius: BorderRadius.circular(8),
@@ -403,7 +470,10 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
                   onTap: () => _openSwapModal(context),
                   borderRadius: BorderRadius.circular(8),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: widget.isSwapped
                           ? AppTheme.primaryAmber.withValues(alpha: 0.2)
@@ -417,11 +487,13 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
-                      children: [
+                      children: <Widget>[
                         Icon(
                           Icons.swap_horiz,
                           size: 14,
-                          color: widget.isSwapped ? AppTheme.primaryAmber : AppTheme.textSecondary,
+                          color: widget.isSwapped
+                              ? AppTheme.primaryAmber
+                              : AppTheme.textSecondary,
                         ),
                         const SizedBox(width: 4),
                         Text(
@@ -429,7 +501,9 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
                           style: GoogleFonts.outfit(
                             fontSize: 11,
                             fontWeight: FontWeight.bold,
-                            color: widget.isSwapped ? AppTheme.primaryAmber : AppTheme.textSecondary,
+                            color: widget.isSwapped
+                                ? AppTheme.primaryAmber
+                                : AppTheme.textSecondary,
                           ),
                         ),
                       ],
@@ -469,7 +543,9 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
               decoration: BoxDecoration(
                 color: AppTheme.surfaceElevated,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppTheme.primaryAmber.withValues(alpha: 0.3)),
+                border: Border.all(
+                  color: AppTheme.primaryAmber.withValues(alpha: 0.3),
+                ),
                 image: const DecorationImage(
                   image: AssetImage('assets/icon/splash.jpg'),
                   fit: BoxFit.cover,
@@ -478,7 +554,7 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
               ),
               child: Stack(
                 alignment: Alignment.center,
-                children: [
+                children: <Widget>[
                   Container(
                     decoration: BoxDecoration(
                       color: Colors.black.withValues(alpha: 0.4),
@@ -487,15 +563,17 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
                   ),
                   Column(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
+                    children: <Widget>[
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
                           color: AppTheme.primaryAmber,
                           shape: BoxShape.circle,
-                          boxShadow: [
+                          boxShadow: <BoxShadow>[
                             BoxShadow(
-                              color: AppTheme.primaryAmber.withValues(alpha: 0.5),
+                              color: AppTheme.primaryAmber.withValues(
+                                alpha: 0.5,
+                              ),
                               blurRadius: 12,
                               spreadRadius: 2,
                             ),
@@ -519,15 +597,19 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
                       const SizedBox(height: 2),
                       Row(
                         mainAxisSize: MainAxisSize.min,
-                        children: [
+                        children: <Widget>[
                           Icon(
-                            ex.isYoutube ? Icons.subscriptions : Icons.ondemand_video,
+                            ex.isYoutube
+                                ? Icons.subscriptions
+                                : Icons.ondemand_video,
                             size: 13,
                             color: AppTheme.textSecondary,
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            ex.isYoutube ? 'YouTube Coaching Tutorial' : 'Exercise Clip',
+                            ex.isYoutube
+                                ? 'YouTube Coaching Tutorial'
+                                : 'Exercise Clip',
                             style: GoogleFonts.inter(
                               fontSize: 11,
                               color: AppTheme.textSecondary,
@@ -554,15 +636,19 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
             ),
           ),
           const SizedBox(height: 8),
-          ...ex.cues.map((cue) {
+          ...ex.cues.map((String cue) {
             return Padding(
               padding: const EdgeInsets.only(bottom: 6),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+                children: <Widget>[
                   const Padding(
                     padding: EdgeInsets.only(top: 4, right: 8),
-                    child: Icon(Icons.check_circle_outline, size: 14, color: AppTheme.accentBlue),
+                    child: Icon(
+                      Icons.check_circle_outline,
+                      size: 14,
+                      color: AppTheme.accentBlue,
+                    ),
                   ),
                   Expanded(
                     child: Text(
@@ -581,37 +667,40 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
           const SizedBox(height: 20),
 
           // Unified Execution Controls: Reusable Timer for Timed Drills vs Workout-Matched Sets for Accessories
-          _isTimedDrill
-              ? _buildUnifiedDrillTimerSection(settings)
-              : _buildWorkoutMatchedSetsSection(settings),
+          if (_isTimedDrill)
+            _buildUnifiedDrillTimerSection(settings)
+          else
+            _buildWorkoutMatchedSetsSection(settings),
         ],
       ),
     );
   }
 
   Widget _buildUnifiedDrillTimerSection(SettingsProvider settings) {
-    final ex = widget.exercise;
-    final isCardio = ex.category == MobilityCategory.cardioConditioning;
-    final isFoamRoll = ex.category == MobilityCategory.foamRolling;
+    final MobilityExerciseModel ex = widget.exercise;
+    final bool isCardio = ex.category == MobilityCategory.cardioConditioning;
+    final bool isFoamRoll = ex.category == MobilityCategory.foamRolling;
 
     String timerTitle = 'Mobility Drill Timer';
     IconData timerIcon = Icons.timer_outlined;
-    List<int> presets = [30, 45, 60, 90, 120];
+    List<int> presets = <int>[30, 45, 60, 90, 120];
     Color primaryColor = AppTheme.accentBlue;
 
     if (isCardio) {
       timerTitle = 'Cardio Interval Timer';
       timerIcon = Icons.directions_run;
-      presets = [60, 120, 180, 300, 480, 600]; // 1m, 2m, 3m, 5m, 8m, 10m
+      presets = <int>[60, 120, 180, 300, 480, 600]; // 1m, 2m, 3m, 5m, 8m, 10m
       primaryColor = AppTheme.primaryAmber;
     } else if (isFoamRoll) {
       timerTitle = 'Foam Roll Timer';
       timerIcon = Icons.self_improvement;
-      presets = [30, 45, 60, 90, 120];
+      presets = <int>[30, 45, 60, 90, 120];
       primaryColor = AppTheme.secondaryCyan;
     }
 
-    final duration = ex.durationSeconds > 0 ? ex.durationSeconds : (isCardio ? 180 : 60);
+    final int duration = ex.durationSeconds > 0
+        ? ex.durationSeconds
+        : (isCardio ? 180 : 60);
 
     return RestTimerWidget(
       key: ValueKey('${ex.id}_timer'),
@@ -624,21 +713,21 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
       notificationTitle: isCardio
           ? '🏃 Cardio Interval Complete!'
           : isFoamRoll
-              ? '🧘 Foam Rolling Complete!'
-              : '✨ Mobility Drill Complete!',
+          ? '🧘 Foam Rolling Complete!'
+          : '✨ Mobility Drill Complete!',
       notificationBody: '${ex.name} finished. Ready for the next movement.',
       onFinished: widget.onCompleted,
     );
   }
 
   Widget _buildWorkoutMatchedSetsSection(SettingsProvider settings) {
-    final ex = widget.exercise;
-    final displayWeight = settings.toDisplayWeight(_accessoryWeight);
-    final unitLabel = settings.unitLabel.toUpperCase();
-    final recovery = Provider.of<RecoveryProvider>(context);
+    final MobilityExerciseModel ex = widget.exercise;
+    final double displayWeight = settings.toDisplayWeight(_accessoryWeight);
+    final String unitLabel = settings.unitLabel.toUpperCase();
+    final RecoveryProvider recovery = Provider.of<RecoveryProvider>(context);
 
-    final pbKg = recovery.getAccessoryPersonalBest(ex.id);
-    final latestLog = recovery.getLatestAccessoryLog(ex.id);
+    final double pbKg = recovery.getAccessoryPersonalBest(ex.id);
+    final AccessoryLog? latestLog = recovery.getLatestAccessoryLog(ex.id);
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -649,14 +738,14 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+        children: <Widget>[
           // Header: Target Scheme, Rest Timer Toggle & Progression History
           Wrap(
             alignment: WrapAlignment.spaceBetween,
             crossAxisAlignment: WrapCrossAlignment.center,
             spacing: 8,
             runSpacing: 6,
-            children: [
+            children: <Widget>[
               Text(
                 'TARGET SETS & WEIGHT',
                 style: GoogleFonts.outfit(
@@ -668,7 +757,7 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
               ),
               Row(
                 mainAxisSize: MainAxisSize.min,
-                children: [
+                children: <Widget>[
                   Text(
                     '${ex.defaultSets} Sets × ${ex.defaultReps} Reps',
                     style: GoogleFonts.inter(
@@ -680,10 +769,14 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
                   const SizedBox(width: 8),
                   // Progression History Button
                   InkWell(
-                    onTap: () => _showAccessoryHistorySheet(context, recovery, settings),
+                    onTap: () =>
+                        _showAccessoryHistorySheet(context, recovery, settings),
                     borderRadius: BorderRadius.circular(8),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: AppTheme.surfaceCard,
                         borderRadius: BorderRadius.circular(8),
@@ -691,8 +784,12 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.show_chart, size: 14, color: AppTheme.accentBlue),
+                        children: <Widget>[
+                          const Icon(
+                            Icons.show_chart,
+                            size: 14,
+                            color: AppTheme.accentBlue,
+                          ),
                           const SizedBox(width: 4),
                           Text(
                             'History',
@@ -709,10 +806,15 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
                   const SizedBox(width: 6),
                   // Rest Timer Toggle
                   InkWell(
-                    onTap: () => setState(() => _showAccessoryRestTimer = !_showAccessoryRestTimer),
+                    onTap: () => setState(
+                      () => _showAccessoryRestTimer = !_showAccessoryRestTimer,
+                    ),
                     borderRadius: BorderRadius.circular(8),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: _showAccessoryRestTimer
                             ? AppTheme.primaryAmber.withValues(alpha: 0.2)
@@ -726,11 +828,13 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
-                        children: [
+                        children: <Widget>[
                           Icon(
                             Icons.timer_outlined,
                             size: 14,
-                            color: _showAccessoryRestTimer ? AppTheme.primaryAmber : AppTheme.textSecondary,
+                            color: _showAccessoryRestTimer
+                                ? AppTheme.primaryAmber
+                                : AppTheme.textSecondary,
                           ),
                           const SizedBox(width: 4),
                           Text(
@@ -738,7 +842,9 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
                             style: GoogleFonts.outfit(
                               fontSize: 11,
                               fontWeight: FontWeight.bold,
-                              color: _showAccessoryRestTimer ? AppTheme.primaryAmber : AppTheme.textSecondary,
+                              color: _showAccessoryRestTimer
+                                  ? AppTheme.primaryAmber
+                                  : AppTheme.textSecondary,
                             ),
                           ),
                         ],
@@ -760,8 +866,12 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
               border: Border.all(color: AppTheme.borderColor),
             ),
             child: Row(
-              children: [
-                const Icon(Icons.fitness_center, color: AppTheme.primaryAmber, size: 18),
+              children: <Widget>[
+                const Icon(
+                  Icons.fitness_center,
+                  color: AppTheme.primaryAmber,
+                  size: 18,
+                ),
                 const SizedBox(width: 8),
                 Text(
                   'Weight:',
@@ -795,23 +905,32 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
           ),
 
           // Personal Best & Previous Log progression indicators
-          if (pbKg > 0 || latestLog != null) ...[
+          if (pbKg > 0 || latestLog != null) ...<Widget>[
             const SizedBox(height: 8),
             Row(
-              children: [
+              children: <Widget>[
                 if (pbKg > 0)
                   Container(
                     margin: const EdgeInsets.only(right: 8),
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
                       color: AppTheme.primaryAmber.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(6),
-                      border: Border.all(color: AppTheme.primaryAmber.withValues(alpha: 0.4)),
+                      border: Border.all(
+                        color: AppTheme.primaryAmber.withValues(alpha: 0.4),
+                      ),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.emoji_events_outlined, size: 12, color: AppTheme.primaryAmber),
+                      children: <Widget>[
+                        const Icon(
+                          Icons.emoji_events_outlined,
+                          size: 12,
+                          color: AppTheme.primaryAmber,
+                        ),
                         const SizedBox(width: 4),
                         Text(
                           'PB: ${settings.toDisplayWeight(pbKg).toStringAsFixed(1)} $unitLabel',
@@ -841,16 +960,16 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: List.generate(ex.defaultSets, (index) {
-              final isDone = _setsCompleted[index];
-              final weightText = _accessoryWeight > 0
+            children: List.generate(ex.defaultSets, (int index) {
+              final bool isDone = _setsCompleted[index];
+              final String weightText = _accessoryWeight > 0
                   ? '${displayWeight.toStringAsFixed(1)}$unitLabel'
                   : 'BW';
 
               return InkWell(
                 onTap: () async {
                   setState(() => _setsCompleted[index] = !isDone);
-                  if (_setsCompleted.every((e) => e)) {
+                  if (_setsCompleted.every((bool e) => e)) {
                     // Log accessory progression into history
                     await recovery.logAccessoryWeight(
                       exerciseId: ex.id,
@@ -866,9 +985,14 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
                 borderRadius: BorderRadius.circular(12),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
                   decoration: BoxDecoration(
-                    color: isDone ? Colors.green.withValues(alpha: 0.25) : AppTheme.surfaceCard,
+                    color: isDone
+                        ? Colors.green.withValues(alpha: 0.25)
+                        : AppTheme.surfaceCard,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
                       color: isDone ? Colors.greenAccent : AppTheme.borderColor,
@@ -877,11 +1001,15 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
-                    children: [
+                    children: <Widget>[
                       Icon(
-                        isDone ? Icons.check_circle : Icons.radio_button_unchecked,
+                        isDone
+                            ? Icons.check_circle
+                            : Icons.radio_button_unchecked,
                         size: 16,
-                        color: isDone ? Colors.greenAccent : AppTheme.textSecondary,
+                        color: isDone
+                            ? Colors.greenAccent
+                            : AppTheme.textSecondary,
                       ),
                       const SizedBox(width: 6),
                       Text(
@@ -889,7 +1017,9 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
                         style: GoogleFonts.outfit(
                           fontSize: 13,
                           fontWeight: FontWeight.bold,
-                          color: isDone ? Colors.greenAccent : AppTheme.textPrimary,
+                          color: isDone
+                              ? Colors.greenAccent
+                              : AppTheme.textPrimary,
                         ),
                       ),
                     ],
@@ -900,14 +1030,14 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
           ),
 
           // Optional In-line Rest Timer
-          if (_showAccessoryRestTimer) ...[
+          if (_showAccessoryRestTimer) ...<Widget>[
             const SizedBox(height: 14),
             RestTimerWidget(
               key: ValueKey('${ex.id}_rest_timer'),
               title: 'Accessory Rest Timer',
               icon: Icons.timer_outlined,
               initialSeconds: 60,
-              presetSeconds: const [30, 45, 60, 90, 120],
+              presetSeconds: const <int>[30, 45, 60, 90, 120],
               primaryColor: AppTheme.primaryAmber,
               isEmbedded: true,
               notificationTitle: '⏰ Rest Complete!',

@@ -1,22 +1,24 @@
 import 'package:flutter/foundation.dart';
-import '../models/body_composition_entry.dart';
-import '../services/storage_service.dart';
+import 'package:oly/models/body_composition_entry.dart';
+import 'package:oly/services/storage_service.dart';
 
 class BodyCompProvider extends ChangeNotifier {
-  final StorageService _storage;
-  List<BodyCompositionEntry> _entries = [];
-
   BodyCompProvider(this._storage) {
     _loadEntries();
   }
+  final StorageService _storage;
+  List<BodyCompositionEntry> _entries = <BodyCompositionEntry>[];
 
   List<BodyCompositionEntry> get entries => List.unmodifiable(_entries);
 
-  BodyCompositionEntry? get latestEntry => _entries.isNotEmpty ? _entries.first : null;
+  BodyCompositionEntry? get latestEntry =>
+      _entries.isNotEmpty ? _entries.first : null;
 
-  BodyCompositionEntry? get previousEntry => _entries.length > 1 ? _entries[1] : null;
+  BodyCompositionEntry? get previousEntry =>
+      _entries.length > 1 ? _entries[1] : null;
 
-  BodyCompositionEntry? get baselineEntry => _entries.isNotEmpty ? _entries.last : null;
+  BodyCompositionEntry? get baselineEntry =>
+      _entries.isNotEmpty ? _entries.last : null;
 
   bool get hasEntries => _entries.isNotEmpty;
 
@@ -24,7 +26,7 @@ class BodyCompProvider extends ChangeNotifier {
     _entries = _storage.loadBodyCompEntries();
     if (_entries.isEmpty) {
       // Add initial seed based on user's Renpho scale baseline if empty
-      _entries = [
+      _entries = <BodyCompositionEntry>[
         BodyCompositionEntry.create(
           timestamp: DateTime(2026, 7, 21, 19, 30, 37),
           weightLb: 264.8,
@@ -56,74 +58,110 @@ class BodyCompProvider extends ChangeNotifier {
   }
 
   Future<void> addEntry(BodyCompositionEntry entry) async {
-    _entries.removeWhere((e) => e.id == entry.id);
+    _entries.removeWhere((BodyCompositionEntry e) => e.id == entry.id);
     _entries.insert(0, entry);
-    _entries.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+    _entries.sort(
+      (BodyCompositionEntry a, BodyCompositionEntry b) =>
+          b.timestamp.compareTo(a.timestamp),
+    );
     await _storage.saveBodyCompEntries(_entries);
     notifyListeners();
   }
 
   Future<void> updateEntry(BodyCompositionEntry entry) async {
-    final index = _entries.indexWhere((e) => e.id == entry.id);
+    final int index = _entries.indexWhere(
+      (BodyCompositionEntry e) => e.id == entry.id,
+    );
     if (index != -1) {
       _entries[index] = entry;
-      _entries.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+      _entries.sort(
+        (BodyCompositionEntry a, BodyCompositionEntry b) =>
+            b.timestamp.compareTo(a.timestamp),
+      );
       await _storage.saveBodyCompEntries(_entries);
       notifyListeners();
     }
   }
 
   Future<void> deleteEntry(String id) async {
-    _entries.removeWhere((e) => e.id == id);
+    _entries.removeWhere((BodyCompositionEntry e) => e.id == id);
     await _storage.saveBodyCompEntries(_entries);
     notifyListeners();
   }
 
   /// Calculates weight delta vs previous scan (in lbs)
   double get weightDeltaVsPrevious {
-    if (latestEntry == null || previousEntry == null) return 0.0;
+    if (latestEntry == null || previousEntry == null) {
+      return 0.0;
+    }
     return latestEntry!.weightLb - previousEntry!.weightLb;
   }
 
   /// Calculates body fat % delta vs previous scan
   double get bodyFatPctDeltaVsPrevious {
-    if (latestEntry?.bodyFatPct == null || previousEntry?.bodyFatPct == null) return 0.0;
+    if (latestEntry?.bodyFatPct == null || previousEntry?.bodyFatPct == null) {
+      return 0.0;
+    }
     return latestEntry!.bodyFatPct! - previousEntry!.bodyFatPct!;
   }
 
   /// Calculates Lean Body Mass delta vs previous scan (in lbs)
   double get leanMassDeltaVsPrevious {
-    if (latestEntry == null || previousEntry == null) return 0.0;
+    if (latestEntry == null || previousEntry == null) {
+      return 0.0;
+    }
     return latestEntry!.leanBodyMassLb - previousEntry!.leanBodyMassLb;
   }
 
   /// Calculates Fat Mass delta vs previous scan (in lbs)
   double get fatMassDeltaVsPrevious {
-    if (latestEntry == null || previousEntry == null) return 0.0;
+    if (latestEntry == null || previousEntry == null) {
+      return 0.0;
+    }
     return latestEntry!.fatMassLb - previousEntry!.fatMassLb;
   }
 
   /// Calculates Skeletal Muscle delta vs previous scan (in lbs)
   double get skeletalMuscleDeltaVsPrevious {
-    if (latestEntry?.skeletalMuscleLb == null || previousEntry?.skeletalMuscleLb == null) return 0.0;
+    if (latestEntry?.skeletalMuscleLb == null ||
+        previousEntry?.skeletalMuscleLb == null) {
+      return 0.0;
+    }
     return latestEntry!.skeletalMuscleLb! - previousEntry!.skeletalMuscleLb!;
   }
 
   /// Rolling average weight for the last N days
   double getRollingAverageWeight([int days = 7]) {
-    if (_entries.isEmpty) return 0.0;
-    final cutoff = DateTime.now().subtract(Duration(days: days));
-    final relevant = _entries.where((e) => e.timestamp.isAfter(cutoff)).toList();
-    if (relevant.isEmpty) return latestEntry!.weightLb;
-    return relevant.fold(0.0, (sum, e) => sum + e.weightLb) / relevant.length;
+    if (_entries.isEmpty) {
+      return 0.0;
+    }
+    final DateTime cutoff = DateTime.now().subtract(Duration(days: days));
+    final List<BodyCompositionEntry> relevant = _entries
+        .where((BodyCompositionEntry e) => e.timestamp.isAfter(cutoff))
+        .toList();
+    if (relevant.isEmpty) {
+      return latestEntry!.weightLb;
+    }
+    return relevant.fold(
+          0.0,
+          (double sum, BodyCompositionEntry e) => sum + e.weightLb,
+        ) /
+        relevant.length;
   }
 
   /// Filter entries within a timeframe
   List<BodyCompositionEntry> getEntriesForRange(Duration duration) {
-    if (_entries.isEmpty) return [];
-    final cutoff = DateTime.now().subtract(duration);
-    final filtered = _entries.where((e) => e.timestamp.isAfter(cutoff)).toList();
-    filtered.sort((a, b) => a.timestamp.compareTo(b.timestamp)); // ascending for charts
+    if (_entries.isEmpty) {
+      return <BodyCompositionEntry>[];
+    }
+    final DateTime cutoff = DateTime.now().subtract(duration);
+    final List<BodyCompositionEntry> filtered = _entries
+        .where((BodyCompositionEntry e) => e.timestamp.isAfter(cutoff))
+        .toList();
+    filtered.sort(
+      (BodyCompositionEntry a, BodyCompositionEntry b) =>
+          a.timestamp.compareTo(b.timestamp),
+    ); // ascending for charts
     return filtered;
   }
 }

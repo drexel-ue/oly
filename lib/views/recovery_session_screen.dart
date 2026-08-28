@@ -1,21 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:oly/models/mobility_exercise_model.dart';
+import 'package:oly/providers/recovery_provider.dart';
+import 'package:oly/services/recovery_engine_service.dart';
+import 'package:oly/theme/app_theme.dart';
+import 'package:oly/widgets/video_player_card.dart';
 import 'package:provider/provider.dart';
-import '../models/mobility_exercise_model.dart';
-import '../providers/recovery_provider.dart';
-import '../services/recovery_engine_service.dart';
-import '../theme/app_theme.dart';
-import '../widgets/video_player_card.dart';
 
 class RecoverySessionScreen extends StatefulWidget {
-  final GeneratedRecoveryRoutine routine;
-  final bool isPreviewMode;
-
   const RecoverySessionScreen({
-    super.key,
     required this.routine,
+    super.key,
     this.isPreviewMode = false,
   });
+  final GeneratedRecoveryRoutine routine;
+  final bool isPreviewMode;
 
   @override
   State<RecoverySessionScreen> createState() => _RecoverySessionScreenState();
@@ -23,12 +22,13 @@ class RecoverySessionScreen extends StatefulWidget {
 
 class _RecoverySessionScreenState extends State<RecoverySessionScreen> {
   int _currentIndex = 0;
-  final Set<String> _completedExerciseIds = {};
-  final Map<String, MobilityExerciseModel> _swappedExercises = {};
+  final Set<String> _completedExerciseIds = <String>{};
+  final Map<String, MobilityExerciseModel> _swappedExercises =
+      <String, MobilityExerciseModel>{};
   int _readinessRating = 4; // Default 4 stars (Fresh)
 
   final ScrollController _phaseScrollController = ScrollController();
-  final List<GlobalKey> _phaseKeys = [];
+  final List<GlobalKey> _phaseKeys = <GlobalKey<State<StatefulWidget>>>[];
 
   @override
   void initState() {
@@ -36,7 +36,9 @@ class _RecoverySessionScreenState extends State<RecoverySessionScreen> {
     _phaseKeys.addAll(
       List.generate(widget.routine.phaseGroups.length, (_) => GlobalKey()),
     );
-    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToCurrentPhase());
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => _scrollToCurrentPhase(),
+    );
   }
 
   @override
@@ -47,8 +49,11 @@ class _RecoverySessionScreenState extends State<RecoverySessionScreen> {
 
   void _scrollToCurrentPhase() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      final currentEx = widget.routine.exercises[_currentIndex];
+      if (!mounted) {
+        return;
+      }
+      final MobilityExerciseModel currentEx =
+          widget.routine.exercises[_currentIndex];
       int currentPhaseIndex = -1;
       for (int i = 0; i < widget.routine.phaseGroups.length; i++) {
         if (widget.routine.phaseGroups[i].exercises.contains(currentEx)) {
@@ -58,7 +63,8 @@ class _RecoverySessionScreenState extends State<RecoverySessionScreen> {
       }
 
       if (currentPhaseIndex != -1 && currentPhaseIndex < _phaseKeys.length) {
-        final keyContext = _phaseKeys[currentPhaseIndex].currentContext;
+        final BuildContext? keyContext =
+            _phaseKeys[currentPhaseIndex].currentContext;
         if (keyContext != null) {
           Scrollable.ensureVisible(
             keyContext,
@@ -102,9 +108,9 @@ class _RecoverySessionScreenState extends State<RecoverySessionScreen> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (ctx) {
+      builder: (BuildContext ctx) {
         return StatefulBuilder(
-          builder: (context, setDialogState) {
+          builder: (BuildContext context, setDialogState) {
             return AlertDialog(
               backgroundColor: AppTheme.surfaceCard,
               shape: RoundedRectangleBorder(
@@ -112,14 +118,18 @@ class _RecoverySessionScreenState extends State<RecoverySessionScreen> {
                 side: const BorderSide(color: AppTheme.accentBlue),
               ),
               title: Column(
-                children: [
+                children: <Widget>[
                   Container(
                     padding: const EdgeInsets.all(14),
                     decoration: const BoxDecoration(
                       color: AppTheme.accentBlue,
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.bolt, color: Colors.black, size: 32),
+                    child: const Icon(
+                      Icons.bolt,
+                      color: Colors.black,
+                      size: 32,
+                    ),
                   ),
                   const SizedBox(height: 12),
                   Text(
@@ -136,7 +146,7 @@ class _RecoverySessionScreenState extends State<RecoverySessionScreen> {
               content: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
-                  children: [
+                  children: <Widget>[
                     Text(
                       'How do your joints and muscles feel now?',
                       style: GoogleFonts.inter(
@@ -150,9 +160,9 @@ class _RecoverySessionScreenState extends State<RecoverySessionScreen> {
                     // Readiness Rating Selector (1 to 5 Stars)
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: List.generate(5, (index) {
-                        final starValue = index + 1;
-                        final isSelected = starValue == _readinessRating;
+                      children: List.generate(5, (int index) {
+                        final int starValue = index + 1;
+                        final bool isSelected = starValue == _readinessRating;
                         return GestureDetector(
                           onTap: () {
                             setDialogState(() => _readinessRating = starValue);
@@ -166,11 +176,13 @@ class _RecoverySessionScreenState extends State<RecoverySessionScreen> {
                                   : AppTheme.surfaceElevated,
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
-                                color: isSelected ? AppTheme.accentBlue : AppTheme.borderColor,
+                                color: isSelected
+                                    ? AppTheme.accentBlue
+                                    : AppTheme.borderColor,
                               ),
                             ),
                             child: Column(
-                              children: [
+                              children: <Widget>[
                                 Text(
                                   _readinessEmoji(starValue),
                                   style: const TextStyle(fontSize: 22),
@@ -181,7 +193,9 @@ class _RecoverySessionScreenState extends State<RecoverySessionScreen> {
                                   style: GoogleFonts.outfit(
                                     fontSize: 11,
                                     fontWeight: FontWeight.bold,
-                                    color: isSelected ? AppTheme.accentBlue : AppTheme.textSecondary,
+                                    color: isSelected
+                                        ? AppTheme.accentBlue
+                                        : AppTheme.textSecondary,
                                   ),
                                 ),
                               ],
@@ -202,13 +216,15 @@ class _RecoverySessionScreenState extends State<RecoverySessionScreen> {
                   ],
                 ),
               ),
-              actions: [
+              actions: <Widget>[
                 ElevatedButton(
                   onPressed: () async {
-                    final nav = Navigator.of(context);
-                    final messenger = ScaffoldMessenger.of(context);
+                    final NavigatorState nav = Navigator.of(context);
+                    final ScaffoldMessengerState messenger =
+                        ScaffoldMessenger.of(context);
                     if (!widget.isPreviewMode) {
-                      final recoveryProvider = Provider.of<RecoveryProvider>(context, listen: false);
+                      final RecoveryProvider recoveryProvider =
+                          Provider.of<RecoveryProvider>(context, listen: false);
                       await recoveryProvider.saveCompletedSession(
                         durationMinutes: widget.routine.totalEstimatedMinutes,
                         completedExerciseIds: _completedExerciseIds.toList(),
@@ -221,9 +237,11 @@ class _RecoverySessionScreenState extends State<RecoverySessionScreen> {
                       nav.pop(); // Exit recovery screen back to dashboard
                       messenger.showSnackBar(
                         SnackBar(
-                          content: Text(widget.isPreviewMode
-                              ? '👁 Recovery Routine preview finished.'
-                              : '⚡ Active Recovery Session logged successfully!'),
+                          content: Text(
+                            widget.isPreviewMode
+                                ? '👁 Recovery Routine preview finished.'
+                                : '⚡ Active Recovery Session logged successfully!',
+                          ),
                           backgroundColor: AppTheme.accentBlue,
                         ),
                       );
@@ -232,11 +250,18 @@ class _RecoverySessionScreenState extends State<RecoverySessionScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.accentBlue,
                     foregroundColor: Colors.black,
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                   child: Text(
-                    widget.isPreviewMode ? 'FINISH PREVIEW' : 'LOG SESSION & CLOSE',
+                    widget.isPreviewMode
+                        ? 'FINISH PREVIEW'
+                        : 'LOG SESSION & CLOSE',
                     style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
                   ),
                 ),
@@ -284,12 +309,13 @@ class _RecoverySessionScreenState extends State<RecoverySessionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final exercises = widget.routine.exercises;
-    final originalEx = exercises[_currentIndex];
-    final activeEx = _swappedExercises[originalEx.id] ?? originalEx;
-    final isSwapped = _swappedExercises.containsKey(originalEx.id);
-    final currentEx = activeEx;
-    final progress = (_currentIndex + 1) / exercises.length;
+    final List<MobilityExerciseModel> exercises = widget.routine.exercises;
+    final MobilityExerciseModel originalEx = exercises[_currentIndex];
+    final MobilityExerciseModel activeEx =
+        _swappedExercises[originalEx.id] ?? originalEx;
+    final bool isSwapped = _swappedExercises.containsKey(originalEx.id);
+    final MobilityExerciseModel currentEx = activeEx;
+    final double progress = (_currentIndex + 1) / exercises.length;
 
     return Scaffold(
       appBar: AppBar(
@@ -302,7 +328,9 @@ class _RecoverySessionScreenState extends State<RecoverySessionScreen> {
           child: LinearProgressIndicator(
             value: progress,
             backgroundColor: AppTheme.surfaceElevated,
-            valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.accentBlue),
+            valueColor: const AlwaysStoppedAnimation<Color>(
+              AppTheme.accentBlue,
+            ),
           ),
         ),
       ),
@@ -311,20 +339,29 @@ class _RecoverySessionScreenState extends State<RecoverySessionScreen> {
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (widget.isPreviewMode) ...[
+            children: <Widget>[
+              if (widget.isPreviewMode) ...<Widget>[
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 8,
+                  ),
                   margin: const EdgeInsets.only(bottom: 12),
                   decoration: BoxDecoration(
                     color: AppTheme.secondaryCyan.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppTheme.secondaryCyan.withValues(alpha: 0.5)),
+                    border: Border.all(
+                      color: AppTheme.secondaryCyan.withValues(alpha: 0.5),
+                    ),
                   ),
                   child: Row(
-                    children: [
-                      const Icon(Icons.explore, color: AppTheme.secondaryCyan, size: 18),
+                    children: <Widget>[
+                      const Icon(
+                        Icons.explore,
+                        color: AppTheme.secondaryCyan,
+                        size: 18,
+                      ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
@@ -345,31 +382,49 @@ class _RecoverySessionScreenState extends State<RecoverySessionScreen> {
                 controller: _phaseScrollController,
                 scrollDirection: Axis.horizontal,
                 child: Row(
-                  children: List.generate(widget.routine.phaseGroups.length, (index) {
-                    final group = widget.routine.phaseGroups[index];
-                    final isCurrentGroup = group.exercises.contains(currentEx);
+                  children: List.generate(widget.routine.phaseGroups.length, (
+                    int index,
+                  ) {
+                    final RecoveryPhaseGroup group =
+                        widget.routine.phaseGroups[index];
+                    final bool isCurrentGroup = group.exercises.contains(
+                      currentEx,
+                    );
                     return GestureDetector(
                       key: index < _phaseKeys.length ? _phaseKeys[index] : null,
                       onTap: () {
-                        final firstIndex = exercises.indexOf(group.exercises.first);
+                        final int firstIndex = exercises.indexOf(
+                          group.exercises.first,
+                        );
                         if (firstIndex != -1) {
                           _setExerciseIndex(firstIndex);
                         }
                       },
                       child: Container(
                         margin: const EdgeInsets.only(right: 8),
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
                         decoration: BoxDecoration(
-                          color: isCurrentGroup ? AppTheme.accentBlue : AppTheme.surfaceElevated,
+                          color: isCurrentGroup
+                              ? AppTheme.accentBlue
+                              : AppTheme.surfaceElevated,
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: isCurrentGroup ? Colors.white : AppTheme.borderColor),
+                          border: Border.all(
+                            color: isCurrentGroup
+                                ? Colors.white
+                                : AppTheme.borderColor,
+                          ),
                         ),
                         child: Text(
                           'P${group.phaseNumber}: ${group.title.replaceAll("Phase ${group.phaseNumber}: ", "")}',
                           style: GoogleFonts.outfit(
                             fontSize: 11,
                             fontWeight: FontWeight.bold,
-                            color: isCurrentGroup ? Colors.black : AppTheme.textSecondary,
+                            color: isCurrentGroup
+                                ? Colors.black
+                                : AppTheme.textSecondary,
                           ),
                         ),
                       ),
@@ -382,11 +437,11 @@ class _RecoverySessionScreenState extends State<RecoverySessionScreen> {
               // Stepper Header Bar
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
+                children: <Widget>[
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
+                      children: <Widget>[
                         Text(
                           'EXERCISE ${_currentIndex + 1} OF ${exercises.length}',
                           style: GoogleFonts.outfit(
@@ -400,7 +455,7 @@ class _RecoverySessionScreenState extends State<RecoverySessionScreen> {
                     ),
                   ),
                   Row(
-                    children: [
+                    children: <Widget>[
                       IconButton(
                         onPressed: _currentIndex > 0 ? _prevExercise : null,
                         icon: const Icon(Icons.arrow_back_ios_new, size: 18),
@@ -423,7 +478,7 @@ class _RecoverySessionScreenState extends State<RecoverySessionScreen> {
                 exercise: activeEx,
                 originalExercise: originalEx,
                 isSwapped: isSwapped,
-                onSwapExercise: (replacement) {
+                onSwapExercise: (MobilityExerciseModel replacement) {
                   setState(() {
                     _swappedExercises[originalEx.id] = replacement;
                   });
@@ -440,15 +495,20 @@ class _RecoverySessionScreenState extends State<RecoverySessionScreen> {
               // Bottom Navigation Controls
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
+                children: <Widget>[
                   if (_currentIndex > 0)
                     OutlinedButton.icon(
                       onPressed: _prevExercise,
                       style: OutlinedButton.styleFrom(
                         foregroundColor: AppTheme.textSecondary,
                         side: const BorderSide(color: AppTheme.borderColor),
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                       icon: const Icon(Icons.chevron_left),
                       label: const Text('PREVIOUS'),
@@ -460,14 +520,23 @@ class _RecoverySessionScreenState extends State<RecoverySessionScreen> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.primaryAmber,
                       foregroundColor: Colors.black,
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 12,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                     icon: Icon(
-                      _currentIndex == exercises.length - 1 ? Icons.check_circle : Icons.chevron_right,
+                      _currentIndex == exercises.length - 1
+                          ? Icons.check_circle
+                          : Icons.chevron_right,
                     ),
                     label: Text(
-                      _currentIndex == exercises.length - 1 ? 'FINISH SESSION' : 'NEXT DRILL',
+                      _currentIndex == exercises.length - 1
+                          ? 'FINISH SESSION'
+                          : 'NEXT DRILL',
                       style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
                     ),
                   ),

@@ -1,13 +1,4 @@
 class ExerciseTemplate {
-  final String name;
-  final String liftId; // e.g. 'snatch', 'power_snatch', 'back_squat'
-  final String setScheme; // e.g. '4 Sets of 2 Reps'
-  final Map<int, double>? weekPercentages; // Week number (1..4) -> % of 1RM (e.g. {1: 65, 2: 70, 3: 75, 4: 70})
-  final String? anchorLiftId; // Override reference 1RM (e.g. 'clean_and_jerk' for Front Squat)
-  final double? fixedPercentage; // Fixed percentage for all weeks (e.g. 90% for Snatch Pull)
-  final double? weeklyWeightIncrementKg; // Weekly progressive load (e.g. 2.5kg / ~5-10lbs)
-  final String? notes;
-
   ExerciseTemplate({
     required this.name,
     required this.liftId,
@@ -19,26 +10,52 @@ class ExerciseTemplate {
     this.notes,
   });
 
+  factory ExerciseTemplate.fromJson(Map<String, dynamic> json) {
+    return ExerciseTemplate(
+      name: json['name'] as String,
+      liftId: json['liftId'] as String,
+      setScheme: json['setScheme'] as String,
+      weekPercentages: (json['weekPercentages'] as Map<String, dynamic>?)?.map(
+        (String k, dynamic v) => MapEntry<int, double>(int.parse(k), (v as num).toDouble()),
+      ),
+      anchorLiftId: json['anchorLiftId'] as String?,
+      fixedPercentage: (json['fixedPercentage'] as num?)?.toDouble(),
+      weeklyWeightIncrementKg: (json['weeklyWeightIncrementKg'] as num?)
+          ?.toDouble(),
+      notes: json['notes'] as String?,
+    );
+  }
+  final String name;
+  final String liftId; // e.g. 'snatch', 'power_snatch', 'back_squat'
+  final String setScheme; // e.g. '4 Sets of 2 Reps'
+  final Map<int, double>? weekPercentages; // Week number (1..4) -> % of 1RM (e.g. {1: 65, 2: 70, 3: 75, 4: 70})
+  final String? anchorLiftId; // Override reference 1RM (e.g. 'clean_and_jerk' for Front Squat)
+  final double?
+  fixedPercentage; // Fixed percentage for all weeks (e.g. 90% for Snatch Pull)
+  final double?
+  weeklyWeightIncrementKg; // Weekly progressive load (e.g. 2.5kg / ~5-10lbs)
+  final String? notes;
+
   // Calculate suggested working weight for a specific week given current 1RMs map
   double calculateTargetWeight({
     required int week,
     required Map<String, double> currentMaxes,
   }) {
-    final refLiftId = anchorLiftId ?? liftId;
-    final base1RM = currentMaxes[refLiftId] ?? 100.0;
+    final String refLiftId = anchorLiftId ?? liftId;
+    final double base1RM = currentMaxes[refLiftId] ?? 100.0;
 
     if (weekPercentages != null && weekPercentages!.containsKey(week)) {
-      final pct = weekPercentages![week]!;
-      return (base1RM * (pct / 100.0));
+      final double pct = weekPercentages![week]!;
+      return base1RM * (pct / 100.0);
     }
 
     if (fixedPercentage != null) {
-      return (base1RM * (fixedPercentage! / 100.0));
+      return base1RM * (fixedPercentage! / 100.0);
     }
 
     if (weeklyWeightIncrementKg != null) {
       // Base calculation on 60% baseline + weekly increment
-      final baseWeight = base1RM * 0.60;
+      final double baseWeight = base1RM * 0.60;
       return baseWeight + ((week - 1) * weeklyWeightIncrementKg!);
     }
 
@@ -46,67 +63,44 @@ class ExerciseTemplate {
   }
 
   Map<String, dynamic> toJson() {
-    return {
+    return <String, dynamic>{
       'name': name,
       'liftId': liftId,
       'setScheme': setScheme,
-      'weekPercentages': weekPercentages?.map((k, v) => MapEntry(k.toString(), v)),
+      'weekPercentages': weekPercentages?.map(
+        (int k, double v) => MapEntry<String, double>(k.toString(), v),
+      ),
       'anchorLiftId': anchorLiftId,
       'fixedPercentage': fixedPercentage,
       'weeklyWeightIncrementKg': weeklyWeightIncrementKg,
       'notes': notes,
     };
   }
-
-  factory ExerciseTemplate.fromJson(Map<String, dynamic> json) {
-    return ExerciseTemplate(
-      name: json['name'] as String,
-      liftId: json['liftId'] as String,
-      setScheme: json['setScheme'] as String,
-      weekPercentages: (json['weekPercentages'] as Map<String, dynamic>?)?.map(
-        (k, v) => MapEntry(int.parse(k), (v as num).toDouble()),
-      ),
-      anchorLiftId: json['anchorLiftId'] as String?,
-      fixedPercentage: (json['fixedPercentage'] as num?)?.toDouble(),
-      weeklyWeightIncrementKg: (json['weeklyWeightIncrementKg'] as num?)?.toDouble(),
-      notes: json['notes'] as String?,
-    );
-  }
 }
 
 class PhaseTemplate {
-  final String name;
-  final List<ExerciseTemplate> exercises;
-
-  PhaseTemplate({
-    required this.name,
-    required this.exercises,
-  });
-
-  Map<String, dynamic> toJson() {
-    return {
-      'name': name,
-      'exercises': exercises.map((e) => e.toJson()).toList(),
-    };
-  }
+  PhaseTemplate({required this.name, required this.exercises});
 
   factory PhaseTemplate.fromJson(Map<String, dynamic> json) {
     return PhaseTemplate(
       name: json['name'] as String,
       exercises: (json['exercises'] as List<dynamic>)
-          .map((e) => ExerciseTemplate.fromJson(e as Map<String, dynamic>))
+          .map((dynamic e) => ExerciseTemplate.fromJson(e as Map<String, dynamic>))
           .toList(),
     );
+  }
+  final String name;
+  final List<ExerciseTemplate> exercises;
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'name': name,
+      'exercises': exercises.map((ExerciseTemplate e) => e.toJson()).toList(),
+    };
   }
 }
 
 class DayTemplate {
-  final int dayNumber;
-  final String title;
-  final String subtitle;
-  final List<PhaseTemplate> phases;
-  final bool isActiveRecovery;
-
   DayTemplate({
     required this.dayNumber,
     required this.title,
@@ -115,61 +109,66 @@ class DayTemplate {
     this.isActiveRecovery = false,
   });
 
-  Map<String, dynamic> toJson() {
-    return {
-      'dayNumber': dayNumber,
-      'title': title,
-      'subtitle': subtitle,
-      'phases': phases.map((e) => e.toJson()).toList(),
-      'isActiveRecovery': isActiveRecovery,
-    };
-  }
-
   factory DayTemplate.fromJson(Map<String, dynamic> json) {
     return DayTemplate(
       dayNumber: json['dayNumber'] as int,
       title: json['title'] as String,
       subtitle: json['subtitle'] as String,
       phases: (json['phases'] as List<dynamic>)
-          .map((e) => PhaseTemplate.fromJson(e as Map<String, dynamic>))
+          .map((dynamic e) => PhaseTemplate.fromJson(e as Map<String, dynamic>))
           .toList(),
       isActiveRecovery: json['isActiveRecovery'] as bool? ?? false,
     );
   }
+  final int dayNumber;
+  final String title;
+  final String subtitle;
+  final List<PhaseTemplate> phases;
+  final bool isActiveRecovery;
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'dayNumber': dayNumber,
+      'title': title,
+      'subtitle': subtitle,
+      'phases': phases.map((PhaseTemplate e) => e.toJson()).toList(),
+      'isActiveRecovery': isActiveRecovery,
+    };
+  }
 }
 
 class ProgramCycle {
-  int currentCycle;
-  int currentWeek; // 1..4 = training weeks, 5 = 1RM Retest Week
-  int currentDay; // 1..4
-  List<String> completedSessionIds;
-
   ProgramCycle({
     this.currentCycle = 1,
     this.currentWeek = 1,
     this.currentDay = 1,
     List<String>? completedSessionIds,
-  }) : completedSessionIds = completedSessionIds ?? [];
-
-  Map<String, dynamic> toJson() {
-    return {
-      'currentCycle': currentCycle,
-      'currentWeek': currentWeek,
-      'currentDay': currentDay,
-      'completedSessionIds': completedSessionIds,
-    };
-  }
+  }) : completedSessionIds = completedSessionIds ?? <String>[];
 
   factory ProgramCycle.fromJson(Map<String, dynamic> json) {
     return ProgramCycle(
       currentCycle: json['currentCycle'] as int? ?? 1,
       currentWeek: json['currentWeek'] as int? ?? 1,
       currentDay: json['currentDay'] as int? ?? 1,
-      completedSessionIds: (json['completedSessionIds'] as List<dynamic>?)
-              ?.map((e) => e as String)
+      completedSessionIds:
+          (json['completedSessionIds'] as List<dynamic>?)
+              ?.map((dynamic e) => e as String)
               .toList() ??
-          [],
+          <String>[],
     );
+  }
+  int currentCycle;
+  int currentWeek; // 1..4 = training weeks, 5 = 1RM Retest Week
+  int currentDay; // 1..4
+  List<String> completedSessionIds;
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'currentCycle': currentCycle,
+      'currentWeek': currentWeek,
+      'currentDay': currentDay,
+      'completedSessionIds': completedSessionIds,
+    };
   }
 
   static List<DayTemplate> getBuiltInProgram() {
@@ -180,10 +179,10 @@ class ProgramCycle {
         title: 'Active Recovery Day',
         subtitle: 'Cardio, Mobility Flow, Arms, Abs & Grip Strength',
         isActiveRecovery: true,
-        phases: [
+        phases: <PhaseTemplate>[
           PhaseTemplate(
             name: 'Cardio & Zone 2 Conditioning',
-            exercises: [
+            exercises: <ExerciseTemplate>[
               ExerciseTemplate(
                 name: 'Ergometer Row / Bike / Intervals',
                 liftId: 'cardio',
@@ -194,7 +193,7 @@ class ProgramCycle {
           ),
           PhaseTemplate(
             name: 'Mobility & Joint Health Flow',
-            exercises: [
+            exercises: <ExerciseTemplate>[
               ExerciseTemplate(
                 name: 'Thoracic Spine + Ankle & Wrist Mobility',
                 liftId: 'mobility',
@@ -205,7 +204,7 @@ class ProgramCycle {
           ),
           PhaseTemplate(
             name: 'Arms & Upper Hypertrophy',
-            exercises: [
+            exercises: <ExerciseTemplate>[
               ExerciseTemplate(
                 name: 'Dumbbell Bicep Curls',
                 liftId: 'biceps',
@@ -220,7 +219,7 @@ class ProgramCycle {
           ),
           PhaseTemplate(
             name: 'Abs & Core Stability',
-            exercises: [
+            exercises: <ExerciseTemplate>[
               ExerciseTemplate(
                 name: 'Hanging Leg Raises',
                 liftId: 'abs',
@@ -235,9 +234,9 @@ class ProgramCycle {
           ),
           PhaseTemplate(
             name: 'Grip Strength',
-            exercises: [
+            exercises: <ExerciseTemplate>[
               ExerciseTemplate(
-                name: 'Farmer\'s Carries / Dead Hangs',
+                name: "Farmer's Carries / Dead Hangs",
                 liftId: 'grip',
                 setScheme: '3 Sets of 45-60s Carries or Hangs',
               ),
@@ -252,44 +251,59 @@ class ProgramCycle {
       );
     }
 
-    return [
+    return <DayTemplate>[
       // STEP 1: DAY 1 (LIFT)
       DayTemplate(
         dayNumber: 1,
         title: 'Day 1: Snatch & Clean Strength',
         subtitle: 'Power Snatch + OHS, Hang Clean, Back Squat, Snatch Pull, Military Press',
-        phases: [
+        phases: <PhaseTemplate>[
           PhaseTemplate(
             name: 'Phase 1 - Power and Technique Development',
-            exercises: [
+            exercises: <ExerciseTemplate>[
               ExerciseTemplate(
                 name: 'Power Snatch + Overhead Squat',
                 liftId: 'snatch',
                 setScheme: '4 Sets of 2 Reps (1 Power Snatch + 1 OHS)',
-                weekPercentages: {1: 65.0, 2: 70.0, 3: 75.0, 4: 70.0},
+                weekPercentages: <int, double>{
+                  1: 65.0,
+                  2: 70.0,
+                  3: 75.0,
+                  4: 70.0,
+                },
               ),
               ExerciseTemplate(
                 name: 'Hang Clean',
                 liftId: 'clean_and_jerk',
                 setScheme: '4 Sets of 3 Reps',
-                weekPercentages: {1: 65.0, 2: 70.0, 3: 75.0, 4: 70.0},
+                weekPercentages: <int, double>{
+                  1: 65.0,
+                  2: 70.0,
+                  3: 75.0,
+                  4: 70.0,
+                },
               ),
             ],
           ),
           PhaseTemplate(
             name: 'Phase 2 - Strength Building',
-            exercises: [
+            exercises: <ExerciseTemplate>[
               ExerciseTemplate(
                 name: 'Back Squat',
                 liftId: 'back_squat',
                 setScheme: '4 Sets of 6-8 Reps',
-                weekPercentages: {1: 65.0, 2: 70.0, 3: 75.0, 4: 70.0},
+                weekPercentages: <int, double>{
+                  1: 65.0,
+                  2: 70.0,
+                  3: 75.0,
+                  4: 70.0,
+                },
               ),
             ],
           ),
           PhaseTemplate(
             name: 'Phase 3 - Explosive Power and Pulling Strength',
-            exercises: [
+            exercises: <ExerciseTemplate>[
               ExerciseTemplate(
                 name: 'Snatch Pull',
                 liftId: 'snatch',
@@ -301,7 +315,7 @@ class ProgramCycle {
           ),
           PhaseTemplate(
             name: 'Phase 4 - Upper Body Development',
-            exercises: [
+            exercises: <ExerciseTemplate>[
               ExerciseTemplate(
                 name: 'Military Press',
                 liftId: 'military_press',
@@ -321,11 +335,12 @@ class ProgramCycle {
       DayTemplate(
         dayNumber: 3,
         title: 'Day 2: Muscle Snatch & Block Clean',
-        subtitle: 'Muscle Snatch, Block Clean, Snatch Deadlift, Push Press, Pull Ups',
-        phases: [
+        subtitle:
+            'Muscle Snatch, Block Clean, Snatch Deadlift, Push Press, Pull Ups',
+        phases: <PhaseTemplate>[
           PhaseTemplate(
             name: 'Phase 1 - Technique and Muscle Activation',
-            exercises: [
+            exercises: <ExerciseTemplate>[
               ExerciseTemplate(
                 name: 'Muscle Snatch',
                 liftId: 'snatch',
@@ -337,18 +352,23 @@ class ProgramCycle {
           ),
           PhaseTemplate(
             name: 'Phase 2 - Power and Explosiveness',
-            exercises: [
+            exercises: <ExerciseTemplate>[
               ExerciseTemplate(
                 name: 'Block Clean',
                 liftId: 'clean_and_jerk',
                 setScheme: '4 Sets of 2-3 Reps',
-                weekPercentages: {1: 70.0, 2: 75.0, 3: 80.0, 4: 75.0},
+                weekPercentages: <int, double>{
+                  1: 70.0,
+                  2: 75.0,
+                  3: 80.0,
+                  4: 75.0,
+                },
               ),
             ],
           ),
           PhaseTemplate(
             name: 'Phase 3 - Strength and Pulling Power',
-            exercises: [
+            exercises: <ExerciseTemplate>[
               ExerciseTemplate(
                 name: 'Snatch Deadlift',
                 liftId: 'snatch',
@@ -360,7 +380,7 @@ class ProgramCycle {
           ),
           PhaseTemplate(
             name: 'Phase 4 - Upper Body Development',
-            exercises: [
+            exercises: <ExerciseTemplate>[
               ExerciseTemplate(
                 name: 'Push Press',
                 liftId: 'clean_and_jerk',
@@ -389,27 +409,37 @@ class ProgramCycle {
         dayNumber: 5,
         title: 'Day 3: Clean & Jerk Heavy & Front Squats',
         subtitle: 'Hang Snatch, Clean & Jerk, Front Squat, RDL, Lunges',
-        phases: [
+        phases: <PhaseTemplate>[
           PhaseTemplate(
             name: 'Phase 1 - Power and Technique Development',
-            exercises: [
+            exercises: <ExerciseTemplate>[
               ExerciseTemplate(
                 name: 'Hang Snatch',
                 liftId: 'snatch',
                 setScheme: '4 Sets of 1 Rep',
-                weekPercentages: {1: 70.0, 2: 75.0, 3: 80.0, 4: 75.0},
+                weekPercentages: <int, double>{
+                  1: 70.0,
+                  2: 75.0,
+                  3: 80.0,
+                  4: 75.0,
+                },
               ),
               ExerciseTemplate(
                 name: 'Clean and Jerk',
                 liftId: 'clean_and_jerk',
                 setScheme: '4 Sets of 2 Reps',
-                weekPercentages: {1: 70.0, 2: 75.0, 3: 80.0, 4: 75.0},
+                weekPercentages: <int, double>{
+                  1: 70.0,
+                  2: 75.0,
+                  3: 80.0,
+                  4: 75.0,
+                },
               ),
             ],
           ),
           PhaseTemplate(
             name: 'Phase 2 - Strength Building and Hypertrophy',
-            exercises: [
+            exercises: <ExerciseTemplate>[
               ExerciseTemplate(
                 name: 'Front Squat',
                 liftId: 'clean_and_jerk',
@@ -422,7 +452,7 @@ class ProgramCycle {
           ),
           PhaseTemplate(
             name: 'Phase 3 - Muscle Endurance and Stability',
-            exercises: [
+            exercises: <ExerciseTemplate>[
               ExerciseTemplate(
                 name: 'Romanian Deadlift (RDL)',
                 liftId: 'clean_and_jerk',

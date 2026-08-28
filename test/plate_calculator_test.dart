@@ -4,7 +4,7 @@ import 'package:oly/models/plate_calc.dart';
 void main() {
   group('PlateCalculator Tests', () {
     test('Calculates exact plate breakdown for 100kg bar in KG', () {
-      final result = PlateCalculator.calculate(
+      final PlateCalcResult result = PlateCalculator.calculate(
         targetWeight: 100.0,
         barWeight: 20.0,
         collarWeight: 0.0,
@@ -20,7 +20,7 @@ void main() {
     });
 
     test('Handles empty bar weight (20kg)', () {
-      final result = PlateCalculator.calculate(
+      final PlateCalcResult result = PlateCalculator.calculate(
         targetWeight: 20.0,
         barWeight: 20.0,
         collarWeight: 0.0,
@@ -33,7 +33,7 @@ void main() {
     });
 
     test('Calculates breakdown in LBS', () {
-      final result = PlateCalculator.calculate(
+      final PlateCalcResult result = PlateCalculator.calculate(
         targetWeight: 135.0,
         barWeight: 45.0,
         collarWeight: 0.0,
@@ -47,18 +47,21 @@ void main() {
       expect(result.platesPerSide.first.label, equals('45'));
     });
 
-    test('Defaults to 45 lbs bar when isLbs is true without explicit barWeight', () {
-      final result = PlateCalculator.calculate(
-        targetWeight: 225.0,
-        isLbs: true,
-      );
+    test(
+      'Defaults to 45 lbs bar when isLbs is true without explicit barWeight',
+      () {
+        final PlateCalcResult result = PlateCalculator.calculate(
+          targetWeight: 225.0,
+          isLbs: true,
+        );
 
-      expect(result.barWeight, equals(45.0));
-      expect(result.actualWeight, equals(225.0));
-      // (225 - 45) / 2 = 90 lbs per side -> two 45lb plates
-      expect(result.platesPerSide.length, equals(2));
-      expect(result.platesPerSide[0].weight, equals(45.0));
-      expect(result.platesPerSide[1].weight, equals(45.0));
-    });
+        expect(result.barWeight, equals(45.0));
+        expect(result.actualWeight, equals(225.0));
+        // (225 - 45) / 2 = 90 lbs per side -> two 45lb plates
+        expect(result.platesPerSide.length, equals(2));
+        expect(result.platesPerSide[0].weight, equals(45.0));
+        expect(result.platesPerSide[1].weight, equals(45.0));
+      },
+    );
   });
 }

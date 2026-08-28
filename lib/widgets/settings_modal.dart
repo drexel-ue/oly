@@ -1,14 +1,15 @@
 import 'dart:io';
+
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:oly/providers/lift_provider.dart';
+import 'package:oly/providers/program_provider.dart';
+import 'package:oly/providers/settings_provider.dart';
+import 'package:oly/theme/app_theme.dart';
+import 'package:oly/views/diagnostics/crash_report_screen.dart';
 import 'package:provider/provider.dart';
-import '../providers/lift_provider.dart';
-import '../providers/program_provider.dart';
-import '../providers/settings_provider.dart';
-import '../theme/app_theme.dart';
-import '../views/diagnostics/crash_report_screen.dart';
 
 class SettingsModal extends StatefulWidget {
   const SettingsModal({super.key});
@@ -28,14 +29,16 @@ class _SettingsModalState extends State<SettingsModal> {
 
   Future<void> _pickAndImportFile(BuildContext context) async {
     try {
-      final result = await FilePicker.platform.pickFiles(
+      final FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
-        allowedExtensions: ['json', 'csv', 'txt'],
+        allowedExtensions: <String>['json', 'csv', 'txt'],
       );
 
-      if (result == null || result.files.isEmpty) return;
+      if (result == null || result.files.isEmpty) {
+        return;
+      }
 
-      final file = result.files.single;
+      final PlatformFile file = result.files.single;
       String content = '';
 
       if (file.bytes != null) {
@@ -44,15 +47,28 @@ class _SettingsModalState extends State<SettingsModal> {
         content = await File(file.path!).readAsString();
       }
 
-      if (content.trim().isEmpty) return;
+      if (content.trim().isEmpty) {
+        return;
+      }
 
-      if (!context.mounted) return;
-      final settings = Provider.of<SettingsProvider>(context, listen: false);
-      final lifts = Provider.of<LiftProvider>(context, listen: false);
-      final program = Provider.of<ProgramProvider>(context, listen: false);
+      if (!context.mounted) {
+        return;
+      }
+      final SettingsProvider settings = Provider.of<SettingsProvider>(
+        context,
+        listen: false,
+      );
+      final LiftProvider lifts = Provider.of<LiftProvider>(
+        context,
+        listen: false,
+      );
+      final ProgramProvider program = Provider.of<ProgramProvider>(
+        context,
+        listen: false,
+      );
 
-      final trimmed = content.trim();
-      final isJson = trimmed.startsWith('{') || trimmed.startsWith('[');
+      final String trimmed = content.trim();
+      final bool isJson = trimmed.startsWith('{') || trimmed.startsWith('[');
       bool success = false;
 
       if (isJson) {
@@ -81,7 +97,9 @@ class _SettingsModalState extends State<SettingsModal> {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('⚠️ Could not import ${file.name}. Invalid format.'),
+              content: Text(
+                '⚠️ Could not import ${file.name}. Invalid format.',
+              ),
               backgroundColor: Colors.redAccent,
             ),
           );
@@ -101,7 +119,7 @@ class _SettingsModalState extends State<SettingsModal> {
 
   @override
   Widget build(BuildContext context) {
-    final settings = Provider.of<SettingsProvider>(context);
+    final SettingsProvider settings = Provider.of<SettingsProvider>(context);
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -114,7 +132,7 @@ class _SettingsModalState extends State<SettingsModal> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+            children: <Widget>[
               Center(
                 child: Container(
                   width: 40,
@@ -128,7 +146,7 @@ class _SettingsModalState extends State<SettingsModal> {
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
+                children: <Widget>[
                   Text(
                     'App Preferences & Data',
                     style: GoogleFonts.outfit(
@@ -138,7 +156,10 @@ class _SettingsModalState extends State<SettingsModal> {
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close, color: AppTheme.textSecondary),
+                    icon: const Icon(
+                      Icons.close,
+                      color: AppTheme.textSecondary,
+                    ),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
@@ -148,16 +169,24 @@ class _SettingsModalState extends State<SettingsModal> {
               // Unit Preference
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
+                children: <Widget>[
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Display Weight Unit', style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
+                      children: <Widget>[
+                        Text(
+                          'Display Weight Unit',
+                          style: GoogleFonts.outfit(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                         const SizedBox(height: 2),
                         Text(
                           'Currently set to ${settings.isLbs ? "Imperial (LBS)" : "Metric (KG)"}',
-                          style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textSecondary),
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            color: AppTheme.textSecondary,
+                          ),
                         ),
                       ],
                     ),
@@ -177,23 +206,31 @@ class _SettingsModalState extends State<SettingsModal> {
               // Sound Alerts Toggle
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
+                children: <Widget>[
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Rest Timer Sound Alerts', style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
+                      children: <Widget>[
+                        Text(
+                          'Rest Timer Sound Alerts',
+                          style: GoogleFonts.outfit(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                         const SizedBox(height: 2),
                         Text(
                           'Plays system audio pulse when rest timer reaches 0s',
-                          style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textSecondary),
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            color: AppTheme.textSecondary,
+                          ),
                         ),
                       ],
                     ),
                   ),
                   const SizedBox(width: 12),
                   Switch.adaptive(
-                    activeColor: AppTheme.primaryAmber,
+                    activeTrackColor: AppTheme.primaryAmber,
                     value: settings.soundAlertsEnabled,
                     onChanged: (_) => settings.toggleSoundAlerts(),
                   ),
@@ -206,23 +243,31 @@ class _SettingsModalState extends State<SettingsModal> {
               // Haptic Feedback Toggle
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
+                children: <Widget>[
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Haptic Vibration Alerts', style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
+                      children: <Widget>[
+                        Text(
+                          'Haptic Vibration Alerts',
+                          style: GoogleFonts.outfit(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                         const SizedBox(height: 2),
                         Text(
                           'Triggers device vibration when rest timer finishes',
-                          style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textSecondary),
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            color: AppTheme.textSecondary,
+                          ),
                         ),
                       ],
                     ),
                   ),
                   const SizedBox(width: 12),
                   Switch.adaptive(
-                    activeColor: AppTheme.primaryAmber,
+                    activeTrackColor: AppTheme.primaryAmber,
                     value: settings.hapticsEnabled,
                     onChanged: (_) => settings.toggleHaptics(),
                   ),
@@ -246,22 +291,32 @@ class _SettingsModalState extends State<SettingsModal> {
                 width: double.infinity,
                 child: OutlinedButton.icon(
                   onPressed: () {
-                    final jsonStr = settings.exportFullDataJson();
+                    final String jsonStr = settings.exportFullDataJson();
                     Clipboard.setData(ClipboardData(text: jsonStr));
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text('📋 Full App Data Backup copied to Clipboard (JSON)!'),
+                        content: Text(
+                          '📋 Full App Data Backup copied to Clipboard (JSON)!',
+                        ),
                         backgroundColor: AppTheme.primaryAmber,
                       ),
                     );
                   },
-                  icon: const Icon(Icons.download, color: AppTheme.primaryAmber),
-                  label: Text('Export App Backup (JSON)', style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
+                  icon: const Icon(
+                    Icons.download,
+                    color: AppTheme.primaryAmber,
+                  ),
+                  label: Text(
+                    'Export App Backup (JSON)',
+                    style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
+                  ),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppTheme.textPrimary,
                     side: const BorderSide(color: AppTheme.borderColor),
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 ),
               ),
@@ -272,7 +327,7 @@ class _SettingsModalState extends State<SettingsModal> {
                 width: double.infinity,
                 child: OutlinedButton.icon(
                   onPressed: () {
-                    final csvStr = settings.exportPrsCsv();
+                    final String csvStr = settings.exportPrsCsv();
                     Clipboard.setData(ClipboardData(text: csvStr));
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
@@ -281,13 +336,21 @@ class _SettingsModalState extends State<SettingsModal> {
                       ),
                     );
                   },
-                  icon: const Icon(Icons.table_chart, color: AppTheme.secondaryCyan),
-                  label: Text('Export PR History (CSV)', style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
+                  icon: const Icon(
+                    Icons.table_chart,
+                    color: AppTheme.secondaryCyan,
+                  ),
+                  label: Text(
+                    'Export PR History (CSV)',
+                    style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
+                  ),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppTheme.textPrimary,
                     side: const BorderSide(color: AppTheme.borderColor),
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 ),
               ),
@@ -299,12 +362,17 @@ class _SettingsModalState extends State<SettingsModal> {
                 child: ElevatedButton.icon(
                   onPressed: () => _pickAndImportFile(context),
                   icon: const Icon(Icons.folder_open, color: Colors.black),
-                  label: Text('Import File (.json / .csv)', style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
+                  label: Text(
+                    'Import File (.json / .csv)',
+                    style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
+                  ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.primaryAmber,
                     foregroundColor: Colors.black,
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 ),
               ),
@@ -314,8 +382,18 @@ class _SettingsModalState extends State<SettingsModal> {
               Center(
                 child: TextButton.icon(
                   onPressed: () => _showPasteImportDialog(context),
-                  icon: const Icon(Icons.paste, size: 16, color: AppTheme.textSecondary),
-                  label: Text('Paste Raw Text / JSON', style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textSecondary)),
+                  icon: const Icon(
+                    Icons.paste,
+                    size: 16,
+                    color: AppTheme.textSecondary,
+                  ),
+                  label: Text(
+                    'Paste Raw Text / JSON',
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      color: AppTheme.textSecondary,
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(height: 16),
@@ -340,16 +418,26 @@ class _SettingsModalState extends State<SettingsModal> {
                   onPressed: () {
                     Navigator.pop(context);
                     Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const CrashReportScreen()),
+                      MaterialPageRoute(
+                        builder: (_) => const CrashReportScreen(),
+                      ),
                     );
                   },
-                  icon: const Icon(Icons.bug_report, color: Colors.orangeAccent),
-                  label: Text('View Diagnostics & Crash Logs', style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
+                  icon: const Icon(
+                    Icons.bug_report,
+                    color: Colors.orangeAccent,
+                  ),
+                  label: Text(
+                    'View Diagnostics & Crash Logs',
+                    style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
+                  ),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppTheme.textPrimary,
                     side: const BorderSide(color: AppTheme.borderColor),
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 ),
               ),
@@ -362,49 +450,75 @@ class _SettingsModalState extends State<SettingsModal> {
   }
 
   void _showPasteImportDialog(BuildContext context) {
-    final settings = Provider.of<SettingsProvider>(context, listen: false);
-    final lifts = Provider.of<LiftProvider>(context, listen: false);
-    final program = Provider.of<ProgramProvider>(context, listen: false);
+    final SettingsProvider settings = Provider.of<SettingsProvider>(
+      context,
+      listen: false,
+    );
+    final LiftProvider lifts = Provider.of<LiftProvider>(
+      context,
+      listen: false,
+    );
+    final ProgramProvider program = Provider.of<ProgramProvider>(
+      context,
+      listen: false,
+    );
 
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (BuildContext ctx) => AlertDialog(
         backgroundColor: AppTheme.darkBackground,
-        title: Text('Paste JSON or CSV Data', style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
+        title: Text(
+          'Paste JSON or CSV Data',
+          style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+          children: <Widget>[
             Text(
               'Paste JSON or CSV data below to restore PRs and workout logs.',
-              style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textSecondary),
+              style: GoogleFonts.inter(
+                fontSize: 12,
+                color: AppTheme.textSecondary,
+              ),
             ),
             const SizedBox(height: 10),
             TextField(
               controller: _importController,
               maxLines: 5,
-              style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textPrimary),
+              style: GoogleFonts.inter(
+                fontSize: 12,
+                color: AppTheme.textPrimary,
+              ),
               decoration: InputDecoration(
                 hintText: '{"lifts": [...]} or Snatch,Snatch,100,220...',
-                hintStyle: GoogleFonts.inter(fontSize: 12, color: AppTheme.textSecondary),
+                hintStyle: GoogleFonts.inter(
+                  fontSize: 12,
+                  color: AppTheme.textSecondary,
+                ),
                 filled: true,
                 fillColor: AppTheme.surfaceCard,
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
           ],
         ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.primaryAmber,
               foregroundColor: Colors.black,
             ),
             onPressed: () async {
-              final raw = _importController.text.trim();
-              final isJson = raw.startsWith('{') || raw.startsWith('[');
-              bool success = isJson
+              final String raw = _importController.text.trim();
+              final bool isJson = raw.startsWith('{') || raw.startsWith('[');
+              final bool success = isJson
                   ? await settings.importDataJson(raw)
                   : await settings.importDataCsv(raw);
 

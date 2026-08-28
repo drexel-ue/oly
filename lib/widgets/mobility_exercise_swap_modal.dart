@@ -1,24 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:oly/models/mobility_exercise_model.dart';
+import 'package:oly/providers/settings_provider.dart';
+import 'package:oly/theme/app_theme.dart';
 import 'package:provider/provider.dart';
-import '../models/mobility_exercise_model.dart';
-import '../providers/settings_provider.dart';
-import '../theme/app_theme.dart';
 
 class MobilitySwapHelper {
   /// Segments mobility exercises into suggested alternatives (same focus area or category) and others.
-  static ({List<MobilityExerciseModel> suggested, List<MobilityExerciseModel> others}) segmentExercises({
+  static ({
+    List<MobilityExerciseModel> suggested,
+    List<MobilityExerciseModel> others,
+  })
+  segmentExercises({
     required MobilityExerciseModel current,
     required List<MobilityExerciseModel> allExercises,
   }) {
-    final suggested = <MobilityExerciseModel>[];
-    final others = <MobilityExerciseModel>[];
+    final List<MobilityExerciseModel> suggested = <MobilityExerciseModel>[];
+    final List<MobilityExerciseModel> others = <MobilityExerciseModel>[];
 
-    for (final ex in allExercises) {
-      if (ex.id == current.id) continue;
+    for (final MobilityExerciseModel ex in allExercises) {
+      if (ex.id == current.id) {
+        continue;
+      }
 
-      final isFocusMatch = ex.focusArea == current.focusArea;
-      final isCategoryMatch = ex.category == current.category;
+      final bool isFocusMatch = ex.focusArea == current.focusArea;
+      final bool isCategoryMatch = ex.category == current.category;
 
       if (isFocusMatch || isCategoryMatch) {
         suggested.add(ex);
@@ -32,21 +38,21 @@ class MobilitySwapHelper {
 }
 
 class MobilityExerciseSwapModal extends StatefulWidget {
+  const MobilityExerciseSwapModal({
+    required this.exercise,
+    required this.onSwapSelected,
+    super.key,
+    this.originalExercise,
+    this.onResetToOriginal,
+  });
   final MobilityExerciseModel exercise;
   final MobilityExerciseModel? originalExercise;
   final ValueChanged<MobilityExerciseModel> onSwapSelected;
   final VoidCallback? onResetToOriginal;
 
-  const MobilityExerciseSwapModal({
-    super.key,
-    required this.exercise,
-    this.originalExercise,
-    required this.onSwapSelected,
-    this.onResetToOriginal,
-  });
-
   @override
-  State<MobilityExerciseSwapModal> createState() => _MobilityExerciseSwapModalState();
+  State<MobilityExerciseSwapModal> createState() =>
+      _MobilityExerciseSwapModalState();
 }
 
 class _MobilityExerciseSwapModalState extends State<MobilityExerciseSwapModal> {
@@ -60,28 +66,42 @@ class _MobilityExerciseSwapModalState extends State<MobilityExerciseSwapModal> {
   }
 
   bool get _isSwapped =>
-      widget.originalExercise != null && widget.originalExercise!.id != widget.exercise.id;
+      widget.originalExercise != null &&
+      widget.originalExercise!.id != widget.exercise.id;
 
   @override
   Widget build(BuildContext context) {
-    final settings = Provider.of<SettingsProvider>(context);
-    final allExercises = MobilityExerciseModel.defaultExercises();
-    final segmentation = MobilitySwapHelper.segmentExercises(
+    final SettingsProvider settings = Provider.of<SettingsProvider>(context);
+    final List<MobilityExerciseModel> allExercises =
+        MobilityExerciseModel.defaultExercises();
+    final ({
+      List<MobilityExerciseModel> others,
+      List<MobilityExerciseModel> suggested,
+    })
+    segmentation = MobilitySwapHelper.segmentExercises(
       current: widget.exercise,
       allExercises: allExercises,
     );
 
-    final filteredSuggested = segmentation.suggested.where((ex) {
-      if (_searchQuery.isEmpty) return true;
-      return ex.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          ex.description.toLowerCase().contains(_searchQuery.toLowerCase());
-    }).toList();
+    final List<MobilityExerciseModel> filteredSuggested = segmentation.suggested
+        .where((MobilityExerciseModel ex) {
+          if (_searchQuery.isEmpty) {
+            return true;
+          }
+          return ex.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+              ex.description.toLowerCase().contains(_searchQuery.toLowerCase());
+        })
+        .toList();
 
-    final filteredOthers = segmentation.others.where((ex) {
-      if (_searchQuery.isEmpty) return true;
-      return ex.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          ex.description.toLowerCase().contains(_searchQuery.toLowerCase());
-    }).toList();
+    final List<MobilityExerciseModel> filteredOthers = segmentation.others
+        .where((MobilityExerciseModel ex) {
+          if (_searchQuery.isEmpty) {
+            return true;
+          }
+          return ex.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+              ex.description.toLowerCase().contains(_searchQuery.toLowerCase());
+        })
+        .toList();
 
     return Container(
       decoration: const BoxDecoration(
@@ -93,7 +113,7 @@ class _MobilityExerciseSwapModalState extends State<MobilityExerciseSwapModal> {
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        children: [
+        children: <Widget>[
           // Drag Handle
           const SizedBox(height: 12),
           Center(
@@ -113,14 +133,18 @@ class _MobilityExerciseSwapModalState extends State<MobilityExerciseSwapModal> {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
+              children: <Widget>[
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+                    children: <Widget>[
                       Row(
-                        children: [
-                          const Icon(Icons.swap_horiz, color: AppTheme.primaryAmber, size: 20),
+                        children: <Widget>[
+                          const Icon(
+                            Icons.swap_horiz,
+                            color: AppTheme.primaryAmber,
+                            size: 20,
+                          ),
                           const SizedBox(width: 6),
                           Text(
                             'Swap Movement',
@@ -149,7 +173,11 @@ class _MobilityExerciseSwapModalState extends State<MobilityExerciseSwapModal> {
                       widget.onResetToOriginal!();
                       Navigator.pop(context);
                     },
-                    icon: const Icon(Icons.restore, size: 16, color: Colors.orangeAccent),
+                    icon: const Icon(
+                      Icons.restore,
+                      size: 16,
+                      color: Colors.orangeAccent,
+                    ),
                     label: Text(
                       'Reset',
                       style: GoogleFonts.outfit(
@@ -161,7 +189,10 @@ class _MobilityExerciseSwapModalState extends State<MobilityExerciseSwapModal> {
                   )
                 else
                   IconButton(
-                    icon: const Icon(Icons.close, color: AppTheme.textSecondary),
+                    icon: const Icon(
+                      Icons.close,
+                      color: AppTheme.textSecondary,
+                    ),
                     onPressed: () => Navigator.pop(context),
                   ),
               ],
@@ -176,16 +207,22 @@ class _MobilityExerciseSwapModalState extends State<MobilityExerciseSwapModal> {
             decoration: BoxDecoration(
               color: AppTheme.surfaceElevated,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppTheme.primaryAmber.withValues(alpha: 0.3)),
+              border: Border.all(
+                color: AppTheme.primaryAmber.withValues(alpha: 0.3),
+              ),
             ),
             child: Row(
-              children: [
-                const Icon(Icons.directions_run, color: AppTheme.primaryAmber, size: 18),
+              children: <Widget>[
+                const Icon(
+                  Icons.directions_run,
+                  color: AppTheme.primaryAmber,
+                  size: 18,
+                ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+                    children: <Widget>[
                       Text(
                         'CURRENT MOVEMENT',
                         style: GoogleFonts.outfit(
@@ -207,7 +244,10 @@ class _MobilityExerciseSwapModalState extends State<MobilityExerciseSwapModal> {
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: AppTheme.surfaceCard,
                     borderRadius: BorderRadius.circular(6),
@@ -234,15 +274,30 @@ class _MobilityExerciseSwapModalState extends State<MobilityExerciseSwapModal> {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: TextField(
               controller: _searchController,
-              onChanged: (val) => setState(() => _searchQuery = val.trim()),
-              style: GoogleFonts.inter(color: AppTheme.textPrimary, fontSize: 14),
+              onChanged: (String val) =>
+                  setState(() => _searchQuery = val.trim()),
+              style: GoogleFonts.inter(
+                color: AppTheme.textPrimary,
+                fontSize: 14,
+              ),
               decoration: InputDecoration(
                 hintText: 'Search drills, mobility & accessories...',
-                hintStyle: GoogleFonts.inter(color: AppTheme.textSecondary, fontSize: 13),
-                prefixIcon: const Icon(Icons.search, color: AppTheme.textSecondary, size: 20),
+                hintStyle: GoogleFonts.inter(
+                  color: AppTheme.textSecondary,
+                  fontSize: 13,
+                ),
+                prefixIcon: const Icon(
+                  Icons.search,
+                  color: AppTheme.textSecondary,
+                  size: 20,
+                ),
                 suffixIcon: _searchQuery.isNotEmpty
                     ? IconButton(
-                        icon: const Icon(Icons.clear, size: 18, color: AppTheme.textSecondary),
+                        icon: const Icon(
+                          Icons.clear,
+                          size: 18,
+                          color: AppTheme.textSecondary,
+                        ),
                         onPressed: () {
                           _searchController.clear();
                           setState(() => _searchQuery = '');
@@ -251,7 +306,10 @@ class _MobilityExerciseSwapModalState extends State<MobilityExerciseSwapModal> {
                     : null,
                 filled: true,
                 fillColor: AppTheme.surfaceElevated,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 10,
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: const BorderSide(color: AppTheme.borderColor),
@@ -273,12 +331,16 @@ class _MobilityExerciseSwapModalState extends State<MobilityExerciseSwapModal> {
           Expanded(
             child: ListView(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-              children: [
+              children: <Widget>[
                 // Suggested Alternatives
-                if (filteredSuggested.isNotEmpty) ...[
+                if (filteredSuggested.isNotEmpty) ...<Widget>[
                   Row(
-                    children: [
-                      const Icon(Icons.star, color: AppTheme.accentBlue, size: 14),
+                    children: <Widget>[
+                      const Icon(
+                        Icons.star,
+                        color: AppTheme.accentBlue,
+                        size: 14,
+                      ),
                       const SizedBox(width: 6),
                       Text(
                         'SUGGESTED ALTERNATIVES',
@@ -292,12 +354,15 @@ class _MobilityExerciseSwapModalState extends State<MobilityExerciseSwapModal> {
                     ],
                   ),
                   const SizedBox(height: 8),
-                  ...filteredSuggested.map((ex) => _buildExerciseTile(ex, settings, isSuggested: true)),
+                  ...filteredSuggested.map(
+                    (MobilityExerciseModel ex) =>
+                        _buildExerciseTile(ex, settings, isSuggested: true),
+                  ),
                   const SizedBox(height: 16),
                 ],
 
                 // Other Catalog Movements
-                if (filteredOthers.isNotEmpty) ...[
+                if (filteredOthers.isNotEmpty) ...<Widget>[
                   Text(
                     'OTHER CATALOG MOVEMENTS',
                     style: GoogleFonts.outfit(
@@ -308,7 +373,10 @@ class _MobilityExerciseSwapModalState extends State<MobilityExerciseSwapModal> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  ...filteredOthers.map((ex) => _buildExerciseTile(ex, settings, isSuggested: false)),
+                  ...filteredOthers.map(
+                    (MobilityExerciseModel ex) =>
+                        _buildExerciseTile(ex, settings, isSuggested: false),
+                  ),
                 ],
 
                 if (filteredSuggested.isEmpty && filteredOthers.isEmpty)
@@ -317,7 +385,10 @@ class _MobilityExerciseSwapModalState extends State<MobilityExerciseSwapModal> {
                     child: Center(
                       child: Text(
                         'No matching movements found for "$_searchQuery".',
-                        style: GoogleFonts.inter(color: AppTheme.textSecondary, fontSize: 13),
+                        style: GoogleFonts.inter(
+                          color: AppTheme.textSecondary,
+                          fontSize: 13,
+                        ),
                       ),
                     ),
                   ),
@@ -337,9 +408,7 @@ class _MobilityExerciseSwapModalState extends State<MobilityExerciseSwapModal> {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       child: Material(
-        color: isSuggested
-            ? AppTheme.surfaceElevated
-            : AppTheme.surfaceCard,
+        color: isSuggested ? AppTheme.surfaceElevated : AppTheme.surfaceCard,
         borderRadius: BorderRadius.circular(14),
         child: InkWell(
           borderRadius: BorderRadius.circular(14),
@@ -358,11 +427,11 @@ class _MobilityExerciseSwapModalState extends State<MobilityExerciseSwapModal> {
               ),
             ),
             child: Row(
-              children: [
+              children: <Widget>[
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+                    children: <Widget>[
                       Text(
                         ex.name,
                         style: GoogleFonts.outfit(
@@ -373,9 +442,12 @@ class _MobilityExerciseSwapModalState extends State<MobilityExerciseSwapModal> {
                       ),
                       const SizedBox(height: 4),
                       Row(
-                        children: [
+                        children: <Widget>[
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
                             decoration: BoxDecoration(
                               color: AppTheme.surfaceCard,
                               borderRadius: BorderRadius.circular(4),
@@ -409,7 +481,10 @@ class _MobilityExerciseSwapModalState extends State<MobilityExerciseSwapModal> {
                 ),
                 const SizedBox(width: 10),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: AppTheme.surfaceCard,
                     borderRadius: BorderRadius.circular(8),

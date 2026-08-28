@@ -44,16 +44,6 @@ enum MealCategory {
 }
 
 class NutritionEntry {
-  final String id;
-  final String name;
-  final int calories;
-  final double proteinGrams;
-  final double carbsGrams;
-  final double fatGrams;
-  final MealCategory category;
-  final DateTime timestamp;
-  final String? portion;
-
   const NutritionEntry({
     required this.id,
     required this.name,
@@ -67,9 +57,9 @@ class NutritionEntry {
   });
 
   factory NutritionEntry.create({
-    String? id,
     required String name,
     required int calories,
+    String? id,
     double proteinGrams = 0,
     double carbsGrams = 0,
     double fatGrams = 0,
@@ -90,8 +80,34 @@ class NutritionEntry {
     );
   }
 
+  factory NutritionEntry.fromJson(Map<String, dynamic> json) {
+    return NutritionEntry(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      calories: json['calories'] as int,
+      proteinGrams: (json['proteinGrams'] as num).toDouble(),
+      carbsGrams: (json['carbsGrams'] as num).toDouble(),
+      fatGrams: (json['fatGrams'] as num).toDouble(),
+      category: MealCategory.values.firstWhere(
+        (MealCategory c) => c.name == (json['category'] as String),
+        orElse: () => MealCategory.snack,
+      ),
+      timestamp: DateTime.parse(json['timestamp'] as String),
+      portion: json['portion'] as String?,
+    );
+  }
+  final String id;
+  final String name;
+  final int calories;
+  final double proteinGrams;
+  final double carbsGrams;
+  final double fatGrams;
+  final MealCategory category;
+  final DateTime timestamp;
+  final String? portion;
+
   Map<String, dynamic> toJson() {
-    return {
+    return <String, dynamic>{
       'id': id,
       'name': name,
       'calories': calories,
@@ -102,23 +118,6 @@ class NutritionEntry {
       'timestamp': timestamp.toIso8601String(),
       'portion': portion,
     };
-  }
-
-  factory NutritionEntry.fromJson(Map<String, dynamic> json) {
-    return NutritionEntry(
-      id: json['id'] as String,
-      name: json['name'] as String,
-      calories: json['calories'] as int,
-      proteinGrams: (json['proteinGrams'] as num).toDouble(),
-      carbsGrams: (json['carbsGrams'] as num).toDouble(),
-      fatGrams: (json['fatGrams'] as num).toDouble(),
-      category: MealCategory.values.firstWhere(
-        (c) => c.name == (json['category'] as String),
-        orElse: () => MealCategory.snack,
-      ),
-      timestamp: DateTime.parse(json['timestamp'] as String),
-      portion: json['portion'] as String?,
-    );
   }
 
   NutritionEntry copyWith({
