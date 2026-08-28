@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:intl/intl.dart';
 import '../models/body_composition_entry.dart';
+import 'app_log_service.dart';
 
 class OcrScanResult {
   final BodyCompositionEntry? entry;
@@ -28,6 +29,12 @@ class RenphoOcrService {
 
   Future<void> dispose() async {
     await _recognizer.close();
+  }
+
+  /// Extracts raw OCR text from an image file
+  Future<String> extractRawTextFromImage(String imagePath) async {
+    final result = await processImage(imagePath);
+    return result.rawText;
   }
 
   /// Processes an image from local file path and extracts Renpho Body Composition metrics
@@ -75,6 +82,7 @@ class RenphoOcrService {
       }
     } catch (e, stack) {
       debugPrint('[RenphoOcrService] OCR Processing Exception: $e\n$stack');
+      AppLogService.instance.error('RENPHO_OCR', 'OCR Processing exception on $imagePath', error: e, stackTrace: stack);
       return OcrScanResult(
         rawText: '',
         errorMessage: 'OCR Engine error: $e',

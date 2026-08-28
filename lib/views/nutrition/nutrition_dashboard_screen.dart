@@ -2,19 +2,31 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import '../../models/daily_activity_entry.dart';
 import '../../models/daily_nutrition_log.dart';
 import '../../models/nutrition_entry.dart';
 import '../../providers/body_comp_provider.dart';
 import '../../providers/nutrition_provider.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/nutrition/energy_balance_card.dart';
 import '../../widgets/nutrition/macro_ring_card.dart';
+import 'activity_log_sheet.dart';
 import 'body_comp_analytics_screen.dart';
+import 'food_search_sheet.dart';
+import 'metabolic_science_explainer_screen.dart';
 import 'nutrition_settings_screen.dart';
 import 'quick_macro_log_sheet.dart';
 import 'renpho_scanner_sheet.dart';
 
-class NutritionDashboardScreen extends StatelessWidget {
+class NutritionDashboardScreen extends StatefulWidget {
   const NutritionDashboardScreen({super.key});
+
+  @override
+  State<NutritionDashboardScreen> createState() => _NutritionDashboardScreenState();
+}
+
+class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
+  int _selectedViewIndex = 0; // 0 = Energy Balance (In vs Out), 1 = Macro Targets (P/C/F)
 
   @override
   Widget build(BuildContext context) {
@@ -50,6 +62,15 @@ class NutritionDashboardScreen extends StatelessWidget {
         ),
         actions: [
           IconButton(
+            icon: const Icon(Icons.info_outline, color: AppTheme.primaryAmber),
+            tooltip: 'Metabolic Science & Calculations',
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const MetabolicScienceExplainerScreen()),
+              );
+            },
+          ),
+          IconButton(
             icon: const Icon(Icons.analytics_outlined, color: AppTheme.primaryAmber),
             tooltip: 'Body Composition Analytics',
             onPressed: () {
@@ -77,26 +98,67 @@ class NutritionDashboardScreen extends StatelessWidget {
             children: [
               // Date Switcher Bar
               _buildDateSwitcher(context, nutrition),
-              const SizedBox(height: 14),
+              const SizedBox(height: 12),
 
-              // Macro Ring & Calories Summary Card
-              MacroRingCard(
-                log: currentLog,
-                onToggleTrainingDay: () {
-                  nutrition.toggleTrainingDay(!currentLog.isTrainingDay, latestBodyComp: bodyComp.latestEntry);
-                },
-              ),
+              // View Selector Segment (Energy Balance vs Macro Targets)
+              _buildViewSelector(),
+              const SizedBox(height: 12),
+
+              // Hero View (Energy Balance or Macro Ring)
+              if (_selectedViewIndex == 0)
+                EnergyBalanceCard(
+                  log: currentLog,
+                  latestBodyComp: bodyComp.latestEntry,
+                  goal: nutrition.goal,
+                  onLogActivityTap: () => _openActivityLogSheet(context),
+                )
+              else
+                MacroRingCard(
+                  log: currentLog,
+                  onToggleTrainingDay: () {
+                    nutrition.toggleTrainingDay(!currentLog.isTrainingDay, latestBodyComp: bodyComp.latestEntry);
+                  },
+                ),
+
               const SizedBox(height: 14),
 
               // Renpho Biometrics Glance Card
               _buildRenphoGlanceCard(context, bodyComp),
-              const SizedBox(height: 16),
+              const SizedBox(height: 14),
 
               // Water Tracker Strip
               _buildWaterTracker(context, nutrition, currentLog),
               const SizedBox(height: 16),
 
+              // Daily Activities & Workout Energy Section
+              _buildActivitiesSection(context, nutrition, currentLog, bodyComp),
+              const SizedBox(height: 16),
+
               // Meal Category Sections
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'DAILY MEALS & FOOD LOG',
+                    style: GoogleFonts.inter(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.0,
+                      color: AppTheme.textSecondary,
+                    ),
+                  ),
+                  TextButton.icon(
+                    onPressed: () => _openFoodSearchSheet(context, MealCategory.lunch),
+                    icon: const Icon(Icons.search, size: 14, color: AppTheme.primaryAmber),
+                    label: Text(
+                      'Search / Barcode',
+                      style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.primaryAmber),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+
               ...MealCategory.values.map((category) {
                 return _buildMealCategorySection(
                   context,
@@ -118,7 +180,7 @@ class NutritionDashboardScreen extends StatelessWidget {
             context: context,
             isScrollControlled: true,
             backgroundColor: Colors.transparent,
-            builder: (_) => const QuickMacroLogSheet(),
+            builder: (_) => const FoodSearchSheet(defaultCategory: MealCategory.lunch),
           );
         },
         backgroundColor: AppTheme.primaryAmber,
@@ -128,6 +190,80 @@ class NutritionDashboardScreen extends StatelessWidget {
           'Log Food',
           style: GoogleFonts.outfit(fontSize: 15, fontWeight: FontWeight.bold),
         ),
+      ),
+    );
+  }
+
+  Widget _buildViewSelector() {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceCard,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppTheme.borderColor),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: InkWell(
+              onTap: () => setState(() => _selectedViewIndex = 0),
+              borderRadius: const BorderRadius.horizontal(left: Radius.circular(12)),
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                decoration: BoxDecoration(
+                  color: _selectedViewIndex == 0 ? AppTheme.secondaryCyan.withOpacity(0.15) : Colors.transparent,
+                  borderRadius: const BorderRadius.horizontal(left: Radius.circular(12)),
+                ),
+                child: Center(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.bolt, size: 15, color: _selectedViewIndex == 0 ? AppTheme.secondaryCyan : AppTheme.textSecondary),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Energy In vs Out',
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          fontWeight: _selectedViewIndex == 0 ? FontWeight.bold : FontWeight.normal,
+                          color: _selectedViewIndex == 0 ? AppTheme.secondaryCyan : AppTheme.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            child: InkWell(
+              onTap: () => setState(() => _selectedViewIndex = 1),
+              borderRadius: const BorderRadius.horizontal(right: Radius.circular(12)),
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                decoration: BoxDecoration(
+                  color: _selectedViewIndex == 1 ? AppTheme.primaryAmber.withOpacity(0.15) : Colors.transparent,
+                  borderRadius: const BorderRadius.horizontal(right: Radius.circular(12)),
+                ),
+                child: Center(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.pie_chart_outline, size: 15, color: _selectedViewIndex == 1 ? AppTheme.primaryAmber : AppTheme.textSecondary),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Macro Targets',
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          fontWeight: _selectedViewIndex == 1 ? FontWeight.bold : FontWeight.normal,
+                          color: _selectedViewIndex == 1 ? AppTheme.primaryAmber : AppTheme.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -363,21 +499,17 @@ class NutritionDashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildWaterTracker(
-    BuildContext context,
-    NutritionProvider nutrition,
-    DailyNutritionLog log,
-  ) {
+  Widget _buildWaterTracker(BuildContext context, NutritionProvider nutrition, DailyNutritionLog log) {
     final progress = log.waterProgress;
-    final isGoalMet = log.waterOz >= log.targetWaterOz;
+    final isGoalMet = log.waterOz >= log.targetWaterOz && log.targetWaterOz > 0;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: AppTheme.surfaceCard,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isGoalMet ? const Color(0xFF00D2FF).withOpacity(0.5) : AppTheme.borderColor,
+          color: isGoalMet ? const Color(0xFF00E5FF).withOpacity(0.5) : AppTheme.borderColor,
         ),
       ),
       child: Column(
@@ -394,9 +526,9 @@ class NutritionDashboardScreen extends StatelessWidget {
                       color: const Color(0xFF00D2FF).withOpacity(0.15),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Icon(Icons.water_drop, color: Color(0xFF00D2FF), size: 18),
+                    child: const Icon(Icons.water_drop, color: Color(0xFF00D2FF), size: 16),
                   ),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: 8),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -405,17 +537,17 @@ class NutritionDashboardScreen extends StatelessWidget {
                           Text(
                             'Daily Hydration',
                             style: GoogleFonts.inter(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
                               color: AppTheme.textPrimary,
                             ),
                           ),
                           if (log.isTrainingDay) ...[
                             const SizedBox(width: 6),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
                               decoration: BoxDecoration(
-                                color: AppTheme.primaryAmber.withOpacity(0.15),
+                                color: const Color(0xFF00D2FF).withOpacity(0.2),
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Text(
@@ -423,20 +555,19 @@ class NutritionDashboardScreen extends StatelessWidget {
                                 style: GoogleFonts.inter(
                                   fontSize: 9,
                                   fontWeight: FontWeight.bold,
-                                  color: AppTheme.primaryAmber,
+                                  color: const Color(0xFF00D2FF),
                                 ),
                               ),
                             ),
                           ],
                         ],
                       ),
-                      const SizedBox(height: 2),
                       Text(
                         '${log.waterOz.toStringAsFixed(0)} oz / ${log.targetWaterOz.toStringAsFixed(0)} oz goal (${(progress * 100).toStringAsFixed(0)}%)',
                         style: GoogleFonts.inter(
                           fontSize: 11,
-                          color: isGoalMet ? const Color(0xFF00D2FF) : AppTheme.textSecondary,
-                          fontWeight: isGoalMet ? FontWeight.w600 : FontWeight.normal,
+                          color: isGoalMet ? const Color(0xFF00E5FF) : AppTheme.textSecondary,
+                          fontWeight: isGoalMet ? FontWeight.bold : FontWeight.normal,
                         ),
                       ),
                     ],
@@ -496,6 +627,149 @@ class NutritionDashboardScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildActivitiesSection(
+    BuildContext context,
+    NutritionProvider nutrition,
+    DailyNutritionLog log,
+    BodyCompProvider bodyComp,
+  ) {
+    final activities = log.activities;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceCard,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppTheme.borderColor),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: AppTheme.secondaryCyan.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(Icons.directions_run, color: AppTheme.secondaryCyan, size: 16),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'DAILY ACTIVITIES & WOD ENERGY',
+                    style: GoogleFonts.inter(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.9,
+                      color: AppTheme.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+              InkWell(
+                onTap: () => _openActivityLogSheet(context),
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppTheme.secondaryCyan.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppTheme.secondaryCyan.withOpacity(0.35)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.add, size: 13, color: AppTheme.secondaryCyan),
+                      const SizedBox(width: 3),
+                      Text(
+                        'Log Activity',
+                        style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.secondaryCyan),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 12),
+
+          if (activities.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Text(
+                'No activities logged today. Completed workouts and steps will appear here.',
+                style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textSecondary),
+              ),
+            )
+          else
+            ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: activities.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 6),
+              itemBuilder: (ctx, idx) {
+                final a = activities[idx];
+                return Dismissible(
+                  key: Key(a.id),
+                  direction: DismissDirection.endToStart,
+                  background: Container(
+                    alignment: Alignment.centerRight,
+                    padding: const EdgeInsets.only(right: 16),
+                    color: Colors.redAccent,
+                    child: const Icon(Icons.delete, color: Colors.white),
+                  ),
+                  onDismissed: (_) => nutrition.removeActivity(a.id),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: AppTheme.darkBackground,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              a.activityType == 'workout_wod' ? Icons.fitness_center : Icons.directions_walk,
+                              size: 16,
+                              color: a.activityType == 'workout_wod' ? AppTheme.primaryAmber : AppTheme.secondaryCyan,
+                            ),
+                            const SizedBox(width: 10),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  a.name,
+                                  style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.textPrimary),
+                                ),
+                                Text(
+                                  '${a.durationMinutes.round()} mins • ${a.metValue} MET${a.notes != null ? ' • ${a.notes}' : ''}',
+                                  style: GoogleFonts.inter(fontSize: 10, color: AppTheme.textSecondary),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                        Text(
+                          '+${a.caloriesBurned} kcal',
+                          style: GoogleFonts.firaCode(fontSize: 13, fontWeight: FontWeight.bold, color: AppTheme.secondaryCyan),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildMealCategorySection(
     BuildContext context,
     NutritionProvider nutrition,
@@ -542,16 +816,27 @@ class NutritionDashboardScreen extends StatelessWidget {
             color: categoryCals > 0 ? AppTheme.primaryAmber : AppTheme.textSecondary,
           ),
         ),
-        trailing: IconButton(
-          icon: const Icon(Icons.add_circle_outline, color: AppTheme.primaryAmber),
-          onPressed: () {
-            showModalBottomSheet(
-              context: context,
-              isScrollControlled: true,
-              backgroundColor: Colors.transparent,
-              builder: (_) => QuickMacroLogSheet(defaultCategory: category),
-            );
-          },
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.search, size: 18, color: AppTheme.primaryAmber),
+              tooltip: 'Search & Barcode',
+              onPressed: () => _openFoodSearchSheet(context, category),
+            ),
+            IconButton(
+              icon: const Icon(Icons.add_circle_outline, color: AppTheme.primaryAmber),
+              tooltip: 'Quick Macro Log',
+              onPressed: () {
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                  builder: (_) => QuickMacroLogSheet(defaultCategory: category),
+                );
+              },
+            ),
+          ],
         ),
         children: [
           if (entries.isEmpty)
@@ -634,6 +919,24 @@ class NutritionDashboardScreen extends StatelessWidget {
             ),
         ],
       ),
+    );
+  }
+
+  void _openActivityLogSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => const ActivityLogSheet(),
+    );
+  }
+
+  void _openFoodSearchSheet(BuildContext context, MealCategory category) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => FoodSearchSheet(defaultCategory: category),
     );
   }
 

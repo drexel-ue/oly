@@ -25,6 +25,8 @@ class StorageService {
   static const String _keyNutritionLogs = 'oly_nutrition_logs_v1';
   static const String _keyNutritionGoal = 'oly_nutrition_goal_v1';
   static const String _keyMealTemplates = 'oly_meal_templates_v1';
+  static const String _keyCachedProducts = 'oly_cached_products_v1';
+  static const String _keyRecentScans = 'oly_recent_scans_v1';
 
   final SharedPreferences _prefs;
 
@@ -387,6 +389,54 @@ class StorageService {
   Future<void> saveMealTemplates(List<NutritionEntry> templates) async {
     final jsonStr = jsonEncode(templates.map((e) => e.toJson()).toList());
     await _prefs.setString(_keyMealTemplates, jsonStr);
+  }
+
+  // --- PRODUCT CACHING STORAGE ---
+  Map<String, Map<String, dynamic>> loadCachedProductsJson() {
+    final jsonStr = _prefs.getString(_keyCachedProducts);
+    if (jsonStr == null || jsonStr.isEmpty) {
+      return {};
+    }
+    try {
+      final Map<String, dynamic> decoded = jsonDecode(jsonStr);
+      return decoded.map((k, v) => MapEntry(k, Map<String, dynamic>.from(v as Map)));
+    } catch (_) {
+      return {};
+    }
+  }
+
+  Future<void> saveCachedProductJson(String barcode, Map<String, dynamic> jsonMap) async {
+    final current = loadCachedProductsJson();
+    current[barcode] = jsonMap;
+    await _prefs.setString(_keyCachedProducts, jsonEncode(current));
+  }
+
+  Future<void> removeCachedProduct(String barcode) async {
+    final current = loadCachedProductsJson();
+    if (current.containsKey(barcode)) {
+      current.remove(barcode);
+      await _prefs.setString(_keyCachedProducts, jsonEncode(current));
+    }
+  }
+
+  // --- RECENT SCANNED BARCODES STORAGE ---
+  List<String> loadRecentScannedBarcodes() {
+    final list = _prefs.getStringList(_keyRecentScans);
+    return list ?? [];
+  }
+
+  Future<void> addRecentScannedBarcode(String barcode) async {
+    final list = loadRecentScannedBarcodes();
+    list.removeWhere((b) => b == barcode);
+    list.insert(0, barcode);
+    if (list.length > 20) {
+      list.removeRange(20, list.length);
+    }
+    await _prefs.setStringList(_keyRecentScans, list);
+  }
+
+  Future<void> clearRecentScans() async {
+    await _prefs.remove(_keyRecentScans);
   }
 }
 
