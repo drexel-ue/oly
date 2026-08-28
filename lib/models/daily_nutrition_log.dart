@@ -1,8 +1,10 @@
+import 'daily_activity_entry.dart';
 import 'nutrition_entry.dart';
 
 class DailyNutritionLog {
   final String date; // Format: 'YYYY-MM-DD'
   final List<NutritionEntry> entries;
+  final List<DailyActivityEntry> activities;
   final int targetCalories;
   final double targetProteinGrams;
   final double targetCarbsGrams;
@@ -15,6 +17,7 @@ class DailyNutritionLog {
   const DailyNutritionLog({
     required this.date,
     required this.entries,
+    this.activities = const [],
     required this.targetCalories,
     required this.targetProteinGrams,
     required this.targetCarbsGrams,
@@ -28,6 +31,7 @@ class DailyNutritionLog {
   factory DailyNutritionLog.create({
     required String date,
     List<NutritionEntry>? entries,
+    List<DailyActivityEntry>? activities,
     int targetCalories = 2400,
     double targetProteinGrams = 200,
     double targetCarbsGrams = 250,
@@ -40,6 +44,7 @@ class DailyNutritionLog {
     return DailyNutritionLog(
       date: date,
       entries: entries ?? [],
+      activities: activities ?? [],
       targetCalories: targetCalories,
       targetProteinGrams: targetProteinGrams,
       targetCarbsGrams: targetCarbsGrams,
@@ -55,6 +60,14 @@ class DailyNutritionLog {
   double get totalProtein => entries.fold(0.0, (sum, item) => sum + item.proteinGrams);
   double get totalCarbs => entries.fold(0.0, (sum, item) => sum + item.carbsGrams);
   double get totalFat => entries.fold(0.0, (sum, item) => sum + item.fatGrams);
+
+  int get totalActivityCalories => activities.fold(0, (sum, item) => sum + item.caloriesBurned);
+
+  int totalCaloriesBurned([int baselineBmr = 2394]) => baselineBmr + totalActivityCalories;
+
+  int netCalories([int baselineBmr = 2394]) => totalCalories - totalCaloriesBurned(baselineBmr);
+
+  bool get hasWodActivity => activities.any((a) => a.activityType == 'workout_wod');
 
   int get remainingCalories => targetCalories - totalCalories;
   double get remainingProtein => targetProteinGrams - totalProtein;
@@ -80,6 +93,7 @@ class DailyNutritionLog {
     return {
       'date': date,
       'entries': entries.map((e) => e.toJson()).toList(),
+      'activities': activities.map((e) => e.toJson()).toList(),
       'targetCalories': targetCalories,
       'targetProteinGrams': targetProteinGrams,
       'targetCarbsGrams': targetCarbsGrams,
@@ -98,6 +112,10 @@ class DailyNutritionLog {
               ?.map((e) => NutritionEntry.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
+      activities: (json['activities'] as List<dynamic>?)
+              ?.map((e) => DailyActivityEntry.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
       targetCalories: json['targetCalories'] as int? ?? 2400,
       targetProteinGrams: (json['targetProteinGrams'] as num?)?.toDouble() ?? 200.0,
       targetCarbsGrams: (json['targetCarbsGrams'] as num?)?.toDouble() ?? 250.0,
@@ -112,6 +130,7 @@ class DailyNutritionLog {
   DailyNutritionLog copyWith({
     String? date,
     List<NutritionEntry>? entries,
+    List<DailyActivityEntry>? activities,
     int? targetCalories,
     double? targetProteinGrams,
     double? targetCarbsGrams,
@@ -124,6 +143,7 @@ class DailyNutritionLog {
     return DailyNutritionLog(
       date: date ?? this.date,
       entries: entries ?? this.entries,
+      activities: activities ?? this.activities,
       targetCalories: targetCalories ?? this.targetCalories,
       targetProteinGrams: targetProteinGrams ?? this.targetProteinGrams,
       targetCarbsGrams: targetCarbsGrams ?? this.targetCarbsGrams,

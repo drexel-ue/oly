@@ -7,7 +7,9 @@ import 'package:uuid/uuid.dart';
 import '../models/lift_model.dart';
 import '../models/program_model.dart';
 import '../models/workout_session.dart';
+import '../providers/body_comp_provider.dart';
 import '../providers/lift_provider.dart';
+import '../providers/nutrition_provider.dart';
 import '../providers/program_provider.dart';
 import '../providers/settings_provider.dart';
 import '../theme/app_theme.dart';
@@ -664,10 +666,14 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     await programProvider.saveWorkoutSession(session);
 
     if (mounted) {
+      final bodyComp = Provider.of<BodyCompProvider>(context, listen: false);
+      final nutritionProvider = Provider.of<NutritionProvider>(context, listen: false);
+      await nutritionProvider.syncWorkoutSession(session, bodyComp.latestEntry);
+
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('🎉 Workout Session Logged! Active Recovery tuned.'),
+          content: Text('🎉 Workout Session Logged! Active Recovery & Energy synced.'),
           backgroundColor: AppTheme.primaryAmber,
         ),
       );

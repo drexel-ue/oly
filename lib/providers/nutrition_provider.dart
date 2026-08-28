@@ -1,9 +1,12 @@
 import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import '../models/body_composition_entry.dart';
+import '../models/daily_activity_entry.dart';
 import '../models/daily_nutrition_log.dart';
 import '../models/nutrition_entry.dart';
 import '../models/nutrition_goal_model.dart';
+import '../models/workout_session.dart';
+import '../services/activity_expenditure_service.dart';
 import '../services/storage_service.dart';
 import '../services/tdee_calculator_service.dart';
 
@@ -23,6 +26,7 @@ class NutritionProvider extends ChangeNotifier {
   NutritionGoalModel get goal => _goal;
   List<NutritionEntry> get templates => List.unmodifiable(_templates);
   Map<String, DailyNutritionLog> get allLogs => Map.unmodifiable(_logs);
+  StorageService get storage => _storage;
 
   void _loadData() {
     _logs = _storage.loadDailyNutritionLogs();
@@ -273,5 +277,60 @@ class NutritionProvider extends ChangeNotifier {
     _logs[key] = current.copyWith(entries: newEntries);
     await _storage.saveDailyNutritionLogs(_logs);
     notifyListeners();
+  }
+
+  /// Adds or updates a daily activity energy expenditure entry
+  Future<void> addActivity(DailyActivityEntry entry, {BodyCompositionEntry? latestBodyComp}) async {
+    final key = entry.date;
+    final current = getDayLog(key, latestBodyComp: latestBodyComp);
+
+    final updatedActivities = List<DailyActivityEntry>.from(current.activities);
+    final existingIdx = updatedActivities.indexWhere((a) => a.id == entry.id || (entry.sessionId != null && a.sessionId == entry.sessionId));
+    if (existingIdx >= 0) {
+      updatedActivities[existingIdx] = entry;
+    } else {
+      updatedActivities.add(entry);
+    }
+
+    _logs[key] = current.copyWith(activities: updatedActivities);
+    await _storage.saveDailyNutritionLogs(_logs);
+    notifyListeners();
+  }
+
+  /// Removes an activity entry
+  Future<void> removeActivity(String activityId, [String? dateKey]) async {
+    final key = dateKey ?? selectedDateKey;
+    final current = _logs[key];
+    if (current == null) return;
+
+    final updatedActivities = current.activities.where((a) => a.id != activityId).toList();
+    _logs[key] = current.copyWith(activities: updatedActivities);
+    await _storage.saveDailyNutritionLogs(_logs);
+    notifyListeners();
+  }
+
+  /// Automatically syncs energy expenditure from a completed/updated WorkoutSession
+  Future<void> syncWorkoutSession(WorkoutSession session, BodyCompositionEntry? bodyComp) async {
+    final dateKey = "${session.date.year.toString().padLeft(4, '0')}-${session.date.month.toString().padLeft(2, '0')}-${session.date.day.toString().padLeft(2, '0')}";
+    final current = getDayLog(dateKey, latestBodyComp: bodyComp);
+
+    // Find existing WOD entry for this session if present
+    DailyActivityEntry? existing;
+    try {
+      existing = current.activities.firstWhere((a) => a.sessionId == session.id);
+    } catch (_) {}
+
+    final wodEntry = ActivityExpenditureService.createWodActivityEntry(
+      session: session,
+      bodyComp: bodyComp,
+      existingEntry: existing,
+    );
+
+    await addActivity(wodEntry, latestBodyComp: bodyComp);
+
+    // Auto-mark day as training day if not already
+    if (!current.isTrainingDay) {
+      await toggleTrainingDay(true, latestBodyComp: bodyComp);
+    }
   }
 }

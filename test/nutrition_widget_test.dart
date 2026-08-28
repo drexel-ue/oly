@@ -147,12 +147,17 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Nutrition & Energy'), findsOneWidget);
-      expect(find.text('DAILY TARGET'), findsOneWidget);
+      expect(find.text('DAILY ENERGY BALANCE'), findsOneWidget);
       expect(find.text('RENPHO SCALE BIOMETRICS'), findsOneWidget);
       expect(find.text('Daily Hydration'), findsOneWidget);
       expect(find.text('+24oz'), findsOneWidget);
       expect(find.text('Breakfast'), findsOneWidget);
       expect(find.text('Log Food'), findsOneWidget);
+
+      // Switch to Macro Targets
+      await tester.tap(find.text('Macro Targets'));
+      await tester.pumpAndSettle();
+      expect(find.text('DAILY TARGET'), findsOneWidget);
 
       // Scroll and tap +24oz water button
       await tester.ensureVisible(find.text('+24oz'));
