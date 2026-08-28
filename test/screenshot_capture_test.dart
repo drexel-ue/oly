@@ -8,10 +8,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:golden_toolkit/golden_toolkit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:nested/nested.dart';
+import 'package:oly/models/injury_model.dart';
 import 'package:oly/models/mobility_exercise_model.dart';
 import 'package:oly/models/nutrition_entry.dart';
 import 'package:oly/models/program_model.dart';
 import 'package:oly/providers/body_comp_provider.dart';
+import 'package:oly/providers/injury_provider.dart';
 import 'package:oly/providers/lift_provider.dart';
 import 'package:oly/providers/nutrition_provider.dart';
 import 'package:oly/providers/program_provider.dart';
@@ -25,8 +27,10 @@ import 'package:oly/theme/app_theme.dart';
 import 'package:oly/views/analytics_screen.dart';
 import 'package:oly/views/dashboard_screen.dart';
 import 'package:oly/views/diagnostics/crash_report_screen.dart';
+import 'package:oly/views/injury_tracker_screen.dart';
 import 'package:oly/views/lifts_screen.dart';
 import 'package:oly/views/max_test_screen.dart';
+import 'package:oly/widgets/post_session_body_checkin_dialog.dart';
 import 'package:oly/views/nutrition/food_search_sheet.dart';
 import 'package:oly/views/nutrition/live_barcode_scanner_sheet.dart';
 import 'package:oly/views/nutrition/metabolic_science_explainer_screen.dart';
@@ -142,6 +146,7 @@ void main() {
   late RecoveryProvider recoveryProvider;
   late BodyCompProvider bodyCompProvider;
   late NutritionProvider nutritionProvider;
+  late InjuryProvider injuryProvider;
 
   setUpAll(() async {
     GoogleFonts.config.allowRuntimeFetching = false;
@@ -157,6 +162,7 @@ void main() {
     recoveryProvider = RecoveryProvider(storage);
     bodyCompProvider = BodyCompProvider(storage);
     nutritionProvider = NutritionProvider(storage);
+    injuryProvider = InjuryProvider(storage);
   });
 
   GlobalKey boundaryKey = GlobalKey();
@@ -171,6 +177,7 @@ void main() {
         ChangeNotifierProvider.value(value: recoveryProvider),
         ChangeNotifierProvider.value(value: bodyCompProvider),
         ChangeNotifierProvider.value(value: nutritionProvider),
+        ChangeNotifierProvider.value(value: injuryProvider),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -680,6 +687,61 @@ void main() {
       await captureScreen(tester, '20_crash_report_screen');
       expect(find.text('Diagnostics & Crash Logs'), findsOneWidget);
       expect(find.text('Total Logs'), findsOneWidget);
+    });
+
+    testWidgets('21 Renders Body Map & Injury Tracker Screen with Active Strains', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(1170, 2532);
+      tester.view.devicePixelRatio = 2.0;
+      addTearDown(() => tester.view.resetPhysicalSize());
+
+      // Seed mock injuries
+      await injuryProvider.addInjury(
+        InjuryRecord(
+          id: 'mock_knee',
+          name: "Patellar Jumper's Knee",
+          region: InjuryRegion.leftKnee,
+          onsetDate: DateTime.now().subtract(const Duration(days: 4)),
+          painScale: 5,
+          notes: 'Sharp catch pain in bottom position',
+        ),
+      );
+      await injuryProvider.addInjury(
+        InjuryRecord(
+          id: 'mock_shoulder',
+          name: 'Rotator Cuff Impingement',
+          region: InjuryRegion.rightShoulder,
+          onsetDate: DateTime.now().subtract(const Duration(days: 45)),
+          painScale: 3,
+          notes: 'Persistent overhead lockout stiffness',
+        ),
+      );
+
+      await tester.pumpWidget(buildTestScreen(const InjuryTrackerScreen()));
+      await captureScreen(tester, '21_injury_tracker_screen');
+      expect(find.text('Body Map & Injuries'), findsOneWidget);
+      expect(find.text('ANATOMICAL HEATMAP (TAP TO LOG / INSPECT)'), findsOneWidget);
+    });
+
+    testWidgets('22 Renders Post-Session Body Check-In Modal', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(1170, 2532);
+      tester.view.devicePixelRatio = 2.0;
+      addTearDown(() => tester.view.resetPhysicalSize());
+
+      await tester.pumpWidget(
+        buildTestScreen(
+          PostSessionBodyCheckinDialog(
+            initialJointStrains: const <String>['Knees', 'Shoulders'],
+            onComplete: (Map<InjuryRegion, int> pain, List<String> tags) {},
+          ),
+        ),
+      );
+      await captureScreen(tester, '22_post_session_body_checkin');
+      expect(find.text('Post-Session Strain Check-In'), findsOneWidget);
+      expect(find.text('Save & Finish'), findsOneWidget);
     });
   });
 }

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:oly/models/accessory_log.dart';
 import 'package:oly/models/body_composition_entry.dart';
 import 'package:oly/models/daily_nutrition_log.dart';
+import 'package:oly/models/injury_model.dart';
 import 'package:oly/models/lift_model.dart';
 import 'package:oly/models/nutrition_entry.dart';
 import 'package:oly/models/nutrition_goal_model.dart';
@@ -29,6 +30,7 @@ class StorageService {
   static const String _keyMealTemplates = 'oly_meal_templates_v1';
   static const String _keyCachedProducts = 'oly_cached_products_v1';
   static const String _keyRecentScans = 'oly_recent_scans_v1';
+  static const String _keyInjuries = 'oly_injuries_v1';
 
   final SharedPreferences _prefs;
 
@@ -525,5 +527,28 @@ class StorageService {
 
   Future<void> clearRecentScans() async {
     await _prefs.remove(_keyRecentScans);
+  }
+
+  // --- INJURY TRACKING STORAGE ---
+  List<InjuryRecord> loadInjuries() {
+    final String? jsonStr = _prefs.getString(_keyInjuries);
+    if (jsonStr == null || jsonStr.isEmpty) {
+      return <InjuryRecord>[];
+    }
+    try {
+      final List<dynamic> list = jsonDecode(jsonStr);
+      return list
+          .map((dynamic e) => InjuryRecord.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } catch (_) {
+      return <InjuryRecord>[];
+    }
+  }
+
+  Future<void> saveInjuries(List<InjuryRecord> injuries) async {
+    final String jsonStr = jsonEncode(
+      injuries.map((InjuryRecord e) => e.toJson()).toList(),
+    );
+    await _prefs.setString(_keyInjuries, jsonStr);
   }
 }

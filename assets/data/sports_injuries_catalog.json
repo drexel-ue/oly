@@ -1,0 +1,543 @@
+[
+  {
+    "id": "patellar_tendinopathy",
+    "osiicsCode": "KJTP",
+    "name": "Patellar Tendinopathy (Jumper's Knee)",
+    "region": "leftKnee",
+    "supportedRegions": ["leftKnee", "rightKnee"],
+    "description": "Pain and microtrauma at the inferior pole of the patella, aggravated by deep knee flexion under heavy or rapid loads.",
+    "acuteDurationDays": 14,
+    "chronicThresholdDays": 42,
+    "aggravatingVectors": [
+      "avoidDeepKneeFlexion",
+      "avoidBallisticCatchImpact"
+    ],
+    "contraindicatedLifts": [
+      "Snatch",
+      "Clean and Jerk",
+      "Clean",
+      "Front Squat",
+      "Back Squat"
+    ],
+    "safeSubstitutions": [
+      {
+        "targetExercise": "Snatch",
+        "replacementName": "Power Snatch from Blocks",
+        "replacementLiftId": "power_snatch",
+        "weightMultiplier": 0.82,
+        "rationale": "High blocks eliminate deep knee catch shock and reduce patellofemoral joint reaction force."
+      },
+      {
+        "targetExercise": "Clean and Jerk",
+        "replacementName": "Power Clean from Hang + Push Press",
+        "replacementLiftId": "power_clean",
+        "weightMultiplier": 0.80,
+        "rationale": "Hang power variations remove deep receiving position while preserving explosive hip drive."
+      },
+      {
+        "targetExercise": "Front Squat",
+        "replacementName": "Box Squat (Vertical Shin)",
+        "replacementLiftId": "back_squat",
+        "weightMultiplier": 0.85,
+        "rationale": "Box squat shifts torque to posterior chain and eliminates forward knee translation."
+      },
+      {
+        "targetExercise": "Back Squat",
+        "replacementName": "Romanian Deadlift (RDL)",
+        "replacementLiftId": "clean_and_jerk",
+        "weightMultiplier": 0.80,
+        "rationale": "RDL targets posterior chain without anterior knee shear."
+      }
+    ],
+    "rehabFocusAreas": [
+      "quadriceps",
+      "hipCapsule",
+      "ankleDorsiflexion"
+    ],
+    "rehabCues": [
+      "Perform Spanish squat isometric holds (5x45s) prior to loading.",
+      "Focus on slow 3-4s eccentric squats to promote patellar tendon remodeling."
+    ]
+  },
+  {
+    "id": "quadriceps_tendinopathy",
+    "osiicsCode": "KJQT",
+    "name": "Quadriceps Tendinopathy",
+    "region": "leftQuad",
+    "supportedRegions": ["leftQuad", "rightQuad", "leftKnee", "rightKnee"],
+    "description": "Pain at the superior border of the patella where the quadriceps tendon attaches.",
+    "acuteDurationDays": 14,
+    "chronicThresholdDays": 42,
+    "aggravatingVectors": [
+      "avoidDeepKneeFlexion",
+      "avoidHeavyEccentricStretch"
+    ],
+    "contraindicatedLifts": [
+      "Front Squat",
+      "Back Squat",
+      "Clean"
+    ],
+    "safeSubstitutions": [
+      {
+        "targetExercise": "Front Squat",
+        "replacementName": "Box Squat",
+        "replacementLiftId": "back_squat",
+        "weightMultiplier": 0.80,
+        "rationale": "Reduces quad tendon tensile strain by enforcing vertical tibia."
+      },
+      {
+        "targetExercise": "Back Squat",
+        "replacementName": "Good Morning",
+        "replacementLiftId": "clean_and_jerk",
+        "weightMultiplier": 0.70,
+        "rationale": "Shifts load to glutes and hamstrings."
+      }
+    ],
+    "rehabFocusAreas": [
+      "quadriceps",
+      "hipCapsule"
+    ],
+    "rehabCues": [
+      "Warm up with light leg extensions and reverse Nordic curls within pain-free range."
+    ]
+  },
+  {
+    "id": "meniscus_strain",
+    "osiicsCode": "KJMM",
+    "name": "Meniscal Irritation / Strain",
+    "region": "leftKnee",
+    "supportedRegions": ["leftKnee", "rightKnee"],
+    "description": "Joint line tenderness and catching sensation in deep flexion with rotational loading.",
+    "acuteDurationDays": 21,
+    "chronicThresholdDays": 45,
+    "aggravatingVectors": [
+      "avoidDeepKneeFlexion",
+      "avoidBallisticCatchImpact"
+    ],
+    "contraindicatedLifts": [
+      "Snatch",
+      "Clean",
+      "Overhead Squat"
+    ],
+    "safeSubstitutions": [
+      {
+        "targetExercise": "Snatch",
+        "replacementName": "Muscle Snatch + Snatch Pull",
+        "replacementLiftId": "snatch",
+        "weightMultiplier": 0.75,
+        "rationale": "Muscle snatch avoids rapid knee flexion and rotational torque on the meniscus."
+      }
+    ],
+    "rehabFocusAreas": [
+      "ankleDorsiflexion",
+      "hipCapsule"
+    ],
+    "rehabCues": [
+      "Keep feet firmly planted to prevent tibial torsion under load."
+    ]
+  },
+  {
+    "id": "shoulder_impingement",
+    "osiicsCode": "SJSI",
+    "name": "Subacromial Impingement / Rotator Cuff Tendinopathy",
+    "region": "leftShoulder",
+    "supportedRegions": ["leftShoulder", "rightShoulder"],
+    "description": "Compression of the rotator cuff tendons beneath the acromion during overhead abduction and internal rotation.",
+    "acuteDurationDays": 14,
+    "chronicThresholdDays": 42,
+    "aggravatingVectors": [
+      "avoidOverheadLockout",
+      "avoidBallisticCatchImpact"
+    ],
+    "contraindicatedLifts": [
+      "Snatch",
+      "Overhead Squat",
+      "Jerk",
+      "Military Press",
+      "Push Press"
+    ],
+    "safeSubstitutions": [
+      {
+        "targetExercise": "Snatch",
+        "replacementName": "Snatch High Pull (Straps)",
+        "replacementLiftId": "snatch",
+        "weightMultiplier": 0.90,
+        "rationale": "Maintains triple extension power without putting the shoulder in extreme overhead lockout."
+      },
+      {
+        "targetExercise": "Military Press",
+        "replacementName": "Landmine Press (Neutral Grip)",
+        "replacementLiftId": "military_press",
+        "weightMultiplier": 0.75,
+        "rationale": "Scapular plane pressing relieves subacromial space pressure."
+      },
+      {
+        "targetExercise": "Push Press",
+        "replacementName": "Clean Pull + Heavy Shrug",
+        "replacementLiftId": "clean_and_jerk",
+        "weightMultiplier": 0.95,
+        "rationale": "Maintains leg drive and upper back stimulus without overhead compression."
+      }
+    ],
+    "rehabFocusAreas": [
+      "shoulderOverhead",
+      "thoracicSpine"
+    ],
+    "rehabCues": [
+      "Perform face pulls, band external rotations, and prone Y-raises.",
+      "Work on thoracic spine extension over a foam roller before lifting."
+    ]
+  },
+  {
+    "id": "ac_joint_sprain",
+    "osiicsCode": "SJAC",
+    "name": "Acromioclavicular (AC) Joint Sprain / Irritation",
+    "region": "rightShoulder",
+    "supportedRegions": ["leftShoulder", "rightShoulder"],
+    "description": "Pain at the top of the shoulder aggravated by cross-body adduction and heavy barbell dips or presses.",
+    "acuteDurationDays": 21,
+    "chronicThresholdDays": 42,
+    "aggravatingVectors": [
+      "avoidOverheadLockout",
+      "avoidAxialSpinalShear"
+    ],
+    "contraindicatedLifts": [
+      "Jerk",
+      "Military Press",
+      "Dips"
+    ],
+    "safeSubstitutions": [
+      {
+        "targetExercise": "Military Press",
+        "replacementName": "Incline Dumbbell Press (Neutral Grip)",
+        "replacementLiftId": "military_press",
+        "weightMultiplier": 0.75,
+        "rationale": "Neutral grip allows independent scapular tracking."
+      }
+    ],
+    "rehabFocusAreas": [
+      "shoulderOverhead",
+      "thoracicSpine"
+    ],
+    "rehabCues": [
+      "Avoid heavy dips and behind-the-neck presses until AC joint palpation is pain-free."
+    ]
+  },
+  {
+    "id": "lumbar_disc_strain",
+    "osiicsCode": "LBLS",
+    "name": "Lumbar Strain / Discogenic Low Back Pain",
+    "region": "lumbarSpine",
+    "supportedRegions": ["lumbarSpine"],
+    "description": "Ache or sharp tightness in the lower back with flexion and spinal axial compression.",
+    "acuteDurationDays": 14,
+    "chronicThresholdDays": 42,
+    "aggravatingVectors": [
+      "avoidAxialSpinalShear",
+      "avoidFloorPullShear",
+      "avoidAggressiveHipHinge"
+    ],
+    "contraindicatedLifts": [
+      "Snatch Deadlift",
+      "Clean Deadlift",
+      "Back Squat",
+      "Good Morning",
+      "Romanian Deadlift (RDL)"
+    ],
+    "safeSubstitutions": [
+      {
+        "targetExercise": "Snatch Deadlift",
+        "replacementName": "Block Pulls (Above Knee)",
+        "replacementLiftId": "snatch",
+        "weightMultiplier": 0.85,
+        "rationale": "Pulling from above knee significantly reduces lumbar moment arm."
+      },
+      {
+        "targetExercise": "Back Squat",
+        "replacementName": "Belt Squat / Front Foot Elevated Split Squat",
+        "replacementLiftId": "back_squat",
+        "weightMultiplier": 0.70,
+        "rationale": "Eliminates spinal axial compression while training leg drive."
+      },
+      {
+        "targetExercise": "Romanian Deadlift (RDL)",
+        "replacementName": "Hip Thrust / Glute Bridge",
+        "replacementLiftId": "clean_and_jerk",
+        "weightMultiplier": 0.80,
+        "rationale": "Direct glute hypertrophy without forward lumbar spinal flexion."
+      }
+    ],
+    "rehabFocusAreas": [
+      "posteriorChain",
+      "absCore",
+      "thoracicSpine"
+    ],
+    "rehabCues": [
+      "Perform McGill Big 3 (Bird-Dog, Side Plank, Curl-up) prior to any training.",
+      "Maintain active brace with 360-degree intra-abdominal pressure."
+    ]
+  },
+  {
+    "id": "si_joint_dysfunction",
+    "osiicsCode": "LPSI",
+    "name": "Sacroiliac (SI) Joint Irritation",
+    "region": "leftHipGlute",
+    "supportedRegions": ["leftHipGlute", "rightHipGlute", "lumbarSpine"],
+    "description": "Localized pain over the posterior superior iliac spine (PSIS), aggravated by asymmetrical loading or split positions.",
+    "acuteDurationDays": 14,
+    "chronicThresholdDays": 35,
+    "aggravatingVectors": [
+      "avoidAggressiveHipHinge",
+      "avoidAxialSpinalShear"
+    ],
+    "contraindicatedLifts": [
+      "Lunges",
+      "Split Jerk"
+    ],
+    "safeSubstitutions": [
+      {
+        "targetExercise": "Lunges",
+        "replacementName": "Bilateral Goblet Squat",
+        "replacementLiftId": "back_squat",
+        "weightMultiplier": 0.75,
+        "rationale": "Bilateral loading stabilizes the pelvis and avoids SI shearing."
+      },
+      {
+        "targetExercise": "Split Jerk",
+        "replacementName": "Power Jerk / Push Jerk",
+        "replacementLiftId": "clean_and_jerk",
+        "weightMultiplier": 0.85,
+        "rationale": "Bilateral landing eliminates asymmetrical pelvis rotational torque."
+      }
+    ],
+    "rehabFocusAreas": [
+      "hipCapsule",
+      "absCore"
+    ],
+    "rehabCues": [
+      "Isometric adductor squeeze and glute bridge activation prior to squats."
+    ]
+  },
+  {
+    "id": "wrist_extensor_strain",
+    "osiicsCode": "WJWE",
+    "name": "Wrist Strain / Front Rack Extension Pain",
+    "region": "leftWrist",
+    "supportedRegions": ["leftWrist", "rightWrist"],
+    "description": "Pain on the dorsal or ulnar aspect of the wrist during heavy front rack receiving positions or wide snatch grips.",
+    "acuteDurationDays": 10,
+    "chronicThresholdDays": 30,
+    "aggravatingVectors": [
+      "avoidWristExtension",
+      "avoidBallisticCatchImpact"
+    ],
+    "contraindicatedLifts": [
+      "Clean",
+      "Front Squat",
+      "Snatch"
+    ],
+    "safeSubstitutions": [
+      {
+        "targetExercise": "Clean",
+        "replacementName": "Clean Pull with Straps",
+        "replacementLiftId": "clean_and_jerk",
+        "weightMultiplier": 1.0,
+        "rationale": "Maintains clean extension power without forcing the wrist into deep extension."
+      },
+      {
+        "targetExercise": "Front Squat",
+        "replacementName": "Cross-Arm Front Squat / Zombie Squat",
+        "replacementLiftId": "clean_and_jerk",
+        "weightMultiplier": 0.85,
+        "rationale": "Zombie or cross-arm rack removes all wrist load while maintaining upright torso mechanics."
+      }
+    ],
+    "rehabFocusAreas": [
+      "gripStrength",
+      "shoulderOverhead"
+    ],
+    "rehabCues": [
+      "Warm up latissimus dorsi and thoracic spine to improve elbow height in the rack."
+    ]
+  },
+  {
+    "id": "hamstring_proximal_strain",
+    "osiicsCode": "TMHP",
+    "name": "Proximal Hamstring Tendinopathy / Strain",
+    "region": "leftHamstring",
+    "supportedRegions": ["leftHamstring", "rightHamstring"],
+    "description": "Deep ache near the ischial tuberosity (sit bone) aggravated by deep hip flexion and loaded eccentrics.",
+    "acuteDurationDays": 14,
+    "chronicThresholdDays": 45,
+    "aggravatingVectors": [
+      "avoidHeavyEccentricStretch",
+      "avoidAggressiveHipHinge"
+    ],
+    "contraindicatedLifts": [
+      "Romanian Deadlift (RDL)",
+      "Snatch Deadlift",
+      "Clean Deadlift"
+    ],
+    "safeSubstitutions": [
+      {
+        "targetExercise": "Romanian Deadlift (RDL)",
+        "replacementName": "Block Pull (Mid-Thigh) + Glute Bridge",
+        "replacementLiftId": "clean_and_jerk",
+        "weightMultiplier": 0.80,
+        "rationale": "Avoids loaded end-range hip flexion stretch."
+      }
+    ],
+    "rehabFocusAreas": [
+      "posteriorChain",
+      "hipCapsule"
+    ],
+    "rehabCues": [
+      "Isometric single leg bridge holds (4x30s) before pulling sessions."
+    ]
+  },
+  {
+    "id": "hip_impingement_fai",
+    "osiicsCode": "HJFA",
+    "name": "Femoroacetabular Impingement (FAI) / Hip Pinch",
+    "region": "leftHipGlute",
+    "supportedRegions": ["leftHipGlute", "rightHipGlute"],
+    "description": "Anterior hip pinching at the bottom of a deep squat or snatch catch due to bone-on-bone abutment.",
+    "acuteDurationDays": 14,
+    "chronicThresholdDays": 45,
+    "aggravatingVectors": [
+      "avoidDeepKneeFlexion",
+      "avoidBallisticCatchImpact"
+    ],
+    "contraindicatedLifts": [
+      "Snatch",
+      "Clean",
+      "Back Squat"
+    ],
+    "safeSubstitutions": [
+      {
+        "targetExercise": "Snatch",
+        "replacementName": "Power Snatch (Slightly Wider Stance)",
+        "replacementLiftId": "power_snatch",
+        "weightMultiplier": 0.80,
+        "rationale": "Higher catch avoids anterior hip pinch in full flexion."
+      },
+      {
+        "targetExercise": "Back Squat",
+        "replacementName": "Box Squat (Parallel Depth)",
+        "replacementLiftId": "back_squat",
+        "weightMultiplier": 0.85,
+        "rationale": "Prevents going below parallel where impingement occurs."
+      }
+    ],
+    "rehabFocusAreas": [
+      "hipCapsule",
+      "ankleDorsiflexion"
+    ],
+    "rehabCues": [
+      "Banded hip joint distraction, 90/90 hip mobility, and psoas release."
+    ]
+  },
+  {
+    "id": "achilles_tendinopathy",
+    "osiicsCode": "AJAT",
+    "name": "Achilles Tendinopathy",
+    "region": "leftCalfAnkle",
+    "supportedRegions": ["leftCalfAnkle", "rightCalfAnkle"],
+    "description": "Morning stiffness and localized tendon pain 2-6cm above the calcaneus, provoked by explosive plyometric jumps and rebound catches.",
+    "acuteDurationDays": 14,
+    "chronicThresholdDays": 42,
+    "aggravatingVectors": [
+      "avoidBallisticCatchImpact",
+      "avoidHeavyEccentricStretch"
+    ],
+    "contraindicatedLifts": [
+      "Jerk",
+      "Snatch",
+      "Clean"
+    ],
+    "safeSubstitutions": [
+      {
+        "targetExercise": "Clean and Jerk",
+        "replacementName": "Clean Pull + Push Press",
+        "replacementLiftId": "clean_and_jerk",
+        "weightMultiplier": 0.85,
+        "rationale": "Removes aggressive foot stomp and dynamic impact on the Achilles."
+      }
+    ],
+    "rehabFocusAreas": [
+      "ankleDorsiflexion",
+      "posteriorChain"
+    ],
+    "rehabCues": [
+      "Heavy slow resistance (HSR) straight-leg and bent-knee calf raises."
+    ]
+  },
+  {
+    "id": "elbow_medial_epicondylitis",
+    "osiicsCode": "EJME",
+    "name": "Medial Epicondylalgia (Golfer's / Lifter's Elbow)",
+    "region": "leftElbow",
+    "supportedRegions": ["leftElbow", "rightElbow"],
+    "description": "Inner elbow irritation at the common flexor tendon origin from heavy grip tension and aggressive snatch turnovers.",
+    "acuteDurationDays": 14,
+    "chronicThresholdDays": 40,
+    "aggravatingVectors": [
+      "avoidWristExtension"
+    ],
+    "contraindicatedLifts": [
+      "Pull Up",
+      "Snatch"
+    ],
+    "safeSubstitutions": [
+      {
+        "targetExercise": "Pull Up",
+        "replacementName": "Chest Supported Row (Neutral Grip)",
+        "replacementLiftId": "pull_up",
+        "weightMultiplier": 0.80,
+        "rationale": "Neutral grip relieves medial elbow flexor tendon tension."
+      }
+    ],
+    "rehabFocusAreas": [
+      "gripStrength",
+      "shoulderOverhead"
+    ],
+    "rehabCues": [
+      "Wrist flexor eccentric Tyler twists with flexbar, forearm soft tissue release."
+    ]
+  },
+  {
+    "id": "cervical_neck_strain",
+    "osiicsCode": "NJNS",
+    "name": "Cervical / Upper Trapezius Strain",
+    "region": "neck",
+    "supportedRegions": ["neck", "thoracicSpine"],
+    "description": "Neck muscle spasm or facet joint tightness following heavy overhead catches or high shrug loads.",
+    "acuteDurationDays": 7,
+    "chronicThresholdDays": 28,
+    "aggravatingVectors": [
+      "avoidOverheadLockout",
+      "avoidAxialSpinalShear"
+    ],
+    "contraindicatedLifts": [
+      "Snatch",
+      "Push Press",
+      "Military Press"
+    ],
+    "safeSubstitutions": [
+      {
+        "targetExercise": "Push Press",
+        "replacementName": "Dumbbell Floor Press",
+        "replacementLiftId": "military_press",
+        "weightMultiplier": 0.75,
+        "rationale": "Floor provides back support and avoids cervical extension under load."
+      }
+    ],
+    "rehabFocusAreas": [
+      "thoracicSpine",
+      "shoulderOverhead"
+    ],
+    "rehabCues": [
+      "Gentle chin tucks, scalene breathing drills, and thoracic mobility."
+    ]
+  }
+]

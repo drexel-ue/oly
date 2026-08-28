@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:oly/models/injury_model.dart';
 import 'package:oly/models/program_model.dart';
 import 'package:oly/models/workout_session.dart';
+import 'package:oly/providers/injury_provider.dart';
 import 'package:oly/providers/lift_provider.dart';
 import 'package:oly/providers/program_provider.dart';
 import 'package:oly/providers/recovery_provider.dart';
 import 'package:oly/providers/settings_provider.dart';
 import 'package:oly/services/recovery_engine_service.dart';
 import 'package:oly/theme/app_theme.dart';
+import 'package:oly/views/injury_tracker_screen.dart';
 import 'package:oly/views/nutrition/nutrition_dashboard_screen.dart';
 import 'package:oly/views/nutrition/renpho_scanner_sheet.dart';
 import 'package:oly/views/recovery_session_screen.dart';
@@ -109,6 +112,10 @@ class DashboardScreen extends StatelessWidget {
 
               // Active Recovery & Mobility Routine
               const ActiveRecoveryCard(),
+              const SizedBox(height: 16),
+
+              // Body Map & Injury Tracking Card
+              _buildInjuryTrackerCard(context),
               const SizedBox(height: 16),
 
               // Olympic Total & Primary PRs
@@ -827,6 +834,192 @@ class DashboardScreen extends StatelessWidget {
                 ),
               ),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInjuryTrackerCard(BuildContext context) {
+    final InjuryProvider? injuryProvider =
+        Provider.of<InjuryProvider?>(context);
+    final List<InjuryRecord> activeInjuries =
+        injuryProvider?.activeInjuries ?? <InjuryRecord>[];
+    final int count = activeInjuries.length;
+    final int acuteCount = injuryProvider?.acuteInjuries.length ?? 0;
+    final int chronicCount = injuryProvider?.chronicInjuries.length ?? 0;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceCard,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: count > 0
+              ? AppTheme.primaryAmber.withOpacity(0.5)
+              : AppTheme.borderColor,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              Row(
+                children: <Widget>[
+                  Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: count > 0
+                          ? AppTheme.primaryAmber.withOpacity(0.2)
+                          : AppTheme.successGreen.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(
+                      Icons.accessibility_new,
+                      color: count > 0
+                          ? AppTheme.primaryAmber
+                          : AppTheme.successGreen,
+                      size: 18,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    'BODY MAP & INJURY SHIELD',
+                    style: GoogleFonts.outfit(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.0,
+                      color: AppTheme.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: count > 0
+                      ? AppTheme.primaryAmber.withOpacity(0.2)
+                      : AppTheme.successGreen.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(
+                    color: count > 0
+                        ? AppTheme.primaryAmber.withOpacity(0.5)
+                        : AppTheme.successGreen.withOpacity(0.5),
+                  ),
+                ),
+                child: Text(
+                  count > 0 ? '$count Active Strain${count == 1 ? "" : "s"}' : 'All Clear 🟢',
+                  style: GoogleFonts.inter(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: count > 0
+                        ? AppTheme.primaryAmber
+                        : AppTheme.successGreen,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          if (count == 0) ...<Widget>[
+            Text(
+              'No active joint or muscle strains reported. All movement patterns clear for maximum loading.',
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                color: AppTheme.textSecondary,
+                height: 1.3,
+              ),
+            ),
+          ] else ...<Widget>[
+            Wrap(
+              spacing: 8,
+              runSpacing: 6,
+              children: activeInjuries.map((InjuryRecord injury) {
+                final Color stageColor = injury.stage == InjuryStage.acute
+                    ? AppTheme.primaryAmber
+                    : (injury.stage == InjuryStage.subacute
+                        ? const Color(0xFFFF9F0A)
+                        : const Color(0xFFBF5AF2));
+
+                return Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: AppTheme.surfaceElevated,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: stageColor.withOpacity(0.4)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      Text(
+                        injury.region.displayName,
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                        decoration: BoxDecoration(
+                          color: stageColor.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          '${injury.stage.label} (${injury.painScale}/10)',
+                          style: GoogleFonts.inter(
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
+                            color: stageColor,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              'Dynamic adaptations active: ${acuteCount > 0 ? "$acuteCount acute, " : ""}${chronicCount > 0 ? "$chronicCount chronic" : ""}',
+              style: GoogleFonts.inter(
+                fontSize: 11,
+                color: AppTheme.textSecondary,
+              ),
+            ),
+          ],
+          const SizedBox(height: 14),
+
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              icon: const Icon(Icons.map_outlined, size: 16, color: AppTheme.secondaryCyan),
+              label: Text(
+                'Open Interactive Body Map',
+                style: GoogleFonts.inter(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                  color: AppTheme.secondaryCyan,
+                ),
+              ),
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: AppTheme.secondaryCyan),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const InjuryTrackerScreen()),
+                );
+              },
+            ),
           ),
         ],
       ),

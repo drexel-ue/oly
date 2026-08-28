@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:nested/nested.dart';
 import 'package:oly/main.dart';
 import 'package:oly/providers/body_comp_provider.dart';
+import 'package:oly/providers/injury_provider.dart';
 import 'package:oly/providers/lift_provider.dart';
 import 'package:oly/providers/nutrition_provider.dart';
 import 'package:oly/providers/program_provider.dart';
@@ -28,6 +29,7 @@ void main() {
           ChangeNotifierProvider(create: (_) => RecoveryProvider(storage)),
           ChangeNotifierProvider(create: (_) => BodyCompProvider(storage)),
           ChangeNotifierProvider(create: (_) => NutritionProvider(storage)),
+          ChangeNotifierProvider(create: (_) => InjuryProvider(storage)),
         ],
         child: const OlyApp(),
       ),

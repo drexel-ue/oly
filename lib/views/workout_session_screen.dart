@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:oly/models/injury_model.dart';
 import 'package:oly/models/lift_model.dart';
 import 'package:oly/models/program_model.dart';
 import 'package:oly/models/workout_session.dart';
 import 'package:oly/providers/body_comp_provider.dart';
+import 'package:oly/providers/injury_provider.dart';
 import 'package:oly/providers/lift_provider.dart';
 import 'package:oly/providers/nutrition_provider.dart';
 import 'package:oly/providers/program_provider.dart';
@@ -12,7 +14,9 @@ import 'package:oly/theme/app_theme.dart';
 import 'package:oly/views/warmup_session_screen.dart';
 import 'package:oly/widgets/exercise_swap_modal.dart';
 import 'package:oly/widgets/plate_modal.dart';
+import 'package:oly/widgets/post_session_body_checkin_dialog.dart';
 import 'package:oly/widgets/rest_timer_widget.dart';
+import 'package:oly/widgets/session_injury_adaptation_card.dart';
 import 'package:oly/widgets/workout_weight_dialog.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -665,6 +669,38 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
   }
 
   Future<void> _saveWorkoutSession() async {
+    // Prompt Before/After Post-Session Body Check-In in live mode
+    if (_isLiveMode && mounted) {
+      await showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext ctx) => PostSessionBodyCheckinDialog(
+          initialJointStrains: _selectedJointStrains.toList(),
+          onComplete: (
+            Map<InjuryRegion, int> updatedPain,
+            List<String> jointTags,
+          ) async {
+            _selectedJointStrains.clear();
+            _selectedJointStrains.addAll(jointTags);
+
+            final InjuryProvider? injuryProvider =
+                Provider.of<InjuryProvider?>(context, listen: false);
+            if (injuryProvider != null) {
+              await injuryProvider.processPostSessionCheckin(
+                postSessionPain: updatedPain,
+                sessionNotes: _notesController.text,
+                sessionRpe: _selectedRpe,
+              );
+            }
+          },
+        ),
+      );
+    }
+
+    if (!mounted) {
+      return;
+    }
+
     final ProgramProvider programProvider = Provider.of<ProgramProvider>(
       context,
       listen: false,
@@ -726,6 +762,15 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
   @override
   Widget build(BuildContext context) {
     final SettingsProvider settings = Provider.of<SettingsProvider>(context);
+    final InjuryProvider? injuryProvider =
+        Provider.of<InjuryProvider?>(context);
+    final LiftProvider liftProvider = Provider.of<LiftProvider>(context);
+    final ProgramProvider programProvider = Provider.of<ProgramProvider>(context);
+
+    final int week = widget.previewWeek ??
+        widget.initialDraft?.weekNumber ??
+        programProvider.currentWeek;
+    final Map<String, double> maxes = liftProvider.currentMaxes;
 
     return PopScope(
       canPop: !_isLiveMode || _isDraftEmpty(),
@@ -801,6 +846,32 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
+                      // Active Injury Biomechanical Adaptation Banner
+                      if (injuryProvider != null &&
+                          injuryProvider.activeInjuries.isNotEmpty)
+                        SessionInjuryAdaptationCard(
+                          dayTemplate: widget.dayTemplate,
+                          activeInjuries: injuryProvider.activeInjuries,
+                          currentWeek: week,
+                          currentMaxes: maxes,
+                          appliedSwaps: _swappedExerciseNames,
+                          onApplySwaps: (
+                            Map<String, String> swaps,
+                            Map<String, double> weights,
+                          ) {
+                            setState(() {
+                              _swappedExerciseNames.addAll(swaps);
+                              weights.forEach((String exName, double wt) {
+                                if (_weightControllers.containsKey(exName)) {
+                                  _weightControllers[exName]!.text =
+                                      wt.toStringAsFixed(1);
+                                }
+                              });
+                            });
+                            _persistDraft();
+                          },
+                        ),
+
                       // Phases & Exercises
                       ...widget.dayTemplate.phases.map((PhaseTemplate phase) {
                         return _buildPhaseCard(context, phase, settings);

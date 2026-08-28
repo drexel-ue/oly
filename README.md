@@ -14,7 +14,7 @@
   <img src="https://img.shields.io/badge/Open%20Food%20Facts-SDK%20v3-00B259?logo=openfoodfacts&logoColor=white" alt="Open Food Facts SDK" />
   <img src="https://img.shields.io/badge/Google%20ML%20Kit-OCR%20Vision-4285F4?logo=google&logoColor=white" alt="ML Kit Vision" />
   <img src="https://img.shields.io/badge/Theme-Dark%20Obsidian-121214" alt="Theme" />
-  <img src="https://img.shields.io/badge/Tests-112%20Passing-brightgreen" alt="Tests" />
+  <img src="https://img.shields.io/badge/Tests-134%20Passing-brightgreen" alt="Tests" />
   <img src="https://img.shields.io/badge/License-Proprietary-FF9E1B" alt="License" />
 </p>
 
@@ -22,9 +22,10 @@
 
 ## 🌟 Overview
 
-**OLY** unites elite Olympic weightlifting periodization with a rigorous athlete nutrition and metabolic expenditure engine. Designed from the ground up for serious athletes:
+**OLY** unites elite Olympic weightlifting periodization with a rigorous athlete nutrition engine, metabolic expenditure modeling, and an offline-first **Anatomical Body Map & Biomechanical Injury Adaptation Engine**. Designed from the ground up for serious athletes:
 
 - **🏋️ Periodization & Lifts**: 4-Day and 5-Day wave loading programs (`65% → 70% → 75% → Deload → Retest`), Catalyst Athletics / Greg Everett 1RM variation ratios, dynamic in-workout exercise swapping, working weight adjustments with live 1RM recalculation, and an IWF color-coded bumper plate visualizer.
+- **🩺 Body Map & Injury Adaptation**: Interactive 14-region Front & Back vector anatomical body map, OSIICS-16 local sports medicine taxonomy, duration-based **Acute ($< 14$d)** vs. **Subacute ($14-42$d)** vs. **Chronic ($> 42$d)** stage tracking, pre-session 1-tap biomechanical movement regressions, and post-session before-vs-after strain check-ins.
 - **🥗 Nutrition & Metabolic Engine**: Dual Energy In / Energy Out balance gauge, Katch-McArdle LBM-based BMR calculation, Compendium of Physical Activities (Algorithm B net vs Algorithm A gross expenditure), automated WOD TUT physics calories sync, and dynamic daily hydration tracking.
 - **📷 Smart Barcode Scanner & Open Food Facts**: Live camera viewfinder with golden animated targeting reticle, continuous scanning with haptic feedback, typed Open Food Facts SDK integration with offline caching, force-refresh, and a 107+ staple whole foods database.
 - **🥞 Athlete Smart Portion Drawer**: Protein density metrics ($g \text{ protein} / 100\text{ kcal}$), 3-color macro split bar ($P\% / C\% / F\%$), standard serving vs. custom gram steppers, and daily macro goal comparison badges.
@@ -83,6 +84,11 @@
 ---
 
 ### 🧘‍♂️ Active Recovery, Analytics & Diagnostics
+
+| Interactive Anatomical Body Map | Post-Session Strain Check-In |
+| :---: | :---: |
+| <img src="screenshots/21_injury_tracker_screen.png" width="360" alt="Body Map & Injury Tracker" /> | <img src="screenshots/22_post_session_body_checkin.png" width="360" alt="Post-Session Strain Check-In" /> |
+| *14-region clickable body map, acute (<14d) vs chronic (6w+) tags, and OSIICS catalog* | *Before-vs-after session strain comparison modal and recovery sync* |
 
 | Active Recovery Routine (Top) | Active Recovery Routine (Scrolled) |
 | :---: | :---: |
@@ -314,7 +320,7 @@ lib/
 
 ---
 
-## 📄 Testing Suite (112 Passing Tests)
+## 📄 Testing Suite (134 Passing Tests)
 
 Run the full suite of unit, widget, domain engine, and screenshot rendering tests:
 ```bash
@@ -322,13 +328,17 @@ flutter test
 ```
 
 Test coverage includes:
+- `injury_model_test.dart`: OSIICS serialization, duration calculation, and acute/subacute/chronic classification.
+- `injury_adaptation_test.dart`: Biomechanical loading vector rules, exercise regressions, and rehab warmup injection.
+- `injury_provider_test.dart`: Injury CRUD, persistent storage, history tracking, and post-session diff sync.
+- `injury_tracker_widget_test.dart`: Interactive body map front/back toggle, tap detection, adaptation card 1-tap swap, and check-in dialog.
 - `energy_balance_test.dart`: Katch-McArdle, Mifflin-St Jeor, Compendium MET calculations (Algorithm B vs A), and WOD TUT physics.
 - `energy_balance_widget_test.dart`: `EnergyBalanceCard` gauge, `MetabolicScienceExplainerScreen` 5 tabs, and `ActivityLogSheet`.
 - `food_database_service_test.dart`: Open Food Facts SDK query, typed parsing, offline caching, and 107+ whole foods lookup.
 - `smart_portion_widget_test.dart`: Protein density index, macro split bar, custom gram steppers, and live barcode camera scanner.
 - `renpho_ocr_test.dart`: 13-field OCR regex parsing from smart scale screenshots, lean mass calculations, and BMR updates.
 - `app_log_service_test.dart`: Ring-buffer logging, persistent crash storage, and `CrashReportScreen` UI controls.
-- `screenshot_capture_test.dart`: 21 multi-view layout tests verifying rendering and generating high-res PNGs for all views.
+- `screenshot_capture_test.dart`: 23 multi-view layout tests verifying rendering and generating high-res PNGs for all views.
 - `exercise_swap_test.dart`: Movement substitution, variation categorization, and weight recalculation.
 - `workout_weight_recalculation_test.dart`: In-workout weight adjustment, 1RM reverse formulas, steppers, and save modes.
 - `feature_audit_test.dart`: Session serialization, RPE, joint strain tags, recovery adaptation, and JSON/CSV backup.

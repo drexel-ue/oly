@@ -88,6 +88,7 @@ flutter:
     - assets/icon/splash.jpg
     - assets/sounds/timer_beep.wav
     - assets/data/staple_foods.json
+    - assets/data/sports_injuries_catalog.json
     - assets/fonts/
 
   fonts:

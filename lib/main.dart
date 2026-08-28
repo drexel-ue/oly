@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:nested/nested.dart';
 import 'package:oly/models/program_model.dart';
 import 'package:oly/providers/body_comp_provider.dart';
+import 'package:oly/providers/injury_provider.dart';
 import 'package:oly/providers/lift_provider.dart';
 import 'package:oly/providers/nutrition_provider.dart';
 import 'package:oly/providers/program_provider.dart';
@@ -16,6 +17,7 @@ import 'package:oly/services/storage_service.dart';
 import 'package:oly/theme/app_theme.dart';
 import 'package:oly/views/analytics_screen.dart';
 import 'package:oly/views/dashboard_screen.dart';
+import 'package:oly/views/injury_tracker_screen.dart';
 import 'package:oly/views/lifts_screen.dart';
 import 'package:oly/views/max_test_screen.dart';
 import 'package:oly/views/nutrition/nutrition_dashboard_screen.dart';
@@ -80,6 +82,9 @@ void main() async {
         ),
         ChangeNotifierProvider<NutritionProvider>(
           create: (BuildContext _) => NutritionProvider(storageService),
+        ),
+        ChangeNotifierProvider<InjuryProvider>(
+          create: (BuildContext _) => InjuryProvider(storageService),
         ),
       ],
       child: const OlyApp(),
