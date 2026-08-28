@@ -5,8 +5,8 @@ import 'package:oly/theme/app_theme.dart';
 
 class InteractiveBodyMap extends StatefulWidget {
   const InteractiveBodyMap({
-    super.key,
     required this.injuries,
+    super.key,
     this.selectedRegion,
     this.onRegionSelected,
     this.isCompact = false,
@@ -102,10 +102,10 @@ class _InteractiveBodyMapState extends State<InteractiveBodyMap> {
           height: height,
           width: double.infinity,
           decoration: BoxDecoration(
-            color: AppTheme.surfaceCard.withOpacity(0.5),
+            color: AppTheme.surfaceCard.withValues(alpha: 0.5),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: AppTheme.borderColor.withOpacity(0.7),
+              color: AppTheme.borderColor.withValues(alpha: 0.7),
             ),
           ),
           child: ClipRRect(
@@ -345,7 +345,7 @@ class _BodyMapPainter extends CustomPainter {
 
   void _drawBackgroundAesthetics(Canvas canvas, Size size, double cx) {
     final Paint linePaint = Paint()
-      ..color = AppTheme.borderColor.withOpacity(0.3)
+      ..color = AppTheme.borderColor.withValues(alpha: 0.3)
       ..strokeWidth = 1;
 
     // Center vertical axis
@@ -367,7 +367,7 @@ class _BodyMapPainter extends CustomPainter {
       canvas.drawLine(
         Offset(cx - 60, y),
         Offset(cx + 60, y),
-        linePaint..color = AppTheme.borderColor.withOpacity(0.15),
+        linePaint..color = AppTheme.borderColor.withValues(alpha: 0.15),
       );
     }
   }
@@ -418,11 +418,10 @@ class _BodyMapPainter extends CustomPainter {
 
   Paint _createPaint(InjuryRegion region) {
     final Color color = _getRegionColor(region);
-    final bool isSelected = selectedRegion == region;
     final bool hasActiveStrain = color != AppTheme.surfaceElevated;
 
     final Paint paint = Paint()
-      ..color = hasActiveStrain ? color.withOpacity(0.85) : color
+      ..color = hasActiveStrain ? color.withValues(alpha: 0.85) : color
       ..style = PaintingStyle.fill;
 
     return paint;
@@ -436,13 +435,15 @@ class _BodyMapPainter extends CustomPainter {
     return Paint()
       ..color = isSelected
           ? Colors.white
-          : (hasActiveStrain ? color : AppTheme.borderColor.withOpacity(0.8))
+          : (hasActiveStrain
+              ? color
+              : AppTheme.borderColor.withValues(alpha: 0.8))
       ..style = PaintingStyle.stroke
       ..strokeWidth = isSelected ? 2.5 : (hasActiveStrain ? 1.8 : 1.2);
   }
 
   void _drawHeadNeck(Canvas canvas, double cx, double scale) {
-    final InjuryRegion region = InjuryRegion.neck;
+    const InjuryRegion region = InjuryRegion.neck;
     final Paint fill = _createPaint(region);
     final Paint stroke = _createStrokePaint(region);
 
@@ -478,7 +479,7 @@ class _BodyMapPainter extends CustomPainter {
 
     if (isFront) {
       // 1. Chest / Pecs
-      final InjuryRegion chest = InjuryRegion.chestPecs;
+      const InjuryRegion chest = InjuryRegion.chestPecs;
       final Rect chestRect = Rect.fromCenter(
         center: Offset(cx, torsoTopY + 22 * scale),
         width: 68 * scale,
@@ -495,7 +496,7 @@ class _BodyMapPainter extends CustomPainter {
       _drawChronicBadge(canvas, chest, Offset(cx, torsoTopY + 22 * scale));
 
       // 2. Core / Abdominals
-      final InjuryRegion abs = InjuryRegion.coreAbs;
+      const InjuryRegion abs = InjuryRegion.coreAbs;
       final Rect absRect = Rect.fromCenter(
         center: Offset(cx, torsoTopY + 66 * scale),
         width: 58 * scale,
@@ -512,7 +513,7 @@ class _BodyMapPainter extends CustomPainter {
       _drawChronicBadge(canvas, abs, Offset(cx, torsoTopY + 66 * scale));
     } else {
       // 1. Thoracic Spine / Upper Back
-      final InjuryRegion upperBack = InjuryRegion.thoracicSpine;
+      const InjuryRegion upperBack = InjuryRegion.thoracicSpine;
       final Rect upperRect = Rect.fromCenter(
         center: Offset(cx, torsoTopY + 24 * scale),
         width: 72 * scale,
@@ -529,7 +530,7 @@ class _BodyMapPainter extends CustomPainter {
       _drawChronicBadge(canvas, upperBack, Offset(cx, torsoTopY + 24 * scale));
 
       // 2. Lumbar Spine / Lower Back
-      final InjuryRegion lumbar = InjuryRegion.lumbarSpine;
+      const InjuryRegion lumbar = InjuryRegion.lumbarSpine;
       final Rect lumbarRect = Rect.fromCenter(
         center: Offset(cx, torsoTopY + 66 * scale),
         width: 60 * scale,

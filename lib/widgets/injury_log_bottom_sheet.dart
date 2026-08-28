@@ -10,8 +10,8 @@ import 'package:uuid/uuid.dart';
 
 class InjuryLogBottomSheet extends StatefulWidget {
   const InjuryLogBottomSheet({
-    super.key,
     required this.initialRegion,
+    super.key,
     this.existingInjury,
   });
 
@@ -391,9 +391,11 @@ class _InjuryLogBottomSheetState extends State<InjuryLogBottomSheet> {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                             decoration: BoxDecoration(
-                              color: stageColor.withOpacity(0.15),
+                              color: stageColor.withValues(alpha: 0.15),
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: stageColor.withOpacity(0.4)),
+                              border: Border.all(
+                                color: stageColor.withValues(alpha: 0.4),
+                              ),
                             ),
                             child: Row(
                               children: <Widget>[

@@ -17,7 +17,6 @@ import 'package:oly/services/storage_service.dart';
 import 'package:oly/theme/app_theme.dart';
 import 'package:oly/views/analytics_screen.dart';
 import 'package:oly/views/dashboard_screen.dart';
-import 'package:oly/views/injury_tracker_screen.dart';
 import 'package:oly/views/lifts_screen.dart';
 import 'package:oly/views/max_test_screen.dart';
 import 'package:oly/views/nutrition/nutrition_dashboard_screen.dart';

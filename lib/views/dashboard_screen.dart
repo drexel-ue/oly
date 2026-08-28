@@ -856,7 +856,7 @@ class DashboardScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: count > 0
-              ? AppTheme.primaryAmber.withOpacity(0.5)
+              ? AppTheme.primaryAmber.withValues(alpha: 0.5)
               : AppTheme.borderColor,
         ),
       ),
@@ -872,8 +872,8 @@ class DashboardScreen extends StatelessWidget {
                     padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
                       color: count > 0
-                          ? AppTheme.primaryAmber.withOpacity(0.2)
-                          : AppTheme.successGreen.withOpacity(0.2),
+                          ? AppTheme.primaryAmber.withValues(alpha: 0.2)
+                          : AppTheme.successGreen.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(
@@ -900,13 +900,13 @@ class DashboardScreen extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
                   color: count > 0
-                      ? AppTheme.primaryAmber.withOpacity(0.2)
-                      : AppTheme.successGreen.withOpacity(0.2),
+                      ? AppTheme.primaryAmber.withValues(alpha: 0.2)
+                      : AppTheme.successGreen.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(6),
                   border: Border.all(
                     color: count > 0
-                        ? AppTheme.primaryAmber.withOpacity(0.5)
-                        : AppTheme.successGreen.withOpacity(0.5),
+                        ? AppTheme.primaryAmber.withValues(alpha: 0.5)
+                        : AppTheme.successGreen.withValues(alpha: 0.5),
                   ),
                 ),
                 child: Text(
@@ -949,7 +949,7 @@ class DashboardScreen extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: AppTheme.surfaceElevated,
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: stageColor.withOpacity(0.4)),
+                    border: Border.all(color: stageColor.withValues(alpha: 0.4)),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -966,7 +966,7 @@ class DashboardScreen extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
                         decoration: BoxDecoration(
-                          color: stageColor.withOpacity(0.2),
+                          color: stageColor.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(

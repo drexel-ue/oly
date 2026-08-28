@@ -4,7 +4,6 @@ import 'package:oly/models/injury_model.dart';
 import 'package:oly/models/mobility_exercise_model.dart';
 import 'package:oly/providers/injury_provider.dart';
 import 'package:oly/theme/app_theme.dart';
-import 'package:oly/views/recovery_session_screen.dart';
 import 'package:oly/widgets/injury_log_bottom_sheet.dart';
 import 'package:oly/widgets/interactive_body_map.dart';
 import 'package:provider/provider.dart';
@@ -115,9 +114,9 @@ class _InjuryTrackerScreenState extends State<InjuryTrackerScreen>
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.15),
+            color: color.withValues(alpha: 0.15),
             borderRadius: BorderRadius.circular(6),
-            border: Border.all(color: color.withOpacity(0.4)),
+            border: Border.all(color: color.withValues(alpha: 0.4)),
           ),
           child: Text(
             badge,
@@ -225,7 +224,9 @@ class _InjuryTrackerScreenState extends State<InjuryTrackerScreen>
                   indicator: BoxDecoration(
                     color: AppTheme.surfaceElevated,
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppTheme.primaryAmber.withOpacity(0.4)),
+                    border: Border.all(
+                      color: AppTheme.primaryAmber.withValues(alpha: 0.4),
+                    ),
                   ),
                   labelColor: AppTheme.primaryAmber,
                   unselectedLabelColor: AppTheme.textSecondary,
@@ -412,9 +413,11 @@ class _InjuryTrackerScreenState extends State<InjuryTrackerScreen>
                             vertical: 3,
                           ),
                           decoration: BoxDecoration(
-                            color: stageColor.withOpacity(0.15),
+                            color: stageColor.withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(6),
-                            border: Border.all(color: stageColor.withOpacity(0.4)),
+                            border: Border.all(
+                              color: stageColor.withValues(alpha: 0.4),
+                            ),
                           ),
                           child: Text(
                             '${injury.stage.label} • ${injury.formattedDuration}',

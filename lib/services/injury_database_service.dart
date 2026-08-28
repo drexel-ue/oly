@@ -39,6 +39,7 @@ class InjuryDatabaseService {
       AppLogService.instance.warning(
         'INJURY_DB',
         'Failed to load sports_injuries_catalog.json from asset bundle. Falling back to built-in presets: $e',
+        stackTrace: st.toString(),
       );
       _cachedCatalog = _builtInFallbackCatalog();
       _isLoaded = true;

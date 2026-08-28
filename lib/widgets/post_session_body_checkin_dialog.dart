@@ -8,8 +8,8 @@ import 'package:provider/provider.dart';
 
 class PostSessionBodyCheckinDialog extends StatefulWidget {
   const PostSessionBodyCheckinDialog({
-    super.key,
     required this.onComplete,
+    super.key,
     this.initialJointStrains = const <String>[],
   });
 
@@ -98,7 +98,7 @@ class _PostSessionBodyCheckinDialogState
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: AppTheme.primaryAmber.withOpacity(0.2),
+                      color: AppTheme.primaryAmber.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: const Icon(
@@ -162,7 +162,9 @@ class _PostSessionBodyCheckinDialogState
                   decoration: BoxDecoration(
                     color: AppTheme.surfaceElevated,
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppTheme.secondaryCyan.withOpacity(0.5)),
+                    border: Border.all(
+                      color: AppTheme.secondaryCyan.withValues(alpha: 0.5),
+                    ),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -199,7 +201,7 @@ class _PostSessionBodyCheckinDialogState
                           setState(() {
                             final int val = v.round();
                             if (val == 0) {
-                              _sessionPainMap.remove(_focusedRegion!);
+                              _sessionPainMap.remove(_focusedRegion);
                             } else {
                               _sessionPainMap[_focusedRegion!] = val;
                             }

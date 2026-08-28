@@ -7,12 +7,12 @@ import 'package:oly/theme/app_theme.dart';
 
 class SessionInjuryAdaptationCard extends StatefulWidget {
   const SessionInjuryAdaptationCard({
-    super.key,
     required this.dayTemplate,
     required this.activeInjuries,
     required this.currentWeek,
     required this.currentMaxes,
     required this.onApplySwaps,
+    super.key,
     this.appliedSwaps = const <String, String>{},
   });
 
@@ -54,7 +54,7 @@ class _SessionInjuryAdaptationCardState
         color: AppTheme.surfaceElevated,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: AppTheme.primaryAmber.withOpacity(0.5),
+          color: AppTheme.primaryAmber.withValues(alpha: 0.5),
           width: 1.5,
         ),
       ),
@@ -72,7 +72,7 @@ class _SessionInjuryAdaptationCardState
                   Container(
                     padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
-                      color: AppTheme.primaryAmber.withOpacity(0.2),
+                      color: AppTheme.primaryAmber.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Icon(
@@ -162,7 +162,9 @@ class _SessionInjuryAdaptationCardState
                         decoration: BoxDecoration(
                           color: AppTheme.surfaceCard,
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: stageColor.withOpacity(0.4)),
+                          border: Border.all(
+                            color: stageColor.withValues(alpha: 0.4),
+                          ),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -285,7 +287,7 @@ class _SessionInjuryAdaptationCardState
                           ],
                         ),
                       );
-                    }).toList(),
+                    }),
                     const SizedBox(height: 10),
 
                     // Apply Swaps Button
