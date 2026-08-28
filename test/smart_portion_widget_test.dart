@@ -92,17 +92,18 @@ void main() {
       expect(currentLog.entries.first.name.contains('Pure Protein'), isTrue);
     });
 
-    testWidgets('LiveBarcodeScannerSheet renders viewfinder, reticle, and manual barcode entry', (tester) async {
+    testWidgets('LiveBarcodeScannerSheet renders live camera viewfinder, reticle, and manual barcode entry', (tester) async {
       await tester.pumpWidget(buildTestableWidget(
         const LiveBarcodeScannerSheet(),
       ));
       await tester.pump(const Duration(milliseconds: 100));
 
+      expect(find.text('Live Scanner'), findsOneWidget);
       expect(find.text('Align Barcode Here'), findsOneWidget);
-      expect(find.text('Capture Barcode Photo'), findsOneWidget);
+      expect(find.text('Enter Barcode Manually'), findsOneWidget);
 
-      // Tap Manual Keyboard entry icon
-      await tester.tap(find.byIcon(Icons.keyboard));
+      // Tap Manual Keyboard entry button
+      await tester.tap(find.text('Enter Barcode Manually'));
       await tester.pump(const Duration(milliseconds: 100));
 
       expect(find.text('Enter Barcode (UPC/EAN)'), findsOneWidget);

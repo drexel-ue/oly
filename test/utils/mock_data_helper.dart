@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:oly/models/accessory_log.dart';
+import 'package:oly/models/body_composition_entry.dart';
 import 'package:oly/models/lift_model.dart';
 import 'package:oly/models/pr_entry.dart';
 import 'package:oly/models/program_model.dart';
@@ -425,6 +426,107 @@ class MockDataHelper {
     ];
   }
 
+  static BodyCompositionEntry getMockBodyComp() {
+    final now = DateTime.now();
+    return BodyCompositionEntry(
+      id: 'body_comp_latest',
+      timestamp: now.subtract(const Duration(hours: 4)),
+      weightLb: 264.8,
+      bodyFatPct: 21.2,
+      skeletalMuscleLb: 100.8,
+      fatFreeMassLb: 208.6,
+      bmi: 35.9,
+      bmrKcal: 2394,
+      bodyWaterPct: 57.8,
+      muscleMassLb: 198.6,
+      boneMassLb: 10.0,
+      proteinPct: 17.6,
+      visceralFat: 12,
+      subcutaneousFatPct: 18.4,
+      metabolicAge: 28,
+    );
+  }
+
+  static Map<String, dynamic> getMockNutritionData() {
+    final todayKey = DateTime.now().toIso8601String().substring(0, 10);
+    return {
+      todayKey: {
+        'date': todayKey,
+        'waterMl': 3500,
+        'entries': [
+          {
+            'id': 'food_1',
+            'name': 'Rolled Oats with Whey & Blueberries',
+            'category': 'breakfast',
+            'calories': 550,
+            'proteinGrams': 45.0,
+            'carbsGrams': 68.0,
+            'fatGrams': 9.0,
+            'portion': '1.5 cups',
+            'timestamp': DateTime.now().subtract(const Duration(hours: 9)).toIso8601String(),
+          },
+          {
+            'id': 'food_2',
+            'name': 'Grilled Chicken Breast with Basmati Rice & Broccoli',
+            'category': 'lunch',
+            'calories': 680,
+            'proteinGrams': 65.0,
+            'carbsGrams': 72.0,
+            'fatGrams': 11.0,
+            'portion': '250g chicken / 1.5c rice',
+            'timestamp': DateTime.now().subtract(const Duration(hours: 5)).toIso8601String(),
+          },
+          {
+            'id': 'food_3',
+            'name': 'Top Sirloin Steak with Roasted Sweet Potato',
+            'category': 'dinner',
+            'calories': 740,
+            'proteinGrams': 68.0,
+            'carbsGrams': 54.0,
+            'fatGrams': 22.0,
+            'portion': '8 oz steak / 1 med potato',
+            'timestamp': DateTime.now().subtract(const Duration(hours: 1)).toIso8601String(),
+          },
+          {
+            'id': 'food_4',
+            'name': 'Nonfat Greek Yogurt with Raw Honey',
+            'category': 'snack',
+            'calories': 230,
+            'proteinGrams': 22.0,
+            'carbsGrams': 26.0,
+            'fatGrams': 1.0,
+            'portion': '1 cup (170g)',
+            'timestamp': DateTime.now().subtract(const Duration(minutes: 30)).toIso8601String(),
+          },
+        ],
+        'activities': [
+          {
+            'id': 'act_wod',
+            'title': 'Heavy Olympic Lifting & Snatch Session',
+            'category': 'strengthWod',
+            'durationMinutes': 60,
+            'caloriesBurned': 485,
+            'metValue': 6.0,
+            'isAutoSynced': true,
+            'timestamp': DateTime.now().subtract(const Duration(hours: 3)).toIso8601String(),
+          },
+          {
+            'id': 'act_walk',
+            'title': 'Daily Incline Walk / NEAT Steps',
+            'category': 'walking',
+            'durationMinutes': 60,
+            'caloriesBurned': 380,
+            'metValue': 3.8,
+            'stepCount': 8600,
+            'distanceMiles': 4.0,
+            'isAutoSynced': false,
+            'timestamp': DateTime.now().subtract(const Duration(hours: 7)).toIso8601String(),
+          },
+        ],
+      },
+    };
+  }
+
   /// Seeds SharedPreferences with comprehensive mock data
   static Future<StorageService> setupMockStorage() async {
     final liftsJson = jsonEncode(getMockLifts().map((e) => e.toJson()).toList());
@@ -432,6 +534,17 @@ class MockDataHelper {
     final sessionsJson = jsonEncode(getMockWorkoutSessions().map((e) => e.toJson()).toList());
     final recoveryJson = jsonEncode(getMockRecoveryLogs());
     final accessoryJson = jsonEncode(getMockAccessoryLogs().map((e) => e.toJson()).toList());
+    final bodyCompJson = jsonEncode([getMockBodyComp().toJson()]);
+    final nutritionJson = jsonEncode(getMockNutritionData());
+    final goalJson = jsonEncode({
+      'dailyCalorieTarget': 2400,
+      'dailyProteinGrams': 210,
+      'dailyCarbsGrams': 240,
+      'dailyFatGrams': 65,
+      'dailyWaterMl': 4500,
+      'targetBodyWeightLb': 240.0,
+      'targetBodyFatPct': 15.0,
+    });
 
     SharedPreferences.setMockInitialValues({
       'oly_lifts_v1': liftsJson,
@@ -439,6 +552,9 @@ class MockDataHelper {
       'oly_sessions_v1': sessionsJson,
       'oly_recovery_logs_v1': recoveryJson,
       'oly_accessory_logs_v1': accessoryJson,
+      'oly_body_comp_entries_v1': bodyCompJson,
+      'oly_nutrition_logs_v1': nutritionJson,
+      'oly_nutrition_goal_v1': goalJson,
       'oly_unit_v1': false, // KG
       'oly_bar_weight_v1': 20.0,
       'oly_collar_weight_v1': 2.5,

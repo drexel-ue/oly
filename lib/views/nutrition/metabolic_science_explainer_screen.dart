@@ -26,11 +26,56 @@ class MetabolicScienceExplainerScreen extends StatelessWidget {
             unselectedLabelColor: AppTheme.textSecondary,
             labelStyle: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 13),
             tabs: const [
-              Tab(text: '⚡ Energy & TDEE'),
-              Tab(text: '🧬 Algorithm B (METs)'),
-              Tab(text: '🏋️ WOD & Lifting Physics'),
-              Tab(text: '💧 Hydration Model'),
-              Tab(text: '📚 Open-Source Sources'),
+              Tab(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.bolt, size: 16),
+                    SizedBox(width: 6),
+                    Text('Energy & TDEE'),
+                  ],
+                ),
+              ),
+              Tab(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.science_outlined, size: 16),
+                    SizedBox(width: 6),
+                    Text('Algorithm B (METs)'),
+                  ],
+                ),
+              ),
+              Tab(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.fitness_center, size: 16),
+                    SizedBox(width: 6),
+                    Text('WOD & Lifting Physics'),
+                  ],
+                ),
+              ),
+              Tab(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.water_drop_outlined, size: 16),
+                    SizedBox(width: 6),
+                    Text('Hydration Model'),
+                  ],
+                ),
+              ),
+              Tab(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.menu_book_outlined, size: 16),
+                    SizedBox(width: 6),
+                    Text('Open-Source Sources'),
+                  ],
+                ),
+              ),
             ],
           ),
         ),

@@ -107,20 +107,20 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Metabolic Science & Calculations'), findsOneWidget);
-      expect(find.text('⚡ Energy & TDEE'), findsOneWidget);
-      expect(find.text('🧬 Algorithm B (METs)'), findsOneWidget);
-      expect(find.text('🏋️ WOD & Lifting Physics'), findsOneWidget);
-      expect(find.text('💧 Hydration Model'), findsOneWidget);
-      expect(find.text('📚 Open-Source Sources'), findsOneWidget);
+      expect(find.text('Energy & TDEE'), findsOneWidget);
+      expect(find.text('Algorithm B (METs)'), findsOneWidget);
+      expect(find.text('WOD & Lifting Physics'), findsOneWidget);
+      expect(find.text('Hydration Model'), findsOneWidget);
+      expect(find.text('Open-Source Sources'), findsOneWidget);
 
       // Tap Algorithm B tab
-      await tester.tap(find.text('🧬 Algorithm B (METs)'));
+      await tester.tap(find.text('Algorithm B (METs)'));
       await tester.pumpAndSettle();
       expect(find.textContaining('Algorithm B: Personalized REE Scaling'), findsOneWidget);
       expect(find.textContaining('Algorithm A (Generic)'), findsOneWidget);
 
       // Tap WOD tab
-      await tester.tap(find.text('🏋️ WOD & Lifting Physics'));
+      await tester.tap(find.text('WOD & Lifting Physics'));
       await tester.pumpAndSettle();
       expect(find.textContaining('Workout of the Day (WOD) Caloric Physics'), findsOneWidget);
     });
@@ -150,7 +150,7 @@ void main() {
       expect(find.text('Nutrition & Energy'), findsOneWidget);
       expect(find.text('Energy In vs Out'), findsOneWidget);
       expect(find.text('Macro Targets'), findsOneWidget);
-      expect(find.text('DAILY ACTIVITIES & WOD ENERGY'), findsOneWidget);
+      expect(find.text('DAILY ACTIVITIES & WOD'), findsOneWidget);
       expect(find.text('Search / Barcode'), findsOneWidget);
 
       // Switch to Macro Targets view

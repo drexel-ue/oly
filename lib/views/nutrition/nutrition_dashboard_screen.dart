@@ -41,6 +41,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
       backgroundColor: AppTheme.darkBackground,
       appBar: AppBar(
         title: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Container(
               padding: const EdgeInsets.all(6),
@@ -51,11 +52,14 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
               child: const Icon(Icons.restaurant, color: Colors.black, size: 20),
             ),
             const SizedBox(width: 10),
-            Text(
-              'Nutrition & Energy',
-              style: GoogleFonts.outfit(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
+            Flexible(
+              child: Text(
+                'Nutrition & Energy',
+                style: GoogleFonts.outfit(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           ],
@@ -518,72 +522,81 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF00D2FF).withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(8),
+              Expanded(
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF00D2FF).withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(Icons.water_drop, color: Color(0xFF00D2FF), size: 16),
                     ),
-                    child: const Icon(Icons.water_drop, color: Color(0xFF00D2FF), size: 16),
-                  ),
-                  const SizedBox(width: 8),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            'Daily Hydration',
-                            style: GoogleFonts.inter(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: AppTheme.textPrimary,
-                            ),
-                          ),
-                          if (log.isTrainingDay) ...[
-                            const SizedBox(width: 6),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF00D2FF).withOpacity(0.2),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: Text(
-                                '+24oz Training',
+                          Row(
+                            children: [
+                              Text(
+                                'Daily Hydration',
                                 style: GoogleFonts.inter(
-                                  fontSize: 9,
+                                  fontSize: 12,
                                   fontWeight: FontWeight.bold,
-                                  color: const Color(0xFF00D2FF),
+                                  color: AppTheme.textPrimary,
                                 ),
                               ),
+                              if (log.isTrainingDay) ...[
+                                const SizedBox(width: 6),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF00D2FF).withOpacity(0.2),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Text(
+                                    '+24oz Training',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.bold,
+                                      color: const Color(0xFF00D2FF),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                          Text(
+                            '${log.waterOz.toStringAsFixed(0)} oz / ${log.targetWaterOz.toStringAsFixed(0)} oz (${(progress * 100).toStringAsFixed(0)}%)',
+                            style: GoogleFonts.inter(
+                              fontSize: 11,
+                              color: isGoalMet ? const Color(0xFF00E5FF) : AppTheme.textSecondary,
+                              fontWeight: isGoalMet ? FontWeight.bold : FontWeight.normal,
                             ),
-                          ],
+                          ),
                         ],
                       ),
-                      Text(
-                        '${log.waterOz.toStringAsFixed(0)} oz / ${log.targetWaterOz.toStringAsFixed(0)} oz goal (${(progress * 100).toStringAsFixed(0)}%)',
-                        style: GoogleFonts.inter(
-                          fontSize: 11,
-                          color: isGoalMet ? const Color(0xFF00E5FF) : AppTheme.textSecondary,
-                          fontWeight: isGoalMet ? FontWeight.bold : FontWeight.normal,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+                    ),
+                  ],
+                ),
               ),
-              Row(
-                children: [
-                  _buildWaterAddButton(nutrition, 8, '+8oz'),
-                  const SizedBox(width: 5),
-                  _buildWaterAddButton(nutrition, 16, '+16oz'),
-                  const SizedBox(width: 5),
-                  _buildWaterAddButton(nutrition, 24, '+24oz'),
-                  const SizedBox(width: 5),
-                  _buildWaterAddButton(nutrition, 32, '+32oz'),
-                ],
+              const SizedBox(width: 8),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _buildWaterAddButton(nutrition, 8, '+8oz'),
+                    const SizedBox(width: 4),
+                    _buildWaterAddButton(nutrition, 16, '+16oz'),
+                    const SizedBox(width: 4),
+                    _buildWaterAddButton(nutrition, 24, '+24oz'),
+                    const SizedBox(width: 4),
+                    _buildWaterAddButton(nutrition, 32, '+32oz'),
+                  ],
+                ),
               ),
             ],
           ),
@@ -648,28 +661,34 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: AppTheme.secondaryCyan.withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(8),
+              Expanded(
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: AppTheme.secondaryCyan.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(Icons.directions_run, color: AppTheme.secondaryCyan, size: 16),
                     ),
-                    child: const Icon(Icons.directions_run, color: AppTheme.secondaryCyan, size: 16),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'DAILY ACTIVITIES & WOD ENERGY',
-                    style: GoogleFonts.inter(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.9,
-                      color: AppTheme.textSecondary,
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        'DAILY ACTIVITIES & WOD',
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.inter(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.9,
+                          color: AppTheme.textSecondary,
+                        ),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
+              const SizedBox(width: 6),
               InkWell(
                 onTap: () => _openActivityLogSheet(context),
                 borderRadius: BorderRadius.circular(8),
@@ -845,9 +864,12 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    'No items logged yet',
-                    style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textSecondary),
+                  Flexible(
+                    child: Text(
+                      'No items logged yet',
+                      style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textSecondary),
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                   TextButton.icon(
                     onPressed: () => nutrition.copyYesterdayMeal(category, latestBodyComp: bodyComp.latestEntry),

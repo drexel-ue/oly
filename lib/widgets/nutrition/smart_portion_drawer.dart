@@ -230,10 +230,14 @@ class _SmartPortionDrawerState extends State<SmartPortionDrawer> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  Wrap(
+                    alignment: WrapAlignment.spaceBetween,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 8,
+                    runSpacing: 4,
                     children: [
                       Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(Icons.bolt, size: 14, color: _item.isHighProtein ? AppTheme.successGreen : AppTheme.primaryAmber),
                           const SizedBox(width: 4),
