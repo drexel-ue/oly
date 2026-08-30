@@ -213,24 +213,41 @@ lib/
 
 ---
 
-## ⌨️ Developer Tools & Ingestion Pipelines
+---
 
-Automated Python data ingestion scripts are located in `scripts/` and integrated into VS Code tasks (`.vscode/tasks.json`):
+## 🗄️ Building & Ingesting the SQLite Food Database
+
+Because `assets/data/usda_foods.db` (689 MB) exceeds GitHub's 100 MB standard file limit, it is ignored by Git and generated on-demand using our automated ingestion scripts. You can build the database locally with a single command:
+
+### Option A: Build the Full 2.06M+ Bulk Database (Recommended)
+Downloads official USDA FoodData Central releases, extracts macros and nutrient numbers, indexes 1.98M+ barcoded products, and builds the FTS5 full-text search index:
 
 ```bash
-# Update complete USDA FoodData Central Bulk Dataset (2.06M items)
+# Ingests Foundation, SR Legacy, Survey Foods (FNDDS), Branded Products & 26 Restaurant Chains
 python3 scripts/import_usda_bulk.py
+```
+> **Note**: Raw USDA ZIP archives are cached in `.usda_cache/`. First-time download takes ~30–60 seconds depending on connection speed; subsequent rebuilds take only ~15 seconds.
 
-# Rebuild Fast-Food Menus & Core Whole Staples Catalog
+### Option B: Build the Lightweight Core Database (19 MB)
+If you only need core whole staples, Foundation foods, Survey recipes, and fast-food chains without the 1.98M commercial branded grocery items:
+
+```bash
+# Ingests 26 fast-food chains + core whole staples catalog into SQLite
 python3 scripts/generate_restaurant_catalog.py
 python3 scripts/build_usda_sqlite.py
 ```
 
-VS Code Tasks (accessible via `Cmd + Shift + P` $\rightarrow$ `Tasks: Run Task`):
-- `Update USDA Database (Full 2M+ Bulk Ingestion)`
-- `Update USDA Database (Core Whole Foods & Fast Food)`
-- `Generate Restaurant Menus Catalog`
-- `Run Flutter Tests (Full Suite)`
+### Option C: Run via VS Code Tasks (One-Click)
+In Visual Studio Code or Antigravity IDE:
+1. Press `Cmd + Shift + P` (macOS) or `Ctrl + Shift + P` (Windows/Linux).
+2. Select **`Tasks: Run Task`**.
+3. Choose:
+   - **`Update USDA Database (Full 2M+ Bulk Ingestion)`** for the complete 2.06M dataset.
+   - **`Update USDA Database (Core Whole Foods & Fast Food)`** for the lightweight build.
+   - **`Generate Restaurant Menus Catalog`** to re-export fast-food JSON definitions.
+
+### 🔄 Device Auto-Synchronization
+When you bundle an updated `assets/data/usda_foods.db` and launch the app on an iOS or Android device, `UsdaDatabaseService` automatically compares the asset file size against local device storage. If a newer database is detected, it cleanly refreshes local storage and connects instantly without requiring an app reinstall.
 
 ---
 
@@ -256,13 +273,19 @@ VS Code Tasks (accessible via `Cmd + Shift + P` $\rightarrow$ `Tasks: Run Task`)
    flutter pub get
    ```
 
-3. **Run code analysis & automated test suite**:
+3. **Build the offline SQLite food database**:
+   ```bash
+   # Build the full 2.06M+ database (or use Option B above)
+   python3 scripts/import_usda_bulk.py
+   ```
+
+4. **Run code analysis & automated test suite**:
    ```bash
    flutter analyze
    flutter test
    ```
 
-4. **Launch on connected device or simulator**:
+5. **Launch on connected device or simulator**:
    ```bash
    # Launch on iOS Simulator or connected iPhone
    flutter run -d iPhone
