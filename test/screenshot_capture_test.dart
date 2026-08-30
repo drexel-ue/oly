@@ -56,90 +56,63 @@ import 'package:provider/provider.dart';
 
 import 'utils/mock_data_helper.dart';
 
+Future<void> _loadFont(String family, String assetPath) async {
+  final File file = File(assetPath);
+  if (!file.existsSync()) {
+    return;
+  }
+  final Uint8List bytes = file.readAsBytesSync();
+  final FontLoader loader = FontLoader(family);
+  loader.addFont(Future<ByteData>.value(ByteData.view(bytes.buffer)));
+  await loader.load();
+}
+
 Future<void> _loadAllFontVariants() async {
-  final Map<String, List<String>> fontMap = <String, List<String>>{
-    'Outfit': <String>[
-      'assets/fonts/Outfit-Regular.ttf',
-      'assets/fonts/Outfit-Bold.ttf',
-      'assets/fonts/Outfit-SemiBold.ttf',
-    ],
-    'Outfit_regular': <String>['assets/fonts/Outfit-Regular.ttf'],
-    'Outfit_bold': <String>['assets/fonts/Outfit-Bold.ttf'],
-    'Outfit_semibold': <String>['assets/fonts/Outfit-SemiBold.ttf'],
-    'Outfit_700': <String>['assets/fonts/Outfit-Bold.ttf'],
-    'Outfit_600': <String>['assets/fonts/Outfit-SemiBold.ttf'],
-    'Outfit_400': <String>['assets/fonts/Outfit-Regular.ttf'],
+  final Map<String, String> fonts = <String, String>{
+    'Outfit': 'assets/fonts/Outfit-Regular.ttf',
+    'Outfit_regular': 'assets/fonts/Outfit-Regular.ttf',
+    'Outfit_400': 'assets/fonts/Outfit-Regular.ttf',
+    'Outfit_500': 'assets/fonts/Outfit-Regular.ttf',
+    'Outfit_600': 'assets/fonts/Outfit-SemiBold.ttf',
+    'Outfit_semibold': 'assets/fonts/Outfit-SemiBold.ttf',
+    'Outfit_700': 'assets/fonts/Outfit-Bold.ttf',
+    'Outfit_bold': 'assets/fonts/Outfit-Bold.ttf',
+    'Outfit_800': 'assets/fonts/Outfit-Bold.ttf',
+    'Outfit_900': 'assets/fonts/Outfit-Bold.ttf',
 
-    'Inter': <String>[
-      'assets/fonts/Inter-Regular.ttf',
-      'assets/fonts/Inter-Bold.ttf',
-      'assets/fonts/Inter-SemiBold.ttf',
-      'assets/fonts/Inter-Medium.ttf',
-    ],
-    'Inter_regular': <String>['assets/fonts/Inter-Regular.ttf'],
-    'Inter_bold': <String>['assets/fonts/Inter-Bold.ttf'],
-    'Inter_semibold': <String>['assets/fonts/Inter-SemiBold.ttf'],
-    'Inter_medium': <String>['assets/fonts/Inter-Medium.ttf'],
-    'Inter_700': <String>['assets/fonts/Inter-Bold.ttf'],
-    'Inter_600': <String>['assets/fonts/Inter-SemiBold.ttf'],
-    'Inter_500': <String>['assets/fonts/Inter-Medium.ttf'],
-    'Inter_400': <String>['assets/fonts/Inter-Regular.ttf'],
+    'Inter': 'assets/fonts/Inter-Regular.ttf',
+    'Inter_regular': 'assets/fonts/Inter-Regular.ttf',
+    'Inter_400': 'assets/fonts/Inter-Regular.ttf',
+    'Inter_500': 'assets/fonts/Inter-Medium.ttf',
+    'Inter_medium': 'assets/fonts/Inter-Medium.ttf',
+    'Inter_600': 'assets/fonts/Inter-SemiBold.ttf',
+    'Inter_semibold': 'assets/fonts/Inter-SemiBold.ttf',
+    'Inter_700': 'assets/fonts/Inter-Bold.ttf',
+    'Inter_bold': 'assets/fonts/Inter-Bold.ttf',
+    'Inter_800': 'assets/fonts/Inter-Bold.ttf',
+    'Inter_900': 'assets/fonts/Inter-Bold.ttf',
+    'Inter_italic': 'assets/fonts/Inter-Italic.ttf',
+    'Inter-Italic': 'assets/fonts/Inter-Italic.ttf',
+    'Inter_400italic': 'assets/fonts/Inter-Italic.ttf',
+    'Inter_500italic': 'assets/fonts/Inter-Italic.ttf',
+    'Inter_600italic': 'assets/fonts/Inter-Italic.ttf',
+    'Inter_700italic': 'assets/fonts/Inter-Italic.ttf',
 
-    'FiraCode': <String>[
-      'assets/fonts/FiraCode-Regular.ttf',
-      'assets/fonts/FiraCode-Bold.ttf',
-      'assets/fonts/FiraCode-SemiBold.ttf',
-    ],
-    'FiraCode_regular': <String>['assets/fonts/FiraCode-Regular.ttf'],
-    'FiraCode_bold': <String>['assets/fonts/FiraCode-Bold.ttf'],
-    'FiraCode_semibold': <String>['assets/fonts/FiraCode-SemiBold.ttf'],
-    'FiraCode_700': <String>['assets/fonts/FiraCode-Bold.ttf'],
-    'FiraCode_600': <String>['assets/fonts/FiraCode-SemiBold.ttf'],
-    'FiraCode_400': <String>['assets/fonts/FiraCode-Regular.ttf'],
-    'Fira Code': <String>[
-      'assets/fonts/FiraCode-Regular.ttf',
-      'assets/fonts/FiraCode-Bold.ttf',
-      'assets/fonts/FiraCode-SemiBold.ttf',
-    ],
+    'FiraCode': 'assets/fonts/FiraCode-Regular.ttf',
+    'FiraCode_regular': 'assets/fonts/FiraCode-Regular.ttf',
+    'FiraCode_400': 'assets/fonts/FiraCode-Regular.ttf',
+    'FiraCode_600': 'assets/fonts/FiraCode-SemiBold.ttf',
+    'FiraCode_semibold': 'assets/fonts/FiraCode-SemiBold.ttf',
+    'FiraCode_700': 'assets/fonts/FiraCode-Bold.ttf',
+    'FiraCode_bold': 'assets/fonts/FiraCode-Bold.ttf',
 
-    'Roboto': <String>[
-      'assets/fonts/Inter-Regular.ttf',
-      'assets/fonts/Inter-Bold.ttf',
-      'assets/fonts/Inter-SemiBold.ttf',
-      'assets/fonts/Inter-Medium.ttf',
-    ],
-    '.AppleSystemUIFont': <String>[
-      'assets/fonts/Inter-Regular.ttf',
-      'assets/fonts/Inter-Bold.ttf',
-      'assets/fonts/Inter-SemiBold.ttf',
-      'assets/fonts/Inter-Medium.ttf',
-    ],
-    '.SF Pro Text': <String>[
-      'assets/fonts/Inter-Regular.ttf',
-      'assets/fonts/Inter-Bold.ttf',
-      'assets/fonts/Inter-SemiBold.ttf',
-      'assets/fonts/Inter-Medium.ttf',
-    ],
-    'Ahem': <String>[
-      'assets/fonts/Inter-Regular.ttf',
-      'assets/fonts/Inter-Bold.ttf',
-    ],
-    'packages/flutter_test/Ahem': <String>[
-      'assets/fonts/Inter-Regular.ttf',
-      'assets/fonts/Inter-Bold.ttf',
-    ],
+    'MaterialIcons': 'assets/fonts/MaterialIcons-Regular.otf',
+    'MaterialIcons-Regular': 'assets/fonts/MaterialIcons-Regular.otf',
+    'packages/flutter_test/MaterialIcons': 'assets/fonts/MaterialIcons-Regular.otf',
   };
 
-  for (final MapEntry<String, List<String>> entry in fontMap.entries) {
-    final FontLoader loader = FontLoader(entry.key);
-    for (final String path in entry.value) {
-      final File file = File(path);
-      if (file.existsSync()) {
-        final Uint8List bytes = file.readAsBytesSync();
-        loader.addFont(Future.value(ByteData.view(bytes.buffer)));
-      }
-    }
-    await loader.load();
+  for (final MapEntry<String, String> entry in fonts.entries) {
+    await _loadFont(entry.key, entry.value);
   }
 }
 
@@ -160,6 +133,17 @@ void main() {
     GoogleFonts.config.allowRuntimeFetching = false;
     await _loadAllFontVariants();
     await loadAppFonts();
+
+    // Pre-warm GoogleFonts
+    GoogleFonts.outfit();
+    GoogleFonts.outfit(fontWeight: FontWeight.bold);
+    GoogleFonts.outfit(fontWeight: FontWeight.w600);
+    GoogleFonts.inter();
+    GoogleFonts.inter(fontWeight: FontWeight.bold);
+    GoogleFonts.inter(fontWeight: FontWeight.w600);
+    GoogleFonts.inter(fontWeight: FontWeight.w500);
+    GoogleFonts.firaCode();
+    await GoogleFonts.pendingFonts();
   });
 
   setUp(() async {

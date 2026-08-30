@@ -116,6 +116,8 @@ flutter:
           weight: 600
         - asset: assets/fonts/Inter-Medium.ttf
           weight: 500
+        - asset: assets/fonts/Inter-Italic.ttf
+          style: italic
     - family: FiraCode
       fonts:
         - asset: assets/fonts/FiraCode-Regular.ttf
@@ -123,4 +125,8 @@ flutter:
           weight: 600
         - asset: assets/fonts/FiraCode-Bold.ttf
           weight: 700
+    - family: MaterialIcons
+      fonts:
+        - asset: assets/fonts/MaterialIcons-Regular.otf
+
 
