@@ -338,11 +338,14 @@ class _WimHofSessionScreenState extends State<WimHofSessionScreen>
       backgroundColor: AppTheme.darkBackground,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
+        centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.close, color: AppTheme.textPrimary),
           onPressed: _showExitConfirmation,
         ),
         title: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
             Text(
               'ROUND $_currentRound OF ${widget.config.defaultRounds}',
@@ -352,6 +355,7 @@ class _WimHofSessionScreenState extends State<WimHofSessionScreen>
                 letterSpacing: 1.2,
                 color: AppTheme.secondaryCyan,
               ),
+              textAlign: TextAlign.center,
             ),
             Text(
               _phaseTitle(),
@@ -359,6 +363,7 @@ class _WimHofSessionScreenState extends State<WimHofSessionScreen>
                 fontSize: 11,
                 color: AppTheme.textSecondary,
               ),
+              textAlign: TextAlign.center,
             ),
           ],
         ),
@@ -385,63 +390,70 @@ class _WimHofSessionScreenState extends State<WimHofSessionScreen>
       body: SafeArea(
         child: Stack(
           children: <Widget>[
-            // Main Interactive Stage
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              child: Column(
-                children: <Widget>[
-                  const Spacer(),
-                  _buildStageContent(),
-                  const Spacer(),
-                  _buildBottomControls(),
-                  const SizedBox(height: 16),
-                ],
+            // Main Interactive Stage (Expanded to full width & height)
+            Positioned.fill(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    const Spacer(),
+                    Center(child: _buildStageContent()),
+                    const Spacer(),
+                    Center(child: _buildBottomControls()),
+                    const SizedBox(height: 16),
+                  ],
+                ),
               ),
             ),
 
             // Paused Overlay
             if (_isPaused)
-              Container(
-                color: Colors.black.withValues(alpha: 0.8),
-                alignment: Alignment.center,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    const Icon(
-                      Icons.pause_circle_outline,
-                      size: 64,
-                      color: AppTheme.primaryAmber,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Session Paused',
-                      style: GoogleFonts.outfit(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: AppTheme.textPrimary,
+              Positioned.fill(
+                child: Container(
+                  color: Colors.black.withValues(alpha: 0.85),
+                  alignment: Alignment.center,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: <Widget>[
+                      const Icon(
+                        Icons.pause_circle_outline,
+                        size: 64,
+                        color: AppTheme.primaryAmber,
                       ),
-                    ),
-                    const SizedBox(height: 24),
-                    ElevatedButton.icon(
-                      onPressed: _togglePause,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.primaryAmber,
-                        foregroundColor: Colors.black,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 28,
-                          vertical: 14,
+                      const SizedBox(height: 16),
+                      Text(
+                        'Session Paused',
+                        style: GoogleFonts.outfit(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.textPrimary,
                         ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 24),
+                      ElevatedButton.icon(
+                        onPressed: _togglePause,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.primaryAmber,
+                          foregroundColor: Colors.black,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 28,
+                            vertical: 14,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                        icon: const Icon(Icons.play_arrow),
+                        label: Text(
+                          'RESUME',
+                          style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
                         ),
                       ),
-                      icon: const Icon(Icons.play_arrow),
-                      label: Text(
-                        'RESUME',
-                        style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
           ],
@@ -491,132 +503,149 @@ class _WimHofSessionScreenState extends State<WimHofSessionScreen>
 
   // --- 1. PREP STAGE ---
   Widget _buildPrepStage() {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: <Widget>[
-        Text(
-          'Round $_currentRound',
-          style: GoogleFonts.outfit(
-            fontSize: 32,
-            fontWeight: FontWeight.bold,
-            color: AppTheme.textPrimary,
-          ),
-        ),
-        const SizedBox(height: 12),
-        Text(
-          'Relax your body and prepare for ${_currentRound == 1 ? "the first round" : "the next round"}.',
-          style: GoogleFonts.inter(fontSize: 14, color: AppTheme.textSecondary),
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 48),
-        Container(
-          width: 140,
-          height: 140,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: AppTheme.surfaceElevated,
-            border: Border.all(color: AppTheme.secondaryCyan, width: 3),
-            boxShadow: <BoxShadow>[
-              BoxShadow(
-                color: AppTheme.secondaryCyan.withValues(alpha: 0.3),
-                blurRadius: 30,
-                spreadRadius: 4,
-              ),
-            ],
-          ),
-          alignment: Alignment.center,
-          child: Text(
-            '$_prepSecondsRemaining',
+    return SizedBox(
+      width: double.infinity,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: <Widget>[
+          Text(
+            'Round $_currentRound',
             style: GoogleFonts.outfit(
-              fontSize: 64,
+              fontSize: 32,
               fontWeight: FontWeight.bold,
-              color: AppTheme.secondaryCyan,
+              color: AppTheme.textPrimary,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Relax your body and prepare for ${_currentRound == 1 ? "the first round" : "the next round"}.',
+            style: GoogleFonts.inter(fontSize: 14, color: AppTheme.textSecondary),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 48),
+          Center(
+            child: Container(
+              width: 140,
+              height: 140,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppTheme.surfaceElevated,
+                border: Border.all(color: AppTheme.secondaryCyan, width: 3),
+                boxShadow: <BoxShadow>[
+                  BoxShadow(
+                    color: AppTheme.secondaryCyan.withValues(alpha: 0.3),
+                    blurRadius: 30,
+                    spreadRadius: 4,
+                  ),
+                ],
+              ),
+              alignment: Alignment.center,
+              child: Text(
+                '$_prepSecondsRemaining',
+                style: GoogleFonts.outfit(
+                  fontSize: 64,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.secondaryCyan,
+                ),
+                textAlign: TextAlign.center,
+              ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
   // --- 2. HYPERVENTILATION STAGE ---
   Widget _buildHyperventilationStage() {
-    return AnimatedBuilder(
-      animation: _breathAnimation,
-      builder: (BuildContext context, Widget? child) {
-        final double scale = 0.75 + (_breathAnimation.value * 0.5); // 0.75 -> 1.25
-        final Color orbColor = _isInhaling
-            ? AppTheme.secondaryCyan
-            : AppTheme.primaryAmber;
+    return SizedBox(
+      width: double.infinity,
+      child: AnimatedBuilder(
+        animation: _breathAnimation,
+        builder: (BuildContext context, Widget? child) {
+          final double scale = 0.75 + (_breathAnimation.value * 0.5); // 0.75 -> 1.25
+          final Color orbColor = _isInhaling
+              ? AppTheme.secondaryCyan
+              : AppTheme.primaryAmber;
 
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            // Breath Counter Indicator
-            Text(
-              'BREATH $_currentBreath OF ${widget.config.breathsPerRound}',
-              style: GoogleFonts.outfit(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 1.5,
-                color: AppTheme.textPrimary,
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              // Breath Counter Indicator
+              Text(
+                'BREATH $_currentBreath OF ${widget.config.breathsPerRound}',
+                style: GoogleFonts.outfit(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.5,
+                  color: AppTheme.textPrimary,
+                ),
+                textAlign: TextAlign.center,
               ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              _isInhaling ? 'FULLY IN...' : 'LETTING GO...',
-              style: GoogleFonts.outfit(
-                fontSize: 26,
-                fontWeight: FontWeight.bold,
-                color: orbColor,
-                letterSpacing: 1.0,
+              const SizedBox(height: 8),
+              Text(
+                _isInhaling ? 'FULLY IN...' : 'LETTING GO...',
+                style: GoogleFonts.outfit(
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                  color: orbColor,
+                  letterSpacing: 1.0,
+                ),
+                textAlign: TextAlign.center,
               ),
-            ),
-            const SizedBox(height: 40),
+              const SizedBox(height: 40),
 
-            // Pulsing Breathing Orb
-            SizedBox(
-              width: 260,
-              height: 260,
-              child: Center(
-                child: Transform.scale(
-                  scale: scale,
-                  child: Container(
-                    width: 180,
-                    height: 180,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: RadialGradient(
-                        colors: <Color>[
-                          orbColor.withValues(alpha: 0.85),
-                          orbColor.withValues(alpha: 0.35),
-                          Colors.transparent,
-                        ],
-                        stops: const <double>[0.3, 0.7, 1.0],
-                      ),
-                      boxShadow: <BoxShadow>[
-                        BoxShadow(
-                          color: orbColor.withValues(alpha: 0.45),
-                          blurRadius: 40 * _breathAnimation.value + 10,
-                          spreadRadius: 10 * _breathAnimation.value + 2,
-                        ),
-                      ],
-                    ),
-                    child: Center(
+              // Pulsing Breathing Orb
+              Center(
+                child: SizedBox(
+                  width: 260,
+                  height: 260,
+                  child: Center(
+                    child: Transform.scale(
+                      scale: scale,
                       child: Container(
-                        width: 90,
-                        height: 90,
+                        width: 180,
+                        height: 180,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: AppTheme.surfaceCard,
-                          border: Border.all(color: orbColor, width: 2),
+                          gradient: RadialGradient(
+                            colors: <Color>[
+                              orbColor.withValues(alpha: 0.85),
+                              orbColor.withValues(alpha: 0.35),
+                              Colors.transparent,
+                            ],
+                            stops: const <double>[0.3, 0.7, 1.0],
+                          ),
+                          boxShadow: <BoxShadow>[
+                            BoxShadow(
+                              color: orbColor.withValues(alpha: 0.45),
+                              blurRadius: 40 * _breathAnimation.value + 10,
+                              spreadRadius: 10 * _breathAnimation.value + 2,
+                            ),
+                          ],
                         ),
-                        alignment: Alignment.center,
-                        child: Text(
-                          '$_currentBreath',
-                          style: GoogleFonts.outfit(
-                            fontSize: 32,
-                            fontWeight: FontWeight.bold,
-                            color: AppTheme.textPrimary,
+                        child: Center(
+                          child: Container(
+                            width: 90,
+                            height: 90,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: AppTheme.surfaceCard,
+                              border: Border.all(color: orbColor, width: 2),
+                            ),
+                            alignment: Alignment.center,
+                            child: Text(
+                              '$_currentBreath',
+                              style: GoogleFonts.outfit(
+                                fontSize: 32,
+                                fontWeight: FontWeight.bold,
+                                color: AppTheme.textPrimary,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
                           ),
                         ),
                       ),
@@ -624,10 +653,10 @@ class _WimHofSessionScreenState extends State<WimHofSessionScreen>
                   ),
                 ),
               ),
-            ),
-          ],
-        );
-      },
+            ],
+          );
+        },
+      ),
     );
   }
 
@@ -641,98 +670,111 @@ class _WimHofSessionScreenState extends State<WimHofSessionScreen>
     final String minutes = (_retentionSeconds ~/ 60).toString().padLeft(2, '0');
     final String seconds = (_retentionSeconds % 60).toString().padLeft(2, '0');
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: <Widget>[
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-          decoration: BoxDecoration(
-            color: isBeatingPR
-                ? AppTheme.primaryAmber.withValues(alpha: 0.2)
-                : AppTheme.surfaceElevated,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: isBeatingPR
-                  ? AppTheme.primaryAmber
-                  : AppTheme.borderColor,
-            ),
-          ),
-          child: Text(
-            isBeatingPR ? '🔥 NEW PERSONAL BEST!' : 'Lungs Empty • Stay Relaxed',
-            style: GoogleFonts.outfit(
-              fontSize: 13,
-              fontWeight: FontWeight.bold,
-              color: isBeatingPR
-                  ? AppTheme.primaryAmber
-                  : AppTheme.secondaryCyan,
-            ),
-          ),
-        ),
-        const SizedBox(height: 32),
-
-        // Stopwatch Timer Display
-        Container(
-          width: 240,
-          height: 240,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: AppTheme.surfaceCard,
-            border: Border.all(
-              color: isBeatingPR
-                  ? AppTheme.primaryAmber
-                  : AppTheme.secondaryCyan,
-              width: 3,
-            ),
-            boxShadow: <BoxShadow>[
-              BoxShadow(
-                color: (isBeatingPR
-                        ? AppTheme.primaryAmber
-                        : AppTheme.secondaryCyan)
-                    .withValues(alpha: 0.25),
-                blurRadius: 30,
-                spreadRadius: 4,
-              ),
-            ],
-          ),
-          alignment: Alignment.center,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              Text(
-                'RETENTION TIME',
-                style: GoogleFonts.inter(
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1.2,
-                  color: AppTheme.textSecondary,
+    return SizedBox(
+      width: double.infinity,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: <Widget>[
+          Center(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+              decoration: BoxDecoration(
+                color: isBeatingPR
+                    ? AppTheme.primaryAmber.withValues(alpha: 0.2)
+                    : AppTheme.surfaceElevated,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: isBeatingPR
+                      ? AppTheme.primaryAmber
+                      : AppTheme.borderColor,
                 ),
               ),
-              const SizedBox(height: 6),
-              Text(
-                '$minutes:$seconds',
+              child: Text(
+                isBeatingPR ? '🔥 NEW PERSONAL BEST!' : 'Lungs Empty • Stay Relaxed',
                 style: GoogleFonts.outfit(
-                  fontSize: 54,
+                  fontSize: 13,
                   fontWeight: FontWeight.bold,
-                  color: AppTheme.textPrimary,
-                  letterSpacing: 2.0,
+                  color: isBeatingPR
+                      ? AppTheme.primaryAmber
+                      : AppTheme.secondaryCyan,
                 ),
+                textAlign: TextAlign.center,
               ),
-              if (currentPR > 0) ...<Widget>[
-                const SizedBox(height: 4),
-                Text(
-                  'PR: ${breathingProvider.formattedAllTimeMaxHold}',
-                  style: GoogleFonts.inter(
-                    fontSize: 12,
-                    color: isBeatingPR
-                        ? AppTheme.primaryAmber
-                        : AppTheme.textSecondary,
-                  ),
-                ),
-              ],
-            ],
+            ),
           ),
-        ),
-      ],
+          const SizedBox(height: 32),
+
+          // Stopwatch Timer Display
+          Center(
+            child: Container(
+              width: 240,
+              height: 240,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppTheme.surfaceCard,
+                border: Border.all(
+                  color: isBeatingPR
+                      ? AppTheme.primaryAmber
+                      : AppTheme.secondaryCyan,
+                  width: 3,
+                ),
+                boxShadow: <BoxShadow>[
+                  BoxShadow(
+                    color: (isBeatingPR
+                            ? AppTheme.primaryAmber
+                            : AppTheme.secondaryCyan)
+                        .withValues(alpha: 0.25),
+                    blurRadius: 30,
+                    spreadRadius: 4,
+                  ),
+                ],
+              ),
+              alignment: Alignment.center,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  Text(
+                    'RETENTION TIME',
+                    style: GoogleFonts.inter(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.2,
+                      color: AppTheme.textSecondary,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    '$minutes:$seconds',
+                    style: GoogleFonts.outfit(
+                      fontSize: 54,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.textPrimary,
+                      letterSpacing: 2.0,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  if (currentPR > 0) ...<Widget>[
+                    const SizedBox(height: 4),
+                    Text(
+                      'PR: ${breathingProvider.formattedAllTimeMaxHold}',
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: isBeatingPR
+                            ? AppTheme.primaryAmber
+                            : AppTheme.textSecondary,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -740,70 +782,80 @@ class _WimHofSessionScreenState extends State<WimHofSessionScreen>
   Widget _buildRecoveryStage() {
     final double progress = (15 - _recoverySecondsRemaining) / 15.0;
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: <Widget>[
-        Text(
-          'RECOVERY BREATH',
-          style: GoogleFonts.outfit(
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 1.2,
-            color: AppTheme.successGreen,
+    return SizedBox(
+      width: double.infinity,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: <Widget>[
+          Text(
+            'RECOVERY BREATH',
+            style: GoogleFonts.outfit(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.2,
+              color: AppTheme.successGreen,
+            ),
+            textAlign: TextAlign.center,
           ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'Inhale fully to chest and hold for 15 seconds.',
-          style: GoogleFonts.inter(fontSize: 13, color: AppTheme.textSecondary),
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 36),
+          const SizedBox(height: 8),
+          Text(
+            'Inhale fully to chest and hold for 15 seconds.',
+            style: GoogleFonts.inter(fontSize: 13, color: AppTheme.textSecondary),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 36),
 
-        SizedBox(
-          width: 220,
-          height: 220,
-          child: Stack(
-            alignment: Alignment.center,
-            children: <Widget>[
-              SizedBox(
-                width: 220,
-                height: 220,
-                child: CircularProgressIndicator(
-                  value: progress,
-                  strokeWidth: 8,
-                  backgroundColor: AppTheme.surfaceElevated,
-                  valueColor: const AlwaysStoppedAnimation<Color>(
-                    AppTheme.successGreen,
-                  ),
-                ),
-              ),
-              Column(
-                mainAxisSize: MainAxisSize.min,
+          Center(
+            child: SizedBox(
+              width: 220,
+              height: 220,
+              child: Stack(
+                alignment: Alignment.center,
                 children: <Widget>[
-                  Text(
-                    '$_recoverySecondsRemaining',
-                    style: GoogleFonts.outfit(
-                      fontSize: 64,
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.textPrimary,
+                  SizedBox(
+                    width: 220,
+                    height: 220,
+                    child: CircularProgressIndicator(
+                      value: progress,
+                      strokeWidth: 8,
+                      backgroundColor: AppTheme.surfaceElevated,
+                      valueColor: const AlwaysStoppedAnimation<Color>(
+                        AppTheme.successGreen,
+                      ),
                     ),
                   ),
-                  Text(
-                    'HOLD FULL',
-                    style: GoogleFonts.inter(
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.successGreen,
-                      letterSpacing: 1.0,
-                    ),
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: <Widget>[
+                      Text(
+                        '$_recoverySecondsRemaining',
+                        style: GoogleFonts.outfit(
+                          fontSize: 64,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.textPrimary,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      Text(
+                        'HOLD FULL',
+                        style: GoogleFonts.inter(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.successGreen,
+                          letterSpacing: 1.0,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -811,7 +863,7 @@ class _WimHofSessionScreenState extends State<WimHofSessionScreen>
   Widget _buildBottomControls() {
     switch (_phase) {
       case SessionPhase.prep:
-        return const SizedBox(height: 54);
+        return const SizedBox(height: 52);
 
       case SessionPhase.hyperventilation:
         return SizedBox(
@@ -870,9 +922,12 @@ class _WimHofSessionScreenState extends State<WimHofSessionScreen>
         );
 
       case SessionPhase.recovery:
-        return Text(
-          'Next round will start automatically...',
-          style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textSecondary),
+        return Center(
+          child: Text(
+            'Next round will start automatically...',
+            style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textSecondary),
+            textAlign: TextAlign.center,
+          ),
         );
     }
   }

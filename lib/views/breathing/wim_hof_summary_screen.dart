@@ -102,6 +102,7 @@ class _WimHofSummaryScreenState extends State<WimHofSummaryScreen> {
           'Breathwork Complete',
           style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
         ),
+        centerTitle: true,
         automaticallyImplyLeading: false,
       ),
       body: SafeArea(
