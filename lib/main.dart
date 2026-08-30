@@ -28,8 +28,24 @@ import 'package:oly/views/warmup_session_screen.dart';
 import 'package:oly/views/workout_session_screen.dart';
 import 'package:provider/provider.dart';
 
+import 'package:flutter/services.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Lock orientation to portrait mode
+  await SystemChrome.setPreferredOrientations(<DeviceOrientation>[
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
+
+  // Keep screen awake during workouts, rest timers, and active recovery flows
+  try {
+    await WakelockPlus.enable();
+  } catch (e) {
+    debugPrint('Wakelock enable skipped: $e');
+  }
 
   // Initialize logging and crash reporting first
   await AppLogService.instance.init();
@@ -59,7 +75,7 @@ void main() async {
 
   AppLogService.instance.info(
     'SYSTEM',
-    'Oly application initialized successfully',
+    'Oly application initialized with portrait lock and wakelock enabled',
   );
 
   runApp(
