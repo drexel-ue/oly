@@ -690,16 +690,29 @@ class _WimHofSessionScreenState extends State<WimHofSessionScreen>
                       : AppTheme.borderColor,
                 ),
               ),
-              child: Text(
-                isBeatingPR ? '🔥 NEW PERSONAL BEST!' : 'Lungs Empty • Stay Relaxed',
-                style: GoogleFonts.outfit(
-                  fontSize: 13,
-                  fontWeight: FontWeight.bold,
-                  color: isBeatingPR
-                      ? AppTheme.primaryAmber
-                      : AppTheme.secondaryCyan,
-                ),
-                textAlign: TextAlign.center,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  if (isBeatingPR) ...<Widget>[
+                    const Icon(
+                      Icons.local_fire_department,
+                      size: 16,
+                      color: AppTheme.primaryAmber,
+                    ),
+                    const SizedBox(width: 4),
+                  ],
+                  Text(
+                    isBeatingPR ? 'NEW PERSONAL BEST!' : 'Lungs Empty • Stay Relaxed',
+                    style: GoogleFonts.outfit(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: isBeatingPR
+                          ? AppTheme.primaryAmber
+                          : AppTheme.secondaryCyan,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
               ),
             ),
           ),

@@ -32,20 +32,20 @@ class _WimHofSummaryScreenState extends State<WimHofSummaryScreen> {
     super.dispose();
   }
 
-  String _ratingEmoji(int rating) {
+  IconData _ratingIcon(int rating) {
     switch (rating) {
       case 1:
-        return '🥱';
+        return Icons.bedtime_outlined;
       case 2:
-        return '😐';
+        return Icons.sentiment_neutral_outlined;
       case 3:
-        return '😌';
+        return Icons.self_improvement_outlined;
       case 4:
-        return '⚡';
+        return Icons.bolt;
       case 5:
-        return '🚀';
+        return Icons.rocket_launch;
       default:
-        return '😌';
+        return Icons.self_improvement_outlined;
     }
   }
 
@@ -367,21 +367,38 @@ class _WimHofSummaryScreenState extends State<WimHofSummaryScreen> {
                         ),
                       ),
                       child: Column(
+                        mainAxisSize: MainAxisSize.min,
                         children: <Widget>[
-                          Text(
-                            _ratingEmoji(star),
-                            style: const TextStyle(fontSize: 24),
+                          Icon(
+                            _ratingIcon(star),
+                            size: 26,
+                            color: isSelected
+                                ? AppTheme.secondaryCyan
+                                : AppTheme.textSecondary,
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            '$star ★',
-                            style: GoogleFonts.outfit(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: isSelected
-                                  ? AppTheme.secondaryCyan
-                                  : AppTheme.textSecondary,
-                            ),
+                          const SizedBox(height: 6),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: <Widget>[
+                              Text(
+                                '$star',
+                                style: GoogleFonts.outfit(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: isSelected
+                                      ? AppTheme.secondaryCyan
+                                      : AppTheme.textSecondary,
+                                ),
+                              ),
+                              const SizedBox(width: 2),
+                              Icon(
+                                Icons.star,
+                                size: 11,
+                                color: isSelected
+                                    ? AppTheme.secondaryCyan
+                                    : AppTheme.textSecondary.withValues(alpha: 0.5),
+                              ),
+                            ],
                           ),
                         ],
                       ),
