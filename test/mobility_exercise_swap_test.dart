@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:nested/nested.dart';
+import 'package:oly/models/exercise_database_model.dart';
 import 'package:oly/models/mobility_exercise_model.dart';
 import 'package:oly/models/program_model.dart';
 import 'package:oly/providers/body_comp_provider.dart';
@@ -299,5 +300,30 @@ void main() {
         expect(find.text('Cable Crunches'), findsAtLeast(1));
       },
     );
+
+    test('MobilityExerciseModel.fromDatabaseModel converts database movement properly', () {
+      final ExerciseDatabaseModel dbModel = ExerciseDatabaseModel(
+        id: 'oly_bayesian_curl',
+        name: 'Bayesian Curl',
+        category: 'strength',
+        bodyPart: 'upper arms',
+        targetMuscle: 'biceps',
+        equipment: 'cable',
+        source: 'oly_curated',
+        instructions: '1. Set low pulley.\n2. Step forward into stretch.',
+        tips: 'Keep elbows behind torso.',
+      );
+
+      final MobilityExerciseModel model =
+          MobilityExerciseModel.fromDatabaseModel(dbModel);
+
+      expect(model.id, 'oly_bayesian_curl');
+      expect(model.name, 'Bayesian Curl');
+      expect(model.focusArea, MobilityFocusArea.arms);
+      expect(model.category, MobilityCategory.hypertrophyCore);
+      expect(model.cues.length, 3);
+      expect(model.cues.first, '1. Set low pulley.');
+      expect(model.cues.last, contains('Coach Tip: Keep elbows behind torso.'));
+    });
   });
 }

@@ -1,7 +1,10 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:oly/models/exercise_database_model.dart';
 import 'package:oly/models/mobility_exercise_model.dart';
 import 'package:oly/providers/settings_provider.dart';
+import 'package:oly/services/exercise_database_service.dart';
 import 'package:oly/theme/app_theme.dart';
 import 'package:provider/provider.dart';
 
@@ -10,8 +13,7 @@ class MobilitySwapHelper {
   static ({
     List<MobilityExerciseModel> suggested,
     List<MobilityExerciseModel> others,
-  })
-  segmentExercises({
+  }) segmentExercises({
     required MobilityExerciseModel current,
     required List<MobilityExerciseModel> allExercises,
   }) {
@@ -58,11 +60,53 @@ class MobilityExerciseSwapModal extends StatefulWidget {
 class _MobilityExerciseSwapModalState extends State<MobilityExerciseSwapModal> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
+  int _selectedTabIndex = 0; // 0 = Suggested & Curated, 1 = Full Database (2,700+)
+
+  List<ExerciseDatabaseModel> _dbResults = <ExerciseDatabaseModel>[];
+  bool _isSearchingDb = false;
+  Timer? _debounceTimer;
 
   @override
   void dispose() {
+    _debounceTimer?.cancel();
     _searchController.dispose();
     super.dispose();
+  }
+
+  void _onSearchChanged(String val) {
+    final String trimmed = val.trim();
+    setState(() => _searchQuery = trimmed);
+    _debounceTimer?.cancel();
+    if (trimmed.isNotEmpty || _selectedTabIndex == 1) {
+      _debounceTimer = Timer(const Duration(milliseconds: 250), () {
+        if (mounted) {
+          _performDbSearch(trimmed);
+        }
+      });
+    } else {
+      setState(() => _dbResults = <ExerciseDatabaseModel>[]);
+    }
+  }
+
+  Future<void> _performDbSearch(String query) async {
+    if (!mounted) {
+      return;
+    }
+    setState(() => _isSearchingDb = true);
+    try {
+      final List<ExerciseDatabaseModel> results =
+          await ExerciseDatabaseService.instance.search(query, limit: 60);
+      if (mounted) {
+        setState(() {
+          _dbResults = results;
+          _isSearchingDb = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() => _isSearchingDb = false);
+      }
+    }
   }
 
   bool get _isSwapped =>
@@ -77,31 +121,35 @@ class _MobilityExerciseSwapModalState extends State<MobilityExerciseSwapModal> {
     final ({
       List<MobilityExerciseModel> others,
       List<MobilityExerciseModel> suggested,
-    })
-    segmentation = MobilitySwapHelper.segmentExercises(
+    }) segmentation = MobilitySwapHelper.segmentExercises(
       current: widget.exercise,
       allExercises: allExercises,
     );
 
-    final List<MobilityExerciseModel> filteredSuggested = segmentation.suggested
-        .where((MobilityExerciseModel ex) {
-          if (_searchQuery.isEmpty) {
-            return true;
-          }
-          return ex.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-              ex.description.toLowerCase().contains(_searchQuery.toLowerCase());
-        })
-        .toList();
+    bool matchesQuery(MobilityExerciseModel ex) {
+      if (_searchQuery.trim().isEmpty) {
+        return true;
+      }
+      final String q = _searchQuery.trim().toLowerCase();
+      final String normQ = q.replaceAll('baysean', 'bayesian');
+      final String name = ex.name.toLowerCase();
+      final String desc = ex.description.toLowerCase();
+      final bool cuesMatch = ex.cues.any(
+        (String c) =>
+            c.toLowerCase().contains(q) || c.toLowerCase().contains(normQ),
+      );
+      return name.contains(q) ||
+          desc.contains(q) ||
+          name.contains(normQ) ||
+          desc.contains(normQ) ||
+          cuesMatch;
+    }
 
-    final List<MobilityExerciseModel> filteredOthers = segmentation.others
-        .where((MobilityExerciseModel ex) {
-          if (_searchQuery.isEmpty) {
-            return true;
-          }
-          return ex.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-              ex.description.toLowerCase().contains(_searchQuery.toLowerCase());
-        })
-        .toList();
+    final List<MobilityExerciseModel> filteredSuggested =
+        segmentation.suggested.where(matchesQuery).toList();
+
+    final List<MobilityExerciseModel> filteredOthers =
+        segmentation.others.where(matchesQuery).toList();
 
     return Container(
       decoration: const BoxDecoration(
@@ -109,7 +157,7 @@ class _MobilityExerciseSwapModalState extends State<MobilityExerciseSwapModal> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.88,
+        maxHeight: MediaQuery.of(context).size.height * 0.90,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -274,14 +322,13 @@ class _MobilityExerciseSwapModalState extends State<MobilityExerciseSwapModal> {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: TextField(
               controller: _searchController,
-              onChanged: (String val) =>
-                  setState(() => _searchQuery = val.trim()),
+              onChanged: _onSearchChanged,
               style: GoogleFonts.inter(
                 color: AppTheme.textPrimary,
                 fontSize: 14,
               ),
               decoration: InputDecoration(
-                hintText: 'Search drills, mobility & accessories...',
+                hintText: 'Search 2,700+ exercises, drills & cables...',
                 hintStyle: GoogleFonts.inter(
                   color: AppTheme.textSecondary,
                   fontSize: 13,
@@ -300,7 +347,7 @@ class _MobilityExerciseSwapModalState extends State<MobilityExerciseSwapModal> {
                         ),
                         onPressed: () {
                           _searchController.clear();
-                          setState(() => _searchQuery = '');
+                          _onSearchChanged('');
                         },
                       )
                     : null,
@@ -325,77 +372,410 @@ class _MobilityExerciseSwapModalState extends State<MobilityExerciseSwapModal> {
               ),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
 
-          // Movement Lists
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-              children: <Widget>[
-                // Suggested Alternatives
-                if (filteredSuggested.isNotEmpty) ...<Widget>[
-                  Row(
+          // Tab Selector: Suggested vs Full Database (2,700+)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Container(
+              padding: const EdgeInsets.all(3),
+              decoration: BoxDecoration(
+                color: AppTheme.surfaceElevated,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppTheme.borderColor),
+              ),
+              child: Row(
+                children: <Widget>[
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => setState(() => _selectedTabIndex = 0),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 7),
+                        decoration: BoxDecoration(
+                          color: _selectedTabIndex == 0
+                              ? AppTheme.primaryAmber.withValues(alpha: 0.15)
+                              : Colors.transparent,
+                          borderRadius: BorderRadius.circular(8),
+                          border: _selectedTabIndex == 0
+                              ? Border.all(
+                                  color: AppTheme.primaryAmber.withValues(alpha: 0.4),
+                                )
+                              : null,
+                        ),
+                        child: Center(
+                          child: Text(
+                            'Suggested',
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.outfit(
+                              fontSize: 12,
+                              fontWeight: _selectedTabIndex == 0
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
+                              color: _selectedTabIndex == 0
+                                  ? AppTheme.primaryAmber
+                                  : AppTheme.textSecondary,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        setState(() => _selectedTabIndex = 1);
+                        if (_dbResults.isEmpty) {
+                          _performDbSearch(_searchQuery);
+                        }
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 7),
+                        decoration: BoxDecoration(
+                          color: _selectedTabIndex == 1
+                              ? AppTheme.secondaryCyan.withValues(alpha: 0.15)
+                              : Colors.transparent,
+                          borderRadius: BorderRadius.circular(8),
+                          border: _selectedTabIndex == 1
+                              ? Border.all(
+                                  color: AppTheme.secondaryCyan.withValues(alpha: 0.4),
+                                )
+                              : null,
+                        ),
+                        child: Center(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            mainAxisSize: MainAxisSize.min,
+                            children: <Widget>[
+                              Icon(
+                                Icons.storage,
+                                size: 13,
+                                color: _selectedTabIndex == 1
+                                    ? AppTheme.secondaryCyan
+                                    : AppTheme.textSecondary,
+                              ),
+                              const SizedBox(width: 4),
+                              Flexible(
+                                child: Text(
+                                  'Full Library (2.7k+)',
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 12,
+                                    fontWeight: _selectedTabIndex == 1
+                                        ? FontWeight.bold
+                                        : FontWeight.normal,
+                                    color: _selectedTabIndex == 1
+                                        ? AppTheme.secondaryCyan
+                                        : AppTheme.textSecondary,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+
+          // Content List
+          Flexible(
+            child: _selectedTabIndex == 0
+                ? _buildCuratedList(
+                    filteredSuggested: filteredSuggested,
+                    filteredOthers: filteredOthers,
+                    settings: settings,
+                  )
+                : _buildDatabaseList(settings),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCuratedList({
+    required List<MobilityExerciseModel> filteredSuggested,
+    required List<MobilityExerciseModel> filteredOthers,
+    required SettingsProvider settings,
+  }) {
+    return ListView(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+      children: <Widget>[
+        // Quick shortcut to Full Database if searching
+        if (_searchQuery.isNotEmpty && _dbResults.isNotEmpty)
+          Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            child: Material(
+              color: AppTheme.secondaryCyan.withValues(alpha: 0.10),
+              borderRadius: BorderRadius.circular(10),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(10),
+                onTap: () => setState(() => _selectedTabIndex = 1),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
+                  child: Row(
                     children: <Widget>[
                       const Icon(
-                        Icons.star,
-                        color: AppTheme.accentBlue,
-                        size: 14,
+                        Icons.search,
+                        color: AppTheme.secondaryCyan,
+                        size: 16,
                       ),
-                      const SizedBox(width: 6),
-                      Text(
-                        'SUGGESTED ALTERNATIVES',
-                        style: GoogleFonts.outfit(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.accentBlue,
-                          letterSpacing: 1.0,
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Found ${_dbResults.length} matches in Full Exercise Database',
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: AppTheme.secondaryCyan,
+                          ),
                         ),
+                      ),
+                      const Icon(
+                        Icons.arrow_forward,
+                        color: AppTheme.secondaryCyan,
+                        size: 14,
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
-                  ...filteredSuggested.map(
-                    (MobilityExerciseModel ex) =>
-                        _buildExerciseTile(ex, settings, isSuggested: true),
-                  ),
-                  const SizedBox(height: 16),
-                ],
+                ),
+              ),
+            ),
+          ),
 
-                // Other Catalog Movements
-                if (filteredOthers.isNotEmpty) ...<Widget>[
+        // Suggested Alternatives
+        if (filteredSuggested.isNotEmpty) ...<Widget>[
+          Row(
+            children: <Widget>[
+              const Icon(
+                Icons.star,
+                color: AppTheme.accentBlue,
+                size: 14,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                'SUGGESTED ALTERNATIVES',
+                style: GoogleFonts.outfit(
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.accentBlue,
+                  letterSpacing: 1.0,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          ...filteredSuggested.map(
+            (MobilityExerciseModel ex) =>
+                _buildExerciseTile(ex, settings, isSuggested: true),
+          ),
+          const SizedBox(height: 16),
+        ],
+
+        // Other Catalog Movements
+        if (filteredOthers.isNotEmpty) ...<Widget>[
+          Text(
+            'OTHER CATALOG MOVEMENTS',
+            style: GoogleFonts.outfit(
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              color: AppTheme.textSecondary,
+              letterSpacing: 1.0,
+            ),
+          ),
+          const SizedBox(height: 8),
+          ...filteredOthers.map(
+            (MobilityExerciseModel ex) =>
+                _buildExerciseTile(ex, settings, isSuggested: false),
+          ),
+        ],
+
+        if (filteredSuggested.isEmpty && filteredOthers.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 30),
+            child: Center(
+              child: Column(
+                children: <Widget>[
                   Text(
-                    'OTHER CATALOG MOVEMENTS',
-                    style: GoogleFonts.outfit(
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
+                    'No curated movements found for "$_searchQuery".',
+                    style: GoogleFonts.inter(
                       color: AppTheme.textSecondary,
-                      letterSpacing: 1.0,
+                      fontSize: 13,
                     ),
                   ),
                   const SizedBox(height: 8),
-                  ...filteredOthers.map(
-                    (MobilityExerciseModel ex) =>
-                        _buildExerciseTile(ex, settings, isSuggested: false),
-                  ),
-                ],
-
-                if (filteredSuggested.isEmpty && filteredOthers.isEmpty)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 40),
-                    child: Center(
-                      child: Text(
-                        'No matching movements found for "$_searchQuery".',
-                        style: GoogleFonts.inter(
-                          color: AppTheme.textSecondary,
-                          fontSize: 13,
-                        ),
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.secondaryCyan,
+                      foregroundColor: Colors.black,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
                       ),
                     ),
+                    onPressed: () => setState(() => _selectedTabIndex = 1),
+                    icon: const Icon(Icons.storage, size: 14),
+                    label: Text(
+                      'Search Full 2,700+ Database',
+                      style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
+                    ),
                   ),
+                ],
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildDatabaseList(SettingsProvider settings) {
+    if (_isSearchingDb) {
+      return const Center(
+        child: CircularProgressIndicator(color: AppTheme.secondaryCyan),
+      );
+    }
+
+    if (_dbResults.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Text(
+            'No matching exercises found in full database for "$_searchQuery".',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.inter(
+              color: AppTheme.textSecondary,
+              fontSize: 13,
+            ),
+          ),
+        ),
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+      itemCount: _dbResults.length,
+      itemBuilder: (BuildContext context, int index) {
+        final ExerciseDatabaseModel item = _dbResults[index];
+        return _buildDatabaseTile(item, settings);
+      },
+    );
+  }
+
+  Widget _buildDatabaseTile(
+    ExerciseDatabaseModel item,
+    SettingsProvider settings,
+  ) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: Material(
+        color: AppTheme.surfaceCard,
+        borderRadius: BorderRadius.circular(14),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(14),
+          onTap: () {
+            final MobilityExerciseModel model =
+                MobilityExerciseModel.fromDatabaseModel(item);
+            widget.onSwapSelected(model);
+            if (Navigator.canPop(context)) {
+              Navigator.pop(context);
+            }
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: AppTheme.borderColor),
+            ),
+            child: Row(
+              children: <Widget>[
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                        item.name,
+                        style: GoogleFonts.outfit(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 4,
+                        children: <Widget>[
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppTheme.surfaceElevated,
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(color: AppTheme.borderColor),
+                            ),
+                            child: Text(
+                              item.displayEquipment.toUpperCase(),
+                              style: GoogleFonts.inter(
+                                fontSize: 9,
+                                fontWeight: FontWeight.bold,
+                                color: AppTheme.primaryAmber,
+                              ),
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppTheme.surfaceElevated,
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(color: AppTheme.borderColor),
+                            ),
+                            child: Text(
+                              item.displayTargetMuscle.toUpperCase(),
+                              style: GoogleFonts.inter(
+                                fontSize: 9,
+                                fontWeight: FontWeight.bold,
+                                color: AppTheme.secondaryCyan,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (item.instructions != null &&
+                          item.instructions!.isNotEmpty) ...<Widget>[
+                        const SizedBox(height: 4),
+                        Text(
+                          item.instructions!.split('\n').first,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.inter(
+                            fontSize: 11,
+                            color: AppTheme.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 10),
+                const Icon(
+                  Icons.add_circle_outline,
+                  color: AppTheme.secondaryCyan,
+                  size: 22,
+                ),
               ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }
@@ -414,7 +794,9 @@ class _MobilityExerciseSwapModalState extends State<MobilityExerciseSwapModal> {
           borderRadius: BorderRadius.circular(14),
           onTap: () {
             widget.onSwapSelected(ex);
-            Navigator.pop(context);
+            if (Navigator.canPop(context)) {
+              Navigator.pop(context);
+            }
           },
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),

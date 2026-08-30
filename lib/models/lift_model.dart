@@ -1,3 +1,4 @@
+import 'package:oly/models/exercise_database_model.dart';
 import 'package:oly/models/pr_entry.dart';
 
 enum LiftCategory { snatch, cleanAndJerk, squat, pull, overhead, accessory }
@@ -12,6 +13,72 @@ class LiftModel {
     this.targetRatio = 1.0,
     List<PREntry>? history,
   }) : history = history ?? <PREntry>[];
+
+  factory LiftModel.fromDatabaseModel(
+    ExerciseDatabaseModel dbModel, {
+    Map<String, double>? currentMaxes,
+  }) {
+    LiftCategory cat = LiftCategory.accessory;
+    final String lowerName = dbModel.name.toLowerCase();
+    final String muscle = dbModel.targetMuscle.toLowerCase();
+
+    String? anchor;
+    double ratio = 1.0;
+    double defaultMax = 60.0;
+
+    if (lowerName.contains('snatch') &&
+        !lowerName.contains('pull') &&
+        !lowerName.contains('deadlift')) {
+      cat = LiftCategory.snatch;
+      anchor = 'snatch';
+      ratio = lowerName.contains('power')
+          ? 0.82
+          : (lowerName.contains('hang') ? 0.88 : 1.0);
+    } else if (lowerName.contains('clean') || lowerName.contains('jerk')) {
+      cat = LiftCategory.cleanAndJerk;
+      anchor = 'clean_and_jerk';
+      ratio = lowerName.contains('power')
+          ? 0.85
+          : (lowerName.contains('hang') ? 0.88 : 1.0);
+    } else if (lowerName.contains('squat') ||
+        muscle.contains('quad') ||
+        dbModel.bodyPart.contains('leg')) {
+      cat = LiftCategory.squat;
+      anchor = lowerName.contains('front') ? 'back_squat' : 'clean_and_jerk';
+      ratio = lowerName.contains('front') ? 0.85 : 1.35;
+    } else if (lowerName.contains('press') ||
+        lowerName.contains('overhead') ||
+        muscle.contains('deltoid')) {
+      cat = LiftCategory.overhead;
+      anchor = 'clean_and_jerk';
+      ratio = lowerName.contains('push') ? 0.75 : 0.55;
+    } else if (lowerName.contains('pull') ||
+        lowerName.contains('deadlift') ||
+        lowerName.contains('rdl') ||
+        muscle.contains('back') ||
+        muscle.contains('lat')) {
+      cat = LiftCategory.pull;
+      anchor = lowerName.contains('snatch') ? 'snatch' : 'clean_and_jerk';
+      ratio = 1.05;
+    } else {
+      cat = LiftCategory.accessory;
+      anchor = 'clean_and_jerk';
+      ratio = 0.50;
+    }
+
+    if (currentMaxes != null && anchor != null && currentMaxes.containsKey(anchor)) {
+      defaultMax = (currentMaxes[anchor] ?? 100.0) * ratio;
+    }
+
+    return LiftModel(
+      id: dbModel.id,
+      name: dbModel.name,
+      category: cat,
+      anchorLiftId: anchor,
+      targetRatio: ratio,
+      currentMax: defaultMax,
+    );
+  }
 
   factory LiftModel.fromJson(Map<String, dynamic> json) {
     return LiftModel(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nested/nested.dart';
+import 'package:oly/models/exercise_database_model.dart';
 import 'package:oly/models/lift_model.dart';
 import 'package:oly/models/program_model.dart';
 import 'package:oly/providers/lift_provider.dart';
@@ -388,6 +389,28 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(resetTapped, isTrue);
+    });
+
+    test('LiftModel.fromDatabaseModel constructs valid model with calculated target ratio', () {
+      final ExerciseDatabaseModel dbModel = ExerciseDatabaseModel(
+        id: 'oly_bayesian_curl',
+        name: 'Bayesian Curl',
+        category: 'strength',
+        bodyPart: 'upper arms',
+        targetMuscle: 'biceps',
+        equipment: 'cable',
+        source: 'oly_curated',
+      );
+
+      final LiftModel lift = LiftModel.fromDatabaseModel(
+        dbModel,
+        currentMaxes: <String, double>{'clean_and_jerk': 120.0},
+      );
+
+      expect(lift.id, 'oly_bayesian_curl');
+      expect(lift.name, 'Bayesian Curl');
+      expect(lift.category, LiftCategory.accessory);
+      expect(lift.currentMax, equals(60.0));
     });
   });
 }

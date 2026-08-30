@@ -1,3 +1,5 @@
+import 'package:oly/models/exercise_database_model.dart';
+
 enum MobilityFocusArea {
   thoracicSpine,
   shoulderOverhead,
@@ -38,6 +40,82 @@ class MobilityExerciseModel {
     this.isYoutube = true,
     this.thumbnailUrl,
   });
+
+  factory MobilityExerciseModel.fromDatabaseModel(ExerciseDatabaseModel dbModel) {
+    MobilityFocusArea focus = MobilityFocusArea.hipCapsule;
+    final String muscle = dbModel.targetMuscle.toLowerCase();
+    final String bodyPart = dbModel.bodyPart.toLowerCase();
+
+    if (muscle.contains('abs') ||
+        muscle.contains('oblique') ||
+        bodyPart.contains('core') ||
+        bodyPart.contains('waist')) {
+      focus = MobilityFocusArea.absCore;
+    } else if (muscle.contains('bicep') ||
+        muscle.contains('tricep') ||
+        muscle.contains('forearm') ||
+        bodyPart.contains('arm')) {
+      focus = MobilityFocusArea.arms;
+    } else if (muscle.contains('deltoid') || bodyPart.contains('shoulder')) {
+      focus = MobilityFocusArea.shoulderOverhead;
+    } else if (muscle.contains('quad')) {
+      focus = MobilityFocusArea.quadriceps;
+    } else if (muscle.contains('hamstring') ||
+        muscle.contains('glute') ||
+        muscle.contains('back') ||
+        muscle.contains('lat') ||
+        muscle.contains('trap')) {
+      focus = MobilityFocusArea.posteriorChain;
+    } else if (muscle.contains('calv') || muscle.contains('ankle')) {
+      focus = MobilityFocusArea.ankleDorsiflexion;
+    } else if (dbModel.category == 'cardio' || bodyPart.contains('cardio')) {
+      focus = MobilityFocusArea.cardio;
+    } else if (dbModel.category == 'olympic_weightlifting') {
+      if (dbModel.name.toLowerCase().contains('snatch')) {
+        focus = MobilityFocusArea.barbellSnatch;
+      } else if (dbModel.name.toLowerCase().contains('squat')) {
+        focus = MobilityFocusArea.barbellSquat;
+      } else {
+        focus = MobilityFocusArea.barbellCleanJerk;
+      }
+    }
+
+    List<String> cues = <String>[];
+    if (dbModel.instructions != null && dbModel.instructions!.isNotEmpty) {
+      cues = dbModel.instructions!
+          .split('\n')
+          .map((String s) => s.trim())
+          .where((String s) => s.isNotEmpty)
+          .toList();
+    }
+    if (dbModel.tips != null && dbModel.tips!.isNotEmpty) {
+      cues.add('Coach Tip: ${dbModel.tips!}');
+    }
+
+    final String videoUrl = dbModel.videoUrl != null && dbModel.videoUrl!.isNotEmpty
+        ? dbModel.videoUrl!
+        : 'https://www.youtube.com/results?search_query=${Uri.encodeComponent('${dbModel.name} Exercise Form Tutorial')}';
+
+    return MobilityExerciseModel(
+      id: dbModel.id,
+      name: dbModel.name,
+      focusArea: focus,
+      category: dbModel.category == 'mobility'
+          ? MobilityCategory.mobilityDrill
+          : (dbModel.category == 'cardio'
+              ? MobilityCategory.cardioConditioning
+              : (focus == MobilityFocusArea.arms || focus == MobilityFocusArea.absCore
+                  ? MobilityCategory.hypertrophyCore
+                  : MobilityCategory.liftingAccessory)),
+      description: dbModel.instructions != null && dbModel.instructions!.isNotEmpty
+          ? dbModel.instructions!.split('\n').first
+          : '${dbModel.name} (${dbModel.displayEquipment}, targeting ${dbModel.displayTargetMuscle})',
+      cues: cues.isNotEmpty ? cues : <String>['Perform with controlled tempo and strict form.'],
+      videoUrl: videoUrl,
+      isYoutube: true,
+      thumbnailUrl: dbModel.gifUrl,
+    );
+  }
 
   factory MobilityExerciseModel.fromJson(Map<String, dynamic> json) {
     return MobilityExerciseModel(
@@ -449,6 +527,24 @@ class MobilityExerciseModel {
         defaultSets: 3,
         defaultReps: 10,
         videoUrl: _youtubeSearchUrl('Dumbbell Hammer Curls'),
+        isYoutube: true,
+      ),
+      MobilityExerciseModel(
+        id: 'bayesian_cable_curl',
+        name: 'Bayesian Cable Curl (Behind-the-Back)',
+        focusArea: MobilityFocusArea.arms,
+        category: MobilityCategory.hypertrophyCore,
+        description: 'Single-arm cable curl performed facing away from the pulley with the shoulder in hyperextension, placing maximal eccentric load and stretch tension on the bicep long head.',
+        cues: <String>[
+          'Set single cable pulley to lowest or wrist height with D-handle.',
+          'Step 1-2 feet forward facing away from the stack until arm is drawn back behind torso.',
+          'Keep upper arm locked stationary behind torso line.',
+          'Curl handle forward into peak flexion without letting elbow swing forward.',
+          'Control eccentric descent for 3 seconds into full stretch.',
+        ],
+        defaultSets: 3,
+        defaultReps: 12,
+        videoUrl: _youtubeSearchUrl('Bayesian Cable Curl Tutorial'),
         isYoutube: true,
       ),
       MobilityExerciseModel(

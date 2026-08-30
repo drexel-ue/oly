@@ -97,6 +97,7 @@ flutter:
     - assets/data/staple_foods.json
     - assets/data/restaurant_foods.json
     - assets/data/usda_foods.db
+    - assets/data/exercises.db
     - assets/data/sports_injuries_catalog.json
     - assets/fonts/
 

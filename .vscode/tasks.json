@@ -25,6 +25,18 @@
       }
     },
     {
+      "label": "Update Exercise Database (All 3 Open-Source Datasets)",
+      "type": "shell",
+      "command": "python3 scripts/build_exercise_sqlite.py",
+      "problemMatcher": [],
+      "group": "none",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "focus": true
+      }
+    },
+    {
       "label": "Generate Restaurant Menus Catalog",
       "type": "shell",
       "command": "python3 scripts/generate_restaurant_catalog.py",

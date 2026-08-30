@@ -1,9 +1,12 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:oly/models/exercise_database_model.dart';
 import 'package:oly/models/lift_model.dart';
 import 'package:oly/models/program_model.dart';
 import 'package:oly/providers/lift_provider.dart';
 import 'package:oly/providers/settings_provider.dart';
+import 'package:oly/services/exercise_database_service.dart';
 import 'package:oly/theme/app_theme.dart';
 import 'package:provider/provider.dart';
 
@@ -158,11 +161,53 @@ class ExerciseSwapModal extends StatefulWidget {
 class _ExerciseSwapModalState extends State<ExerciseSwapModal> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
+  int _selectedTabIndex = 0; // 0 = Suggested Lifts, 1 = Full Database (2,700+)
+
+  List<ExerciseDatabaseModel> _dbResults = <ExerciseDatabaseModel>[];
+  bool _isSearchingDb = false;
+  Timer? _debounceTimer;
 
   @override
   void dispose() {
+    _debounceTimer?.cancel();
     _searchController.dispose();
     super.dispose();
+  }
+
+  void _onSearchChanged(String val) {
+    final String trimmed = val.trim();
+    setState(() => _searchQuery = trimmed);
+    _debounceTimer?.cancel();
+    if (trimmed.isNotEmpty || _selectedTabIndex == 1) {
+      _debounceTimer = Timer(const Duration(milliseconds: 250), () {
+        if (mounted) {
+          _performDbSearch(trimmed);
+        }
+      });
+    } else {
+      setState(() => _dbResults = <ExerciseDatabaseModel>[]);
+    }
+  }
+
+  Future<void> _performDbSearch(String query) async {
+    if (!mounted) {
+      return;
+    }
+    setState(() => _isSearchingDb = true);
+    try {
+      final List<ExerciseDatabaseModel> results =
+          await ExerciseDatabaseService.instance.search(query, limit: 60);
+      if (mounted) {
+        setState(() {
+          _dbResults = results;
+          _isSearchingDb = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() => _isSearchingDb = false);
+      }
+    }
   }
 
   Color _getCategoryColor(LiftCategory category) {
@@ -211,25 +256,26 @@ class _ExerciseSwapModalState extends State<ExerciseSwapModal> {
           allLifts: allLifts,
         );
 
-    final List<LiftModel> filteredSuggested = segmentation.suggested.where((
-      LiftModel lift,
-    ) {
-      if (_searchQuery.isEmpty) {
-        return true;
-      }
-      return lift.name.toLowerCase().contains(_searchQuery) ||
-          lift.category.name.toLowerCase().contains(_searchQuery);
-    }).toList();
+    final String queryLower = _searchQuery.toLowerCase();
+    final String queryNorm = queryLower.replaceAll('baysean', 'bayesian');
 
-    final List<LiftModel> filteredOthers = segmentation.others.where((
-      LiftModel lift,
-    ) {
+    bool matchesLift(LiftModel lift) {
       if (_searchQuery.isEmpty) {
         return true;
       }
-      return lift.name.toLowerCase().contains(_searchQuery) ||
-          lift.category.name.toLowerCase().contains(_searchQuery);
-    }).toList();
+      final String name = lift.name.toLowerCase();
+      final String cat = lift.category.name.toLowerCase();
+      return name.contains(queryLower) ||
+          cat.contains(queryLower) ||
+          name.contains(queryNorm) ||
+          cat.contains(queryNorm);
+    }
+
+    final List<LiftModel> filteredSuggested =
+        segmentation.suggested.where(matchesLift).toList();
+
+    final List<LiftModel> filteredOthers =
+        segmentation.others.where(matchesLift).toList();
 
     final String activeDisplayName =
         widget.currentSwappedName ?? widget.exercise.name;
@@ -245,7 +291,7 @@ class _ExerciseSwapModalState extends State<ExerciseSwapModal> {
 
     return Container(
       constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.88,
+        maxHeight: MediaQuery.of(context).size.height * 0.90,
       ),
       decoration: const BoxDecoration(
         color: AppTheme.darkBackground,
@@ -404,7 +450,7 @@ class _ExerciseSwapModalState extends State<ExerciseSwapModal> {
 
             // Search Bar
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
               child: Container(
                 decoration: BoxDecoration(
                   color: AppTheme.surfaceCard,
@@ -413,17 +459,13 @@ class _ExerciseSwapModalState extends State<ExerciseSwapModal> {
                 ),
                 child: TextField(
                   controller: _searchController,
-                  onChanged: (String val) {
-                    setState(() {
-                      _searchQuery = val.trim().toLowerCase();
-                    });
-                  },
+                  onChanged: _onSearchChanged,
                   style: GoogleFonts.inter(
                     fontSize: 14,
                     color: AppTheme.textPrimary,
                   ),
                   decoration: InputDecoration(
-                    hintText: 'Search variations (e.g. Hang, Front, Power)...',
+                    hintText: 'Search 2,700+ exercises, cables, lifts...',
                     hintStyle: GoogleFonts.inter(
                       fontSize: 13,
                       color: AppTheme.textSecondary,
@@ -442,9 +484,7 @@ class _ExerciseSwapModalState extends State<ExerciseSwapModal> {
                             ),
                             onPressed: () {
                               _searchController.clear();
-                              setState(() {
-                                _searchQuery = '';
-                              });
+                              _onSearchChanged('');
                             },
                           )
                         : null,
@@ -458,98 +498,448 @@ class _ExerciseSwapModalState extends State<ExerciseSwapModal> {
               ),
             ),
 
-            const SizedBox(height: 4),
-
-            // Scrollable List of Segmented Exercises
-            Flexible(
-              child: ListView(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 6,
+            // Tab Selector: Suggested Lifts vs Full Database (2,700+)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+              child: Container(
+                padding: const EdgeInsets.all(3),
+                decoration: BoxDecoration(
+                  color: AppTheme.surfaceCard,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppTheme.borderColor),
                 ),
-                children: <Widget>[
-                  // SECTION 1: SUGGESTED VARIATIONS
-                  if (filteredSuggested.isNotEmpty) ...<Widget>[
-                    _buildSectionHeader(
-                      title: 'SUGGESTED SWAPS',
-                      icon: Icons.auto_awesome,
-                      iconColor: AppTheme.primaryAmber,
-                      count: filteredSuggested.length,
-                      subtitle: 'Direct variations matching movement pattern',
-                    ),
-                    const SizedBox(height: 8),
-                    ...filteredSuggested.map((LiftModel lift) {
-                      final bool isCurrent = lift.name == activeDisplayName;
-                      return _buildLiftTile(
-                        context: context,
-                        lift: lift,
-                        isCurrent: isCurrent,
-                        isSuggested: true,
-                        settings: settings,
-                        liftProvider: liftProvider,
-                      );
-                    }),
-                    const SizedBox(height: 16),
-                  ],
-
-                  // SECTION 2: OTHER MOVEMENTS
-                  if (filteredOthers.isNotEmpty) ...<Widget>[
-                    _buildSectionHeader(
-                      title: 'OTHER MOVEMENTS',
-                      icon: Icons.fitness_center,
-                      iconColor: AppTheme.textSecondary,
-                      count: filteredOthers.length,
-                      subtitle:
-                          'All catalog Olympic lifts and strength movements',
-                    ),
-                    const SizedBox(height: 8),
-                    ...filteredOthers.map((LiftModel lift) {
-                      final bool isCurrent = lift.name == activeDisplayName;
-                      return _buildLiftTile(
-                        context: context,
-                        lift: lift,
-                        isCurrent: isCurrent,
-                        isSuggested: false,
-                        settings: settings,
-                        liftProvider: liftProvider,
-                      );
-                    }),
-                  ],
-
-                  // Empty State
-                  if (filteredSuggested.isEmpty &&
-                      filteredOthers.isEmpty) ...<Widget>[
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 40),
-                      child: Center(
-                        child: Column(
-                          children: <Widget>[
-                            const Icon(
-                              Icons.search_off,
-                              size: 48,
-                              color: AppTheme.textSecondary,
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              'No movements found for "$_searchQuery"',
+                child: Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => setState(() => _selectedTabIndex = 0),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 7),
+                          decoration: BoxDecoration(
+                            color: _selectedTabIndex == 0
+                                ? AppTheme.primaryAmber.withValues(alpha: 0.15)
+                                : Colors.transparent,
+                            borderRadius: BorderRadius.circular(8),
+                            border: _selectedTabIndex == 0
+                                ? Border.all(
+                                    color: AppTheme.primaryAmber.withValues(alpha: 0.4),
+                                  )
+                                : null,
+                          ),
+                          child: Center(
+                            child: Text(
+                              'Suggested Lifts',
+                              overflow: TextOverflow.ellipsis,
                               style: GoogleFonts.outfit(
-                                fontSize: 16,
-                                color: AppTheme.textSecondary,
+                                fontSize: 12,
+                                fontWeight: _selectedTabIndex == 0
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
+                                color: _selectedTabIndex == 0
+                                    ? AppTheme.primaryAmber
+                                    : AppTheme.textSecondary,
                               ),
                             ),
-                          ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () {
+                          setState(() => _selectedTabIndex = 1);
+                          if (_dbResults.isEmpty) {
+                            _performDbSearch(_searchQuery);
+                          }
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 7),
+                          decoration: BoxDecoration(
+                            color: _selectedTabIndex == 1
+                                ? AppTheme.secondaryCyan.withValues(alpha: 0.15)
+                                : Colors.transparent,
+                            borderRadius: BorderRadius.circular(8),
+                            border: _selectedTabIndex == 1
+                                ? Border.all(
+                                    color: AppTheme.secondaryCyan.withValues(alpha: 0.4),
+                                  )
+                                : null,
+                          ),
+                          child: Center(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              mainAxisSize: MainAxisSize.min,
+                              children: <Widget>[
+                                Icon(
+                                  Icons.storage,
+                                  size: 13,
+                                  color: _selectedTabIndex == 1
+                                      ? AppTheme.secondaryCyan
+                                      : AppTheme.textSecondary,
+                                ),
+                                const SizedBox(width: 4),
+                                Flexible(
+                                  child: Text(
+                                    'Full Library (2.7k+)',
+                                    overflow: TextOverflow.ellipsis,
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 12,
+                                      fontWeight: _selectedTabIndex == 1
+                                          ? FontWeight.bold
+                                          : FontWeight.normal,
+                                      color: _selectedTabIndex == 1
+                                          ? AppTheme.secondaryCyan
+                                          : AppTheme.textSecondary,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
                       ),
                     ),
                   ],
-
-                  const SizedBox(height: 20),
-                ],
+                ),
               ),
+            ),
+
+            const SizedBox(height: 6),
+
+            // Content Body
+            Flexible(
+              child: _selectedTabIndex == 0
+                  ? _buildCuratedLiftsList(
+                      filteredSuggested: filteredSuggested,
+                      filteredOthers: filteredOthers,
+                      activeDisplayName: activeDisplayName,
+                      settings: settings,
+                      liftProvider: liftProvider,
+                    )
+                  : _buildDatabaseLiftsList(
+                      settings: settings,
+                      liftProvider: liftProvider,
+                    ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildCuratedLiftsList({
+    required List<LiftModel> filteredSuggested,
+    required List<LiftModel> filteredOthers,
+    required String activeDisplayName,
+    required SettingsProvider settings,
+    required LiftProvider liftProvider,
+  }) {
+    return ListView(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+      children: <Widget>[
+        // Shortcut banner to full database if matches exist
+        if (_searchQuery.isNotEmpty && _dbResults.isNotEmpty)
+          Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            child: Material(
+              color: AppTheme.secondaryCyan.withValues(alpha: 0.10),
+              borderRadius: BorderRadius.circular(10),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(10),
+                onTap: () => setState(() => _selectedTabIndex = 1),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
+                  child: Row(
+                    children: <Widget>[
+                      const Icon(
+                        Icons.search,
+                        color: AppTheme.secondaryCyan,
+                        size: 16,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Found ${_dbResults.length} matches in Full Exercise Database',
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: AppTheme.secondaryCyan,
+                          ),
+                        ),
+                      ),
+                      const Icon(
+                        Icons.arrow_forward,
+                        color: AppTheme.secondaryCyan,
+                        size: 14,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+        // SECTION 1: SUGGESTED VARIATIONS
+        if (filteredSuggested.isNotEmpty) ...<Widget>[
+          _buildSectionHeader(
+            title: 'SUGGESTED SWAPS',
+            icon: Icons.auto_awesome,
+            iconColor: AppTheme.primaryAmber,
+            count: filteredSuggested.length,
+            subtitle: 'Direct variations matching movement pattern',
+          ),
+          const SizedBox(height: 8),
+          ...filteredSuggested.map((LiftModel lift) {
+            final bool isCurrent = lift.name == activeDisplayName;
+            return _buildLiftTile(
+              context: context,
+              lift: lift,
+              isCurrent: isCurrent,
+              isSuggested: true,
+              settings: settings,
+              liftProvider: liftProvider,
+            );
+          }),
+          const SizedBox(height: 16),
+        ],
+
+        // SECTION 2: OTHER MOVEMENTS
+        if (filteredOthers.isNotEmpty) ...<Widget>[
+          _buildSectionHeader(
+            title: 'OTHER MOVEMENTS',
+            icon: Icons.fitness_center,
+            iconColor: AppTheme.textSecondary,
+            count: filteredOthers.length,
+            subtitle: 'All catalog Olympic lifts and strength movements',
+          ),
+          const SizedBox(height: 8),
+          ...filteredOthers.map((LiftModel lift) {
+            final bool isCurrent = lift.name == activeDisplayName;
+            return _buildLiftTile(
+              context: context,
+              lift: lift,
+              isCurrent: isCurrent,
+              isSuggested: false,
+              settings: settings,
+              liftProvider: liftProvider,
+            );
+          }),
+        ],
+
+        // Empty State
+        if (filteredSuggested.isEmpty && filteredOthers.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 30),
+            child: Center(
+              child: Column(
+                children: <Widget>[
+                  Text(
+                    'No standard lifts found for "$_searchQuery".',
+                    style: GoogleFonts.inter(
+                      color: AppTheme.textSecondary,
+                      fontSize: 13,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.secondaryCyan,
+                      foregroundColor: Colors.black,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    onPressed: () => setState(() => _selectedTabIndex = 1),
+                    icon: const Icon(Icons.storage, size: 14),
+                    label: Text(
+                      'Search Full 2,700+ Database',
+                      style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+        const SizedBox(height: 20),
+      ],
+    );
+  }
+
+  Widget _buildDatabaseLiftsList({
+    required SettingsProvider settings,
+    required LiftProvider liftProvider,
+  }) {
+    if (_isSearchingDb) {
+      return const Center(
+        child: CircularProgressIndicator(color: AppTheme.secondaryCyan),
+      );
+    }
+
+    if (_dbResults.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Text(
+            'No matching exercises found in full database for "$_searchQuery".',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.inter(
+              color: AppTheme.textSecondary,
+              fontSize: 13,
+            ),
+          ),
+        ),
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+      itemCount: _dbResults.length,
+      itemBuilder: (BuildContext context, int index) {
+        final ExerciseDatabaseModel item = _dbResults[index];
+        final LiftModel lift = LiftModel.fromDatabaseModel(
+          item,
+          currentMaxes: liftProvider.currentMaxes,
+        );
+
+        final double targetKg = ExerciseSwapHelper.calculateSwappedWeight(
+          newLift: lift,
+          exerciseTemplate: widget.exercise,
+          currentWeek: widget.currentWeek,
+          currentMaxes: liftProvider.currentMaxes,
+        );
+
+        return Container(
+          margin: const EdgeInsets.only(bottom: 8),
+          decoration: BoxDecoration(
+            color: AppTheme.surfaceCard,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppTheme.borderColor),
+          ),
+          child: Material(
+            color: Colors.transparent,
+            borderRadius: BorderRadius.circular(16),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(16),
+              onTap: () {
+                widget.onSwapSelected(lift);
+                if (Navigator.canPop(context)) {
+                  Navigator.pop(context);
+                }
+              },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                child: Row(
+                  children: <Widget>[
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: AppTheme.secondaryCyan.withValues(alpha: 0.15),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Center(
+                        child: Icon(
+                          Icons.fitness_center,
+                          color: AppTheme.secondaryCyan,
+                          size: 18,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Text(
+                            item.name,
+                            style: GoogleFonts.outfit(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: AppTheme.textPrimary,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Wrap(
+                            spacing: 6,
+                            runSpacing: 4,
+                            children: <Widget>[
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 1.5,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.surfaceElevated,
+                                  borderRadius: BorderRadius.circular(4),
+                                  border: Border.all(color: AppTheme.borderColor),
+                                ),
+                                child: Text(
+                                  item.displayEquipment.toUpperCase(),
+                                  style: GoogleFonts.inter(
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppTheme.primaryAmber,
+                                  ),
+                                ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 1.5,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.surfaceElevated,
+                                  borderRadius: BorderRadius.circular(4),
+                                  border: Border.all(color: AppTheme.borderColor),
+                                ),
+                                child: Text(
+                                  item.displayTargetMuscle.toUpperCase(),
+                                  style: GoogleFonts.inter(
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppTheme.secondaryCyan,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Estimated Target: ${settings.formatWeight(targetKg)}',
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.secondaryCyan,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      width: 32,
+                      height: 32,
+                      decoration: const BoxDecoration(
+                        color: AppTheme.surfaceElevated,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.swap_horiz,
+                        size: 18,
+                        color: AppTheme.secondaryCyan,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -649,7 +1039,9 @@ class _ExerciseSwapModalState extends State<ExerciseSwapModal> {
           borderRadius: BorderRadius.circular(16),
           onTap: () {
             widget.onSwapSelected(lift);
-            Navigator.pop(context);
+            if (Navigator.canPop(context)) {
+              Navigator.pop(context);
+            }
           },
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
