@@ -16,7 +16,7 @@
   <img src="https://img.shields.io/badge/Open%20Food%20Facts-SDK%20v3-00B259?logo=openfoodfacts&logoColor=white" alt="Open Food Facts SDK" />
   <img src="https://img.shields.io/badge/Google%20ML%20Kit-OCR%20Vision-4285F4?logo=google&logoColor=white" alt="ML Kit Vision" />
   <img src="https://img.shields.io/badge/Theme-Dark%20Obsidian-121214" alt="Theme" />
-  <img src="https://img.shields.io/badge/Tests-150%20Passing-brightgreen" alt="Tests" />
+  <img src="https://img.shields.io/badge/Tests-158%20Passing-brightgreen" alt="Tests" />
   <img src="https://img.shields.io/badge/License-Proprietary-FF9E1B" alt="License" />
 </p>
 
@@ -24,9 +24,10 @@
 
 ## 🌟 Overview
 
-**OLY** unites elite Olympic weightlifting periodization with a rigorous athlete nutrition engine, metabolic expenditure modeling, an offline-first **Anatomical Body Map & Biomechanical Injury Adaptation Engine**, and a complete **2.06M+ item USDA & Restaurant SQLite database with FTS5 token search**. Designed from the ground up for serious athletes:
+**OLY** unites elite Olympic weightlifting periodization with a rigorous athlete nutrition engine, metabolic expenditure modeling, an offline-first **Anatomical Body Map & Biomechanical Injury Adaptation Engine**, a **Guided Wim Hof Breathwork & Retention Analytics Suite**, and a complete **2.06M+ item USDA & Restaurant SQLite database with FTS5 token search**. Designed from the ground up for serious athletes:
 
 - **🏋️ Periodization & Lifts**: 4-Day and 5-Day wave loading programs (`65% → 70% → 75% → Deload → Retest`), Catalyst Athletics / Greg Everett 1RM variation ratios, dynamic in-workout exercise swapping, working weight adjustments with live 1RM recalculation, and an IWF color-coded bumper plate visualizer.
+- **🌬️ Guided Wim Hof Breathwork & Retention Tracking**: Configurable 1–10 round breathing protocol, 20/30/40 breath counts, adjustable pacing (Relaxed, Normal, Fast), animated pulsing breathing orb, exhale breath hold stopwatch timer, 15-second recovery countdown, and dedicated **Breathwork Analytics** tracking retention progression over time via `fl_chart` LineCharts and round-by-round averages.
 - **🥗 Complete Offline 2.06M+ USDA & Restaurant Database**: Embedded SQLite database (`usda_foods.db`) powered by FTS5 full-text indexing. Contains **Foundation Foods**, **SR Legacy**, **Survey Foods (FNDDS)**, **1.98M+ Branded products** with offline UPC barcode lookup, and curated menus across 26 major restaurant chains (McDonald's, Wingstop, Wendy's, Chick-fil-A, Chipotle, Starbucks, In-N-Out, Panda Express, Subway, Popeyes, Raising Cane's, Five Guys, Shake Shack, etc.).
 - **🥞 Athlete Smart Portion Drawer**: Protein density index ($g\text{ protein} / 100\text{ kcal}$), 3-color macro split bar ($P\% / C\% / F\%$), standard serving steppers, and discrete piece-unit chips (`10 wings`, `6 nuggets`, `2 tacos`, `3 tenders`, `1 biscuit`, `1 patty`).
 - **🩺 Body Map & Injury Adaptation**: Interactive 14-region Front & Back vector anatomical body map, OSIICS-16 local sports medicine taxonomy, duration-based **Acute ($< 14$d)** vs. **Subacute ($14-42$d)** vs. **Chronic ($> 42$d)** stage tracking, pre-session 1-tap biomechanical movement regressions, and post-session before-vs-after strain check-ins.
@@ -38,6 +39,25 @@
 ---
 
 ## 📱 Visual Feature Tour
+
+### 🌬️ Guided Wim Hof Breathwork & Retention Analytics
+
+| Breathwork Setup & PRs | Live Guided Breathing (Pulsing Orb) |
+| :---: | :---: |
+| <img src="screenshots/24_wim_hof_setup_sheet.png" width="360" alt="Wim Hof Setup Sheet" /> | <img src="screenshots/25_wim_hof_session_screen.png" width="360" alt="Wim Hof Breathing Orb" /> |
+| *Customizable 1–10 rounds, breath counts (20, 30, 40), pacing speeds, and all-time PR badge* | *Pulsing neon breathing orb with real-time cues (Inhale/Exhale) and live breath counter* |
+
+| Breath Retention Stopwatch | Post-Session Completion Summary |
+| :---: | :---: |
+| <img src="screenshots/26_wim_hof_retention_screen.png" width="360" alt="Breath Retention Stopwatch" /> | <img src="screenshots/27_wim_hof_summary_screen.png" width="360" alt="Breathwork Summary" /> |
+| *Upward stopwatch timer with milestone PR alerts and one-tap recovery transition* | *Round-by-round retention duration bars, PR celebration, and readiness rating* |
+
+| Breathwork Retention Analytics Tab |
+| :---: |
+| <img src="screenshots/28_breathwork_analytics_tab.png" width="480" alt="Breathwork Analytics Tab" /> |
+| *All-time KPI cards (Max PR, Total Time, Avg Hold), retention progression LineChart, and round-by-round breakdown* |
+
+---
 
 ### 🥗 Nutrition & Metabolic Energy Balance
 
@@ -139,11 +159,11 @@ Size:            689 MB (standalone rollback journal, zero network latency)
 OLY includes an automated screenshot capture suite supporting both top and scrolled viewports:
 
 ```bash
-# Run automated screenshot generation test (captures all 25 high-res PNG images)
+# Run automated screenshot generation test (captures all 30 high-res PNG images)
 flutter test test/screenshot_capture_test.dart
 ```
 
-Generated screenshots are saved directly to `screenshots/` and verified across 23 multi-screen rendering tests.
+Generated screenshots are saved directly to `screenshots/` and verified across 28 multi-screen rendering tests.
 
 ---
 
@@ -159,6 +179,8 @@ lib/
 │   ├── program_model.dart                     # 4-Day & 5-Day periodization templates & week loaders
 │   ├── workout_session.dart                   # Workout session logs, RPE, and strain models
 │   ├── mobility_exercise_model.dart           # Active recovery exercises with cues & video links
+│   ├── injury_model.dart                      # Anatomical regions, OSIICS catalog, & rehabilitation plans
+│   ├── breathing_session_model.dart           # Wim Hof round logs, retention hold times, & pace configs
 │   ├── nutrition_entry.dart                   # Daily food logs, activities, and macro models
 │   ├── body_comp_model.dart                   # 13-field Renpho scale biometrics & historical trends
 │   └── plate_calc.dart                        # Barbell sleeve greedy plate allocation algorithm
@@ -166,6 +188,8 @@ lib/
 │   ├── lift_provider.dart                     # 1RM catalog & ratio balance calculations
 │   ├── program_provider.dart                  # Periodization cycle progression & week advancement
 │   ├── recovery_provider.dart                 # Recovery routine generation & readiness tracking
+│   ├── injury_provider.dart                   # Joint strain lifecycle, regressions, & PDF export
+│   ├── breathing_provider.dart                # Wim Hof session history, PR detection, & retention trends
 │   ├── nutrition_provider.dart                # Calorie balance, macro tracking, & hydration
 │   ├── body_comp_provider.dart                # Renpho scale history & lean mass calculations
 │   └── settings_provider.dart                 # Units (kg/lbs), bar specs, audio/haptic toggles
@@ -188,6 +212,12 @@ lib/
 │   ├── plate_calculator_screen.dart           # Barbell plate visualizer & specs
 │   ├── max_test_screen.dart                   # Week 5 1RM retest protocol
 │   ├── analytics_screen.dart                  # Total tonnage, workout history, & ratio charts
+│   ├── injury_tracker_screen.dart             # 14-region vector body map & clinical export
+│   ├── breathing/
+│   │   ├── wim_hof_setup_sheet.dart           # Breathwork setup sheet with round & pace steppers
+│   │   ├── wim_hof_session_screen.dart        # Guided flow with pulsing orb & retention timer
+│   │   ├── wim_hof_summary_screen.dart        # Post-session summary, PR banner & readiness rating
+│   │   └── breathing_analytics_tab.dart       # Retention duration progression & round averages
 │   ├── nutrition/
 │   │   ├── nutrition_dashboard_screen.dart    # Energy In vs Out gauge, macros, and activity logs
 │   │   ├── live_barcode_scanner_sheet.dart    # Live camera barcode scanner with reticle overlay
@@ -204,6 +234,7 @@ lib/
     ├── rest_timer_widget.dart                 # Timer dial, micro-steppers, and alert dispatcher
     ├── video_player_card.dart                 # YouTube thumbnail preview & coaching link launcher
     ├── standard_ratios_sheet.dart             # Catalyst Athletics ratio benchmarks table
+    ├── body_map_painter.dart                  # Interactive 14-region vector anatomical map painter
     └── nutrition/
         ├── energy_balance_card.dart           # Circular Energy In/Out gauge & deficit indicator
         ├── smart_portion_drawer.dart          # Protein density pill, macro split bar, piece chips & steppers

@@ -169,8 +169,13 @@ void main() {
               ),
             ),
           );
-          await Future<void>.delayed(const Duration(milliseconds: 350));
-          await tester.pump();
+          for (int i = 0; i < 8; i++) {
+            await Future<void>.delayed(const Duration(milliseconds: 100));
+            await tester.pump();
+            if (find.text('RECENT SCANNED PANTRY ITEMS').evaluate().isNotEmpty) {
+              break;
+            }
+          }
         });
         await tester.pumpAndSettle();
 

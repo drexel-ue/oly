@@ -8,11 +8,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:golden_toolkit/golden_toolkit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:nested/nested.dart';
+import 'package:oly/models/breathing_session_model.dart';
 import 'package:oly/models/injury_model.dart';
 import 'package:oly/models/mobility_exercise_model.dart';
 import 'package:oly/models/nutrition_entry.dart';
 import 'package:oly/models/program_model.dart';
 import 'package:oly/providers/body_comp_provider.dart';
+import 'package:oly/providers/breathing_provider.dart';
 import 'package:oly/providers/injury_provider.dart';
 import 'package:oly/providers/lift_provider.dart';
 import 'package:oly/providers/nutrition_provider.dart';
@@ -25,6 +27,10 @@ import 'package:oly/services/recovery_engine_service.dart';
 import 'package:oly/services/storage_service.dart';
 import 'package:oly/theme/app_theme.dart';
 import 'package:oly/views/analytics_screen.dart';
+import 'package:oly/views/breathing/breathing_analytics_tab.dart';
+import 'package:oly/views/breathing/wim_hof_session_screen.dart';
+import 'package:oly/views/breathing/wim_hof_setup_sheet.dart';
+import 'package:oly/views/breathing/wim_hof_summary_screen.dart';
 import 'package:oly/views/dashboard_screen.dart';
 import 'package:oly/views/diagnostics/crash_report_screen.dart';
 import 'package:oly/views/injury_tracker_screen.dart';
@@ -148,6 +154,7 @@ void main() {
   late BodyCompProvider bodyCompProvider;
   late NutritionProvider nutritionProvider;
   late InjuryProvider injuryProvider;
+  late BreathingProvider breathingProvider;
 
   setUpAll(() async {
     GoogleFonts.config.allowRuntimeFetching = false;
@@ -164,6 +171,7 @@ void main() {
     bodyCompProvider = BodyCompProvider(storage);
     nutritionProvider = NutritionProvider(storage);
     injuryProvider = InjuryProvider(storage);
+    breathingProvider = BreathingProvider(storage);
   });
 
   GlobalKey boundaryKey = GlobalKey();
@@ -179,6 +187,7 @@ void main() {
         ChangeNotifierProvider.value(value: bodyCompProvider),
         ChangeNotifierProvider.value(value: nutritionProvider),
         ChangeNotifierProvider.value(value: injuryProvider),
+        ChangeNotifierProvider.value(value: breathingProvider),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -763,6 +772,113 @@ void main() {
       expect(find.text('Export Injury History'), findsOneWidget);
       expect(find.text('Clinical & Athletic PDF Report'), findsOneWidget);
       expect(find.text('Structured JSON Data Export'), findsOneWidget);
+    });
+
+    testWidgets('24 Renders Wim Hof Setup Sheet with Round Steppers & PR Badge', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(1170, 2532);
+      tester.view.devicePixelRatio = 2.0;
+      addTearDown(() => tester.view.resetPhysicalSize());
+
+      await tester.pumpWidget(buildTestScreen(const WimHofSetupSheet()));
+      await captureScreen(tester, '24_wim_hof_setup_sheet');
+      expect(find.text('Wim Hof Breathwork'), findsOneWidget);
+      expect(find.text('NUMBER OF ROUNDS'), findsOneWidget);
+    });
+
+    testWidgets('25 Renders Guided Wim Hof Live Breathing Session with Pulsing Orb', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(1170, 2532);
+      tester.view.devicePixelRatio = 2.0;
+      addTearDown(() => tester.view.resetPhysicalSize());
+
+      const WimHofConfig config = WimHofConfig(
+        defaultRounds: 3,
+        breathsPerRound: 30,
+        soundEnabled: false,
+        hapticsEnabled: false,
+      );
+
+      await tester.pumpWidget(buildTestScreen(const WimHofSessionScreen(config: config)));
+      // Advance prep timer into hyperventilation stage
+      await tester.pump(const Duration(seconds: 4));
+      await tester.pump();
+
+      await captureScreen(tester, '25_wim_hof_session_screen');
+      expect(find.text('BREATH 1 OF 30'), findsOneWidget);
+      expect(find.text('FULLY IN...'), findsOneWidget);
+    });
+
+    testWidgets('26 Renders Breath Retention Stopwatch and PR Milestone', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(1170, 2532);
+      tester.view.devicePixelRatio = 2.0;
+      addTearDown(() => tester.view.resetPhysicalSize());
+
+      const WimHofConfig config = WimHofConfig(
+        defaultRounds: 3,
+        breathsPerRound: 30,
+        soundEnabled: false,
+        hapticsEnabled: false,
+      );
+
+      await tester.pumpWidget(buildTestScreen(const WimHofSessionScreen(config: config)));
+      await tester.pump(const Duration(seconds: 4));
+      await tester.pump();
+
+      // Trigger retention hold
+      await tester.tap(find.text('I\'M FULL • START RETENTION HOLD'));
+      await tester.pump();
+      // Advance stopwatch to 1m 45s (105s)
+      await tester.pump(const Duration(seconds: 105));
+
+      await captureScreen(tester, '26_wim_hof_retention_screen');
+      expect(find.text('RETENTION TIME'), findsOneWidget);
+      expect(find.text('01:45'), findsOneWidget);
+    });
+
+    testWidgets('27 Renders Post-Breathwork Completion Summary & Round Bars', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(1170, 2532);
+      tester.view.devicePixelRatio = 2.0;
+      addTearDown(() => tester.view.resetPhysicalSize());
+
+      final List<BreathingRoundLog> rounds = <BreathingRoundLog>[
+        BreathingRoundLog(roundNumber: 1, breathsCount: 30, retentionSeconds: 85),
+        BreathingRoundLog(roundNumber: 2, breathsCount: 30, retentionSeconds: 120),
+        BreathingRoundLog(roundNumber: 3, breathsCount: 30, retentionSeconds: 155),
+        BreathingRoundLog(roundNumber: 4, breathsCount: 30, retentionSeconds: 185), // PR hold
+      ];
+
+      await tester.pumpWidget(
+        buildTestScreen(
+          WimHofSummaryScreen(
+            rounds: rounds,
+            config: const WimHofConfig(defaultRounds: 4),
+          ),
+        ),
+      );
+      await captureScreen(tester, '27_wim_hof_summary_screen');
+      expect(find.text('Breathwork Complete'), findsOneWidget);
+      expect(find.text('NEW RETENTION PR!'), findsOneWidget);
+    });
+
+    testWidgets('28 Renders Breathwork Retention Analytics Tab with Progression Line Chart', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(1170, 2532);
+      tester.view.devicePixelRatio = 2.0;
+      addTearDown(() => tester.view.resetPhysicalSize());
+
+      await tester.pumpWidget(buildTestScreen(const BreathingAnalyticsTab()));
+      await captureScreen(tester, '28_breathwork_analytics_tab');
+      expect(find.text('ALL-TIME BREATHWORK TOTALS'), findsOneWidget);
+      expect(find.text('RETENTION DURATION PROGRESSION'), findsOneWidget);
+      expect(find.text('AVERAGE HOLD DURATION BY ROUND'), findsOneWidget);
     });
   });
 }
