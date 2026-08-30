@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:oly/models/accessory_log.dart';
+import 'package:oly/models/kettlebell_mile_log.dart';
 import 'package:oly/models/mobility_exercise_model.dart';
 import 'package:oly/models/recovery_session_model.dart';
 import 'package:oly/models/workout_session.dart';
@@ -17,6 +18,7 @@ class RecoveryProvider extends ChangeNotifier {
 
   List<RecoverySessionLog> _recoveryLogs = <RecoverySessionLog>[];
   List<AccessoryLog> _accessoryLogs = <AccessoryLog>[];
+  List<KettlebellMileLog> _kettlebellMileLogs = <KettlebellMileLog>[];
 
   void _loadLogs() {
     final List<Map<String, dynamic>> raw = _storage.loadRawRecoveryLogs();
@@ -24,10 +26,13 @@ class RecoveryProvider extends ChangeNotifier {
         .map((Map<String, dynamic> map) => RecoverySessionLog.fromJson(map))
         .toList();
     _accessoryLogs = _storage.loadAccessoryLogs();
+    _kettlebellMileLogs = _storage.loadKettlebellMileLogs();
   }
 
   List<RecoverySessionLog> get recoveryLogs => List.unmodifiable(_recoveryLogs);
   List<AccessoryLog> get accessoryLogs => List.unmodifiable(_accessoryLogs);
+  List<KettlebellMileLog> get kettlebellMileLogs =>
+      List.unmodifiable(_kettlebellMileLogs);
 
   int get totalMobilityMinutes {
     return _recoveryLogs.fold(
@@ -37,6 +42,65 @@ class RecoveryProvider extends ChangeNotifier {
   }
 
   int get totalSessionsCompleted => _recoveryLogs.length;
+
+  // --- KETTLEBELL MILE PROGRESSION METHODS ---
+  List<KettlebellMileLog> getKettlebellMileHistory() {
+    return List<KettlebellMileLog>.from(_kettlebellMileLogs)
+      ..sort((KettlebellMileLog a, KettlebellMileLog b) => b.date.compareTo(a.date));
+  }
+
+  KettlebellMileLog? get latestKettlebellMileLog {
+    final List<KettlebellMileLog> history = getKettlebellMileHistory();
+    return history.isNotEmpty ? history.first : null;
+  }
+
+  /// Calculates the suggested target Kettlebell % of bodyweight (10% to 30%).
+  /// When previous session is completed in under 20 minutes (< 1200s), progresses by 2.5% up to 30%.
+  double getCurrentKettlebellTargetPercentage() {
+    final KettlebellMileLog? latest = latestKettlebellMileLog;
+    if (latest == null) {
+      return 10.0; // Baseline start at 10% BW
+    }
+
+    if (latest.completedUnder20Min ||
+        (latest.durationSeconds > 0 && latest.durationSeconds < 1200)) {
+      // Completed in under 20 mins -> Progress +2.5% BW (up to 30%)
+      final double nextPct = latest.bodyweightPercentage + 2.5;
+      return nextPct.clamp(10.0, 30.0);
+    }
+
+    return latest.bodyweightPercentage.clamp(10.0, 30.0);
+  }
+
+  /// Calculates target Kettlebell weight in KG for a given athlete bodyweight
+  double calculateSuggestedKettlebellWeightKg({required double athleteWeightKg}) {
+    final double targetPct = getCurrentKettlebellTargetPercentage();
+    final double weight = athleteWeightKg * (targetPct / 100.0);
+    // Round to nearest 0.5kg or standard increment
+    return double.parse((weight).toStringAsFixed(1));
+  }
+
+  Future<void> logKettlebellMile({
+    required double weightKg,
+    required double bodyweightPercentage,
+    required double speedMph,
+    required double inclinePct,
+    required int durationSeconds,
+    bool? completedUnder20Min,
+    String? notes,
+  }) async {
+    await _storage.logKettlebellMileSet(
+      weightKg: weightKg,
+      bodyweightPercentage: bodyweightPercentage,
+      speedMph: speedMph,
+      inclinePct: inclinePct,
+      durationSeconds: durationSeconds,
+      completedUnder20Min: completedUnder20Min,
+      notes: notes,
+    );
+    _kettlebellMileLogs = _storage.loadKettlebellMileLogs();
+    notifyListeners();
+  }
 
   // --- ACCESSORY PROGRESSION METHODS ---
   List<AccessoryLog> getAccessoryHistory(String exerciseId) {
@@ -135,3 +199,4 @@ class RecoveryProvider extends ChangeNotifier {
     notifyListeners();
   }
 }
+

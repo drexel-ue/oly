@@ -90,6 +90,22 @@ class _RecoverySessionScreenState extends State<RecoverySessionScreen> {
     });
   }
 
+  void _skipExercise() {
+    final List<MobilityExerciseModel> exercises = widget.routine.exercises;
+    final MobilityExerciseModel originalEx = exercises[_currentIndex];
+    final MobilityExerciseModel activeEx =
+        _swappedExercises[originalEx.id] ?? originalEx;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('⏭ Skipped ${activeEx.name}'),
+        duration: const Duration(seconds: 2),
+        backgroundColor: Colors.orangeAccent,
+      ),
+    );
+    _nextExercise();
+  }
+
   void _nextExercise() {
     if (_currentIndex < widget.routine.exercises.length - 1) {
       _setExerciseIndex(_currentIndex + 1);
@@ -488,6 +504,7 @@ class _RecoverySessionScreenState extends State<RecoverySessionScreen> {
                     _swappedExercises.remove(originalEx.id);
                   });
                 },
+                onSkip: _skipExercise,
                 onCompleted: () => _markExerciseCompleted(activeEx.id),
               ),
               const SizedBox(height: 24),
@@ -515,30 +532,53 @@ class _RecoverySessionScreenState extends State<RecoverySessionScreen> {
                     )
                   else
                     const SizedBox.shrink(),
-                  ElevatedButton.icon(
-                    onPressed: _nextExercise,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primaryAmber,
-                      foregroundColor: Colors.black,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 12,
+                  Row(
+                    children: <Widget>[
+                      if (_currentIndex < exercises.length - 1) ...<Widget>[
+                        OutlinedButton.icon(
+                          onPressed: _skipExercise,
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Colors.orangeAccent,
+                            side: const BorderSide(color: Colors.orangeAccent),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 12,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          icon: const Icon(Icons.skip_next, size: 16),
+                          label: const Text('SKIP'),
+                        ),
+                        const SizedBox(width: 8),
+                      ],
+                      ElevatedButton.icon(
+                        onPressed: _nextExercise,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.primaryAmber,
+                          foregroundColor: Colors.black,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 12,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        icon: Icon(
+                          _currentIndex == exercises.length - 1
+                              ? Icons.check_circle
+                              : Icons.chevron_right,
+                        ),
+                        label: Text(
+                          _currentIndex == exercises.length - 1
+                              ? 'FINISH SESSION'
+                              : 'NEXT DRILL',
+                          style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
+                        ),
                       ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    icon: Icon(
-                      _currentIndex == exercises.length - 1
-                          ? Icons.check_circle
-                          : Icons.chevron_right,
-                    ),
-                    label: Text(
-                      _currentIndex == exercises.length - 1
-                          ? 'FINISH SESSION'
-                          : 'NEXT DRILL',
-                      style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
-                    ),
+                    ],
                   ),
                 ],
               ),

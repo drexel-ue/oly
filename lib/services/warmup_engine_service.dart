@@ -84,8 +84,6 @@ class WarmupEngineService {
     final List<MobilityExerciseModel> phase3Exercises = catalog
         .where(
           (MobilityExerciseModel ex) =>
-              ex.id == 'wrist_elbow_droms' ||
-              ex.id == 'banded_shoulder_dislocates' ||
               ex.id == 'hip_90_90_switches' ||
               ex.id == 'banded_ankle_distraction',
         )
@@ -150,7 +148,7 @@ class WarmupEngineService {
       WarmupPhaseGroup(
         phaseNumber: 3,
         title: 'Phase 3: Joint Mobilization',
-        subtitle: 'Wrists, Ankles, Hips & PVC Pass-Throughs',
+        subtitle: 'Hips & Ankle Distraction Flow',
         exercises: phase3Exercises,
       ),
       WarmupPhaseGroup(

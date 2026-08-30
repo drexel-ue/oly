@@ -5,6 +5,7 @@ import 'package:oly/models/body_composition_entry.dart';
 import 'package:oly/models/breathing_session_model.dart';
 import 'package:oly/models/daily_nutrition_log.dart';
 import 'package:oly/models/injury_model.dart';
+import 'package:oly/models/kettlebell_mile_log.dart';
 import 'package:oly/models/lift_model.dart';
 import 'package:oly/models/nutrition_entry.dart';
 import 'package:oly/models/nutrition_goal_model.dart';
@@ -25,6 +26,7 @@ class StorageService {
   static const String _keyHapticsEnabled = 'oly_haptics_enabled_v1';
   static const String _keyActiveDraft = 'oly_active_draft_v1';
   static const String _keyAccessoryLogs = 'oly_accessory_logs_v1';
+  static const String _keyKettlebellMileLogs = 'oly_kettlebell_mile_logs_v1';
   static const String _keyBodyCompEntries = 'oly_body_comp_entries_v1';
   static const String _keyNutritionLogs = 'oly_nutrition_logs_v1';
   static const String _keyNutritionGoal = 'oly_nutrition_goal_v1';
@@ -245,6 +247,66 @@ class StorageService {
         .reduce((double a, double b) => a > b ? a : b);
   }
 
+  // --- KETTLEBELL MILE STORAGE ---
+  List<KettlebellMileLog> loadKettlebellMileLogs() {
+    final String? jsonStr = _prefs.getString(_keyKettlebellMileLogs);
+    if (jsonStr == null || jsonStr.isEmpty) {
+      return <KettlebellMileLog>[];
+    }
+    try {
+      final List<dynamic> list = jsonDecode(jsonStr);
+      return list
+          .map((dynamic e) => KettlebellMileLog.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } catch (_) {
+      return <KettlebellMileLog>[];
+    }
+  }
+
+  Future<void> saveKettlebellMileLogs(List<KettlebellMileLog> logs) async {
+    final String jsonStr = jsonEncode(
+      logs.map((KettlebellMileLog e) => e.toJson()).toList(),
+    );
+    await _prefs.setString(_keyKettlebellMileLogs, jsonStr);
+  }
+
+  Future<void> logKettlebellMileSet({
+    required double weightKg,
+    required double bodyweightPercentage,
+    required double speedMph,
+    required double inclinePct,
+    required int durationSeconds,
+    bool? completedUnder20Min,
+    String? notes,
+  }) async {
+    final List<KettlebellMileLog> currentLogs = loadKettlebellMileLogs();
+    final bool under20 = completedUnder20Min ?? (durationSeconds > 0 && durationSeconds < 1200);
+    final KettlebellMileLog newEntry = KettlebellMileLog(
+      id: 'kb_mile_${DateTime.now().millisecondsSinceEpoch}',
+      date: DateTime.now(),
+      weightKg: weightKg,
+      bodyweightPercentage: bodyweightPercentage,
+      speedMph: speedMph,
+      inclinePct: inclinePct,
+      durationSeconds: durationSeconds,
+      completedUnder20Min: under20,
+      notes: notes,
+    );
+    currentLogs.insert(0, newEntry);
+    await saveKettlebellMileLogs(currentLogs);
+  }
+
+  List<KettlebellMileLog> getKettlebellMileHistory() {
+    final List<KettlebellMileLog> list = loadKettlebellMileLogs();
+    list.sort((KettlebellMileLog a, KettlebellMileLog b) => b.date.compareTo(a.date));
+    return list;
+  }
+
+  KettlebellMileLog? getLatestKettlebellMileLog() {
+    final List<KettlebellMileLog> history = getKettlebellMileHistory();
+    return history.isNotEmpty ? history.first : null;
+  }
+
   // --- EXPORT & IMPORT UTILITIES ---
   String exportFullAppDataJson() {
     final Map<String, dynamic> map = <String, dynamic>{
@@ -254,6 +316,7 @@ class StorageService {
       'workoutSessions': jsonDecode(_prefs.getString(_keySessions) ?? '[]'),
       'recoveryLogs': jsonDecode(_prefs.getString(_keyRecoveryLogs) ?? '[]'),
       'accessoryLogs': jsonDecode(_prefs.getString(_keyAccessoryLogs) ?? '[]'),
+      'kettlebellMileLogs': jsonDecode(_prefs.getString(_keyKettlebellMileLogs) ?? '[]'),
       'breathingLogs': jsonDecode(_prefs.getString(_keyBreathingLogs) ?? '[]'),
       'breathingConfig': jsonDecode(_prefs.getString(_keyBreathingConfig) ?? '{}'),
       'settings': <String, Object>{

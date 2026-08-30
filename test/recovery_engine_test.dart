@@ -44,8 +44,8 @@ void main() {
             lastSession: null,
           );
 
-      expect(routine.phaseGroups.length, equals(5));
-      expect(routine.exercises.length, equals(12));
+      expect(routine.phaseGroups.length, equals(4));
+      expect(routine.exercises.length, equals(10));
       expect(
         routine.diagnosticReasons.any(
           (String r) => r.contains('Military Press'),
@@ -57,6 +57,12 @@ void main() {
           (MobilityExerciseModel e) =>
               e.focusArea == MobilityFocusArea.thoracicSpine ||
               e.focusArea == MobilityFocusArea.shoulderOverhead,
+        ),
+        isTrue,
+      );
+      expect(
+        routine.exercises.any(
+          (MobilityExerciseModel e) => e.id == 'kettlebell_mile',
         ),
         isTrue,
       );
@@ -87,8 +93,8 @@ void main() {
             lastSession: lastSession,
           );
 
-      expect(routine.phaseGroups.length, equals(5));
-      expect(routine.exercises.length, equals(12));
+      expect(routine.phaseGroups.length, equals(4));
+      expect(routine.exercises.length, equals(10));
       expect(
         routine.diagnosticReasons.any((String r) => r.contains('Squat volume')),
         isTrue,
@@ -98,6 +104,12 @@ void main() {
           (MobilityExerciseModel e) =>
               e.focusArea == MobilityFocusArea.hipCapsule ||
               e.focusArea == MobilityFocusArea.ankleDorsiflexion,
+        ),
+        isTrue,
+      );
+      expect(
+        routine.exercises.any(
+          (MobilityExerciseModel e) => e.id == 'kettlebell_mile',
         ),
         isTrue,
       );

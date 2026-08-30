@@ -6,6 +6,7 @@ import 'package:oly/models/mobility_exercise_model.dart';
 import 'package:oly/providers/recovery_provider.dart';
 import 'package:oly/providers/settings_provider.dart';
 import 'package:oly/theme/app_theme.dart';
+import 'package:oly/widgets/kettlebell_mile_card.dart';
 import 'package:oly/widgets/mobility_exercise_swap_modal.dart';
 import 'package:oly/widgets/rest_timer_widget.dart';
 import 'package:provider/provider.dart';
@@ -20,12 +21,14 @@ class VideoPlayerCard extends StatefulWidget {
     this.isSwapped = false,
     this.onSwapExercise,
     this.onResetExercise,
+    this.onSkip,
   });
   final MobilityExerciseModel exercise;
   final MobilityExerciseModel? originalExercise;
   final bool isSwapped;
   final ValueChanged<MobilityExerciseModel>? onSwapExercise;
   final VoidCallback? onResetExercise;
+  final VoidCallback? onSkip;
   final VoidCallback onCompleted;
 
   @override
@@ -375,6 +378,16 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.exercise.id == 'kettlebell_mile') {
+      return KettlebellMileCard(
+        exercise: widget.exercise,
+        isSwapped: widget.isSwapped,
+        onCompleted: widget.onCompleted,
+        onSkip: widget.onSkip ?? () {},
+        onOpenSwapModal: () => _openSwapModal(context),
+      );
+    }
+
     final SettingsProvider settings = Provider.of<SettingsProvider>(context);
     final MobilityExerciseModel ex = widget.exercise;
     final bool isMobility =
@@ -510,6 +523,43 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
                     ),
                   ),
                 ),
+              if (widget.onSkip != null) ...<Widget>[
+                const SizedBox(width: 6),
+                InkWell(
+                  onTap: widget.onSkip,
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppTheme.surfaceElevated,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppTheme.borderColor),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        const Icon(
+                          Icons.skip_next,
+                          size: 14,
+                          color: Colors.orangeAccent,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Skip',
+                          style: GoogleFonts.outfit(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.orangeAccent,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
           const SizedBox(height: 14),

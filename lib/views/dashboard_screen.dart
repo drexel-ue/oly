@@ -705,8 +705,10 @@ class DashboardScreen extends StatelessWidget {
                 label = 'Day 2';
               } else if (d.dayNumber == 4) {
                 label = 'Recovery';
-              } else {
+              } else if (d.dayNumber == 5) {
                 label = 'Day 3';
+              } else {
+                label = 'Recovery';
               }
 
               return Expanded(
@@ -1479,8 +1481,10 @@ class DashboardScreen extends StatelessWidget {
                             label = 'Day 2';
                           } else if (d.dayNumber == 4) {
                             label = 'Recovery';
-                          } else {
+                          } else if (d.dayNumber == 5) {
                             label = 'Day 3';
+                          } else {
+                            label = 'Recovery';
                           }
 
                           return Expanded(

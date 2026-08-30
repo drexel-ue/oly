@@ -57,15 +57,16 @@ void main() {
       );
     });
 
-    test('Built-in program contains 5 days (Day 1 -> Recovery -> Day 2 -> Recovery -> Day 3)', () {
+    test('Built-in program contains 6 days (Day 1 -> Recovery -> Day 2 -> Recovery -> Day 3 -> Recovery)', () {
       final List<DayTemplate> days = ProgramCycle.getBuiltInProgram();
-      expect(days.length, equals(5));
+      expect(days.length, equals(6));
 
-      expect(days[0].isActiveRecovery, isFalse);
-      expect(days[1].isActiveRecovery, isTrue); // Recovery Day 2
-      expect(days[2].isActiveRecovery, isFalse);
-      expect(days[3].isActiveRecovery, isTrue); // Recovery Day 4
-      expect(days[4].isActiveRecovery, isFalse);
+      expect(days[0].isActiveRecovery, isFalse); // Day 1 Lift
+      expect(days[1].isActiveRecovery, isTrue); // Recovery Day 1 (Day 2)
+      expect(days[2].isActiveRecovery, isFalse); // Day 2 Lift (Day 3)
+      expect(days[3].isActiveRecovery, isTrue); // Recovery Day 2 (Day 4)
+      expect(days[4].isActiveRecovery, isFalse); // Day 3 Lift (Day 5)
+      expect(days[5].isActiveRecovery, isTrue); // Recovery Day 3 (Day 6)
     });
 
     test('ExerciseTemplate correctly calculates weights for previewed peak weeks (e.g. Week 3)', () {

@@ -172,22 +172,61 @@ class ProgramCycle {
   }
 
   static List<DayTemplate> getBuiltInProgram() {
-    // Helper active recovery template reused for Day 2 and Day 4
+    // Helper active recovery template reused for Day 2, Day 4, and Day 6
     DayTemplate createActiveRecoveryDay(int dayNum) {
       return DayTemplate(
         dayNumber: dayNum,
         title: 'Active Recovery Day',
-        subtitle: 'Cardio, Mobility Flow, Arms, Abs & Grip Strength',
+        subtitle:
+            'Kettlebell Mile (10%->30% BW), Cable Crunches (3x8), Dragon Flags (3x5), Arms Hypertrophy',
         isActiveRecovery: true,
         phases: <PhaseTemplate>[
           PhaseTemplate(
-            name: 'Cardio & Zone 2 Conditioning',
+            name: 'Kettlebell Mile Conditioning',
             exercises: <ExerciseTemplate>[
               ExerciseTemplate(
-                name: 'Ergometer Row / Bike / Intervals',
-                liftId: 'cardio',
-                setScheme: '15-20 Minutes @ Zone 2 Steady Pace',
-                notes: 'Low intensity recovery cardio',
+                name: 'Kettlebell Mile (Loaded Carry)',
+                liftId: 'kettlebell_mile',
+                setScheme: '1.0 Mile @ 10% to 30% Bodyweight',
+                notes:
+                    'Record speed, incline %, and time. Progress weight when finished in under 20 mins.',
+              ),
+            ],
+          ),
+          PhaseTemplate(
+            name: 'Core Stability & Anti-Extension',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Cable Crunches',
+                liftId: 'cable_crunches',
+                setScheme: '3 Sets of 8 Reps',
+                weeklyWeightIncrementKg: 2.5,
+                notes: 'Kneeling rope cable stack; track weight.',
+              ),
+              ExerciseTemplate(
+                name: 'Dragon Flags',
+                liftId: 'dragon_flags',
+                setScheme: '3 Sets of 5 Reps',
+                notes: 'Full body tension, controlled eccentric descent.',
+              ),
+            ],
+          ),
+          PhaseTemplate(
+            name: 'Arms Hypertrophy & Tendon Resilience',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Dumbbell Bicep Curls',
+                liftId: 'db_bicep_curls',
+                setScheme: '3 Sets of 10 Reps',
+                weeklyWeightIncrementKg: 2.5,
+                notes: 'Strict form; track weight.',
+              ),
+              ExerciseTemplate(
+                name: 'Overhead Dumbbell Tricep Extension',
+                liftId: 'overhead_tricep_ext',
+                setScheme: '3 Sets of 10 Reps',
+                weeklyWeightIncrementKg: 2.5,
+                notes: 'Full elbow extension; track weight.',
               ),
             ],
           ),
@@ -195,55 +234,10 @@ class ProgramCycle {
             name: 'Mobility & Joint Health Flow',
             exercises: <ExerciseTemplate>[
               ExerciseTemplate(
-                name: 'Thoracic Spine + Ankle & Wrist Mobility',
+                name: 'Thoracic Spine + Ankle & Hip Mobility Flow',
                 liftId: 'mobility',
                 setScheme: '10-15 Minutes Flow Routine',
                 notes: 'Thoracic extensions, ankle dorsiflexion, hip openers',
-              ),
-            ],
-          ),
-          PhaseTemplate(
-            name: 'Arms & Upper Hypertrophy',
-            exercises: <ExerciseTemplate>[
-              ExerciseTemplate(
-                name: 'Dumbbell Bicep Curls',
-                liftId: 'biceps',
-                setScheme: '3 Sets of 12 Reps',
-              ),
-              ExerciseTemplate(
-                name: 'Overhead Dumbbell Tricep Extension',
-                liftId: 'triceps',
-                setScheme: '3 Sets of 12 Reps',
-              ),
-            ],
-          ),
-          PhaseTemplate(
-            name: 'Abs & Core Stability',
-            exercises: <ExerciseTemplate>[
-              ExerciseTemplate(
-                name: 'Hanging Leg Raises',
-                liftId: 'abs',
-                setScheme: '3 Sets of 12 Reps',
-              ),
-              ExerciseTemplate(
-                name: 'Ab Wheel Rollout / Plank Hold',
-                liftId: 'abs',
-                setScheme: '3 Sets of 10 Reps / 60s Hold',
-              ),
-            ],
-          ),
-          PhaseTemplate(
-            name: 'Grip Strength',
-            exercises: <ExerciseTemplate>[
-              ExerciseTemplate(
-                name: "Farmer's Carries / Dead Hangs",
-                liftId: 'grip',
-                setScheme: '3 Sets of 45-60s Carries or Hangs',
-              ),
-              ExerciseTemplate(
-                name: 'Plate Pinch Hold',
-                liftId: 'grip',
-                setScheme: '3 Sets of 30s Hold per Side',
               ),
             ],
           ),
@@ -328,7 +322,7 @@ class ProgramCycle {
         ],
       ),
 
-      // STEP 2: ACTIVE RECOVERY DAY
+      // STEP 2: ACTIVE RECOVERY DAY 1
       createActiveRecoveryDay(2),
 
       // STEP 3: DAY 2 (LIFT)
@@ -401,7 +395,7 @@ class ProgramCycle {
         ],
       ),
 
-      // STEP 4: ACTIVE RECOVERY DAY
+      // STEP 4: ACTIVE RECOVERY DAY 2
       createActiveRecoveryDay(4),
 
       // STEP 5: DAY 3 (LIFT)
@@ -472,6 +466,9 @@ class ProgramCycle {
           ),
         ],
       ),
+
+      // STEP 6: ACTIVE RECOVERY DAY 3 (AFTER DAY 3 LIFT)
+      createActiveRecoveryDay(6),
     ];
   }
 }

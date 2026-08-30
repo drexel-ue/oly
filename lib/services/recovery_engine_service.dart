@@ -181,17 +181,45 @@ class RecoveryEngineService {
       );
     }
 
-    // --- BUILD THE 5 PHASES ---
+    // --- BUILD THE 4 PHASES ---
 
-    // Phase 1: Zone 2 Cardio
-    final List<MobilityExerciseModel> phase1Exercises = catalog
-        .where(
-          (MobilityExerciseModel ex) =>
-              ex.focusArea == MobilityFocusArea.cardio,
-        )
-        .toList();
+    // Phase 1: Kettlebell Mile Loaded Carry
+    final List<MobilityExerciseModel> phase1Exercises = <MobilityExerciseModel>[
+      ...catalog.where((MobilityExerciseModel ex) => ex.id == 'kettlebell_mile'),
+    ];
+    if (phase1Exercises.isEmpty) {
+      phase1Exercises.addAll(
+        catalog.where(
+          (MobilityExerciseModel ex) => ex.focusArea == MobilityFocusArea.cardio,
+        ),
+      );
+    }
 
-    // Phase 2: Dynamic Mobility & Weak-Point Accessories
+    // Phase 2: Core Stability & Anti-Extension (Cable Crunches & Dragon Flags)
+    final List<MobilityExerciseModel> coreOrdered = <MobilityExerciseModel>[
+      ...catalog.where((MobilityExerciseModel ex) => ex.id == 'cable_crunches'),
+      ...catalog.where((MobilityExerciseModel ex) => ex.id == 'dragon_flags'),
+    ];
+    if (coreOrdered.isEmpty) {
+      coreOrdered.addAll(
+        catalog.where((MobilityExerciseModel ex) => ex.focusArea == MobilityFocusArea.absCore),
+      );
+    }
+    final List<MobilityExerciseModel> phase2Exercises = coreOrdered;
+
+    // Phase 3: Arms & Upper Hypertrophy (Bicep & Tricep Exercises)
+    final List<MobilityExerciseModel> armsOrdered = <MobilityExerciseModel>[
+      ...catalog.where((MobilityExerciseModel ex) => ex.id == 'db_bicep_curls'),
+      ...catalog.where((MobilityExerciseModel ex) => ex.id == 'overhead_tricep_ext'),
+    ];
+    if (armsOrdered.isEmpty) {
+      armsOrdered.addAll(
+        catalog.where((MobilityExerciseModel ex) => ex.focusArea == MobilityFocusArea.arms),
+      );
+    }
+    final List<MobilityExerciseModel> phase3Exercises = armsOrdered;
+
+    // Phase 4: Dynamic Mobility & Weak-Point Accessories
     final List<MobilityExerciseModel> selectedMobility = catalog
         .where(
           (MobilityExerciseModel ex) =>
@@ -232,64 +260,35 @@ class RecoveryEngineService {
       selectedAccessories.addAll(remaining);
     }
 
-    final List<MobilityExerciseModel> phase2Exercises = <MobilityExerciseModel>[
+    final List<MobilityExerciseModel> phase4Exercises = <MobilityExerciseModel>[
       ...selectedMobility,
       ...selectedAccessories,
     ];
 
-    // Phase 3: Arms & Upper Hypertrophy
-    final List<MobilityExerciseModel> phase3Exercises = catalog
-        .where(
-          (MobilityExerciseModel ex) => ex.focusArea == MobilityFocusArea.arms,
-        )
-        .toList();
-
-    // Phase 4: Abs & Core Stability
-    final List<MobilityExerciseModel> phase4Exercises = catalog
-        .where(
-          (MobilityExerciseModel ex) =>
-              ex.focusArea == MobilityFocusArea.absCore,
-        )
-        .toList();
-
-    // Phase 5: Grip Strength
-    final List<MobilityExerciseModel> phase5Exercises = catalog
-        .where(
-          (MobilityExerciseModel ex) =>
-              ex.focusArea == MobilityFocusArea.gripStrength,
-        )
-        .toList();
-
     final List<RecoveryPhaseGroup> phaseGroups = <RecoveryPhaseGroup>[
       RecoveryPhaseGroup(
         phaseNumber: 1,
-        title: 'Phase 1: Zone 2 Cardio',
-        subtitle: '15 Mins Aerobic Flush Pace',
+        title: 'Phase 1: Kettlebell Mile Conditioning',
+        subtitle: '1.0 Mile @ 10%->30% BW (<20m goal)',
         exercises: phase1Exercises,
       ),
       RecoveryPhaseGroup(
         phaseNumber: 2,
-        title: 'Phase 2: Mobility & Joint Health',
-        subtitle: 'Tailored for balance gaps & fatigue',
+        title: 'Phase 2: Core Stability & Strength',
+        subtitle: 'Cable Crunches (3x8) & Dragon Flags (3x5)',
         exercises: phase2Exercises,
       ),
       RecoveryPhaseGroup(
         phaseNumber: 3,
-        title: 'Phase 3: Arms & Upper Body',
-        subtitle: 'Bicep & tricep tendon resilience',
+        title: 'Phase 3: Arms & Upper Hypertrophy',
+        subtitle: 'Bicep & Tricep Hypertrophy (Weight Tracked)',
         exercises: phase3Exercises,
       ),
       RecoveryPhaseGroup(
         phaseNumber: 4,
-        title: 'Phase 4: Abs & Core Stability',
-        subtitle: 'Anti-extension & hollow body bracing',
+        title: 'Phase 4: Mobility & Joint Health',
+        subtitle: 'Tailored for balance gaps & fatigue',
         exercises: phase4Exercises,
-      ),
-      RecoveryPhaseGroup(
-        phaseNumber: 5,
-        title: 'Phase 5: Grip Strength',
-        subtitle: 'Crush grip & spine decompression',
-        exercises: phase5Exercises,
       ),
     ];
 
@@ -302,7 +301,7 @@ class RecoveryEngineService {
       exercises: allExercises,
       diagnosticReasons: diagnosticReasons.toSet().toList(),
       totalEstimatedMinutes:
-          35, // 15m cardio + 10m mobility + 10m arms/abs/grip
+          40, // 20m KB mile + 10m core/arms + 10m mobility
     );
   }
 }
