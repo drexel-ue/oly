@@ -16,7 +16,7 @@
   <img src="https://img.shields.io/badge/Open%20Food%20Facts-SDK%20v3-00B259?logo=openfoodfacts&logoColor=white" alt="Open Food Facts SDK" />
   <img src="https://img.shields.io/badge/Google%20ML%20Kit-OCR%20Vision-4285F4?logo=google&logoColor=white" alt="ML Kit Vision" />
   <img src="https://img.shields.io/badge/Theme-Dark%20Obsidian-121214" alt="Theme" />
-  <img src="https://img.shields.io/badge/Tests-158%20Passing-brightgreen" alt="Tests" />
+  <img src="https://img.shields.io/badge/Tests-183%20Passing-brightgreen" alt="Tests" />
   <img src="https://img.shields.io/badge/License-Proprietary-FF9E1B" alt="License" />
 </p>
 
@@ -26,7 +26,7 @@
 
 **OLY** unites elite Olympic weightlifting periodization with a rigorous athlete nutrition engine, metabolic expenditure modeling, an offline-first **Anatomical Body Map & Biomechanical Injury Adaptation Engine**, a **Guided Wim Hof Breathwork & Retention Analytics Suite**, and a complete **2.06M+ item USDA & Restaurant SQLite database with FTS5 token search**. Designed from the ground up for serious athletes:
 
-- **🏋️ Periodization & Lifts**: 4-Day and 5-Day wave loading programs (`65% → 70% → 75% → Deload → Retest`), Catalyst Athletics / Greg Everett 1RM variation ratios, dynamic in-workout exercise swapping, working weight adjustments with live 1RM recalculation, and an IWF color-coded bumper plate visualizer.
+- **🏋️ Periodization & Lifts**: 4-Day and 5-Day wave loading programs (`65% → 70% → 75% → Deload → Retest`), Catalyst Athletics / Greg Everett 1RM variation ratios, dynamic in-workout exercise swapping, working weight & rep adjustments with live Epley 1RM recalculation, per-set fine-tuning, and an IWF color-coded bumper plate visualizer.
 - **🌬️ Guided Wim Hof Breathwork & Retention Tracking**: Configurable 1–10 round breathing protocol, 20/30/40 breath counts, adjustable pacing (Relaxed, Normal, Fast), animated pulsing breathing orb, exhale breath hold stopwatch timer, 15-second recovery countdown, and dedicated **Breathwork Analytics** tracking retention progression over time via `fl_chart` LineCharts and round-by-round averages.
 - **🥗 Complete Offline 2.06M+ USDA & Restaurant Database**: Embedded SQLite database (`usda_foods.db`) powered by FTS5 full-text indexing. Contains **Foundation Foods**, **SR Legacy**, **Survey Foods (FNDDS)**, **1.98M+ Branded products** with offline UPC barcode lookup, and curated menus across 26 major restaurant chains (McDonald's, Wingstop, Wendy's, Chick-fil-A, Chipotle, Starbucks, In-N-Out, Panda Express, Subway, Popeyes, Raising Cane's, Five Guys, Shake Shack, etc.).
 - **🥞 Athlete Smart Portion Drawer**: Protein density index ($g\text{ protein} / 100\text{ kcal}$), 3-color macro split bar ($P\% / C\% / F\%$), standard serving steppers, and discrete piece-unit chips (`10 wings`, `6 nuggets`, `2 tacos`, `3 tenders`, `1 biscuit`, `1 patty`).
@@ -99,10 +99,10 @@
 | <img src="screenshots/09_workout_session_screen.png" width="360" alt="Live Workout Session Top" /> | <img src="screenshots/09_workout_session_screen_scrolled.png" width="360" alt="Live Workout Session Scrolled" /> |
 | *Periodized target weight banner, warm-up trigger, and interactive set checklist* | *Accessory movements, live rest timer bar, and session notes* |
 
-| Movement Variation Swaps | Weight Adjustment & 1RM Recalculator |
+| Movement Variation Swaps | Weight & Rep Adjustment & 1RM Recalculator |
 | :---: | :---: |
 | <img src="screenshots/10_workout_swap_modal.png" width="360" alt="Movement Variation Swaps" /> | <img src="screenshots/11_workout_weight_dialog.png" width="360" alt="Weight Adjustment Dialog" /> |
-| *Segmented Suggested Swaps vs Other Movements with live target weights* | *Tune working weight and auto-recalculate baseline 1RM with delta audit notes* |
+| *Segmented Suggested Swaps vs Other Movements with live target weights* | *Tune working weight and reps, live Epley 1RM recalculation, and quick rep presets* |
 
 ---
 

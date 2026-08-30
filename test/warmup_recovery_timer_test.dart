@@ -165,15 +165,15 @@ void main() {
         expect(find.text('+2.5'), findsOneWidget);
         expect(find.text('+5.0'), findsOneWidget);
 
-        // Verify interactive set pills matching workout sessions
-        expect(find.text('Set 1: 10.0KG'), findsOneWidget);
-        expect(find.text('Set 2: 10.0KG'), findsOneWidget);
-        expect(find.text('Set 3: 10.0KG'), findsOneWidget);
+        // Verify interactive set pills matching workout sessions with reps
+        expect(find.text('Set 1: 10.0KG × 12'), findsOneWidget);
+        expect(find.text('Set 2: 10.0KG × 12'), findsOneWidget);
+        expect(find.text('Set 3: 10.0KG × 12'), findsOneWidget);
 
         // Adjust weight with +2.5 stepper
         await tester.tap(find.text('+2.5'));
         await tester.pump();
-        expect(find.text('Set 1: 12.5KG'), findsOneWidget);
+        expect(find.text('Set 1: 12.5KG × 12'), findsOneWidget);
 
         // Toggle rest timer button
         expect(find.text('Rest'), findsOneWidget);
@@ -182,11 +182,11 @@ void main() {
         expect(find.text('Accessory Rest Timer'), findsOneWidget);
 
         // Tap all sets to mark completed
-        await tester.tap(find.text('Set 1: 12.5KG'));
+        await tester.tap(find.text('Set 1: 12.5KG × 12'));
         await tester.pump();
-        await tester.tap(find.text('Set 2: 12.5KG'));
+        await tester.tap(find.text('Set 2: 12.5KG × 12'));
         await tester.pump();
-        await tester.tap(find.text('Set 3: 12.5KG'));
+        await tester.tap(find.text('Set 3: 12.5KG × 12'));
         await tester.pump();
 
         expect(completed, isTrue);

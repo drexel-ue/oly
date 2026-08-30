@@ -17,6 +17,7 @@ import 'package:oly/widgets/plate_modal.dart';
 import 'package:oly/widgets/post_session_body_checkin_dialog.dart';
 import 'package:oly/widgets/rest_timer_widget.dart';
 import 'package:oly/widgets/session_injury_adaptation_card.dart';
+import 'package:oly/widgets/workout_set_edit_dialog.dart';
 import 'package:oly/widgets/workout_weight_dialog.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -433,6 +434,11 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
           currentMaxes: liftProvider.currentMaxes,
         );
 
+    final List<CompletedSet>? currentSets = _exerciseSets[exercise.name];
+    final int currentReps = currentSets != null && currentSets.isNotEmpty
+        ? currentSets.first.reps
+        : WorkoutWeightHelper.extractRepsCount(exercise.setScheme);
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -443,13 +449,16 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
           exercise: exercise,
           displayName: displayName,
           initialWeightKg: currentWeightKg,
+          initialReps: currentReps,
           currentWeek: currentWeek,
           onWeightUpdated:
               ({
                 required double newWeightKg,
+                int? newReps,
                 required bool update1RM,
                 double? new1RMKg,
               }) async {
+                final int finalReps = newReps ?? currentReps;
                 setState(() {
                   _weightControllers[exercise.name]?.text = newWeightKg
                       .toStringAsFixed(1);
@@ -460,7 +469,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                       sets[i] = CompletedSet(
                         setIndex: sets[i].setIndex,
                         weight: newWeightKg,
-                        reps: sets[i].reps,
+                        reps: finalReps,
                         rpe: sets[i].rpe,
                         isCompleted: sets[i].isCompleted,
                         completedAt: sets[i].completedAt,
@@ -486,14 +495,14 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                     targetLift.id,
                     new1RMKg,
                     notes:
-                        'Recalculated from workout ($displayName @ ${newWeightKg.toStringAsFixed(1)} kg)',
+                        'Recalculated from workout ($displayName @ ${newWeightKg.toStringAsFixed(1)} kg × $finalReps reps)',
                   );
 
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(
-                          '🔥 ${targetLift.name} 1RM updated to ${new1RMKg.toStringAsFixed(1)} kg! Working weight set to ${newWeightKg.toStringAsFixed(1)} kg.',
+                          '🔥 ${targetLift.name} 1RM updated to ${new1RMKg.toStringAsFixed(1)} kg! Target set to ${newWeightKg.toStringAsFixed(1)} kg × $finalReps reps.',
                         ),
                         backgroundColor: AppTheme.primaryAmber,
                         duration: const Duration(seconds: 4),
@@ -504,7 +513,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(
-                        'Working weight updated to ${newWeightKg.toStringAsFixed(1)} kg.',
+                        'Working target updated to ${newWeightKg.toStringAsFixed(1)} kg × $finalReps reps.',
                       ),
                       backgroundColor: AppTheme.secondaryCyan,
                       duration: const Duration(seconds: 2),
@@ -512,6 +521,80 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                   );
                 }
               },
+        );
+      },
+    );
+  }
+
+  void _showSetEditDialog(String exerciseName, int setIndex) {
+    final List<CompletedSet>? sets = _exerciseSets[exerciseName];
+    if (sets == null || setIndex >= sets.length) {
+      return;
+    }
+    final CompletedSet currentSet = sets[setIndex];
+    final String displayName =
+        _swappedExerciseNames[exerciseName] ?? exerciseName;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      builder: (BuildContext ctx) {
+        return WorkoutSetEditDialog(
+          exerciseName: displayName,
+          currentSet: currentSet,
+          totalSets: sets.length,
+          onSaveSet: ({
+            required double newWeightKg,
+            required int newReps,
+            required bool isCompleted,
+            bool applyToSubsequentSets = false,
+          }) {
+            final SettingsProvider settings = Provider.of<SettingsProvider>(
+              context,
+              listen: false,
+            );
+            setState(() {
+              sets[setIndex] = CompletedSet(
+                setIndex: currentSet.setIndex,
+                weight: newWeightKg,
+                reps: newReps,
+                rpe: currentSet.rpe,
+                isCompleted: isCompleted,
+                completedAt: isCompleted
+                    ? (currentSet.completedAt ?? DateTime.now())
+                    : null,
+              );
+
+              if (applyToSubsequentSets) {
+                for (int i = setIndex + 1; i < sets.length; i++) {
+                  sets[i] = CompletedSet(
+                    setIndex: sets[i].setIndex,
+                    weight: newWeightKg,
+                    reps: newReps,
+                    rpe: sets[i].rpe,
+                    isCompleted: sets[i].isCompleted,
+                    completedAt: sets[i].completedAt,
+                  );
+                }
+              }
+            });
+
+            _persistDraft();
+
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    'Set ${currentSet.setIndex} updated: ${settings.formatWeight(newWeightKg)} × $newReps reps (${isCompleted ? 'Completed' : 'Pending'})',
+                  ),
+                  backgroundColor: AppTheme.secondaryCyan,
+                  duration: const Duration(seconds: 2),
+                ),
+              );
+            }
+          },
         );
       },
     );
@@ -1041,6 +1124,9 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
             final bool isSwapped = _swappedExerciseNames.containsKey(
               exercise.name,
             );
+            final int targetReps = sets.isNotEmpty
+                ? sets.first.reps
+                : WorkoutWeightHelper.extractRepsCount(exercise.setScheme);
 
             return Container(
               margin: const EdgeInsets.only(bottom: 12),
@@ -1223,16 +1309,14 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                           ),
                           const SizedBox(width: 6),
                           Text(
-                            'Weight: ',
+                            'Target: ',
                             style: GoogleFonts.inter(
                               fontSize: 12,
                               color: AppTheme.textSecondary,
                             ),
                           ),
                           Text(
-                            settings.formatWeight(
-                              double.tryParse(weightCtrl?.text ?? '0') ?? 0.0,
-                            ),
+                            '${settings.formatWeight(double.tryParse(weightCtrl?.text ?? '0') ?? 0.0)} × $targetReps ${targetReps == 1 ? 'rep' : 'reps'}',
                             style: GoogleFonts.outfit(
                               fontSize: 13,
                               fontWeight: FontWeight.bold,
@@ -1241,7 +1325,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                           ),
                           const Spacer(),
                           Text(
-                            'Adjust / Recalc 1RM',
+                            'Tune / Recalc 1RM',
                             style: GoogleFonts.outfit(
                               fontSize: 11,
                               fontWeight: FontWeight.bold,
@@ -1266,24 +1350,54 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                     runSpacing: 8,
                     children: List.generate(sets.length, (int index) {
                       final CompletedSet setItem = sets[index];
-                      return FilterChip(
-                        selected: setItem.isCompleted,
-                        label: Text(
-                          'Set ${setItem.setIndex}: ${settings.formatWeight(setItem.weight, includeUnit: false)}',
-                          style: GoogleFonts.outfit(
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            color: setItem.isCompleted
-                                ? Colors.black
-                                : AppTheme.textPrimary,
+                      return GestureDetector(
+                        onLongPress: () =>
+                            _showSetEditDialog(exercise.name, index),
+                        child: FilterChip(
+                          selected: setItem.isCompleted,
+                          avatar: setItem.isCompleted
+                              ? const Icon(
+                                  Icons.check,
+                                  size: 16,
+                                  color: Colors.black,
+                                )
+                              : null,
+                          label: Text(
+                            'Set ${setItem.setIndex}: ${settings.formatWeight(setItem.weight, includeUnit: false)} × ${setItem.reps}',
+                            style: GoogleFonts.outfit(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: setItem.isCompleted
+                                  ? Colors.black
+                                  : AppTheme.textPrimary,
+                            ),
                           ),
+                          selectedColor: AppTheme.primaryAmber,
+                          backgroundColor: AppTheme.surfaceCard,
+                          onSelected: (_) =>
+                              _toggleSetCompletion(exercise.name, index),
                         ),
-                        selectedColor: AppTheme.primaryAmber,
-                        backgroundColor: AppTheme.surfaceCard,
-                        onSelected: (_) =>
-                            _toggleSetCompletion(exercise.name, index),
                       );
                     }),
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: <Widget>[
+                      Icon(
+                        Icons.info_outline,
+                        size: 11,
+                        color: AppTheme.textSecondary.withValues(alpha: 0.7),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Tap to complete • Long-press to edit weight & reps',
+                        style: GoogleFonts.inter(
+                          fontSize: 11,
+                          color: AppTheme.textSecondary.withValues(alpha: 0.7),
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

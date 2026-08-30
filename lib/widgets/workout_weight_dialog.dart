@@ -94,14 +94,17 @@ class WorkoutWeightDialog extends StatefulWidget {
     required this.initialWeightKg,
     required this.currentWeek,
     required this.onWeightUpdated,
+    this.initialReps,
     super.key,
   });
   final ExerciseTemplate exercise;
   final String displayName;
   final double initialWeightKg;
+  final int? initialReps;
   final int currentWeek;
   final void Function({
     required double newWeightKg,
+    int? newReps,
     required bool update1RM,
     double? new1RMKg,
   })
@@ -113,9 +116,11 @@ class WorkoutWeightDialog extends StatefulWidget {
 
 class _WorkoutWeightDialogState extends State<WorkoutWeightDialog> {
   late TextEditingController _weightController;
+  late TextEditingController _repsController;
   late TextEditingController _target1RMController;
 
   double _currentWeightKg = 0.0;
+  int _currentReps = 1;
   double _calculated1RMKg = 0.0;
   bool _useEpleyFormula = false;
 
@@ -123,9 +128,12 @@ class _WorkoutWeightDialogState extends State<WorkoutWeightDialog> {
   void initState() {
     super.initState();
     _currentWeightKg = widget.initialWeightKg;
+    _currentReps = widget.initialReps ??
+        WorkoutWeightHelper.extractRepsCount(widget.exercise.setScheme);
     _recalculate1RM();
 
     _weightController = TextEditingController();
+    _repsController = TextEditingController(text: '$_currentReps');
     _target1RMController = TextEditingController();
 
     // Initial controllers text formatted with settings in didChangeDependencies
@@ -148,6 +156,7 @@ class _WorkoutWeightDialogState extends State<WorkoutWeightDialog> {
   @override
   void dispose() {
     _weightController.dispose();
+    _repsController.dispose();
     _target1RMController.dispose();
     super.dispose();
   }
@@ -158,12 +167,9 @@ class _WorkoutWeightDialogState extends State<WorkoutWeightDialog> {
 
   void _recalculate1RM() {
     if (_useEpleyFormula) {
-      final int reps = WorkoutWeightHelper.extractRepsCount(
-        widget.exercise.setScheme,
-      );
       _calculated1RMKg = WorkoutWeightHelper.calculateImplied1RMEpley(
         workingWeightKg: _currentWeightKg,
-        reps: reps,
+        reps: _currentReps,
       );
     } else {
       _calculated1RMKg = WorkoutWeightHelper.calculateImplied1RMPeriodization(
@@ -199,6 +205,26 @@ class _WorkoutWeightDialogState extends State<WorkoutWeightDialog> {
     _updateWeight(newKg, settings);
   }
 
+  void _updateReps(int newReps, SettingsProvider settings) {
+    if (newReps < 1) {
+      return;
+    }
+    setState(() {
+      _currentReps = newReps;
+      _repsController.text = '$_currentReps';
+      _recalculate1RM();
+
+      final double display1RM = settings.toDisplayWeight(_calculated1RMKg);
+      _target1RMController.text = _formatNumber(display1RM);
+    });
+  }
+
+  void _adjustReps(int delta, SettingsProvider settings) {
+    final int current = int.tryParse(_repsController.text) ?? _currentReps;
+    final int newReps = (current + delta).clamp(1, 99);
+    _updateReps(newReps, settings);
+  }
+
   LiftModel _resolveTargetLift(LiftProvider liftProvider) {
     // 1. Try finding by displayName (if swapped)
     final LiftModel byName = liftProvider.lifts.firstWhere(
@@ -217,9 +243,6 @@ class _WorkoutWeightDialogState extends State<WorkoutWeightDialog> {
     final LiftProvider liftProvider = Provider.of<LiftProvider>(context);
     final SettingsProvider settings = Provider.of<SettingsProvider>(context);
     final LiftModel targetLift = _resolveTargetLift(liftProvider);
-    final int reps = WorkoutWeightHelper.extractRepsCount(
-      widget.exercise.setScheme,
-    );
 
     final double? targetPct = WorkoutWeightHelper.getPeriodizationPercentage(
       exerciseTemplate: widget.exercise,
@@ -233,6 +256,8 @@ class _WorkoutWeightDialogState extends State<WorkoutWeightDialog> {
     final List<double> steppers = settings.isLbs
         ? <double>[-10.0, -5.0, -2.5, 2.5, 5.0, 10.0]
         : <double>[-5.0, -2.5, -1.0, 1.0, 2.5, 5.0];
+
+    const List<int> repPresets = <int>[1, 2, 3, 5, 8, 10, 12];
 
     return Container(
       constraints: BoxConstraints(
@@ -271,7 +296,7 @@ class _WorkoutWeightDialogState extends State<WorkoutWeightDialog> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
                         Text(
-                          'Update Working Weight & 1RM',
+                          'Update Working Weight & Reps',
                           style: GoogleFonts.outfit(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
@@ -447,7 +472,7 @@ class _WorkoutWeightDialogState extends State<WorkoutWeightDialog> {
 
               const SizedBox(height: 10),
 
-              // Quick Adjust Steppers
+              // Quick Adjust Steppers for Weight
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
@@ -480,9 +505,132 @@ class _WorkoutWeightDialogState extends State<WorkoutWeightDialog> {
                 ),
               ),
 
+              const SizedBox(height: 16),
+
+              // SECTION 2: TARGET REPS INPUT & PRESETS
+              Text(
+                'TARGET REPS (PER SET)',
+                style: GoogleFonts.outfit(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.0,
+                  color: AppTheme.textSecondary,
+                ),
+              ),
+              const SizedBox(height: 8),
+
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: AppTheme.surfaceCard,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppTheme.secondaryCyan, width: 1.5),
+                ),
+                child: Row(
+                  children: <Widget>[
+                    IconButton(
+                      icon: const Icon(Icons.remove_circle_outline),
+                      color: _currentReps > 1
+                          ? AppTheme.secondaryCyan
+                          : AppTheme.textSecondary.withValues(alpha: 0.3),
+                      onPressed: _currentReps > 1
+                          ? () => _adjustReps(-1, settings)
+                          : null,
+                    ),
+                    Expanded(
+                      child: TextField(
+                        controller: _repsController,
+                        textAlign: TextAlign.center,
+                        keyboardType: TextInputType.number,
+                        style: GoogleFonts.outfit(
+                          fontSize: 26,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.textPrimary,
+                        ),
+                        decoration: const InputDecoration(
+                          border: InputBorder.none,
+                          hintText: '1',
+                        ),
+                        onChanged: (String val) {
+                          final int? parsed = int.tryParse(val);
+                          if (parsed != null && parsed >= 1) {
+                            setState(() {
+                              _currentReps = parsed;
+                              _recalculate1RM();
+                              final double display1RM = settings
+                                  .toDisplayWeight(_calculated1RMKg);
+                              _target1RMController.text = _formatNumber(
+                                display1RM,
+                              );
+                            });
+                          }
+                        },
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.add_circle_outline),
+                      color: AppTheme.secondaryCyan,
+                      onPressed: () => _adjustReps(1, settings),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'REPS',
+                      style: GoogleFonts.outfit(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.secondaryCyan,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 10),
+
+              // Rep Presets Row
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: repPresets.map((int r) {
+                    final bool isSelected = _currentReps == r;
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 6),
+                      child: ChoiceChip(
+                        selected: isSelected,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 4,
+                          vertical: 0,
+                        ),
+                        backgroundColor: AppTheme.surfaceElevated,
+                        selectedColor: AppTheme.secondaryCyan.withValues(alpha: 0.25),
+                        side: BorderSide(
+                          color: isSelected
+                              ? AppTheme.secondaryCyan
+                              : AppTheme.borderColor,
+                        ),
+                        label: Text(
+                          '$r ${r == 1 ? 'Rep' : 'Reps'}',
+                          style: GoogleFonts.outfit(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: isSelected
+                                ? AppTheme.secondaryCyan
+                                : AppTheme.textSecondary,
+                          ),
+                        ),
+                        onSelected: (_) => _updateReps(r, settings),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+
               const SizedBox(height: 20),
 
-              // SECTION 2: 1RM RECALCULATION & ESTIMATION CARD
+              // SECTION 3: 1RM RECALCULATION & ESTIMATION CARD
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -547,7 +695,7 @@ class _WorkoutWeightDialogState extends State<WorkoutWeightDialog> {
                             ),
                             child: Text(
                               _useEpleyFormula
-                                  ? 'Formula: Epley ($reps Reps)'
+                                  ? 'Formula: Epley ($_currentReps Reps)'
                                   : 'Formula: Periodization (${targetPct != null ? '${targetPct.toStringAsFixed(0)}%' : '75%'})',
                               style: GoogleFonts.inter(
                                 fontSize: 11,
@@ -658,7 +806,7 @@ class _WorkoutWeightDialogState extends State<WorkoutWeightDialog> {
               // ACTION BUTTONS
               Row(
                 children: <Widget>[
-                  // Button 1: Update Workout Weight Only
+                  // Button 1: Update Workout Weight & Reps Only
                   Expanded(
                     child: OutlinedButton(
                       style: OutlinedButton.styleFrom(
@@ -671,14 +819,15 @@ class _WorkoutWeightDialogState extends State<WorkoutWeightDialog> {
                       onPressed: () {
                         widget.onWeightUpdated(
                           newWeightKg: _currentWeightKg,
+                          newReps: _currentReps,
                           update1RM: false,
                         );
                         Navigator.pop(context);
                       },
                       child: Text(
-                        'Weight Only',
+                        'Weight & Reps Only',
                         style: GoogleFonts.outfit(
-                          fontSize: 14,
+                          fontSize: 13,
                           fontWeight: FontWeight.bold,
                           color: AppTheme.textSecondary,
                         ),
@@ -710,6 +859,7 @@ class _WorkoutWeightDialogState extends State<WorkoutWeightDialog> {
 
                         widget.onWeightUpdated(
                           newWeightKg: _currentWeightKg,
+                          newReps: _currentReps,
                           update1RM: true,
                           new1RMKg: final1RMKg,
                         );

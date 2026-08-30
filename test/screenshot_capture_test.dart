@@ -452,6 +452,7 @@ void main() {
             currentWeek: 2,
             onWeightUpdated: ({
               required double newWeightKg,
+              int? newReps,
               required bool update1RM,
               double? new1RMKg,
             }) {},
@@ -459,7 +460,7 @@ void main() {
         ),
       );
       await captureScreen(tester, '11_workout_weight_dialog');
-      expect(find.text('Update Working Weight & 1RM'), findsOneWidget);
+      expect(find.text('Update Working Weight & Reps'), findsOneWidget);
     });
 
     testWidgets('12 Renders Active Recovery Session Screen', (

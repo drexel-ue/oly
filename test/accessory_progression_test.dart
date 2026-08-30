@@ -168,5 +168,91 @@ void main() {
         expect(find.text('Sots Press & Snatch Balance Prep'), findsOneWidget);
       },
     );
+
+    testWidgets(
+      'VideoPlayerCard adjusts target reps and allows individual set editing via long press',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(1170, 2532);
+        tester.view.devicePixelRatio = 2.0;
+        addTearDown(() => tester.view.resetPhysicalSize());
+
+        final MobilityExerciseModel accessoryEx = MobilityExerciseModel(
+          id: 'lu_raises',
+          name: 'Lu Raises (Lateral Full Range)',
+          focusArea: MobilityFocusArea.shoulderOverhead,
+          category: MobilityCategory.liftingAccessory,
+          description: 'Shoulder mobility and hypertrophy.',
+          cues: <String>['Controlled tempo.'],
+          defaultSets: 3,
+          defaultReps: 12,
+          videoUrl: 'https://youtube.com',
+        );
+
+        bool completedTriggered = false;
+
+        await tester.pumpWidget(
+          buildTestWidget(
+            SingleChildScrollView(
+              child: VideoPlayerCard(
+                exercise: accessoryEx,
+                onCompleted: () {
+                  completedTriggered = true;
+                },
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // Target reps header displays 12 Reps
+        expect(find.text('3 Sets × 12 Reps'), findsOneWidget);
+        expect(find.text('Target Reps:'), findsOneWidget);
+        expect(find.text('12 reps'), findsOneWidget);
+
+        // Tap '+1' on reps stepper -> becomes 13 reps
+        expect(find.text('+1'), findsOneWidget);
+        await tester.tap(find.text('+1'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('3 Sets × 13 Reps'), findsOneWidget);
+        expect(find.text('13 reps'), findsOneWidget);
+
+        // Sets reflect 13 reps
+        expect(find.text('Set 1: 10.0KG × 13'), findsOneWidget);
+
+        // Long press on Set 1 to open WorkoutSetEditDialog
+        await tester.longPress(find.text('Set 1: 10.0KG × 13'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Edit Set 1'), findsOneWidget);
+
+        // Tap 10 Reps preset in dialog
+        expect(find.text('10 Reps'), findsOneWidget);
+        await tester.tap(find.text('10 Reps'));
+        await tester.pumpAndSettle();
+
+        // Tap Save Set in dialog
+        await tester.tap(find.text('Save Set'));
+        await tester.pumpAndSettle();
+
+        // Set 1 updated to 10 reps
+        expect(find.text('Set 1: 10.0KG × 10'), findsOneWidget);
+
+        // Tap all 3 sets to complete the exercise
+        await tester.tap(find.text('Set 1: 10.0KG × 10'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Set 2: 10.0KG × 13'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Set 3: 10.0KG × 13'));
+        await tester.pumpAndSettle();
+
+        expect(completedTriggered, isTrue);
+
+        // Verify logged in recovery provider
+        final AccessoryLog? latest = recoveryProvider.getLatestAccessoryLog('lu_raises');
+        expect(latest, isNotNull);
+        expect(latest?.reps, 13);
+      },
+    );
   });
 }

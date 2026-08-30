@@ -3,12 +3,14 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:oly/models/accessory_log.dart';
 import 'package:oly/models/mobility_exercise_model.dart';
+import 'package:oly/models/workout_session.dart';
 import 'package:oly/providers/recovery_provider.dart';
 import 'package:oly/providers/settings_provider.dart';
 import 'package:oly/theme/app_theme.dart';
 import 'package:oly/widgets/kettlebell_mile_card.dart';
 import 'package:oly/widgets/mobility_exercise_swap_modal.dart';
 import 'package:oly/widgets/rest_timer_widget.dart';
+import 'package:oly/widgets/workout_set_edit_dialog.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -37,6 +39,9 @@ class VideoPlayerCard extends StatefulWidget {
 
 class _VideoPlayerCardState extends State<VideoPlayerCard> {
   late List<bool> _setsCompleted;
+  late List<double> _setWeights;
+  late List<int> _setReps;
+  late int _targetReps;
   late TextEditingController _weightController;
   double _accessoryWeight = 0.0;
   bool _showAccessoryRestTimer = false;
@@ -45,10 +50,16 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
   @override
   void initState() {
     super.initState();
-    _setsCompleted = List.filled(widget.exercise.defaultSets, false);
+    _targetReps = widget.exercise.defaultReps;
     _accessoryWeight = widget.exercise.category == MobilityCategory.barbellPrep
         ? 20.0
-        : 10.0;
+        : (widget.exercise.category == MobilityCategory.liftingAccessory ||
+                widget.exercise.category == MobilityCategory.hypertrophyCore
+            ? 10.0
+            : 0.0);
+    _setsCompleted = List.filled(widget.exercise.defaultSets, false);
+    _setWeights = List.filled(widget.exercise.defaultSets, _accessoryWeight);
+    _setReps = List.filled(widget.exercise.defaultSets, _targetReps);
     _weightController = TextEditingController(
       text: _accessoryWeight > 0 ? _accessoryWeight.toStringAsFixed(1) : '0',
     );
@@ -65,9 +76,16 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
       final AccessoryLog? latest = recovery.getLatestAccessoryLog(
         widget.exercise.id,
       );
-      if (latest != null && latest.weightKg > 0) {
-        _accessoryWeight = latest.weightKg;
-        _weightController.text = _accessoryWeight.toStringAsFixed(1);
+      if (latest != null) {
+        if (latest.weightKg > 0) {
+          _accessoryWeight = latest.weightKg;
+          _weightController.text = _accessoryWeight.toStringAsFixed(1);
+        }
+        if (latest.reps > 0) {
+          _targetReps = latest.reps;
+        }
+        _setWeights = List.filled(widget.exercise.defaultSets, _accessoryWeight);
+        _setReps = List.filled(widget.exercise.defaultSets, _targetReps);
       }
       _initializedWeight = true;
     }
@@ -77,7 +95,7 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
   void didUpdateWidget(covariant VideoPlayerCard oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.exercise.id != widget.exercise.id) {
-      _setsCompleted = List.filled(widget.exercise.defaultSets, false);
+      _targetReps = widget.exercise.defaultReps;
       final RecoveryProvider recovery = Provider.of<RecoveryProvider>(
         context,
         listen: false,
@@ -85,14 +103,33 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
       final AccessoryLog? latest = recovery.getLatestAccessoryLog(
         widget.exercise.id,
       );
-      if (latest != null && latest.weightKg > 0) {
-        _accessoryWeight = latest.weightKg;
+      if (latest != null) {
+        if (latest.weightKg > 0) {
+          _accessoryWeight = latest.weightKg;
+        } else {
+          _accessoryWeight =
+              widget.exercise.category == MobilityCategory.barbellPrep
+                  ? 20.0
+                  : (widget.exercise.category == MobilityCategory.liftingAccessory ||
+                          widget.exercise.category == MobilityCategory.hypertrophyCore
+                      ? 10.0
+                      : 0.0);
+        }
+        if (latest.reps > 0) {
+          _targetReps = latest.reps;
+        }
       } else {
         _accessoryWeight =
             widget.exercise.category == MobilityCategory.barbellPrep
-            ? 20.0
-            : 10.0;
+                ? 20.0
+                : (widget.exercise.category == MobilityCategory.liftingAccessory ||
+                        widget.exercise.category == MobilityCategory.hypertrophyCore
+                    ? 10.0
+                    : 0.0);
       }
+      _setsCompleted = List.filled(widget.exercise.defaultSets, false);
+      _setWeights = List.filled(widget.exercise.defaultSets, _accessoryWeight);
+      _setReps = List.filled(widget.exercise.defaultSets, _targetReps);
       _weightController.text = _accessoryWeight > 0
           ? _accessoryWeight.toStringAsFixed(1)
           : '0';
@@ -110,7 +147,94 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
     setState(() {
       _accessoryWeight = (_accessoryWeight + delta).clamp(0.0, 300.0);
       _weightController.text = _accessoryWeight.toStringAsFixed(1);
+      for (int i = 0; i < _setWeights.length; i++) {
+        if (!_setsCompleted[i]) {
+          _setWeights[i] = _accessoryWeight;
+        }
+      }
     });
+  }
+
+  void _adjustTargetReps(int delta) {
+    setState(() {
+      _targetReps = (_targetReps + delta).clamp(1, 99);
+      for (int i = 0; i < _setReps.length; i++) {
+        if (!_setsCompleted[i]) {
+          _setReps[i] = _targetReps;
+        }
+      }
+    });
+  }
+
+  void _showSetEditDialog(
+    BuildContext context,
+    int index,
+    RecoveryProvider recovery,
+    SettingsProvider settings,
+  ) {
+    final MobilityExerciseModel ex = widget.exercise;
+    final CompletedSet currentSet = CompletedSet(
+      setIndex: index + 1,
+      weight: _setWeights[index],
+      reps: _setReps[index],
+      isCompleted: _setsCompleted[index],
+    );
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (BuildContext ctx) {
+        return WorkoutSetEditDialog(
+          exerciseName: ex.name,
+          currentSet: currentSet,
+          totalSets: ex.defaultSets,
+          onSaveSet: ({
+            required double newWeightKg,
+            required int newReps,
+            required bool isCompleted,
+            bool applyToSubsequentSets = false,
+          }) async {
+            setState(() {
+              _setWeights[index] = newWeightKg;
+              _setReps[index] = newReps;
+              _setsCompleted[index] = isCompleted;
+
+              if (applyToSubsequentSets) {
+                for (int i = index + 1; i < ex.defaultSets; i++) {
+                  _setWeights[i] = newWeightKg;
+                  _setReps[i] = newReps;
+                }
+              }
+
+              _accessoryWeight = newWeightKg;
+              _targetReps = newReps;
+              _weightController.text = newWeightKg > 0
+                  ? newWeightKg.toStringAsFixed(1)
+                  : '0';
+            });
+
+            if (_setsCompleted.every((bool e) => e)) {
+              final double loggedWeight = _setWeights.isNotEmpty
+                  ? _setWeights.last
+                  : _accessoryWeight;
+              final int loggedReps = _setReps.isNotEmpty
+                  ? _setReps.last
+                  : _targetReps;
+              await recovery.logAccessoryWeight(
+                exerciseId: ex.id,
+                exerciseName: ex.name,
+                weightKg: loggedWeight,
+                sets: ex.defaultSets,
+                reps: loggedReps,
+                source: 'routine',
+              );
+              widget.onCompleted();
+            }
+          },
+        );
+      },
+    );
   }
 
   bool get _isTimedDrill {
@@ -809,7 +933,7 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
                   Text(
-                    '${ex.defaultSets} Sets × ${ex.defaultReps} Reps',
+                    '${ex.defaultSets} Sets × $_targetReps Reps',
                     style: GoogleFonts.inter(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
@@ -907,49 +1031,94 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
           ),
           const SizedBox(height: 12),
 
-          // Working Weight Banner & Steppers (Matching Live Workout Session)
+          // Working Weight & Target Reps Container
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
               color: AppTheme.surfaceCard,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(14),
               border: Border.all(color: AppTheme.borderColor),
             ),
-            child: Row(
+            child: Column(
               children: <Widget>[
-                const Icon(
-                  Icons.fitness_center,
-                  color: AppTheme.primaryAmber,
-                  size: 18,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'Weight:',
-                  style: GoogleFonts.inter(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.textSecondary,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    _accessoryWeight == 0.0
-                        ? 'Bodyweight / Band'
-                        : '${displayWeight.toStringAsFixed(1)} $unitLabel',
-                    style: GoogleFonts.outfit(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.textPrimary,
+                // Weight Row
+                Row(
+                  children: <Widget>[
+                    const Icon(
+                      Icons.fitness_center,
+                      color: AppTheme.primaryAmber,
+                      size: 18,
                     ),
-                  ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Weight:',
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.textSecondary,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        _accessoryWeight == 0.0
+                            ? 'Bodyweight / Band'
+                            : '${displayWeight.toStringAsFixed(1)} $unitLabel',
+                        style: GoogleFonts.outfit(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.textPrimary,
+                        ),
+                      ),
+                    ),
+                    // Weight Steppers
+                    _buildWeightStepButton('-2.5', -2.5),
+                    const SizedBox(width: 4),
+                    _buildWeightStepButton('+2.5', 2.5),
+                    const SizedBox(width: 4),
+                    _buildWeightStepButton('+5.0', 5.0),
+                  ],
                 ),
-                // Steppers
-                _buildWeightStepButton('-2.5', -2.5),
-                const SizedBox(width: 4),
-                _buildWeightStepButton('+2.5', 2.5),
-                const SizedBox(width: 4),
-                _buildWeightStepButton('+5.0', 5.0),
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  child: Divider(color: AppTheme.borderColor, height: 1),
+                ),
+                // Target Reps Row
+                Row(
+                  children: <Widget>[
+                    const Icon(
+                      Icons.repeat,
+                      color: AppTheme.secondaryCyan,
+                      size: 18,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Target Reps:',
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.textSecondary,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        '$_targetReps ${_targetReps == 1 ? 'rep' : 'reps'}',
+                        style: GoogleFonts.outfit(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.secondaryCyan,
+                        ),
+                      ),
+                    ),
+                    // Rep Steppers
+                    _buildRepStepButton('-1', -1),
+                    const SizedBox(width: 4),
+                    _buildRepStepButton('+1', 1),
+                    const SizedBox(width: 4),
+                    _buildRepStepButton('+5', 5),
+                  ],
+                ),
               ],
             ),
           ),
@@ -995,7 +1164,7 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
                   ),
                 if (latestLog != null)
                   Text(
-                    'Last: ${settings.toDisplayWeight(latestLog.weightKg).toStringAsFixed(1)} $unitLabel',
+                    'Last: ${settings.toDisplayWeight(latestLog.weightKg).toStringAsFixed(1)} $unitLabel × ${latestLog.reps} reps',
                     style: GoogleFonts.inter(
                       fontSize: 11,
                       color: AppTheme.textSecondary,
@@ -1012,71 +1181,107 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
             runSpacing: 8,
             children: List.generate(ex.defaultSets, (int index) {
               final bool isDone = _setsCompleted[index];
-              final String weightText = _accessoryWeight > 0
-                  ? '${displayWeight.toStringAsFixed(1)}$unitLabel'
+              final double setWeight = _setWeights[index];
+              final int setReps = _setReps[index];
+              final double setDisplayWeight = settings.toDisplayWeight(setWeight);
+              final String weightText = setWeight > 0
+                  ? '${setDisplayWeight.toStringAsFixed(1)}$unitLabel'
                   : 'BW';
 
-              return InkWell(
-                onTap: () async {
-                  setState(() => _setsCompleted[index] = !isDone);
-                  if (_setsCompleted.every((bool e) => e)) {
-                    // Log accessory progression into history
-                    await recovery.logAccessoryWeight(
-                      exerciseId: ex.id,
-                      exerciseName: ex.name,
-                      weightKg: _accessoryWeight,
-                      sets: ex.defaultSets,
-                      reps: ex.defaultReps,
-                      source: 'routine',
-                    );
-                    widget.onCompleted();
-                  }
-                },
-                borderRadius: BorderRadius.circular(12),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 10,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isDone
-                        ? Colors.green.withValues(alpha: 0.25)
-                        : AppTheme.surfaceCard,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: isDone ? Colors.greenAccent : AppTheme.borderColor,
-                      width: isDone ? 1.5 : 1.0,
+              return GestureDetector(
+                onLongPress: () =>
+                    _showSetEditDialog(context, index, recovery, settings),
+                child: InkWell(
+                  onTap: () async {
+                    setState(() => _setsCompleted[index] = !isDone);
+                    if (_setsCompleted.every((bool e) => e)) {
+                      // Log accessory progression into history
+                      final double loggedWeight = _setWeights.isNotEmpty
+                          ? _setWeights.last
+                          : _accessoryWeight;
+                      final int loggedReps = _setReps.isNotEmpty
+                          ? _setReps.last
+                          : _targetReps;
+                      await recovery.logAccessoryWeight(
+                        exerciseId: ex.id,
+                        exerciseName: ex.name,
+                        weightKg: loggedWeight,
+                        sets: ex.defaultSets,
+                        reps: loggedReps,
+                        source: 'routine',
+                      );
+                      widget.onCompleted();
+                    }
+                  },
+                  borderRadius: BorderRadius.circular(12),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 10,
                     ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      Icon(
-                        isDone
-                            ? Icons.check_circle
-                            : Icons.radio_button_unchecked,
-                        size: 16,
+                    decoration: BoxDecoration(
+                      color: isDone
+                          ? Colors.green.withValues(alpha: 0.25)
+                          : AppTheme.surfaceCard,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
                         color: isDone
                             ? Colors.greenAccent
-                            : AppTheme.textSecondary,
+                            : AppTheme.borderColor,
+                        width: isDone ? 1.5 : 1.0,
                       ),
-                      const SizedBox(width: 6),
-                      Text(
-                        'Set ${index + 1}: $weightText',
-                        style: GoogleFonts.outfit(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        Icon(
+                          isDone
+                              ? Icons.check_circle
+                              : Icons.radio_button_unchecked,
+                          size: 16,
                           color: isDone
                               ? Colors.greenAccent
-                              : AppTheme.textPrimary,
+                              : AppTheme.textSecondary,
                         ),
-                      ),
-                    ],
+                        const SizedBox(width: 6),
+                        Text(
+                          'Set ${index + 1}: $weightText × $setReps',
+                          style: GoogleFonts.outfit(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: isDone
+                                ? Colors.greenAccent
+                                : AppTheme.textPrimary,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               );
             }),
+          ),
+          const SizedBox(height: 6),
+          Row(
+            children: <Widget>[
+              Icon(
+                Icons.info_outline,
+                size: 11,
+                color: AppTheme.textSecondary.withValues(alpha: 0.7),
+              ),
+              const SizedBox(width: 4),
+              Expanded(
+                child: Text(
+                  'Tap set to complete • Long-press to edit weight & reps',
+                  style: GoogleFonts.inter(
+                    fontSize: 11,
+                    color: AppTheme.textSecondary.withValues(alpha: 0.7),
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ),
+            ],
           ),
 
           // Optional In-line Rest Timer
@@ -1116,6 +1321,29 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
             fontSize: 11,
             fontWeight: FontWeight.bold,
             color: delta > 0 ? AppTheme.primaryAmber : AppTheme.textSecondary,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRepStepButton(String label, int delta) {
+    return InkWell(
+      onTap: () => _adjustTargetReps(delta),
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        decoration: BoxDecoration(
+          color: AppTheme.surfaceElevated,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: AppTheme.borderColor),
+        ),
+        child: Text(
+          label,
+          style: GoogleFonts.outfit(
+            fontSize: 11,
+            fontWeight: FontWeight.bold,
+            color: delta > 0 ? AppTheme.secondaryCyan : AppTheme.textSecondary,
           ),
         ),
       ),
