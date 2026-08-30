@@ -411,45 +411,108 @@ class _SmartPortionDrawerState extends State<SmartPortionDrawer> {
             const SizedBox(height: 8),
 
             // Mode Controls
-            if (!_isGramsMode)
-              Row(
-                children: <double>[0.5, 1.0, 1.5, 2.0].map((double m) {
-                  final bool isSel = _servingMultiplier == m;
-                  return Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 3),
-                      child: OutlinedButton(
-                        onPressed: () => _setMultiplier(m),
-                        style: OutlinedButton.styleFrom(
-                          backgroundColor: isSel
-                              ? AppTheme.primaryAmber.withValues(alpha: 0.18)
-                              : AppTheme.darkBackground,
-                          side: BorderSide(
-                            color: isSel
-                                ? AppTheme.primaryAmber
-                                : AppTheme.borderColor,
+            if (!_isGramsMode) ...<Widget>[
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: () {
+                    final List<double> options = _item.servingUnitName == 'wing'
+                        ? <double>[1.0, 6.0, 8.0, 10.0, 12.0, 15.0, 20.0]
+                        : _item.servingUnitName == 'tender'
+                            ? <double>[1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
+                            : _item.servingUnitName == 'nugget'
+                                ? <double>[1.0, 6.0, 8.0, 10.0, 12.0, 20.0]
+                                : _item.servingUnitName == 'taco' ||
+                                        _item.servingUnitName == 'patty' ||
+                                        _item.servingUnitName == 'slice'
+                                    ? <double>[1.0, 2.0, 3.0, 4.0]
+                                    : <double>[0.5, 1.0, 1.5, 2.0];
+
+                    return options.map((double m) {
+                      final bool isSel = _servingMultiplier == m;
+                      final String label = _item.servingUnitName != null
+                          ? '${m.round()} ${_item.servingUnitName}${m > 1 && !_item.servingUnitName!.endsWith("s") ? "s" : ""}'
+                          : '${m}x';
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 6),
+                        child: OutlinedButton(
+                          onPressed: () => _setMultiplier(m),
+                          style: OutlinedButton.styleFrom(
+                            backgroundColor: isSel
+                                ? AppTheme.primaryAmber.withValues(alpha: 0.18)
+                                : AppTheme.darkBackground,
+                            side: BorderSide(
+                              color: isSel
+                                  ? AppTheme.primaryAmber
+                                  : AppTheme.borderColor,
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 8,
+                              horizontal: 10,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
                           ),
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                          child: Text(
+                            label,
+                            style: GoogleFonts.outfit(
+                              fontWeight: isSel
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
+                              color: isSel
+                                  ? AppTheme.primaryAmber
+                                  : AppTheme.textPrimary,
+                            ),
                           ),
                         ),
-                        child: Text(
-                          '${m}x',
-                          style: GoogleFonts.outfit(
-                            fontWeight: isSel
-                                ? FontWeight.bold
-                                : FontWeight.normal,
-                            color: isSel
-                                ? AppTheme.primaryAmber
-                                : AppTheme.textPrimary,
-                          ),
+                      );
+                    }).toList();
+                  }(),
+                ),
+              ),
+              if (_item.servingUnitName != null) ...<Widget>[
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    IconButton(
+                      icon: const Icon(Icons.remove_circle_outline, size: 22),
+                      color: AppTheme.primaryAmber,
+                      onPressed: _servingMultiplier > 1.0
+                          ? () => _setMultiplier(_servingMultiplier - 1.0)
+                          : null,
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppTheme.darkBackground,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: AppTheme.borderColor),
+                      ),
+                      child: Text(
+                        '${_servingMultiplier.round()} ${_item.servingUnitName}${_servingMultiplier > 1 && !_item.servingUnitName!.endsWith("s") ? "s" : ""}',
+                        style: GoogleFonts.outfit(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.primaryAmber,
                         ),
                       ),
                     ),
-                  );
-                }).toList(),
-              )
+                    IconButton(
+                      icon: const Icon(Icons.add_circle_outline, size: 22),
+                      color: AppTheme.primaryAmber,
+                      onPressed: _servingMultiplier < 50.0
+                          ? () => _setMultiplier(_servingMultiplier + 1.0)
+                          : null,
+                    ),
+                  ],
+                ),
+              ],
+            ]
             else
               Column(
                 children: <Widget>[
@@ -640,16 +703,15 @@ class _SmartPortionDrawerState extends State<SmartPortionDrawer> {
                     widget.onAdded!();
                   } else {
                     Navigator.of(context).pop();
-                  }
-
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        '✓ Logged ${entry.name} to ${_selectedCategory.displayName} ($scaledCalories kcal)',
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          '✓ Logged ${entry.name} to ${_selectedCategory.displayName} ($scaledCalories kcal)',
+                        ),
+                        backgroundColor: AppTheme.primaryAmber,
                       ),
-                      backgroundColor: AppTheme.primaryAmber,
-                    ),
-                  );
+                    );
+                  }
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.primaryAmber,

@@ -3,6 +3,11 @@
 *.log
 *.pyc
 *.swp
+*.db
+*.db-shm
+*.db-wal
+assets/data/usda_foods.db
+.usda_cache/
 .DS_Store
 .atom/
 .build/

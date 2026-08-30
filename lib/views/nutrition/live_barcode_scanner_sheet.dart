@@ -35,8 +35,17 @@ class _LiveBarcodeScannerSheetState extends State<LiveBarcodeScannerSheet>
 
   bool _isTorchOn = false;
   bool _isLoading = false;
+  bool _isSheetOpen = false;
+  bool _isManualInputOpen = false;
   String? _statusText;
-  DateTime _lastScanTime = DateTime.now().subtract(const Duration(seconds: 5));
+  DateTime _lastScanTime = DateTime.now().subtract(const Duration(seconds: 10));
+  String? _lastScannedBarcode;
+  DateTime? _lastScannedBarcodeTime;
+  DateTime? _cooldownUntil;
+
+  static const Duration _minScanInterval = Duration(milliseconds: 1200);
+  static const Duration _duplicateBarcodeCooldown = Duration(seconds: 4);
+  static const Duration _sheetDismissCooldown = Duration(milliseconds: 1500);
 
   late AnimationController _reticleAnimation;
 
@@ -63,18 +72,46 @@ class _LiveBarcodeScannerSheetState extends State<LiveBarcodeScannerSheet>
     super.dispose();
   }
 
-  Future<void> _processBarcode(String barcode) async {
+  bool get _isScanningBlocked {
+    if (_isSheetOpen || _isManualInputOpen || _isLoading) {
+      return true;
+    }
+    final DateTime now = DateTime.now();
+    if (_cooldownUntil != null && now.isBefore(_cooldownUntil!)) {
+      return true;
+    }
+    return false;
+  }
+
+  Future<void> _processBarcode(String barcode, {bool isManual = false}) async {
+    if (!isManual && _isScanningBlocked) {
+      return;
+    }
+
     final String clean = barcode.trim();
     if (clean.isEmpty) {
       return;
     }
 
-    // Debounce scans to avoid duplicate rapid triggers
     final DateTime now = DateTime.now();
-    if (now.difference(_lastScanTime).inMilliseconds < 1200) {
-      return;
+
+    if (!isManual) {
+      // 1. Debounce rapid scan frames
+      if (now.difference(_lastScanTime) < _minScanInterval) {
+        return;
+      }
+
+      // 2. Duplicate barcode cooldown (prevent scanning identical item continuously)
+      if (_lastScannedBarcode == clean &&
+          _lastScannedBarcodeTime != null &&
+          now.difference(_lastScannedBarcodeTime!) < _duplicateBarcodeCooldown) {
+        return;
+      }
     }
+
     _lastScanTime = now;
+    _lastScannedBarcode = clean;
+    _lastScannedBarcodeTime = now;
 
     if (_scannedBarcodes.contains(clean)) {
       // Find previously scanned item in session list
@@ -93,7 +130,7 @@ class _LiveBarcodeScannerSheetState extends State<LiveBarcodeScannerSheet>
         ),
       );
       HapticFeedback.selectionClick();
-      _openPortionDrawer(existing);
+      await _openPortionDrawer(existing);
       return;
     }
 
@@ -126,12 +163,16 @@ class _LiveBarcodeScannerSheetState extends State<LiveBarcodeScannerSheet>
             _scannedSessionItems.insert(0, item);
             _statusText = null;
             HapticFeedback.heavyImpact();
-            _openPortionDrawer(item);
           } else {
             _statusText = 'Product not found for barcode: $clean';
             HapticFeedback.vibrate();
+            _cooldownUntil = DateTime.now().add(const Duration(seconds: 3));
           }
         });
+
+        if (item != null) {
+          await _openPortionDrawer(item);
+        }
       }
     } catch (e, stack) {
       AppLogService.instance.error(
@@ -144,35 +185,58 @@ class _LiveBarcodeScannerSheetState extends State<LiveBarcodeScannerSheet>
         setState(() {
           _isLoading = false;
           _statusText = 'Lookup error: $e';
+          _cooldownUntil = DateTime.now().add(const Duration(seconds: 3));
         });
       }
     }
   }
 
-  void _openPortionDrawer(FoodItem item) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => SmartPortionDrawer(
-        initialFoodItem: item,
-        defaultCategory: widget.defaultCategory,
-        onAdded: () {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Logged ${item.name} (${item.calories} kcal)'),
-                backgroundColor: AppTheme.successGreen,
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
-          }
-        },
-        onScanAnother: () {
-          // Modal auto closes and returns to live camera
-        },
-      ),
-    );
+  Future<void> _openPortionDrawer(FoodItem item) async {
+    if (_isSheetOpen || !mounted) {
+      return;
+    }
+
+    setState(() {
+      _isSheetOpen = true;
+    });
+
+    try {
+      await showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (BuildContext sheetContext) => SmartPortionDrawer(
+          initialFoodItem: item,
+          defaultCategory: widget.defaultCategory,
+          onAdded: () {
+            Navigator.of(sheetContext).pop();
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Logged ${item.name} (${item.calories} kcal)'),
+                  backgroundColor: AppTheme.successGreen,
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            }
+          },
+          onScanAnother: () {
+            Navigator.of(sheetContext).pop();
+          },
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSheetOpen = false;
+          // Apply cooldown after dismissing sheet so camera pointing at item doesn't instantly re-scan
+          _cooldownUntil = DateTime.now().add(_sheetDismissCooldown);
+          _lastScanTime = DateTime.now();
+          _lastScannedBarcode = item.barcode ?? item.id;
+          _lastScannedBarcodeTime = DateTime.now();
+        });
+      }
+    }
   }
 
   Future<void> _toggleTorch() async {
@@ -194,85 +258,109 @@ class _LiveBarcodeScannerSheetState extends State<LiveBarcodeScannerSheet>
     }
   }
 
-  void _showManualBarcodeDialog() {
+  Future<void> _showManualBarcodeDialog() async {
+    if (_isManualInputOpen || !mounted) {
+      return;
+    }
+
+    setState(() {
+      _isManualInputOpen = true;
+    });
+
     final TextEditingController controller = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (BuildContext ctx) => AlertDialog(
-        backgroundColor: AppTheme.surfaceCard,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(
-          'Enter Barcode (UPC/EAN)',
-          style: GoogleFonts.outfit(
-            color: AppTheme.textPrimary,
-            fontWeight: FontWeight.bold,
+    try {
+      final String? enteredCode = await showDialog<String>(
+        context: context,
+        builder: (BuildContext ctx) => AlertDialog(
+          backgroundColor: AppTheme.surfaceCard,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Text(
+            'Enter Barcode (UPC/EAN)',
+            style: GoogleFonts.outfit(
+              color: AppTheme.textPrimary,
+              fontWeight: FontWeight.bold,
+            ),
           ),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Text(
-              'Enter the product barcode numbers printed below the lines (e.g. 737628064502).',
-              style: GoogleFonts.inter(
-                fontSize: 12,
-                color: AppTheme.textSecondary,
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text(
+                'Enter the product barcode numbers printed below the lines (e.g. 737628064502).',
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  color: AppTheme.textSecondary,
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: controller,
+                keyboardType: TextInputType.number,
+                autofocus: true,
+                style: GoogleFonts.firaCode(
+                  color: AppTheme.primaryAmber,
+                  fontWeight: FontWeight.bold,
+                ),
+                decoration: InputDecoration(
+                  hintText: 'e.g. 737628064502',
+                  hintStyle: GoogleFonts.firaCode(color: AppTheme.textSecondary),
+                  filled: true,
+                  fillColor: AppTheme.darkBackground,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: AppTheme.borderColor),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: AppTheme.primaryAmber),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(
+                'Cancel',
+                style: GoogleFonts.inter(color: AppTheme.textSecondary),
               ),
             ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: controller,
-              keyboardType: TextInputType.number,
-              autofocus: true,
-              style: GoogleFonts.firaCode(
-                color: AppTheme.primaryAmber,
-                fontWeight: FontWeight.bold,
+            ElevatedButton(
+              onPressed: () {
+                final String code = controller.text.trim();
+                Navigator.pop(ctx, code);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryAmber,
+                foregroundColor: Colors.black,
               ),
-              decoration: InputDecoration(
-                hintText: 'e.g. 737628064502',
-                hintStyle: GoogleFonts.firaCode(color: AppTheme.textSecondary),
-                filled: true,
-                fillColor: AppTheme.darkBackground,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: AppTheme.borderColor),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: AppTheme.primaryAmber),
-                ),
+              child: Text(
+                'Lookup Product',
+                style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
               ),
             ),
           ],
         ),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(
-              'Cancel',
-              style: GoogleFonts.inter(color: AppTheme.textSecondary),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              final String code = controller.text.trim();
-              Navigator.pop(ctx);
-              if (code.isNotEmpty) {
-                _processBarcode(code);
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.primaryAmber,
-              foregroundColor: Colors.black,
-            ),
-            child: Text(
-              'Lookup Product',
-              style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
-            ),
-          ),
-        ],
-      ),
-    );
+      );
+
+      if (mounted) {
+        setState(() {
+          _isManualInputOpen = false;
+        });
+      }
+
+      if (enteredCode != null && enteredCode.isNotEmpty) {
+        await _processBarcode(enteredCode, isManual: true);
+      }
+    } finally {
+      controller.dispose();
+      if (mounted && _isManualInputOpen) {
+        setState(() {
+          _isManualInputOpen = false;
+        });
+      }
+    }
   }
 
   @override
@@ -286,6 +374,9 @@ class _LiveBarcodeScannerSheetState extends State<LiveBarcodeScannerSheet>
             child: MobileScanner(
               controller: _scannerController,
               onDetect: (BarcodeCapture capture) {
+                if (_isScanningBlocked) {
+                  return;
+                }
                 for (final Barcode barcode in capture.barcodes) {
                   final String? val = barcode.rawValue;
                   if (val != null && val.isNotEmpty) {

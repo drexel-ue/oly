@@ -56,6 +56,10 @@ dependencies:
   nested: any
   pdf: ^3.13.0
   printing: ^5.15.0
+  sqflite: ^2.4.1
+  sqflite_common_ffi: ^2.3.4+4
+  path_provider: ^2.1.5
+  path: ^1.9.1
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -90,6 +94,8 @@ flutter:
     - assets/icon/splash.jpg
     - assets/sounds/timer_beep.wav
     - assets/data/staple_foods.json
+    - assets/data/restaurant_foods.json
+    - assets/data/usda_foods.db
     - assets/data/sports_injuries_catalog.json
     - assets/fonts/
 

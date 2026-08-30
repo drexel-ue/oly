@@ -5,16 +5,18 @@
 </p>
 
 <p align="center">
-  <b>A comprehensive, high-contrast Flutter application engineered for Olympic weightlifters, strength athletes, and coaches — integrating periodization programming, real-time TUT workout tracking, metabolic energy balance, continuous barcode scanning, and on-device biometric scale OCR.</b>
+  <b>A comprehensive, high-contrast Flutter application engineered for Olympic weightlifters, strength athletes, and coaches — integrating periodization programming, real-time TUT workout tracking, metabolic energy balance, 2M+ offline USDA & restaurant food database with FTS5 search, continuous barcode scanning, and on-device biometric scale OCR.</b>
 </p>
 
 <p align="center">
   <img src="https://img.shields.io/badge/Flutter-3.x-02569B?logo=flutter&logoColor=white" alt="Flutter" />
   <img src="https://img.shields.io/badge/Dart-3.x-0175C2?logo=dart&logoColor=white" alt="Dart" />
+  <img src="https://img.shields.io/badge/SQLite-FTS5%20Engine-003B57?logo=sqlite&logoColor=white" alt="SQLite FTS5" />
+  <img src="https://img.shields.io/badge/USDA%20FoodData-2.06M%20Items-005E36?logo=usda&logoColor=white" alt="USDA FoodData Central" />
   <img src="https://img.shields.io/badge/Open%20Food%20Facts-SDK%20v3-00B259?logo=openfoodfacts&logoColor=white" alt="Open Food Facts SDK" />
   <img src="https://img.shields.io/badge/Google%20ML%20Kit-OCR%20Vision-4285F4?logo=google&logoColor=white" alt="ML Kit Vision" />
   <img src="https://img.shields.io/badge/Theme-Dark%20Obsidian-121214" alt="Theme" />
-  <img src="https://img.shields.io/badge/Tests-139%20Passing-brightgreen" alt="Tests" />
+  <img src="https://img.shields.io/badge/Tests-150%20Passing-brightgreen" alt="Tests" />
   <img src="https://img.shields.io/badge/License-Proprietary-FF9E1B" alt="License" />
 </p>
 
@@ -22,13 +24,14 @@
 
 ## 🌟 Overview
 
-**OLY** unites elite Olympic weightlifting periodization with a rigorous athlete nutrition engine, metabolic expenditure modeling, and an offline-first **Anatomical Body Map & Biomechanical Injury Adaptation Engine**. Designed from the ground up for serious athletes:
+**OLY** unites elite Olympic weightlifting periodization with a rigorous athlete nutrition engine, metabolic expenditure modeling, an offline-first **Anatomical Body Map & Biomechanical Injury Adaptation Engine**, and a complete **2.06M+ item USDA & Restaurant SQLite database with FTS5 token search**. Designed from the ground up for serious athletes:
 
 - **🏋️ Periodization & Lifts**: 4-Day and 5-Day wave loading programs (`65% → 70% → 75% → Deload → Retest`), Catalyst Athletics / Greg Everett 1RM variation ratios, dynamic in-workout exercise swapping, working weight adjustments with live 1RM recalculation, and an IWF color-coded bumper plate visualizer.
+- **🥗 Complete Offline 2.06M+ USDA & Restaurant Database**: Embedded SQLite database (`usda_foods.db`) powered by FTS5 full-text indexing. Contains **Foundation Foods**, **SR Legacy**, **Survey Foods (FNDDS)**, **1.98M+ Branded products** with offline UPC barcode lookup, and curated menus across 26 major restaurant chains (McDonald's, Wingstop, Wendy's, Chick-fil-A, Chipotle, Starbucks, In-N-Out, Panda Express, Subway, Popeyes, Raising Cane's, Five Guys, Shake Shack, etc.).
+- **🥞 Athlete Smart Portion Drawer**: Protein density index ($g\text{ protein} / 100\text{ kcal}$), 3-color macro split bar ($P\% / C\% / F\%$), standard serving steppers, and discrete piece-unit chips (`10 wings`, `6 nuggets`, `2 tacos`, `3 tenders`, `1 biscuit`, `1 patty`).
 - **🩺 Body Map & Injury Adaptation**: Interactive 14-region Front & Back vector anatomical body map, OSIICS-16 local sports medicine taxonomy, duration-based **Acute ($< 14$d)** vs. **Subacute ($14-42$d)** vs. **Chronic ($> 42$d)** stage tracking, pre-session 1-tap biomechanical movement regressions, and post-session before-vs-after strain check-ins.
-- **🥗 Nutrition & Metabolic Engine**: Dual Energy In / Energy Out balance gauge, Katch-McArdle LBM-based BMR calculation, Compendium of Physical Activities (Algorithm B net vs Algorithm A gross expenditure), automated WOD TUT physics calories sync, and dynamic daily hydration tracking.
-- **📷 Smart Barcode Scanner & Open Food Facts**: Live camera viewfinder with golden animated targeting reticle, continuous scanning with haptic feedback, typed Open Food Facts SDK integration with offline caching, force-refresh, and a 107+ staple whole foods database.
-- **🥞 Athlete Smart Portion Drawer**: Protein density metrics ($g \text{ protein} / 100\text{ kcal}$), 3-color macro split bar ($P\% / C\% / F\%$), standard serving vs. custom gram steppers, and daily macro goal comparison badges.
+- **⚡ Nutrition & Metabolic Engine**: Dual Energy In / Energy Out balance gauge, Katch-McArdle LBM-based BMR calculation, Compendium of Physical Activities (Algorithm B net vs Algorithm A gross expenditure), automated WOD TUT physics calories sync, and dynamic daily hydration tracking.
+- **📷 Smart Barcode Scanner & Open Food Facts**: Live camera viewfinder with golden animated targeting reticle, continuous scanning with haptic feedback, local SQLite offline UPC lookup with fallback to typed Open Food Facts SDK, and recent scanned pantry ribbons.
 - **⚖️ Renpho Smart Scale OCR**: On-device text recognition extracting 13 biometric indicators directly from smart scale screenshots, visualized through an interactive Lean Mass vs. Fat Mass donut chart.
 - **🛡️ Local Diagnostics & Crash Reporting**: Real-time in-memory ring buffer (250 logs), persistent crash log storage (50 crashes), global error interceptors, and an in-app diagnostics inspector with copy-all reporting.
 
@@ -55,12 +58,12 @@
 | Live Camera Barcode Scanner | Athlete Smart Portion Drawer |
 | :---: | :---: |
 | <img src="screenshots/18_live_barcode_scanner_sheet.png" width="360" alt="Live Barcode Scanner" /> | <img src="screenshots/17_smart_portion_drawer.png" width="360" alt="Athlete Smart Portion Drawer" /> |
-| *Continuous camera stream with golden reticle overlay, torch toggle, and recent scans ribbon* | *Protein density index, 3-color macro split bar, serving/gram steppers, and goal badges* |
+| *Continuous camera stream with golden reticle overlay, torch toggle, and recent scans ribbon* | *Protein density index, 3-color macro split bar, discrete piece chips (wings, nuggets, tenders), and steppers* |
 
 | Food Search & Recent Pantry Items | Renpho Body Composition OCR Scanner |
 | :---: | :---: |
 | <img src="screenshots/16_food_search_sheet.png" width="360" alt="Food Search Sheet" /> | <img src="screenshots/19_renpho_scanner_sheet.png" width="360" alt="Renpho OCR Scanner" /> |
-| *Instant search across 107+ staple foods, offline cached products, and recent scans* | *13-field OCR parser from screenshot with Lean Mass vs Fat Mass donut visualizer* |
+| *Instant zero-latency search across 2.06M+ USDA, Survey FNDDS, fast-food menus, and recent scans* | *13-field OCR parser from screenshot with Lean Mass vs Fat Mass donut visualizer* |
 
 ---
 
@@ -98,109 +101,36 @@
 | Guided Olympic Warm-Up | Mobility & Drill Swaps |
 | :---: | :---: |
 | <img src="screenshots/08_warmup_session_screen.png" width="360" alt="Guided Warm-Up" /> | <img src="screenshots/13_mobility_swap_modal.png" width="360" alt="Mobility Swaps" /> |
-| *Multi-phase warm-up drills with video guides, form cues, and rep counters* | *Segmented alternatives matching target joint focus area or category* |
-
-| Lifetime Volume Analytics | Accessory Weight Progressions |
-| :---: | :---: |
-| <img src="screenshots/07_analytics_screen.png" width="360" alt="Lifetime Volume Analytics" /> | <img src="screenshots/07b_accessory_progressions_screen.png" width="360" alt="Accessory Progressions" /> |
-| *Total tonnage moved, completed workouts, sets, and reps in tonnes or tons* | *Tracked movements, personal bests, and chronological delta gain chips* |
-
-| Lift Catalog & Percentages | Olympic Ratio Balance |
-| :---: | :---: |
-| <img src="screenshots/02_lifts_matrix_screen.png" width="360" alt="Lift Catalog" /> | <img src="screenshots/03_lift_ratios_screen.png" width="360" alt="Olympic Ratio Balance" /> |
-| *1RM baselines with expanded 50%–105% percentage matrix* | *Catalyst Athletics benchmark targets & diagnostic balance analysis* |
-
-| Barbell Plate Loader | System Diagnostics & Crash Logs |
-| :---: | :---: |
-| <img src="screenshots/05_plate_calculator_screen.png" width="360" alt="Barbell Plate Loader" /> | <img src="screenshots/20_crash_report_screen.png" width="360" alt="Crash Diagnostics Screen" /> |
-| *IWF color-coded bumper plates and per-side loading breakdown* | *Real-time log buffer, persistent crash records, and copy-all diagnostic reports* |
+| *Dynamic warmup with bar drills and YouTube coaching tutorials* | *Joint-specific mobility regressions and alternative drill browser* |
 
 ---
 
-## 🚀 Comprehensive Feature Breakdown
+## 🍽️ Nutrition & Offline USDA Database Engine
 
-### 🥗 1. Athlete Nutrition & Metabolic Expenditure Engine
-- **Dual Energy In / Energy Out Balance Gauge**: Visual circular gauge displaying calories consumed vs. total daily energy expenditure (TDEE).
-- **Net Caloric Deficit / Surplus Indicator**: Live status pill dynamically color-coded based on nutrition goals (Green for deficit, Amber for maintenance, Cyan for surplus).
-- **Katch-McArdle LBM Formula**: Prioritizes Lean Body Mass (derived from Renpho scale scans) for BMR:
-  $$\text{BMR} = 370 + (21.6 \times \text{Lean Mass in kg})$$
-  *(Fallback to Mifflin-St Jeor and Harris-Benedict when body fat % is unavailable).*
-- **2024 Compendium of Physical Activities Integration**: Calculates active energy expenditure using validated MET values:
-  - **Algorithm B (Net Active Expenditure)**: $\text{Active kcal} = (\text{MET} - 1.0) \times \text{BMR}_{\text{per\_min}} \times \text{Duration}$ (prevents double-counting resting metabolic rate).
-  - **Algorithm A (Gross Expenditure)**: $\text{Gross kcal} = \text{MET} \times \text{BMR}_{\text{per\_min}} \times \text{Duration}$.
-- **Automated WOD TUT Physics Energy Sync**: Completed Olympic weightlifting sessions automatically compute time-under-tension (TUT) and total barbell tonnage to calculate precise workout calorie burn directly into the daily log.
-- **Daily Hydration Tracker**: One-tap quick-add buttons (+8 oz, +16 oz, +24 oz, +32 oz) with progress bar toward customized daily water intake targets.
+OLY includes an embedded **2.06 million item** offline database stored in `assets/data/usda_foods.db` and searched with SQLite FTS5:
 
-### 📷 2. Live Barcode Scanner & Open Food Facts SDK
-- **Continuous Live Camera Viewfinder**: Built on `mobile_scanner` 7.x with real-time barcode decoding (UPC-A, EAN-13, EAN-8, Code 128).
-- **Animated Golden Reticle Overlay**: Floating gold viewport with animated laser scanning line, torch/flashlight toggle, and camera flip controls.
-- **Official Open Food Facts Dart SDK (`openfoodfacts: ^3.30.2`)**: Queries typed v3 API endpoints with custom `User-Agent` headers.
-- **Local Offline Product Caching**: Automatically persists scanned products to local storage for instantaneous loading in gym basements without cellular service, complete with a "Force Refresh from Server" action.
-- **Curated Whole Staple Food Database**: Embedded offline database with 107+ whole staple foods (chicken breast, white rice, eggs, whey isolate, Greek yogurt, oats, sweet potatoes, etc.).
+```
+Total Foods:     2,064,169 items
+Total Brands:    52,840 brands
+Offline Barcodes: 1,981,654 barcoded products
+Engine:          SQLite with FTS5 BM25 prefix search (porter unicode61)
+Size:            689 MB (standalone rollback journal, zero network latency)
+```
 
-### 🥞 3. Athlete Smart Portion & Macro Drawer
-- **Protein Density Index**: Calculates grams of protein per 100 kcal with color-coded density pills:
-  - 🟢 **Ultra-High Density** ($\ge 15\text{g} / 100\text{ kcal}$)
-  - 🟡 **Moderate Density** ($8\text{g}–15\text{g} / 100\text{ kcal}$)
-  - ⚪ **Standard Density** ($< 8\text{g} / 100\text{ kcal}$)
-- **Dynamic 3-Color Macro Split Bar**: Real-time visual proportional split ($P\% / C\% / F\%$).
-- **Dual-Mode Portion Adjuster**:
-  - Standard serving count stepper (1, 1.5, 2 servings).
-  - Exact gram entry with quick-step chips (`+10g`, `+50g`, `+100g`).
-- **Goal Impact Badges**: Live calculation of how the portion fulfills your daily macro targets (e.g. `24% of Daily Protein`).
+### Dataset Sub-Collections Included
 
-### ⚖️ 4. Renpho Smart Scale OCR Scanner & Donut Visualizer
-- **On-Device Biometric Recognition**: Extracts 13 biometric metrics directly from smart scale screenshots using Google ML Kit Vision:
-  - Weight, Body Fat %, Skeletal Muscle %, Muscle Mass, Fat-Free Body Weight, Subcutaneous Fat, Visceral Fat, Body Water, Bone Mass, BMR, Protein %, Metabolic Age, and BMI.
-- **Body Composition Donut Chart**: Custom-rendered segmented donut chart breaking down Lean Mass, Fat Mass, and Residual Mass.
-- **Automated Target Recalibration**: Automatically updates athlete BMR and baseline maintenance calories based on scanned lean mass.
-
-### 🔬 5. Metabolic Science Explainer Hub
-- **Interactive 5-Tab In-App Science Hub**:
-  1. **⚡ Energy & TDEE**: Explains Basal Metabolic Rate, NEAT, TEF, and exercise activity thermogenesis.
-  2. **⚖️ Algorithm B vs A**: Comprehensive breakdown of net vs. gross MET expenditure calculations.
-  3. **🏋️ WOD TUT Physics**: Details set-level time-under-tension and mechanical work formulas.
-  4. **💧 Hydration Models**: Hydration guidelines calibrated for high-intensity strength athletes.
-  5. **📚 Open Source & Sources**: Complete academic citations (Ainsworth et al. 2024 Compendium, Katch & McArdle 1996, Open Food Facts database).
-
-### 🛡️ 6. Local Logging, Global Crash Interception & Diagnostics
-- **Real-Time In-Memory Ring Buffer**: Captures the last 250 log events with log levels (`DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRASH`).
-- **Persistent Crash Storage**: Automatically saves the last 50 fatal and unhandled exceptions to local disk with full stack traces.
-- **Global Error Interceptors**: Intercepts `FlutterError.onError` and `PlatformDispatcher.instance.onError`.
-- **In-App Diagnostics Screen**: Filter logs by level, live search, expand stack traces, trigger test crashes, and generate formatted diagnostic reports for clipboard export.
-
-### 🏋️‍♂️ 7. Structured Periodization Engine (4-Day & 5-Day)
-- **Periodized Wave Loading**: Automatically calculates target weights for every working set based on your 1RMs and current cycle week:
-  - **Week 1 (Base Loading)**: ~65% target intensity
-  - **Week 2 (Loading)**: ~70% target intensity
-  - **Week 3 (Peak Loading)**: ~75% target intensity
-  - **Week 4 (Deload & Priming)**: ~70% reduced volume
-  - **Week 5 (1RM Retest)**: Dedicated testing protocol with guided warmup ramps
-- **Program Flexibility**: Toggle between **4-Day Strength & Technique** and **5-Day Classical Sequence** in Settings.
-- **Preview & Exploration Mode**: Explore and review any past or future week/routine without modifying active cycle state.
-
-### ⏱️ 8. Live Workout Session Companion & In-Workout Swaps
-- **Set & Rep Tracking**: Interactive set completion pills with real-time weight overrides and rep adjustments.
-- **Suggested Swaps Segmentation**: Automatically identifies direct variations within the same movement pattern family (e.g., Power Snatch, Hang Snatch for Snatch variations) and displays them at the top of the swap sheet.
-- **In-Workout Weight Adjustment & 1RM Recalculator**: Real-time reverse 1RM calculation with quick steppers (`-5.0` to `+5.0`) and delta comparison badges.
-- **Intelligent Rest Timer**: 30s to 5m presets with micro-adjusters, audio beeps, haptics, and iOS lock-screen local notifications.
-
-### 🧘‍♂️ 9. Adaptive Active Recovery & Mobility Engine
-- **Targeted Routine Generation**: 12 structured drills across 5 dedicated phases (Aerobic, Joint Mobility, Arms Hypertrophy, Core Stability, Grip Strength).
-- **Strain Adaptation**: Automatically prioritizes mobility drills targeting joints flagged during previous workout logs (Shoulders, Knees, Wrists, Lower Back).
-
-### 💡 10. Catalyst Athletics Olympic 1RM Variation Ratios
-- **Automated Ratio Calculations**: Built-in benchmark targets derived from Greg Everett Olympic standards (Hang Snatch 88%, Power Snatch 82%, Overhead Squat 110%, Hang Clean 88%, Power Clean 85%, Front Squat 85%, Push Press 75%).
-- **Ratio Balance Diagnostic**: Identifies whether technique, pulling power, or leg strength is your limiting factor.
-
-### 🔴 11. Visual IWF Barbell Bumper Plate Loader
-- **Realistic Barbell Rendering**: Visually renders standard IWF colored bumper plates (Red 25kg, Blue 20kg, Yellow 15kg, Green 10kg, White 5kg, and fractionals 0.5kg–2.5kg).
-- **Customizable Equipment**: Switch between Men's 20kg bar, Women's 15kg bar, 10kg Technique bar, 45lb bar, and competition collar options.
-
-### 📈 12. Volume Analytics & Accessory Weight Progressions
-- **Total Workload Calculation**: Multiplies `weight × reps` across all completed sets in **Metric Tonnes** ($1{,}000\text{ kg}$) or **US Short Tons** ($2{,}000\text{ lbs}$).
-- **Accessory Progressions**: Tracks all accessory personal bests and logs with chronological delta chips (`+2.5 kg`, `+5.0 kg`).
-- **Native Backup & Export**: One-tap JSON backup/restore and human-readable CSV spreadsheet export.
+1. **USDA Survey Foods (FNDDS)** (5,432 items):
+   - Comprehensive composite meals, home-cooked preparations, and standard recipes (e.g. `Ham sandwich on wheat`, `Roast beef`, `Chicken stir-fry`, `Apple pie`).
+   - Standardized macros mapped across nutrient numbers (`208` Energy, `203` Protein, `204` Fat, `205` Carbs, `291` Fiber).
+2. **USDA Foundation Foods** (68,867 items):
+   - Gold-standard whole foods, produce, eggs, dairy, and detailed nutrient profiles.
+3. **USDA SR Legacy** (7,793 items):
+   - All standard reference cuts of beef, poultry, pork, seafood, and whole grains.
+4. **USDA Branded Foods** (1,981,654 items):
+   - Full commercial packaged grocery database with direct 1-to-1 UPC barcode indexing.
+5. **Fast-Food & Restaurant Chains** (316 items):
+   - Curated menus across McDonald's (48+ items), Wingstop, Wendy's, Chick-fil-A, Taco Bell, Burger King, Chipotle, Starbucks, In-N-Out, Panda Express, Subway, Popeyes, Raising Cane's, Five Guys, Shake Shack, Domino's, Sweetgreen, Cava, Panera, and Texas Roadhouse.
+   - Discrete piece units: `wing`, `nugget`, `tender`, `patty`, `slice`, `taco`, `biscuit`, `donut`, `egg`.
 
 ---
 
@@ -213,7 +143,7 @@ OLY includes an automated screenshot capture suite supporting both top and scrol
 flutter test test/screenshot_capture_test.dart
 ```
 
-Generated screenshots are saved directly to `screenshots/` and verified across 21 multi-screen rendering tests.
+Generated screenshots are saved directly to `screenshots/` and verified across 23 multi-screen rendering tests.
 
 ---
 
@@ -240,8 +170,9 @@ lib/
 │   ├── body_comp_provider.dart                # Renpho scale history & lean mass calculations
 │   └── settings_provider.dart                 # Units (kg/lbs), bar specs, audio/haptic toggles
 ├── services/
+│   ├── usda_database_service.dart             # Embedded SQLite FTS5 2M+ USDA & fast-food search engine
+│   ├── food_database_service.dart             # SQLite first-pass search with fallback to OpenFoodFacts SDK
 │   ├── storage_service.dart                   # Local persistence, JSON/CSV backup & product caching
-│   ├── food_database_service.dart             # Open Food Facts SDK integration & staple food database
 │   ├── renpho_ocr_service.dart                # Google ML Kit OCR text parser for smart scale screens
 │   ├── app_log_service.dart                   # Ring-buffer logging & persistent crash storage
 │   ├── notification_service.dart              # Timezone-aware local notifications & audio alerts
@@ -260,7 +191,7 @@ lib/
 │   ├── nutrition/
 │   │   ├── nutrition_dashboard_screen.dart    # Energy In vs Out gauge, macros, and activity logs
 │   │   ├── live_barcode_scanner_sheet.dart    # Live camera barcode scanner with reticle overlay
-│   │   ├── food_search_sheet.dart             # Search staple foods, cached items, & recent scans
+│   │   ├── food_search_sheet.dart             # Zero-latency search across 2M+ items with source filter tabs
 │   │   ├── renpho_scanner_sheet.dart          # Smart scale OCR scanner & donut chart view
 │   │   ├── activity_log_sheet.dart            # Compendium activity logger with Algorithm B
 │   │   └── metabolic_science_explainer_screen.dart # 5-tab metabolic science reference hub
@@ -275,10 +206,31 @@ lib/
     ├── standard_ratios_sheet.dart             # Catalyst Athletics ratio benchmarks table
     └── nutrition/
         ├── energy_balance_card.dart           # Circular Energy In/Out gauge & deficit indicator
-        ├── smart_portion_drawer.dart          # Protein density pill, macro split bar & steppers
+        ├── smart_portion_drawer.dart          # Protein density pill, macro split bar, piece chips & steppers
         ├── macro_summary_card.dart            # Linear progress bars for Protein, Carbs, and Fat
         └── body_donut_chart.dart              # CustomPainted Lean Mass vs Fat Mass donut visualizer
 ```
+
+---
+
+## ⌨️ Developer Tools & Ingestion Pipelines
+
+Automated Python data ingestion scripts are located in `scripts/` and integrated into VS Code tasks (`.vscode/tasks.json`):
+
+```bash
+# Update complete USDA FoodData Central Bulk Dataset (2.06M items)
+python3 scripts/import_usda_bulk.py
+
+# Rebuild Fast-Food Menus & Core Whole Staples Catalog
+python3 scripts/generate_restaurant_catalog.py
+python3 scripts/build_usda_sqlite.py
+```
+
+VS Code Tasks (accessible via `Cmd + Shift + P` $\rightarrow$ `Tasks: Run Task`):
+- `Update USDA Database (Full 2M+ Bulk Ingestion)`
+- `Update USDA Database (Core Whole Foods & Fast Food)`
+- `Generate Restaurant Menus Catalog`
+- `Run Flutter Tests (Full Suite)`
 
 ---
 
@@ -289,6 +241,7 @@ lib/
 - **Dart SDK**: `^3.0.0` or later
 - **Xcode**: 15+ (for iOS development & testing)
 - **CocoaPods**: Latest
+- **Python**: 3.10+ (for database ingestion scripts)
 
 ### Installation & Run
 
@@ -311,7 +264,7 @@ lib/
 
 4. **Launch on connected device or simulator**:
    ```bash
-   # Launch on iOS Simulator
+   # Launch on iOS Simulator or connected iPhone
    flutter run -d iPhone
 
    # Launch directly to a specific tab (0=Home, 1=Lifts, 2=Loader, 3=MaxTest, 4=Analytics, 5=Nutrition)
@@ -320,7 +273,7 @@ lib/
 
 ---
 
-## 📄 Testing Suite (139 Passing Tests)
+## 📄 Testing Suite (150 Passing Tests)
 
 Run the full suite of unit, widget, domain engine, and screenshot rendering tests:
 ```bash
@@ -328,6 +281,7 @@ flutter test
 ```
 
 Test coverage includes:
+- `usda_database_test.dart`: SQLite database initialization, FTS5 BM25 token search, McDonald's/Wingstop/Cane's variety, whole food search, and direct UPC barcode lookups.
 - `injury_export_test.dart`: Clinical PDF document byte generation, structured JSON backup format, and export bottom sheet widget interactions.
 - `injury_model_test.dart`: OSIICS serialization, duration calculation, and acute/subacute/chronic classification.
 - `injury_adaptation_test.dart`: Biomechanical loading vector rules, exercise regressions, and rehab warmup injection.
@@ -335,8 +289,8 @@ Test coverage includes:
 - `injury_tracker_widget_test.dart`: Interactive body map front/back toggle, tap detection, adaptation card 1-tap swap, and check-in dialog.
 - `energy_balance_test.dart`: Katch-McArdle, Mifflin-St Jeor, Compendium MET calculations (Algorithm B vs A), and WOD TUT physics.
 - `energy_balance_widget_test.dart`: `EnergyBalanceCard` gauge, `MetabolicScienceExplainerScreen` 5 tabs, and `ActivityLogSheet`.
-- `food_database_service_test.dart`: Open Food Facts SDK query, typed parsing, offline caching, and 107+ whole foods lookup.
-- `smart_portion_widget_test.dart`: Protein density index, macro split bar, custom gram steppers, and live barcode camera scanner.
+- `food_database_service_test.dart`: SQLite local search first-pass, Open Food Facts SDK query, typed parsing, and offline caching.
+- `smart_portion_widget_test.dart`: Protein density index, macro split bar, custom piece chips (wings, nuggets, tenders), steppers, and live barcode camera scanner.
 - `renpho_ocr_test.dart`: 13-field OCR regex parsing from smart scale screenshots, lean mass calculations, and BMR updates.
 - `app_log_service_test.dart`: Ring-buffer logging, persistent crash storage, and `CrashReportScreen` UI controls.
 - `screenshot_capture_test.dart`: 23 multi-view layout tests verifying rendering and generating high-res PNGs for all views.

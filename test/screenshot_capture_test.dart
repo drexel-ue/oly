@@ -591,7 +591,7 @@ void main() {
 
       await tester.pumpWidget(buildTestScreen(const FoodSearchSheet()));
       await captureScreen(tester, '16_food_search_sheet');
-      expect(find.text('Search Foods & Barcodes'), findsOneWidget);
+      expect(find.text('Search Foods & Menus'), findsOneWidget);
     });
 
     testWidgets(

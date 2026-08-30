@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:oly/models/nutrition_entry.dart';
 import 'package:oly/services/app_log_service.dart';
 import 'package:oly/services/storage_service.dart';
+import 'package:oly/services/usda_database_service.dart';
 import 'package:openfoodfacts/openfoodfacts.dart';
 
 class FoodItem {
@@ -110,9 +111,11 @@ class FoodItem {
 
     final String portionLabel = customGrams != null
         ? '${customGrams.round()}g'
-        : (servingMultiplier == 1.0
-              ? servingSize
-              : '${servingMultiplier.toStringAsFixed(1)}x ($servingSize)');
+        : (servingUnitName != null
+              ? '${servingMultiplier == servingMultiplier.roundToDouble() ? servingMultiplier.round() : servingMultiplier} $servingUnitName${servingMultiplier > 1 && !servingUnitName!.endsWith("s") ? "s" : ""}'
+              : (servingMultiplier == 1.0
+                    ? servingSize
+                    : '${servingMultiplier.toStringAsFixed(1)}x ($servingSize)'));
 
     return NutritionEntry.create(
       name: displayName,
@@ -152,7 +155,8 @@ class FoodDatabaseService {
     _initOpenFoodFactsSdk();
   }
   final http.Client _client;
-  List<FoodItem>? _cachedStaples;
+  static List<FoodItem>? _cachedStaples;
+  static List<FoodItem>? _cachedRestaurants;
 
   /// Configures the official OpenFoodFacts SDK UserAgent
   static void _initOpenFoodFactsSdk() {
@@ -187,6 +191,129 @@ class FoodDatabaseService {
     } catch (e) {
       return <FoodItem>[];
     }
+  }
+
+  /// Loads fast food and restaurant chain menu items from bundled assets
+  Future<List<FoodItem>> getRestaurantFoods() async {
+    if (_cachedRestaurants != null) {
+      return _cachedRestaurants!;
+    }
+
+    try {
+      final String jsonString = await rootBundle.loadString(
+        'assets/data/restaurant_foods.json',
+      );
+      final List<dynamic> list = jsonDecode(jsonString) as List<dynamic>;
+      _cachedRestaurants = list
+          .map(
+            (item) => FoodItem.fromJson(
+              item as Map<String, dynamic>,
+              defaultSource: 'offline_restaurant',
+            ),
+          )
+          .toList();
+      return _cachedRestaurants!;
+    } catch (e, stack) {
+      AppLogService.instance.error(
+        'FOOD_DB',
+        'Failed to load restaurant_foods: $e',
+        error: e,
+        stackTrace: stack,
+      );
+      return <FoodItem>[];
+    }
+  }
+
+  /// Searches local offline staples and restaurant menu items with relevance ranking
+  Future<List<FoodItem>> searchLocalFoods(String query) async {
+    final String clean = query.trim();
+
+    // 1. Get in-memory cached staples and restaurant foods
+    final List<FoodItem> staples = await getStapleFoods();
+    final List<FoodItem> restaurants = await getRestaurantFoods();
+    final List<FoodItem> allLocal = <FoodItem>[...restaurants, ...staples];
+
+    // 2. Check local SQLite database if available
+    try {
+      final List<FoodItem> sqliteResults = await UsdaDatabaseService.instance
+          .searchFoods(clean, limit: 60);
+      if (sqliteResults.isNotEmpty) {
+        final Set<String> seenIds = sqliteResults.map((FoodItem f) => f.id).toSet();
+        final List<FoodItem> combined = <FoodItem>[
+          ...sqliteResults,
+          ...allLocal.where((FoodItem f) => !seenIds.contains(f.id)),
+        ];
+        AppLogService.instance.debug(
+          'FOOD_DB',
+          'searchLocalFoods("$clean"): SQLite returned ${sqliteResults.length} items, total combined ${combined.length}',
+        );
+        return combined;
+      }
+    } catch (e) {
+      AppLogService.instance.warning(
+        'FOOD_DB',
+        'searchLocalFoods SQLite query failed, falling back to memory: $e',
+      );
+    }
+
+    final String q = clean.toLowerCase();
+    if (q.isEmpty) {
+      return allLocal;
+    }
+
+    final List<String> tokens = q
+        .split(RegExp(r'\s+'))
+        .where((String t) => t.isNotEmpty)
+        .toList();
+
+    final List<MapEntry<FoodItem, int>> scored = <MapEntry<FoodItem, int>>[];
+
+    for (final FoodItem item in allLocal) {
+      int score = 0;
+      final String nameLower = item.name.toLowerCase();
+      final String brandLower = (item.brand ?? '').toLowerCase();
+      final String catLower = (item.category ?? '').toLowerCase();
+
+      // Exact brand match
+      if (brandLower.isNotEmpty &&
+          (brandLower == q || q.contains(brandLower) || brandLower.contains(q))) {
+        score += 60;
+      }
+
+      // Exact name match or contains full query
+      if (nameLower.contains(q)) {
+        score += 50;
+      }
+
+      // Token matches
+      int tokenMatches = 0;
+      for (final String token in tokens) {
+        if (brandLower.contains(token)) {
+          score += 25;
+          tokenMatches++;
+        } else if (nameLower.contains(token)) {
+          score += 15;
+          tokenMatches++;
+        } else if (catLower.contains(token)) {
+          score += 10;
+          tokenMatches++;
+        }
+      }
+
+      if (tokenMatches == tokens.length && tokens.length > 1) {
+        score += 30; // All tokens matched
+      }
+
+      if (score > 0) {
+        scored.add(MapEntry<FoodItem, int>(item, score));
+      }
+    }
+
+    scored.sort(
+      (MapEntry<FoodItem, int> a, MapEntry<FoodItem, int> b) =>
+          b.value.compareTo(a.value),
+    );
+    return scored.map((MapEntry<FoodItem, int> e) => e.key).toList();
   }
 
   /// Searches offline staple foods by query string
@@ -234,7 +361,24 @@ class FoodDatabaseService {
       }
     }
 
-    // 2. Query using OpenFoodFacts SDK
+    // 2. Query local SQLite USDA / Restaurant database
+    try {
+      final FoodItem? localSqliteFood = await UsdaDatabaseService.instance
+          .lookupBarcode(cleanBarcode);
+      if (localSqliteFood != null) {
+        AppLogService.instance.info(
+          'FOOD_DB',
+          'Local SQLite hit for barcode: $cleanBarcode (${localSqliteFood.name})',
+        );
+        if (storage != null) {
+          await storage.saveCachedProductJson(cleanBarcode, localSqliteFood.toJson());
+          await storage.addRecentScannedBarcode(cleanBarcode);
+        }
+        return localSqliteFood;
+      }
+    } catch (_) {}
+
+    // 3. Query using OpenFoodFacts SDK
     try {
       final ProductQueryConfiguration configuration = ProductQueryConfiguration(
         cleanBarcode,
@@ -508,6 +652,168 @@ class FoodDatabaseService {
       }
     } catch (_) {}
     return <FoodItem>[];
+  }
+
+  /// Searches foods in USDA FoodData Central API
+  Future<List<FoodItem>> searchUsdaFoods(String query) async {
+    final String q = Uri.encodeComponent(query.trim());
+    if (q.isEmpty) {
+      return <FoodItem>[];
+    }
+
+    final Uri url = Uri.parse(
+      'https://api.nal.usda.gov/fdc/v1/foods/search?api_key=DEMO_KEY&query=$q&pageSize=10',
+    );
+    try {
+      final http.Response response = await _client
+          .get(
+            url,
+            headers: <String, String>{
+              'User-Agent':
+                  'OlyOlympicWeightliftingApp/1.0 (contact@lamontlabs.com)',
+            },
+          )
+          .timeout(const Duration(seconds: 5));
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data =
+            jsonDecode(response.body) as Map<String, dynamic>;
+        final List<dynamic> foods =
+            data['foods'] as List<dynamic>? ?? <dynamic>[];
+
+        final List<FoodItem> items = <FoodItem>[];
+        for (final f in foods) {
+          final Map<String, dynamic> food = f as Map<String, dynamic>;
+          final String name = food['description'] as String? ?? '';
+          if (name.trim().isEmpty) {
+            continue;
+          }
+
+          final String? brand =
+              food['brandOwner'] as String? ?? food['brandName'] as String?;
+          final int fdcId = (food['fdcId'] as num?)?.toInt() ?? 0;
+          final String servingSizeText =
+              food['householdServingFullText'] as String? ??
+              (food['servingSize'] != null && food['servingSizeUnit'] != null
+                  ? '${food['servingSize']} ${food['servingSizeUnit']}'
+                  : '100g');
+          final double servingWeight =
+              (food['servingSize'] as num?)?.toDouble() ?? 100.0;
+
+          final List<dynamic> nutrients =
+              food['foodNutrients'] as List<dynamic>? ?? <dynamic>[];
+
+          double cal = 0.0;
+          double protein = 0.0;
+          double carbs = 0.0;
+          double fat = 0.0;
+          double? fiber;
+
+          for (final n in nutrients) {
+            final Map<String, dynamic> nutrient = n as Map<String, dynamic>;
+            final String nName = (nutrient['nutrientName'] as String? ?? '')
+                .toLowerCase();
+            final String nNumber = nutrient['nutrientNumber'] as String? ?? '';
+            final int nId = (nutrient['nutrientId'] as num?)?.toInt() ?? 0;
+            final double value = (nutrient['value'] as num?)?.toDouble() ?? 0.0;
+
+            if (nId == 1008 ||
+                nNumber == '208' ||
+                (nName.contains('energy') &&
+                    nutrient['unitName'] == 'KCAL')) {
+              cal = value;
+            } else if (nId == 1003 ||
+                nNumber == '203' ||
+                nName.contains('protein')) {
+              protein = value;
+            } else if (nId == 1005 ||
+                nNumber == '205' ||
+                nName.contains('carbohydrate')) {
+              carbs = value;
+            } else if (nId == 1004 ||
+                nNumber == '204' ||
+                nName.contains('total lipid')) {
+              fat = value;
+            } else if (nId == 1079 ||
+                nNumber == '291' ||
+                nName.contains('fiber')) {
+              fiber = value;
+            }
+          }
+
+          items.add(
+            FoodItem(
+              id: 'usda_$fdcId',
+              name: name,
+              brand: brand,
+              servingSize: servingSizeText,
+              servingWeightGrams: servingWeight > 0 ? servingWeight : 100.0,
+              calories: cal.round(),
+              protein: double.parse(protein.toStringAsFixed(1)),
+              carbs: double.parse(carbs.toStringAsFixed(1)),
+              fat: double.parse(fat.toStringAsFixed(1)),
+              fiber: fiber != null
+                  ? double.parse(fiber.toStringAsFixed(1))
+                  : null,
+              source: 'usda_fooddata',
+            ),
+          );
+        }
+        return items;
+      }
+    } catch (_) {}
+    return <FoodItem>[];
+  }
+
+  /// Concurrently searches offline local databases (staples + restaurants)
+  /// and live online APIs (USDA FoodData Central + OpenFoodFacts).
+  Future<List<FoodItem>> searchAllFoods(String query) async {
+    final String clean = query.trim();
+    if (clean.isEmpty) {
+      final List<FoodItem> staples = await getStapleFoods();
+      final List<FoodItem> restaurants = await getRestaurantFoods();
+      return <FoodItem>[...restaurants, ...staples];
+    }
+
+    final List<List<FoodItem>> results = await Future.wait<List<FoodItem>>(<Future<List<FoodItem>>>[
+      searchLocalFoods(clean),
+      searchUsdaFoods(clean),
+      searchOnlineFoods(clean),
+    ]);
+
+    final List<FoodItem> localResults = results[0];
+    final List<FoodItem> usdaResults = results[1];
+    final List<FoodItem> offResults = results[2];
+
+    final Set<String> seenKeys = <String>{};
+    final List<FoodItem> merged = <FoodItem>[];
+
+    void addUnique(FoodItem item) {
+      final String key =
+          '${(item.brand ?? '').toLowerCase().trim()}_${item.name.toLowerCase().trim()}';
+      if (!seenKeys.contains(key) && !seenKeys.contains(item.id)) {
+        seenKeys.add(key);
+        seenKeys.add(item.id);
+        merged.add(item);
+      }
+    }
+
+    // 1. Local results first (exact brand/restaurant and whole food matches)
+    for (final FoodItem item in localResults) {
+      addUnique(item);
+    }
+
+    // 2. USDA FoodData Central results second
+    for (final FoodItem item in usdaResults) {
+      addUnique(item);
+    }
+
+    // 3. OpenFoodFacts results third
+    for (final FoodItem item in offResults) {
+      addUnique(item);
+    }
+
+    return merged;
   }
 
   void dispose() {

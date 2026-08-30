@@ -1,0 +1,53 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Update USDA Database (Full 2M+ Bulk Ingestion)",
+      "type": "shell",
+      "command": "python3 scripts/import_usda_bulk.py",
+      "problemMatcher": [],
+      "group": "none",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "focus": true
+      }
+    },
+    {
+      "label": "Update USDA Database (Core Whole Foods & Fast Food)",
+      "type": "shell",
+      "command": "python3 scripts/generate_restaurant_catalog.py && python3 scripts/build_usda_sqlite.py",
+      "problemMatcher": [],
+      "group": "none",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "Generate Restaurant Menus Catalog",
+      "type": "shell",
+      "command": "python3 scripts/generate_restaurant_catalog.py",
+      "problemMatcher": [],
+      "group": "none",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "Run Flutter Tests (Full Suite)",
+      "type": "shell",
+      "command": "flutter test",
+      "problemMatcher": [],
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      }
+    }
+  ]
+}
