@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:nested/nested.dart';
 import 'package:oly/models/program_model.dart';
 import 'package:oly/providers/body_comp_provider.dart';
+import 'package:oly/providers/breathing_provider.dart';
 import 'package:oly/providers/injury_provider.dart';
 import 'package:oly/providers/lift_provider.dart';
 import 'package:oly/providers/nutrition_provider.dart';
@@ -84,6 +85,9 @@ void main() async {
         ),
         ChangeNotifierProvider<InjuryProvider>(
           create: (BuildContext _) => InjuryProvider(storageService),
+        ),
+        ChangeNotifierProvider<BreathingProvider>(
+          create: (BuildContext _) => BreathingProvider(storageService),
         ),
       ],
       child: const OlyApp(),

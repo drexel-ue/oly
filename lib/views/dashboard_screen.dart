@@ -10,6 +10,8 @@ import 'package:oly/providers/recovery_provider.dart';
 import 'package:oly/providers/settings_provider.dart';
 import 'package:oly/services/recovery_engine_service.dart';
 import 'package:oly/theme/app_theme.dart';
+import 'package:oly/views/analytics_screen.dart';
+import 'package:oly/views/breathing/wim_hof_setup_sheet.dart';
 import 'package:oly/views/injury_tracker_screen.dart';
 import 'package:oly/views/nutrition/nutrition_dashboard_screen.dart';
 import 'package:oly/views/nutrition/renpho_scanner_sheet.dart';
@@ -211,6 +213,53 @@ class DashboardScreen extends StatelessWidget {
                           backgroundColor: Colors.transparent,
                           builder: (_) => const RenphoScannerSheet(),
                         );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+
+              // Wim Hof Breathwork Row
+              Row(
+                children: <Widget>[
+                  Expanded(
+                    child: _buildActionCard(
+                      context,
+                      title: 'Wim Hof Breath',
+                      subtitle: 'Oxygen & Retention',
+                      icon: Icons.air,
+                      accentColor: AppTheme.secondaryCyan,
+                      onTap: () {
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          useSafeArea: true,
+                          backgroundColor: Colors.transparent,
+                          builder: (_) => const WimHofSetupSheet(),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildActionCard(
+                      context,
+                      title: 'Breath Analytics',
+                      subtitle: 'PRs & Hold Trends',
+                      icon: Icons.insights_outlined,
+                      accentColor: AppTheme.primaryAmber,
+                      onTap: () {
+                        if (onNavigateTab != null) {
+                          onNavigateTab!(5); // Analytics Tab
+                        } else {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const AnalyticsScreen(),
+                            ),
+                          );
+                        }
                       },
                     ),
                   ),

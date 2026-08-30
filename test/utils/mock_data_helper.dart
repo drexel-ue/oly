@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:oly/models/accessory_log.dart';
 import 'package:oly/models/body_composition_entry.dart';
+import 'package:oly/models/breathing_session_model.dart';
 import 'package:oly/models/lift_model.dart';
 import 'package:oly/models/pr_entry.dart';
 import 'package:oly/models/program_model.dart';
@@ -656,6 +657,73 @@ class MockDataHelper {
     };
   }
 
+  static List<BreathingSessionLog> getMockBreathingLogs() {
+    final DateTime now = DateTime.now();
+
+    return <BreathingSessionLog>[
+      BreathingSessionLog(
+        id: 'breath_sess_1',
+        date: now.subtract(const Duration(days: 3)),
+        totalRounds: 3,
+        readinessRating: 4,
+        notes: 'Felt deep relaxation on round 2.',
+        rounds: <BreathingRoundLog>[
+          BreathingRoundLog(
+            roundNumber: 1,
+            breathsCount: 30,
+            retentionSeconds: 75,
+            recoverySeconds: 15,
+          ),
+          BreathingRoundLog(
+            roundNumber: 2,
+            breathsCount: 30,
+            retentionSeconds: 105,
+            recoverySeconds: 15,
+          ),
+          BreathingRoundLog(
+            roundNumber: 3,
+            breathsCount: 30,
+            retentionSeconds: 130,
+            recoverySeconds: 15,
+          ),
+        ],
+      ),
+      BreathingSessionLog(
+        id: 'breath_sess_2',
+        date: now.subtract(const Duration(days: 1)),
+        totalRounds: 4,
+        readinessRating: 5,
+        notes: 'PR breath hold! Incredible focus.',
+        rounds: <BreathingRoundLog>[
+          BreathingRoundLog(
+            roundNumber: 1,
+            breathsCount: 30,
+            retentionSeconds: 90,
+            recoverySeconds: 15,
+          ),
+          BreathingRoundLog(
+            roundNumber: 2,
+            breathsCount: 30,
+            retentionSeconds: 120,
+            recoverySeconds: 15,
+          ),
+          BreathingRoundLog(
+            roundNumber: 3,
+            breathsCount: 30,
+            retentionSeconds: 145,
+            recoverySeconds: 15,
+          ),
+          BreathingRoundLog(
+            roundNumber: 4,
+            breathsCount: 30,
+            retentionSeconds: 165,
+            recoverySeconds: 15,
+          ),
+        ],
+      ),
+    ];
+  }
+
   /// Seeds SharedPreferences with comprehensive mock data
   static Future<StorageService> setupMockStorage() async {
     final String liftsJson = jsonEncode(
@@ -673,6 +741,9 @@ class MockDataHelper {
       getMockBodyComp().toJson(),
     ]);
     final String nutritionJson = jsonEncode(getMockNutritionData());
+    final String breathingJson = jsonEncode(
+      getMockBreathingLogs().map((BreathingSessionLog e) => e.toJson()).toList(),
+    );
     final String goalJson = jsonEncode(<String, num>{
       'dailyCalorieTarget': 2400,
       'dailyProteinGrams': 210,
@@ -691,6 +762,7 @@ class MockDataHelper {
       'oly_accessory_logs_v1': accessoryJson,
       'oly_body_comp_entries_v1': bodyCompJson,
       'oly_nutrition_logs_v1': nutritionJson,
+      'oly_breathing_logs_v1': breathingJson,
       'oly_nutrition_goal_v1': goalJson,
       'oly_unit_v1': false, // KG
       'oly_bar_weight_v1': 20.0,

@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:oly/models/accessory_log.dart';
 import 'package:oly/models/body_composition_entry.dart';
+import 'package:oly/models/breathing_session_model.dart';
 import 'package:oly/models/daily_nutrition_log.dart';
 import 'package:oly/models/injury_model.dart';
 import 'package:oly/models/lift_model.dart';
@@ -31,6 +32,8 @@ class StorageService {
   static const String _keyCachedProducts = 'oly_cached_products_v1';
   static const String _keyRecentScans = 'oly_recent_scans_v1';
   static const String _keyInjuries = 'oly_injuries_v1';
+  static const String _keyBreathingLogs = 'oly_breathing_logs_v1';
+  static const String _keyBreathingConfig = 'oly_breathing_config_v1';
 
   final SharedPreferences _prefs;
 
@@ -251,6 +254,8 @@ class StorageService {
       'workoutSessions': jsonDecode(_prefs.getString(_keySessions) ?? '[]'),
       'recoveryLogs': jsonDecode(_prefs.getString(_keyRecoveryLogs) ?? '[]'),
       'accessoryLogs': jsonDecode(_prefs.getString(_keyAccessoryLogs) ?? '[]'),
+      'breathingLogs': jsonDecode(_prefs.getString(_keyBreathingLogs) ?? '[]'),
+      'breathingConfig': jsonDecode(_prefs.getString(_keyBreathingConfig) ?? '{}'),
       'settings': <String, Object>{
         'isLbs': loadIsLbs(),
         'barWeight': loadBarWeight(),
@@ -303,6 +308,18 @@ class StorageService {
         await _prefs.setString(
           _keyAccessoryLogs,
           jsonEncode(map['accessoryLogs']),
+        );
+      }
+      if (map.containsKey('breathingLogs')) {
+        await _prefs.setString(
+          _keyBreathingLogs,
+          jsonEncode(map['breathingLogs']),
+        );
+      }
+      if (map.containsKey('breathingConfig')) {
+        await _prefs.setString(
+          _keyBreathingConfig,
+          jsonEncode(map['breathingConfig']),
         );
       }
       if (map.containsKey('settings')) {
@@ -550,5 +567,51 @@ class StorageService {
       injuries.map((InjuryRecord e) => e.toJson()).toList(),
     );
     await _prefs.setString(_keyInjuries, jsonStr);
+  }
+
+  // --- BREATHING / WIM HOF STORAGE ---
+  List<BreathingSessionLog> loadBreathingLogs() {
+    final String? jsonStr = _prefs.getString(_keyBreathingLogs);
+    if (jsonStr == null || jsonStr.isEmpty) {
+      return <BreathingSessionLog>[];
+    }
+    try {
+      final List<dynamic> list = jsonDecode(jsonStr);
+      final List<BreathingSessionLog> logs = list
+          .map((dynamic e) =>
+              BreathingSessionLog.fromJson(e as Map<String, dynamic>))
+          .toList();
+      logs.sort((BreathingSessionLog a, BreathingSessionLog b) =>
+          b.date.compareTo(a.date));
+      return logs;
+    } catch (_) {
+      return <BreathingSessionLog>[];
+    }
+  }
+
+  Future<void> saveBreathingLogs(List<BreathingSessionLog> logs) async {
+    final String jsonStr = jsonEncode(
+      logs.map((BreathingSessionLog e) => e.toJson()).toList(),
+    );
+    await _prefs.setString(_keyBreathingLogs, jsonStr);
+  }
+
+  WimHofConfig loadBreathingConfig() {
+    final String? jsonStr = _prefs.getString(_keyBreathingConfig);
+    if (jsonStr == null || jsonStr.isEmpty) {
+      return const WimHofConfig();
+    }
+    try {
+      final Map<String, dynamic> map =
+          jsonDecode(jsonStr) as Map<String, dynamic>;
+      return WimHofConfig.fromJson(map);
+    } catch (_) {
+      return const WimHofConfig();
+    }
+  }
+
+  Future<void> saveBreathingConfig(WimHofConfig config) async {
+    final String jsonStr = jsonEncode(config.toJson());
+    await _prefs.setString(_keyBreathingConfig, jsonStr);
   }
 }

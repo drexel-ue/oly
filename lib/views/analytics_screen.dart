@@ -8,6 +8,7 @@ import 'package:oly/providers/program_provider.dart';
 import 'package:oly/providers/recovery_provider.dart';
 import 'package:oly/providers/settings_provider.dart';
 import 'package:oly/theme/app_theme.dart';
+import 'package:oly/views/breathing/breathing_analytics_tab.dart';
 import 'package:oly/widgets/ratio_chart_widget.dart';
 import 'package:provider/provider.dart';
 
@@ -26,7 +27,7 @@ class AnalyticsScreen extends StatelessWidget {
         recovery.groupedAccessoryProgressions;
 
     return DefaultTabController(
-      length: 3,
+      length: 4,
       child: Scaffold(
         appBar: AppBar(
           title: Text(
@@ -40,6 +41,7 @@ class AnalyticsScreen extends StatelessWidget {
             tabs: <Widget>[
               Tab(text: 'Workouts'),
               Tab(text: 'Accessories'),
+              Tab(text: 'Breathwork'),
               Tab(text: 'Ratios'),
             ],
           ),
@@ -57,7 +59,10 @@ class AnalyticsScreen extends StatelessWidget {
                 settings,
               ),
 
-              // TAB 3: Ratio Balance Chart
+              // TAB 3: Wim Hof Breathwork Retention Analytics
+              const BreathingAnalyticsTab(),
+
+              // TAB 4: Ratio Balance Chart
               SingleChildScrollView(
                 padding: const EdgeInsets.all(16),
                 child: RatioChartWidget(ratios: lifts.getRatioAnalysis()),
