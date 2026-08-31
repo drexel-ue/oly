@@ -75,7 +75,7 @@ void main() {
       expect(log.waterOz, equals(16.0));
     });
 
-    test('Deletes food entry correctly', () async {
+    test('Deletes and restores food entry correctly (Undo)', () async {
       final NutritionEntry item = NutritionEntry.create(
         name: 'Snack Bar',
         calories: 200,
@@ -86,6 +86,92 @@ void main() {
 
       await nutritionProvider.deleteFoodEntry(item.id);
       expect(nutritionProvider.currentDayLog.entries.length, equals(0));
+
+      await nutritionProvider.restoreFoodEntry(item);
+      expect(nutritionProvider.currentDayLog.entries.length, equals(1));
+      expect(nutritionProvider.currentDayLog.entries.first.name, equals('Snack Bar'));
+    });
+
+    test('Updates food entry details (name, calories, macros, portion)', () async {
+      final NutritionEntry item = NutritionEntry.create(
+        name: 'Greek Yogurt',
+        calories: 120,
+        proteinGrams: 15,
+        carbsGrams: 8,
+        fatGrams: 0,
+        category: MealCategory.breakfast,
+      );
+      await nutritionProvider.addFoodEntry(item);
+
+      final NutritionEntry updated = item.copyWith(
+        name: 'Greek Yogurt with Blueberries',
+        calories: 180,
+        proteinGrams: 18,
+        carbsGrams: 20,
+        fatGrams: 2,
+        portion: '1 cup yogurt + 0.5 cup berries',
+      );
+      await nutritionProvider.updateFoodEntry(updated);
+
+      final DailyNutritionLog log = nutritionProvider.currentDayLog;
+      expect(log.entries.length, equals(1));
+      expect(log.entries.first.name, equals('Greek Yogurt with Blueberries'));
+      expect(log.entries.first.calories, equals(180));
+      expect(log.entries.first.proteinGrams, equals(18.0));
+      expect(log.entries.first.carbsGrams, equals(20.0));
+      expect(log.entries.first.fatGrams, equals(2.0));
+      expect(log.entries.first.portion, equals('1 cup yogurt + 0.5 cup berries'));
+      expect(log.totalCalories, equals(180));
+      expect(log.totalProtein, equals(18.0));
+    });
+
+    test('Moves food entry across meal sections / categories', () async {
+      final NutritionEntry item = NutritionEntry.create(
+        name: 'Grilled Steak & Sweet Potato',
+        calories: 650,
+        proteinGrams: 50,
+        carbsGrams: 45,
+        fatGrams: 22,
+        category: MealCategory.lunch,
+      );
+      await nutritionProvider.addFoodEntry(item);
+
+      expect(
+        nutritionProvider.currentDayLog.getEntriesForCategory(MealCategory.lunch).length,
+        equals(1),
+      );
+      expect(
+        nutritionProvider.currentDayLog.getEntriesForCategory(MealCategory.dinner).length,
+        equals(0),
+      );
+
+      // Move from Lunch to Dinner via updateFoodEntry
+      final NutritionEntry moved = item.copyWith(category: MealCategory.dinner);
+      await nutritionProvider.updateFoodEntry(moved);
+
+      expect(
+        nutritionProvider.currentDayLog.getEntriesForCategory(MealCategory.lunch).length,
+        equals(0),
+      );
+      expect(
+        nutritionProvider.currentDayLog.getEntriesForCategory(MealCategory.dinner).length,
+        equals(1),
+      );
+      expect(
+        nutritionProvider.currentDayLog.getCaloriesForCategory(MealCategory.dinner),
+        equals(650),
+      );
+
+      // Move from Dinner to Post-Workout via moveFoodEntry
+      await nutritionProvider.moveFoodEntry(item.id, MealCategory.postWorkout);
+      expect(
+        nutritionProvider.currentDayLog.getEntriesForCategory(MealCategory.dinner).length,
+        equals(0),
+      );
+      expect(
+        nutritionProvider.currentDayLog.getEntriesForCategory(MealCategory.postWorkout).length,
+        equals(1),
+      );
     });
 
     test('Adds new Renpho scan and calculates scan deltas', () async {

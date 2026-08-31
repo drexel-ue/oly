@@ -37,6 +37,7 @@ import 'package:oly/views/injury_tracker_screen.dart';
 import 'package:oly/views/lifts_screen.dart';
 import 'package:oly/views/max_test_screen.dart';
 import 'package:oly/views/nutrition/food_search_sheet.dart';
+import 'package:oly/views/nutrition/edit_food_entry_sheet.dart';
 import 'package:oly/views/nutrition/live_barcode_scanner_sheet.dart';
 import 'package:oly/views/nutrition/metabolic_science_explainer_screen.dart';
 import 'package:oly/views/nutrition/nutrition_dashboard_screen.dart';
@@ -623,6 +624,36 @@ void main() {
           find.text('100% Whey Protein Isolate (Vanilla)'),
           findsOneWidget,
         );
+      },
+    );
+
+    testWidgets(
+      '17b Renders Edit Food Entry Modal Sheet with Category Switcher & Macro Controls',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(1170, 2532);
+        tester.view.devicePixelRatio = 2.0;
+        addTearDown(() => tester.view.resetPhysicalSize());
+
+        final NutritionEntry entry = NutritionEntry.create(
+          name: 'Grilled Wild Salmon & Quinoa',
+          calories: 580,
+          proteinGrams: 46,
+          carbsGrams: 42,
+          fatGrams: 24,
+          category: MealCategory.lunch,
+          portion: '220g salmon + 1 cup cooked quinoa',
+        );
+
+        await tester.pumpWidget(
+          buildTestScreen(
+            EditFoodEntrySheet(entry: entry),
+          ),
+        );
+        await captureScreen(tester, '17b_edit_food_entry_sheet');
+        expect(find.text('Edit Logged Food'), findsOneWidget);
+        expect(find.text('MEAL SECTION'), findsOneWidget);
+        expect(find.text('Grilled Wild Salmon & Quinoa'), findsOneWidget);
+        expect(find.text('Save Changes'), findsOneWidget);
       },
     );
 

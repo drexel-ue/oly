@@ -167,15 +167,40 @@ class NutritionProvider extends ChangeNotifier {
     await addFoodEntry(entry, latestBodyComp: latestBodyComp);
   }
 
-  Future<void> updateFoodEntry(NutritionEntry entry) async {
+  Future<void> updateFoodEntry(
+    NutritionEntry entry, {
+    BodyCompositionEntry? latestBodyComp,
+  }) async {
     final String key = selectedDateKey;
-    final DailyNutritionLog? current = _logs[key];
-    if (current == null) {
-      return;
-    }
+    final DailyNutritionLog current = getDayLog(
+      key,
+      latestBodyComp: latestBodyComp,
+    );
 
     final List<NutritionEntry> updatedEntries = current.entries
         .map((NutritionEntry e) => e.id == entry.id ? entry : e)
+        .toList();
+    _logs[key] = current.copyWith(entries: updatedEntries);
+    await _storage.saveDailyNutritionLogs(_logs);
+    notifyListeners();
+  }
+
+  Future<void> moveFoodEntry(
+    String entryId,
+    MealCategory newCategory, {
+    BodyCompositionEntry? latestBodyComp,
+  }) async {
+    final String key = selectedDateKey;
+    final DailyNutritionLog current = getDayLog(
+      key,
+      latestBodyComp: latestBodyComp,
+    );
+
+    final List<NutritionEntry> updatedEntries = current.entries
+        .map(
+          (NutritionEntry e) =>
+              e.id == entryId ? e.copyWith(category: newCategory) : e,
+        )
         .toList();
     _logs[key] = current.copyWith(entries: updatedEntries);
     await _storage.saveDailyNutritionLogs(_logs);
@@ -192,6 +217,31 @@ class NutritionProvider extends ChangeNotifier {
     final List<NutritionEntry> updatedEntries = current.entries
         .where((NutritionEntry e) => e.id != entryId)
         .toList();
+    _logs[key] = current.copyWith(entries: updatedEntries);
+    await _storage.saveDailyNutritionLogs(_logs);
+    notifyListeners();
+  }
+
+  Future<void> restoreFoodEntry(
+    NutritionEntry entry, {
+    int? atIndex,
+    BodyCompositionEntry? latestBodyComp,
+  }) async {
+    final String key = selectedDateKey;
+    final DailyNutritionLog current = getDayLog(
+      key,
+      latestBodyComp: latestBodyComp,
+    );
+
+    final List<NutritionEntry> updatedEntries = List<NutritionEntry>.from(
+      current.entries,
+    );
+    if (atIndex != null && atIndex >= 0 && atIndex <= updatedEntries.length) {
+      updatedEntries.insert(atIndex, entry);
+    } else {
+      updatedEntries.add(entry);
+    }
+
     _logs[key] = current.copyWith(entries: updatedEntries);
     await _storage.saveDailyNutritionLogs(_logs);
     notifyListeners();

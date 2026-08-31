@@ -10,6 +10,7 @@ import 'package:oly/providers/nutrition_provider.dart';
 import 'package:oly/theme/app_theme.dart';
 import 'package:oly/views/nutrition/activity_log_sheet.dart';
 import 'package:oly/views/nutrition/body_comp_analytics_screen.dart';
+import 'package:oly/views/nutrition/edit_food_entry_sheet.dart';
 import 'package:oly/views/nutrition/food_search_sheet.dart';
 import 'package:oly/views/nutrition/metabolic_science_explainer_screen.dart';
 import 'package:oly/views/nutrition/nutrition_settings_screen.dart';
@@ -647,7 +648,10 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
-                          Row(
+                          Wrap(
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            spacing: 6,
+                            runSpacing: 2,
                             children: <Widget>[
                               Text(
                                 'Daily Hydration',
@@ -657,8 +661,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
                                   color: AppTheme.textPrimary,
                                 ),
                               ),
-                              if (log.isTrainingDay) ...<Widget>[
-                                const SizedBox(width: 6),
+                              if (log.isTrainingDay)
                                 Container(
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 5,
@@ -678,7 +681,6 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
                                     ),
                                   ),
                                 ),
-                              ],
                             ],
                           ),
                           Text(
@@ -897,40 +899,47 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: <Widget>[
-                        Row(
-                          children: <Widget>[
-                            Icon(
-                              a.activityType == 'workout_wod'
-                                  ? Icons.fitness_center
-                                  : Icons.directions_walk,
-                              size: 16,
-                              color: a.activityType == 'workout_wod'
-                                  ? AppTheme.primaryAmber
-                                  : AppTheme.secondaryCyan,
-                            ),
-                            const SizedBox(width: 10),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: <Widget>[
-                                Text(
-                                  a.name,
-                                  style: GoogleFonts.inter(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppTheme.textPrimary,
-                                  ),
+                        Expanded(
+                          child: Row(
+                            children: <Widget>[
+                              Icon(
+                                a.activityType == 'workout_wod'
+                                    ? Icons.fitness_center
+                                    : Icons.directions_walk,
+                                size: 16,
+                                color: a.activityType == 'workout_wod'
+                                    ? AppTheme.primaryAmber
+                                    : AppTheme.secondaryCyan,
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: <Widget>[
+                                    Text(
+                                      a.name,
+                                      style: GoogleFonts.inter(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                        color: AppTheme.textPrimary,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    Text(
+                                      '${a.durationMinutes.round()} mins • ${a.metValue} MET${a.notes != null ? ' • ${a.notes}' : ''}',
+                                      style: GoogleFonts.inter(
+                                        fontSize: 10,
+                                        color: AppTheme.textSecondary,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
                                 ),
-                                Text(
-                                  '${a.durationMinutes.round()} mins • ${a.metValue} MET${a.notes != null ? ' • ${a.notes}' : ''}',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 10,
-                                    color: AppTheme.textSecondary,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
+                              ),
+                            ],
+                          ),
                         ),
+                        const SizedBox(width: 8),
                         Text(
                           '+${a.caloriesBurned} kcal',
                           style: GoogleFonts.firaCode(
@@ -1088,49 +1097,114 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
                     alignment: Alignment.centerRight,
                     padding: const EdgeInsets.only(right: 20),
                     color: Colors.redAccent,
-                    child: const Icon(Icons.delete, color: Colors.white),
-                  ),
-                  onDismissed: (_) => nutrition.deleteFoodEntry(item.id),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 10,
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
                       children: <Widget>[
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: <Widget>[
-                              Text(
-                                item.name,
-                                style: GoogleFonts.inter(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppTheme.textPrimary,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                '${item.proteinGrams.toStringAsFixed(0)}g P • ${item.carbsGrams.toStringAsFixed(0)}g C • ${item.fatGrams.toStringAsFixed(0)}g F${item.portion != null ? ' • ${item.portion}' : ''}',
-                                style: GoogleFonts.inter(
-                                  fontSize: 11,
-                                  color: AppTheme.textSecondary,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+                        Icon(Icons.delete_outline, color: Colors.white),
+                        SizedBox(width: 6),
                         Text(
-                          '${item.calories} kcal',
-                          style: GoogleFonts.outfit(
-                            fontSize: 15,
+                          'Delete',
+                          style: TextStyle(
+                            color: Colors.white,
                             fontWeight: FontWeight.bold,
-                            color: AppTheme.textPrimary,
                           ),
                         ),
                       ],
+                    ),
+                  ),
+                  onDismissed: (_) {
+                    nutrition.deleteFoodEntry(item.id);
+                    ScaffoldMessenger.of(context).clearSnackBars();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'Deleted ${item.name}',
+                          style: GoogleFonts.inter(color: Colors.white),
+                        ),
+                        backgroundColor: AppTheme.surfaceElevated,
+                        duration: const Duration(seconds: 4),
+                        action: SnackBarAction(
+                          label: 'UNDO',
+                          textColor: AppTheme.primaryAmber,
+                          onPressed: () {
+                            nutrition.restoreFoodEntry(
+                              item,
+                              atIndex: index,
+                              latestBodyComp: bodyComp.latestEntry,
+                            );
+                          },
+                        ),
+                      ),
+                    );
+                  },
+                  child: InkWell(
+                    onTap: () => _openEditFoodSheet(context, item),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 10,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: <Widget>[
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                Row(
+                                  children: <Widget>[
+                                    Flexible(
+                                      child: Text(
+                                        item.name,
+                                        style: GoogleFonts.inter(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w600,
+                                          color: AppTheme.textPrimary,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    const Icon(
+                                      Icons.edit_outlined,
+                                      size: 13,
+                                      color: AppTheme.textSecondary,
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  '${item.proteinGrams.toStringAsFixed(0)}g P • ${item.carbsGrams.toStringAsFixed(0)}g C • ${item.fatGrams.toStringAsFixed(0)}g F${item.portion != null ? ' • ${item.portion}' : ''}',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 11,
+                                    color: AppTheme.textSecondary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: <Widget>[
+                              Text(
+                                '${item.calories} kcal',
+                                style: GoogleFonts.outfit(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppTheme.textPrimary,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              const Icon(
+                                Icons.chevron_right,
+                                size: 16,
+                                color: AppTheme.textSecondary,
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 );
@@ -1138,6 +1212,15 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
             ),
         ],
       ),
+    );
+  }
+
+  void _openEditFoodSheet(BuildContext context, NutritionEntry item) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => EditFoodEntrySheet(entry: item),
     );
   }
 
