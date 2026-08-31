@@ -77,7 +77,7 @@ class RecoveryProvider extends ChangeNotifier {
     final double targetPct = getCurrentKettlebellTargetPercentage();
     final double weight = athleteWeightKg * (targetPct / 100.0);
     // Round to nearest 0.5kg or standard increment
-    return double.parse((weight).toStringAsFixed(1));
+    return double.parse(weight.toStringAsFixed(1));
   }
 
   Future<void> logKettlebellMile({

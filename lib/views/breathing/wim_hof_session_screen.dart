@@ -114,7 +114,9 @@ class _WimHofSessionScreenState extends State<WimHofSessionScreen>
 
     _prepTimer?.cancel();
     _prepTimer = Timer.periodic(const Duration(seconds: 1), (Timer timer) {
-      if (!mounted || _isPaused) return;
+      if (!mounted || _isPaused) {
+        return;
+      }
 
       if (_prepSecondsRemaining > 1) {
         setState(() => _prepSecondsRemaining--);
@@ -162,7 +164,9 @@ class _WimHofSessionScreenState extends State<WimHofSessionScreen>
 
     _retentionTimer?.cancel();
     _retentionTimer = Timer.periodic(const Duration(seconds: 1), (Timer timer) {
-      if (!mounted || _isPaused) return;
+      if (!mounted || _isPaused) {
+        return;
+      }
       setState(() => _retentionSeconds++);
     });
   }
@@ -185,7 +189,9 @@ class _WimHofSessionScreenState extends State<WimHofSessionScreen>
 
     _recoveryTimer?.cancel();
     _recoveryTimer = Timer.periodic(const Duration(seconds: 1), (Timer timer) {
-      if (!mounted || _isPaused) return;
+      if (!mounted || _isPaused) {
+        return;
+      }
 
       if (_recoverySecondsRemaining > 1) {
         setState(() => _recoverySecondsRemaining--);
@@ -898,7 +904,7 @@ class _WimHofSessionScreenState extends State<WimHofSessionScreen>
             ),
             icon: const Icon(Icons.arrow_forward),
             label: Text(
-              'I\'M FULL • START RETENTION HOLD',
+              "I'M FULL • START RETENTION HOLD",
               style: GoogleFonts.outfit(
                 fontSize: 13,
                 fontWeight: FontWeight.bold,

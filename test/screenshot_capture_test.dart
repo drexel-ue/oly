@@ -452,8 +452,8 @@ void main() {
             currentWeek: 2,
             onWeightUpdated: ({
               required double newWeightKg,
-              int? newReps,
               required bool update1RM,
+              int? newReps,
               double? new1RMKg,
             }) {},
           ),
@@ -815,7 +815,7 @@ void main() {
       await tester.pump();
 
       // Trigger retention hold
-      await tester.tap(find.text('I\'M FULL • START RETENTION HOLD'));
+      await tester.tap(find.text("I'M FULL • START RETENTION HOLD"));
       await tester.pump();
       // Advance stopwatch to 1m 45s (105s)
       await tester.pump(const Duration(seconds: 105));

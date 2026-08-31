@@ -1,18 +1,20 @@
 import 'dart:io';
+
 import 'package:flutter/services.dart';
+import 'package:oly/services/app_log_service.dart';
+import 'package:oly/services/food_database_service.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'app_log_service.dart';
-import 'food_database_service.dart';
 
 /// Embedded local SQLite database service providing high-performance full-text search
 /// and offline barcode lookups across the complete USDA FoodData Central and restaurant menu catalog.
 class UsdaDatabaseService {
   UsdaDatabaseService({Database? db, String? dbPath})
-      : _db = db,
-        _customDbPath = dbPath;
+      : _customDbPath = dbPath {
+    _db = db;
+  }
 
   static UsdaDatabaseService? _instance;
   static UsdaDatabaseService get instance => _instance ??= UsdaDatabaseService();
@@ -75,12 +77,12 @@ class UsdaDatabaseService {
       final String dbPath = p.join(appDir.path, 'usda_foods.db');
       final File dbFile = File(dbPath);
 
-      bool needsExtract = !await dbFile.exists();
+      bool needsExtract = !dbFile.existsSync();
       if (!needsExtract) {
         try {
           final ByteData data = await rootBundle.load('assets/data/usda_foods.db');
           final int assetSize = data.lengthInBytes;
-          final int existingSize = await dbFile.length();
+          final int existingSize = dbFile.lengthSync();
           if (existingSize != assetSize) {
             needsExtract = true;
             AppLogService.instance.info(
@@ -97,16 +99,16 @@ class UsdaDatabaseService {
             await _db!.close();
             _db = null;
           }
-          if (await dbFile.exists()) {
-            await dbFile.delete();
+          if (dbFile.existsSync()) {
+            dbFile.deleteSync();
           }
           final File walFile = File('$dbPath-wal');
-          if (await walFile.exists()) {
-            await walFile.delete();
+          if (walFile.existsSync()) {
+            walFile.deleteSync();
           }
           final File shmFile = File('$dbPath-shm');
-          if (await shmFile.exists()) {
-            await shmFile.delete();
+          if (shmFile.existsSync()) {
+            shmFile.deleteSync();
           }
 
           final ByteData data = await rootBundle.load('assets/data/usda_foods.db');
@@ -128,7 +130,7 @@ class UsdaDatabaseService {
         }
       }
 
-      if (await dbFile.exists()) {
+      if (dbFile.existsSync()) {
         _db = await openDatabase(dbPath);
         final List<Map<String, dynamic>> countRows = await _db!.rawQuery('SELECT COUNT(*) as c FROM foods');
         final int count = Sqflite.firstIntValue(countRows) ?? 0;

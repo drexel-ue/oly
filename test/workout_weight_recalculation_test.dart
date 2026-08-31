@@ -177,8 +177,8 @@ void main() {
                   onWeightUpdated:
                       ({
                         required double newWeightKg,
-                        int? newReps,
                         required bool update1RM,
+                        int? newReps,
                         double? new1RMKg,
                       }) {
                         updatedWeight = newWeightKg;
@@ -252,8 +252,8 @@ void main() {
                   onWeightUpdated:
                       ({
                         required double newWeightKg,
-                        int? newReps,
                         required bool update1RM,
+                        int? newReps,
                         double? new1RMKg,
                       }) {
                         updatedWeight = newWeightKg;
@@ -313,8 +313,8 @@ void main() {
                   onWeightUpdated:
                       ({
                         required double newWeightKg,
-                        int? newReps,
                         required bool update1RM,
+                        int? newReps,
                         double? new1RMKg,
                       }) {},
                 ),

@@ -482,7 +482,9 @@ class _BreathingAnalyticsTabState extends State<BreathingAnalyticsTab> {
 
   Widget _buildRoundAveragesCard(BreathingProvider breathing) {
     final Map<int, double> roundAverages = breathing.roundAveragesMap;
-    if (roundAverages.isEmpty) return const SizedBox.shrink();
+    if (roundAverages.isEmpty) {
+      return const SizedBox.shrink();
+    }
 
     final List<int> sortedRounds = roundAverages.keys.toList()..sort();
     final double highestRoundAvg = roundAverages.values.isNotEmpty

@@ -104,8 +104,8 @@ class WorkoutWeightDialog extends StatefulWidget {
   final int currentWeek;
   final void Function({
     required double newWeightKg,
-    int? newReps,
     required bool update1RM,
+    int? newReps,
     double? new1RMKg,
   })
   onWeightUpdated;

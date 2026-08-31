@@ -44,7 +44,7 @@ void main() {
       expect(first.protein, isPositive);
     });
 
-    test('Searches McDonald\'s items with comprehensive menu variety', () async {
+    test("Searches McDonald's items with comprehensive menu variety", () async {
       final List<FoodItem> results = await usdaService.searchFoods('mcdonald');
       expect(results.length, greaterThanOrEqualTo(30));
 
@@ -82,7 +82,7 @@ void main() {
       final FoodDatabaseService foodService = FoodDatabaseService();
       final List<FoodItem> results = await foodService.searchLocalFoods('cane');
       expect(results.isNotEmpty, isTrue);
-      expect(results.any((FoodItem f) => (f.brand ?? '').contains("Cane")), isTrue);
+      expect(results.any((FoodItem f) => (f.brand ?? '').contains('Cane')), isTrue);
     });
   });
 }

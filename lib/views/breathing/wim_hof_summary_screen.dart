@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';
 import 'package:oly/models/breathing_session_model.dart';
 import 'package:oly/providers/breathing_provider.dart';
 import 'package:oly/theme/app_theme.dart';
@@ -468,23 +467,29 @@ class _WimHofSummaryScreenState extends State<WimHofSummaryScreen> {
                           : null,
                     );
 
+                    final NavigatorState navigator = Navigator.of(context);
+                    final ScaffoldMessengerState messenger =
+                        ScaffoldMessenger.of(context);
+
                     await breathingProvider.saveSession(session);
 
-                    if (mounted) {
-                      Navigator.pop(context); // Close summary
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            isNewPR
-                                ? '🏆 NEW PR! Wim Hof Session logged successfully!'
-                                : '⚡ Wim Hof Breathwork logged successfully!',
-                            style:
-                                GoogleFonts.outfit(fontWeight: FontWeight.bold),
-                          ),
-                          backgroundColor: AppTheme.secondaryCyan,
-                        ),
-                      );
+                    if (!mounted) {
+                      return;
                     }
+
+                    navigator.pop(); // Close summary
+                    messenger.showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          isNewPR
+                              ? '🏆 NEW PR! Wim Hof Session logged successfully!'
+                              : '⚡ Wim Hof Breathwork logged successfully!',
+                          style:
+                              GoogleFonts.outfit(fontWeight: FontWeight.bold),
+                        ),
+                        backgroundColor: AppTheme.secondaryCyan,
+                      ),
+                    );
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.secondaryCyan,

@@ -66,7 +66,7 @@ class LiftModel {
       ratio = 0.50;
     }
 
-    if (currentMaxes != null && anchor != null && currentMaxes.containsKey(anchor)) {
+    if (currentMaxes != null && currentMaxes.containsKey(anchor)) {
       defaultMax = (currentMaxes[anchor] ?? 100.0) * ratio;
     }
 

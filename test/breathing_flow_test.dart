@@ -253,10 +253,10 @@ void main() {
       expect(find.text('FULLY IN...'), findsOneWidget);
 
       // Verify skip button
-      expect(find.text('I\'M FULL • START RETENTION HOLD'), findsOneWidget);
+      expect(find.text("I'M FULL • START RETENTION HOLD"), findsOneWidget);
 
       // Tap skip to transition to Retention hold immediately
-      await tester.tap(find.text('I\'M FULL • START RETENTION HOLD'));
+      await tester.tap(find.text("I'M FULL • START RETENTION HOLD"));
       await tester.pump();
 
       expect(find.text('Breath Retention (Exhale Hold)'), findsOneWidget);

@@ -204,8 +204,8 @@ void main() {
                   currentWeek: 2,
                   onWeightUpdated: ({
                     required double newWeightKg,
-                    int? newReps,
                     required bool update1RM,
+                    int? newReps,
                     double? new1RMKg,
                   }) {},
                 ),

@@ -1,18 +1,20 @@
 import 'dart:io';
+
 import 'package:flutter/services.dart';
+import 'package:oly/models/exercise_database_model.dart';
+import 'package:oly/services/app_log_service.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import '../models/exercise_database_model.dart';
-import 'app_log_service.dart';
 
 /// Embedded local SQLite database service providing high-performance full-text search (FTS5)
 /// and filtering across 3,000+ exercises from Free Exercise DB, wger, Exercises-Dataset, and Oly curated catalogs.
 class ExerciseDatabaseService {
   ExerciseDatabaseService({Database? db, String? dbPath})
-      : _db = db,
-        _customDbPath = dbPath;
+      : _customDbPath = dbPath {
+    _db = db;
+  }
 
   static ExerciseDatabaseService? _instance;
   static ExerciseDatabaseService get instance =>
@@ -75,12 +77,12 @@ class ExerciseDatabaseService {
       final String dbPath = p.join(appDir.path, 'exercises.db');
       final File dbFile = File(dbPath);
 
-      bool needsExtract = !await dbFile.exists();
+      bool needsExtract = !dbFile.existsSync();
       if (!needsExtract) {
         try {
           final ByteData data = await rootBundle.load('assets/data/exercises.db');
           final int assetSize = data.lengthInBytes;
-          final int existingSize = await dbFile.length();
+          final int existingSize = dbFile.lengthSync();
           if (existingSize != assetSize) {
             needsExtract = true;
             AppLogService.instance.info(
@@ -97,8 +99,8 @@ class ExerciseDatabaseService {
             await _db!.close();
             _db = null;
           }
-          if (await dbFile.exists()) {
-            await dbFile.delete();
+          if (dbFile.existsSync()) {
+            dbFile.deleteSync();
           }
 
           final ByteData data = await rootBundle.load('assets/data/exercises.db');
@@ -119,7 +121,7 @@ class ExerciseDatabaseService {
         }
       }
 
-      if (await dbFile.exists()) {
+      if (dbFile.existsSync()) {
         _db = await openDatabase(dbPath);
       }
     } catch (e, st) {

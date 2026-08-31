@@ -11,13 +11,13 @@ void main() {
 
   group('ExerciseDatabaseModel Unit Tests', () {
     test('Correctly serializes and deserializes SQLite maps and JSON', () {
-      final ExerciseDatabaseModel model = ExerciseDatabaseModel(
+      const ExerciseDatabaseModel model = ExerciseDatabaseModel(
         id: 'fedb_barbell_bench_press',
         name: 'Barbell Bench Press',
         category: 'strength',
         bodyPart: 'chest',
         targetMuscle: 'pectorals',
-        secondaryMuscles: const <String>['triceps', 'deltoids'],
+        secondaryMuscles: <String>['triceps', 'deltoids'],
         equipment: 'barbell',
         mechanic: 'compound',
         force: 'push',

@@ -392,7 +392,7 @@ void main() {
     });
 
     test('LiftModel.fromDatabaseModel constructs valid model with calculated target ratio', () {
-      final ExerciseDatabaseModel dbModel = ExerciseDatabaseModel(
+      const ExerciseDatabaseModel dbModel = ExerciseDatabaseModel(
         id: 'oly_bayesian_curl',
         name: 'Bayesian Curl',
         category: 'strength',

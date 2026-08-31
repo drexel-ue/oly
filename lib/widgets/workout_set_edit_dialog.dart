@@ -92,7 +92,9 @@ class _WorkoutSetEditDialogState extends State<WorkoutSetEditDialog> {
   }
 
   void _setReps(int reps) {
-    if (reps < 1) return;
+    if (reps < 1) {
+      return;
+    }
     setState(() {
       _currentReps = reps;
       _repsController.text = '$_currentReps';
@@ -443,7 +445,7 @@ class _WorkoutSetEditDialogState extends State<WorkoutSetEditDialog> {
                       ),
                       Switch(
                         value: _isCompleted,
-                        activeColor: AppTheme.primaryAmber,
+                        activeThumbColor: AppTheme.primaryAmber,
                         onChanged: (bool val) {
                           setState(() {
                             _isCompleted = val;

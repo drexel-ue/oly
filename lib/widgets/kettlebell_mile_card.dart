@@ -145,7 +145,7 @@ class _KettlebellMileCardState extends State<KettlebellMileCard> {
 
   void _adjustSpeed(double delta) {
     setState(() {
-      _speedMph = double.parse(((_speedMph + delta).clamp(1.0, 10.0)).toStringAsFixed(1));
+      _speedMph = double.parse((_speedMph + delta).clamp(1.0, 10.0).toStringAsFixed(1));
     });
   }
 
@@ -157,7 +157,7 @@ class _KettlebellMileCardState extends State<KettlebellMileCard> {
 
   void _adjustIncline(double delta) {
     setState(() {
-      _inclinePct = double.parse(((_inclinePct + delta).clamp(0.0, 25.0)).toStringAsFixed(1));
+      _inclinePct = double.parse((_inclinePct + delta).clamp(0.0, 25.0).toStringAsFixed(1));
     });
   }
 

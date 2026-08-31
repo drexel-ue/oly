@@ -472,7 +472,7 @@ class _WimHofSetupSheetState extends State<WimHofSetupSheet> {
                       ),
                       Switch(
                         value: _soundEnabled,
-                        activeColor: AppTheme.secondaryCyan,
+                        activeThumbColor: AppTheme.secondaryCyan,
                         onChanged: (bool val) =>
                             setState(() => _soundEnabled = val),
                       ),
@@ -502,7 +502,7 @@ class _WimHofSetupSheetState extends State<WimHofSetupSheet> {
                       ),
                       Switch(
                         value: _hapticsEnabled,
-                        activeColor: AppTheme.primaryAmber,
+                        activeThumbColor: AppTheme.primaryAmber,
                         onChanged: (bool val) =>
                             setState(() => _hapticsEnabled = val),
                       ),

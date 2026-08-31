@@ -302,7 +302,7 @@ void main() {
     );
 
     test('MobilityExerciseModel.fromDatabaseModel converts database movement properly', () {
-      final ExerciseDatabaseModel dbModel = ExerciseDatabaseModel(
+      const ExerciseDatabaseModel dbModel = ExerciseDatabaseModel(
         id: 'oly_bayesian_curl',
         name: 'Bayesian Curl',
         category: 'strength',

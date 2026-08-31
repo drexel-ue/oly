@@ -799,19 +799,13 @@ class FoodDatabaseService {
     }
 
     // 1. Local results first (exact brand/restaurant and whole food matches)
-    for (final FoodItem item in localResults) {
-      addUnique(item);
-    }
+    localResults.forEach(addUnique);
 
     // 2. USDA FoodData Central results second
-    for (final FoodItem item in usdaResults) {
-      addUnique(item);
-    }
+    usdaResults.forEach(addUnique);
 
     // 3. OpenFoodFacts results third
-    for (final FoodItem item in offResults) {
-      addUnique(item);
-    }
+    offResults.forEach(addUnique);
 
     return merged;
   }

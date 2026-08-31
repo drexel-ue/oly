@@ -454,8 +454,8 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
           onWeightUpdated:
               ({
                 required double newWeightKg,
-                int? newReps,
                 required bool update1RM,
+                int? newReps,
                 double? new1RMKg,
               }) async {
                 final int finalReps = newReps ?? currentReps;
