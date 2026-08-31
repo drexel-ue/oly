@@ -45,7 +45,7 @@ void main() {
           );
 
       expect(routine.phaseGroups.length, equals(4));
-      expect(routine.exercises.length, equals(10));
+      expect(routine.exercises.length, equals(12));
       expect(
         routine.diagnosticReasons.any(
           (String r) => r.contains('Military Press'),
@@ -63,6 +63,18 @@ void main() {
       expect(
         routine.exercises.any(
           (MobilityExerciseModel e) => e.id == 'kettlebell_mile',
+        ),
+        isTrue,
+      );
+      expect(
+        routine.exercises.any(
+          (MobilityExerciseModel e) => e.id == 'ghd_back_extensions',
+        ),
+        isTrue,
+      );
+      expect(
+        routine.exercises.any(
+          (MobilityExerciseModel e) => e.id == 'seated_leg_extensions',
         ),
         isTrue,
       );
@@ -94,7 +106,7 @@ void main() {
           );
 
       expect(routine.phaseGroups.length, equals(4));
-      expect(routine.exercises.length, equals(10));
+      expect(routine.exercises.length, equals(12));
       expect(
         routine.diagnosticReasons.any((String r) => r.contains('Squat volume')),
         isTrue,
@@ -110,6 +122,18 @@ void main() {
       expect(
         routine.exercises.any(
           (MobilityExerciseModel e) => e.id == 'kettlebell_mile',
+        ),
+        isTrue,
+      );
+      expect(
+        routine.exercises.any(
+          (MobilityExerciseModel e) => e.id == 'ghd_back_extensions',
+        ),
+        isTrue,
+      );
+      expect(
+        routine.exercises.any(
+          (MobilityExerciseModel e) => e.id == 'seated_leg_extensions',
         ),
         isTrue,
       );

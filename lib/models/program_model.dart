@@ -178,7 +178,7 @@ class ProgramCycle {
         dayNumber: dayNum,
         title: 'Active Recovery Day',
         subtitle:
-            'Kettlebell Mile (10%->30% BW), Cable Crunches (3x8), Dragon Flags (3x5), Arms Hypertrophy',
+            'Kettlebell Mile (10%->30% BW), Cable Crunches (3x8), Dragon Flags (3x5), GHD Extensions (3x12), Hypertrophy (Arms & Leg Extensions)',
         isActiveRecovery: true,
         phases: <PhaseTemplate>[
           PhaseTemplate(
@@ -209,10 +209,18 @@ class ProgramCycle {
                 setScheme: '3 Sets of 5 Reps',
                 notes: 'Full body tension, controlled eccentric descent.',
               ),
+              ExerciseTemplate(
+                name: 'GHD Machine Back Extensions',
+                liftId: 'ghd_back_extensions',
+                setScheme: '3 Sets of 12 Reps',
+                weeklyWeightIncrementKg: 2.5,
+                notes:
+                    'Glute-Ham Developer hyperextensions; track added plate weight.',
+              ),
             ],
           ),
           PhaseTemplate(
-            name: 'Arms Hypertrophy & Tendon Resilience',
+            name: 'Hypertrophy & Tendon Resilience',
             exercises: <ExerciseTemplate>[
               ExerciseTemplate(
                 name: 'Dumbbell Bicep Curls',
@@ -227,6 +235,14 @@ class ProgramCycle {
                 setScheme: '3 Sets of 10 Reps',
                 weeklyWeightIncrementKg: 2.5,
                 notes: 'Full elbow extension; track weight.',
+              ),
+              ExerciseTemplate(
+                name: 'Seated Machine Leg Extensions',
+                liftId: 'seated_leg_extensions',
+                setScheme: '3 Sets of 12 Reps',
+                weeklyWeightIncrementKg: 2.5,
+                notes:
+                    'Knee extension machine for quad & patellar tendon resilience; track weight.',
               ),
             ],
           ),

@@ -195,10 +195,11 @@ class RecoveryEngineService {
       );
     }
 
-    // Phase 2: Core Stability & Anti-Extension (Cable Crunches & Dragon Flags)
+    // Phase 2: Core & Posterior Chain Strength (Cable Crunches, Dragon Flags & GHD Back Extensions)
     final List<MobilityExerciseModel> coreOrdered = <MobilityExerciseModel>[
       ...catalog.where((MobilityExerciseModel ex) => ex.id == 'cable_crunches'),
       ...catalog.where((MobilityExerciseModel ex) => ex.id == 'dragon_flags'),
+      ...catalog.where((MobilityExerciseModel ex) => ex.id == 'ghd_back_extensions'),
     ];
     if (coreOrdered.isEmpty) {
       coreOrdered.addAll(
@@ -207,10 +208,11 @@ class RecoveryEngineService {
     }
     final List<MobilityExerciseModel> phase2Exercises = coreOrdered;
 
-    // Phase 3: Arms & Upper Hypertrophy (Bicep & Tricep Exercises)
+    // Phase 3: Hypertrophy & Tendon Resilience (Biceps, Triceps & Seated Leg Extensions)
     final List<MobilityExerciseModel> armsOrdered = <MobilityExerciseModel>[
       ...catalog.where((MobilityExerciseModel ex) => ex.id == 'db_bicep_curls'),
       ...catalog.where((MobilityExerciseModel ex) => ex.id == 'overhead_tricep_ext'),
+      ...catalog.where((MobilityExerciseModel ex) => ex.id == 'seated_leg_extensions'),
     ];
     if (armsOrdered.isEmpty) {
       armsOrdered.addAll(
@@ -274,14 +276,14 @@ class RecoveryEngineService {
       ),
       RecoveryPhaseGroup(
         phaseNumber: 2,
-        title: 'Phase 2: Core Stability & Strength',
-        subtitle: 'Cable Crunches (3x8) & Dragon Flags (3x5)',
+        title: 'Phase 2: Core & Posterior Chain Strength',
+        subtitle: 'Cable Crunches (3x8), Dragon Flags (3x5), GHD Extensions (3x12)',
         exercises: phase2Exercises,
       ),
       RecoveryPhaseGroup(
         phaseNumber: 3,
-        title: 'Phase 3: Arms & Upper Hypertrophy',
-        subtitle: 'Bicep & Tricep Hypertrophy (Weight Tracked)',
+        title: 'Phase 3: Hypertrophy & Tendon Resilience',
+        subtitle: 'Biceps (3x10), Triceps (3x10), Leg Extensions (3x12)',
         exercises: phase3Exercises,
       ),
       RecoveryPhaseGroup(
