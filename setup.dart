@@ -1,7 +1,6 @@
 #!/usr/bin/env dart
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 /// ANSI Color and Style Codes for rich terminal formatting.
@@ -100,7 +99,7 @@ class SetupConfig {
 void printBanner() {
   stdout.writeln();
   stdout.writeln(Ansi.bold(Ansi.brightCyan('╔════════════════════════════════════════════════════════════════════╗')));
-  stdout.writeln(Ansi.bold(Ansi.brightCyan('║') + '  🏋️   ' + Ansi.bold(Ansi.brightYellow('OLY')) + ' — Olympic Weightlifting & Nutrition Environment Setup   ' + Ansi.brightCyan('║')));
+  stdout.writeln(Ansi.bold('${Ansi.brightCyan('║')}  🏋️   ${Ansi.bold(Ansi.brightYellow('OLY'))} — Olympic Weightlifting & Nutrition Environment Setup   ${Ansi.brightCyan('║')}'));
   stdout.writeln(Ansi.bold(Ansi.brightCyan('╚════════════════════════════════════════════════════════════════════╝')));
   stdout.writeln(Ansi.dim('  Automated dependency installation, toolchain validation & offline database builder.'));
   stdout.writeln();
@@ -139,8 +138,12 @@ void printHelp() {
 
 /// Helper to format file sizes in human-readable units.
 String formatBytes(int bytes) {
-  if (bytes < 1024) return '$bytes B';
-  if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
+  if (bytes < 1024) {
+    return '$bytes B';
+  }
+  if (bytes < 1024 * 1024) {
+    return '${(bytes / 1024).toStringAsFixed(1)} KB';
+  }
   if (bytes < 1024 * 1024 * 1024) {
     return '${(bytes / (1024 * 1024)).toStringAsFixed(2)} MB';
   }
@@ -174,10 +177,10 @@ Future<ProcessResult> runStep({
       stopwatch.stop();
       final elapsed = '(${stopwatch.elapsed.inSeconds}.${(stopwatch.elapsed.inMilliseconds % 1000) ~/ 100}s)';
       if (exitCode == 0) {
-        stdout.writeln('  ${Ansi.check()} ${Ansi.green(stepName + ' succeeded')} ${Ansi.dim(elapsed)}');
+        stdout.writeln('  ${Ansi.check()} ${Ansi.green('$stepName succeeded')} ${Ansi.dim(elapsed)}');
         return ProcessResult(process.pid, 0, '', '');
       } else {
-        stdout.writeln('  ${Ansi.cross()} ${Ansi.red(stepName + ' failed')} (exit code: $exitCode)');
+        stdout.writeln('  ${Ansi.cross()} ${Ansi.red('$stepName failed')} (exit code: $exitCode)');
         return ProcessResult(process.pid, exitCode, '', 'Process exited with code $exitCode');
       }
     } else {
@@ -482,7 +485,7 @@ Future<void> main(List<String> args) async {
   final totalElapsed = '${overallStopwatch.elapsed.inMinutes}m ${overallStopwatch.elapsed.inSeconds % 60}s';
 
   stdout.writeln(Ansi.bold(Ansi.brightGreen('╔════════════════════════════════════════════════════════════════════╗')));
-  stdout.writeln(Ansi.bold(Ansi.brightGreen('║') + '  🎉   ' + Ansi.bold(Ansi.brightYellow('OLY Environment Setup Completed Successfully!')) + '         ' + Ansi.brightGreen('║')));
+  stdout.writeln(Ansi.bold('${Ansi.brightGreen('║')}  🎉   ${Ansi.bold(Ansi.brightYellow('OLY Environment Setup Completed Successfully!'))}         ${Ansi.brightGreen('║')}'));
   stdout.writeln(Ansi.bold(Ansi.brightGreen('╚════════════════════════════════════════════════════════════════════╝')));
   stdout.writeln('  ${Ansi.star()} Total time elapsed: ${Ansi.bold(totalElapsed)}');
   stdout.writeln();
