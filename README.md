@@ -291,7 +291,7 @@ When you bundle an updated `assets/data/usda_foods.db` and launch the app on an 
 - **CocoaPods**: Latest
 - **Python**: 3.10+ (for database ingestion scripts)
 
-### Installation & Run
+### Installation & Quick Start
 
 1. **Clone the repository**:
    ```bash
@@ -299,24 +299,22 @@ When you bundle an updated `assets/data/usda_foods.db` and launch the app on an 
    cd oly
    ```
 
-2. **Install Flutter dependencies**:
+2. **Run the automated setup script**:
    ```bash
-   flutter pub get
+   # Installs Flutter dependencies, verifies toolchain, and compiles all offline SQLite databases:
+   dart setup.dart
+
+   # (Optional) For ultra-fast core database setup without full 2M+ branded products:
+   # dart setup.dart --quick
    ```
 
-3. **Build the offline SQLite food database**:
-   ```bash
-   # Build the full 2.06M+ database (or use Option B above)
-   python3 scripts/import_usda_bulk.py
-   ```
-
-4. **Run code analysis & automated test suite**:
+3. **Run code analysis & automated test suite**:
    ```bash
    flutter analyze
    flutter test
    ```
 
-5. **Launch on connected device or simulator**:
+4. **Launch on connected device or simulator**:
    ```bash
    # Launch on iOS Simulator or connected iPhone
    flutter run -d iPhone
