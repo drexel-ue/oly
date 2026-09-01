@@ -6,9 +6,8 @@ import 'package:oly/providers/nutrition_provider.dart';
 import 'package:oly/services/storage_service.dart';
 import 'package:oly/views/nutrition/edit_food_entry_sheet.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
 import 'package:provider/single_child_widget.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

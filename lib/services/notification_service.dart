@@ -1,6 +1,7 @@
 import 'dart:async';
 
-import 'package:audioplayers/audioplayers.dart';
+import 'package:audio_session/audio_session.dart' as session_pkg;
+import 'package:audioplayers/audioplayers.dart' as ap;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -15,8 +16,10 @@ class NotificationService {
 
   final FlutterLocalNotificationsPlugin _notifications =
       FlutterLocalNotificationsPlugin();
-  final AudioPlayer _audioPlayer = AudioPlayer();
+  final ap.AudioPlayer _audioPlayer = ap.AudioPlayer();
   bool _initialized = false;
+  StreamSubscription<void>? _playerCompleteSubscription;
+  Timer? _sessionDeactivationTimer;
 
   Future<void> init() async {
     if (_initialized) {
@@ -36,26 +39,46 @@ class NotificationService {
       debugPrint('Timezone init error: $e');
     }
 
-    // Configure AVAudioSession category once at app startup
+    // Configure AudioSession & AudioPlayer: pause other audio during playback and resume after
     try {
-      await _audioPlayer.setAudioContext(
-        AudioContext(
-          iOS: AudioContextIOS(
-            category: AVAudioSessionCategory.playback,
-            options: const <AVAudioSessionOptions>{
-              AVAudioSessionOptions.mixWithOthers,
-              AVAudioSessionOptions.duckOthers,
-            },
+      final session_pkg.AudioSession session =
+          await session_pkg.AudioSession.instance;
+      await session.configure(
+        const session_pkg.AudioSessionConfiguration(
+          avAudioSessionCategory: session_pkg.AVAudioSessionCategory.playback,
+          avAudioSessionCategoryOptions:
+              session_pkg.AVAudioSessionCategoryOptions.none,
+          avAudioSessionMode: session_pkg.AVAudioSessionMode.defaultMode,
+          avAudioSessionRouteSharingPolicy:
+              session_pkg.AVAudioSessionRouteSharingPolicy.defaultPolicy,
+          avAudioSessionSetActiveOptions:
+              session_pkg.AVAudioSessionSetActiveOptions.notifyOthersOnDeactivation,
+          androidAudioAttributes: session_pkg.AndroidAudioAttributes(
+            contentType: session_pkg.AndroidAudioContentType.sonification,
+            flags: session_pkg.AndroidAudioFlags.none,
+            usage: session_pkg.AndroidAudioUsage.alarm,
           ),
-          android: const AudioContextAndroid(
-            usageType: AndroidUsageType.alarm,
-            contentType: AndroidContentType.sonification,
-            audioFocus: AndroidAudioFocus.gainTransientMayDuck,
+          androidAudioFocusGainType:
+              session_pkg.AndroidAudioFocusGainType.gainTransient,
+          androidWillPauseWhenDucked: true,
+        ),
+      );
+
+      await _audioPlayer.setAudioContext(
+        ap.AudioContext(
+          iOS: ap.AudioContextIOS(
+            category: ap.AVAudioSessionCategory.playback,
+            options: const <ap.AVAudioSessionOptions>{},
+          ),
+          android: const ap.AudioContextAndroid(
+            usageType: ap.AndroidUsageType.alarm,
+            contentType: ap.AndroidContentType.sonification,
+            audioFocus: ap.AndroidAudioFocus.gainTransient,
           ),
         ),
       );
     } catch (e) {
-      debugPrint('AudioContext init error: $e');
+      debugPrint('AudioSession init error: $e');
     }
 
     const AndroidInitializationSettings androidSettings =
@@ -85,13 +108,66 @@ class NotificationService {
     }
   }
 
-  /// Play high-volume double-beep audio alert safely
+  /// Play high-volume double-beep audio alert safely while pausing external audio
+  /// and automatically resuming it at full original volume once playback completes.
   Future<void> playTimerBeepSound() async {
     try {
+      _sessionDeactivationTimer?.cancel();
+      await _playerCompleteSubscription?.cancel();
+
+      // Activate audio session to pause external audio apps (Spotify, Apple Music, podcasts)
+      try {
+        final session_pkg.AudioSession session =
+            await session_pkg.AudioSession.instance;
+        await session.setActive(true);
+      } catch (e) {
+        debugPrint('AudioSession activate error: $e');
+      }
+
       await _audioPlayer.stop();
-      await _audioPlayer.play(AssetSource('sounds/timer_beep.wav'));
+
+      // Set up completion handler to deactivate audio session with notifyOthersOnDeactivation
+      final Completer<void> completer = Completer<void>();
+      _playerCompleteSubscription = _audioPlayer.onPlayerComplete.listen((_) {
+        if (!completer.isCompleted) {
+          completer.complete();
+        }
+      });
+
+      // Safety timeout in case onPlayerComplete is delayed or dropped (timer_beep.wav is 1.2s)
+      _sessionDeactivationTimer = Timer(const Duration(milliseconds: 1800), () {
+        if (!completer.isCompleted) {
+          completer.complete();
+        }
+      });
+
+      completer.future.then((_) async {
+        await _deactivateAudioSession();
+      });
+
+      await _audioPlayer.play(ap.AssetSource('sounds/timer_beep.wav'));
     } catch (e) {
       debugPrint('Audio playback error: $e');
+      await _deactivateAudioSession();
+    }
+  }
+
+  Future<void> _deactivateAudioSession() async {
+    _sessionDeactivationTimer?.cancel();
+    _sessionDeactivationTimer = null;
+    await _playerCompleteSubscription?.cancel();
+    _playerCompleteSubscription = null;
+
+    try {
+      final session_pkg.AudioSession session =
+          await session_pkg.AudioSession.instance;
+      await session.setActive(
+        false,
+        avAudioSessionSetActiveOptions:
+            session_pkg.AVAudioSessionSetActiveOptions.notifyOthersOnDeactivation,
+      );
+    } catch (e) {
+      debugPrint('AudioSession deactivate error: $e');
     }
   }
 
