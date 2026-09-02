@@ -15,6 +15,7 @@ class InteractiveBodyMap extends StatefulWidget {
     this.isCompact = false,
     this.initialIsFront = true,
     this.customPainMap,
+    this.onViewChanged,
   });
 
   final List<InjuryRecord> injuries;
@@ -23,6 +24,7 @@ class InteractiveBodyMap extends StatefulWidget {
   final bool isCompact;
   final bool initialIsFront;
   final Map<InjuryRegion, int>? customPainMap;
+  final ValueChanged<bool>? onViewChanged;
 
   @override
   State<InteractiveBodyMap> createState() => _InteractiveBodyMapState();
@@ -35,6 +37,42 @@ class _InteractiveBodyMapState extends State<InteractiveBodyMap> {
   void initState() {
     super.initState();
     _isFront = widget.initialIsFront;
+    if (widget.selectedRegion != null) {
+      _checkAutoFlip(widget.selectedRegion!);
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant InteractiveBodyMap oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.selectedRegion != null &&
+        widget.selectedRegion != oldWidget.selectedRegion) {
+      _checkAutoFlip(widget.selectedRegion!);
+    }
+  }
+
+  void _checkAutoFlip(InjuryRegion region) {
+    if (_isBackRegion(region) && _isFront) {
+      setState(() => _isFront = false);
+      widget.onViewChanged?.call(false);
+    } else if (_isFrontRegion(region) && !_isFront) {
+      setState(() => _isFront = true);
+      widget.onViewChanged?.call(true);
+    }
+  }
+
+  static bool _isBackRegion(InjuryRegion region) {
+    return region == InjuryRegion.thoracicSpine ||
+        region == InjuryRegion.lumbarSpine ||
+        region == InjuryRegion.leftHamstring ||
+        region == InjuryRegion.rightHamstring;
+  }
+
+  static bool _isFrontRegion(InjuryRegion region) {
+    return region == InjuryRegion.chestPecs ||
+        region == InjuryRegion.coreAbs ||
+        region == InjuryRegion.leftQuad ||
+        region == InjuryRegion.rightQuad;
   }
 
   @override
@@ -44,61 +82,79 @@ class _InteractiveBodyMapState extends State<InteractiveBodyMap> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
-        // Controls / View Switcher Header
-        if (!widget.isCompact)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                Row(
-                  children: <Widget>[
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppTheme.surfaceElevated,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: AppTheme.borderColor),
-                      ),
-                      child: Text(
-                        _isFront ? 'ANTERIOR (FRONT)' : 'POSTERIOR (BACK)',
-                        style: GoogleFonts.inter(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 1.1,
+        // Controls / View Switcher Header (Visible in both full & compact modes)
+        Padding(
+          padding: EdgeInsets.only(bottom: widget.isCompact ? 8 : 12),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              Row(
+                children: <Widget>[
+                  Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: widget.isCompact ? 8 : 10,
+                      vertical: widget.isCompact ? 3 : 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppTheme.surfaceElevated,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: AppTheme.borderColor),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        Icon(
+                          _isFront ? Icons.accessibility : Icons.accessibility_new,
+                          size: widget.isCompact ? 12 : 14,
                           color: AppTheme.secondaryCyan,
                         ),
-                      ),
+                        const SizedBox(width: 4),
+                        Text(
+                          _isFront ? 'ANTERIOR (FRONT)' : 'POSTERIOR (BACK)',
+                          style: GoogleFonts.inter(
+                            fontSize: widget.isCompact ? 9 : 11,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1.1,
+                            color: AppTheme.secondaryCyan,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              Container(
+                decoration: BoxDecoration(
+                  color: AppTheme.surfaceElevated,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppTheme.borderColor),
+                ),
+                child: Row(
+                  children: <Widget>[
+                    _buildViewButton(
+                      label: 'Front',
+                      isSelected: _isFront,
+                      isCompact: widget.isCompact,
+                      onTap: () {
+                        setState(() => _isFront = true);
+                        widget.onViewChanged?.call(true);
+                      },
+                    ),
+                    _buildViewButton(
+                      label: 'Back',
+                      isSelected: !_isFront,
+                      isCompact: widget.isCompact,
+                      onTap: () {
+                        setState(() => _isFront = false);
+                        widget.onViewChanged?.call(false);
+                      },
                     ),
                   ],
                 ),
-                Container(
-                  decoration: BoxDecoration(
-                    color: AppTheme.surfaceElevated,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppTheme.borderColor),
-                  ),
-                  child: Row(
-                    children: <Widget>[
-                      _buildViewButton(
-                        label: 'Front',
-                        isSelected: _isFront,
-                        onTap: () => setState(() => _isFront = true),
-                      ),
-                      _buildViewButton(
-                        label: 'Back',
-                        isSelected: !_isFront,
-                        onTap: () => setState(() => _isFront = false),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
+        ),
 
         // Body Canvas Area
         Container(
@@ -149,11 +205,15 @@ class _InteractiveBodyMapState extends State<InteractiveBodyMap> {
     required String label,
     required bool isSelected,
     required VoidCallback onTap,
+    bool isCompact = false,
   }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        padding: EdgeInsets.symmetric(
+          horizontal: isCompact ? 10 : 14,
+          vertical: isCompact ? 4 : 6,
+        ),
         decoration: BoxDecoration(
           color: isSelected ? AppTheme.primaryAmber : Colors.transparent,
           borderRadius: BorderRadius.circular(10),
@@ -161,7 +221,7 @@ class _InteractiveBodyMapState extends State<InteractiveBodyMap> {
         child: Text(
           label,
           style: GoogleFonts.inter(
-            fontSize: 12,
+            fontSize: isCompact ? 11 : 12,
             fontWeight: FontWeight.bold,
             color: isSelected ? Colors.black : AppTheme.textSecondary,
           ),

@@ -206,5 +206,242 @@ void main() {
 
       expect(isCompleted, isTrue);
     });
+
+    testWidgets('Toggles between Front and Back view in check-in dialog', (
+      WidgetTester tester,
+    ) async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final StorageService storage = StorageService(prefs);
+      final InjuryProvider provider = InjuryProvider(storage);
+
+      await tester.pumpWidget(
+        createTestWidget(
+          PostSessionBodyCheckinDialog(
+            onComplete: (Map<InjuryRegion, int> pain, List<String> tags) {},
+          ),
+          injuryProvider: provider,
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // View switcher controls are present in compact mode
+      expect(find.text('ANTERIOR (FRONT)'), findsOneWidget);
+      expect(find.text('Front'), findsOneWidget);
+      expect(find.text('Back'), findsOneWidget);
+
+      // Tap Back
+      await tester.tap(find.text('Back'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('POSTERIOR (BACK)'), findsOneWidget);
+
+      // Tap Front again
+      await tester.tap(find.text('Front'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('ANTERIOR (FRONT)'), findsOneWidget);
+    });
+
+    testWidgets('Selects area on map tap and unselects on second tap', (
+      WidgetTester tester,
+    ) async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final StorageService storage = StorageService(prefs);
+      final InjuryProvider provider = InjuryProvider(storage);
+
+      Map<InjuryRegion, int> finalPain = <InjuryRegion, int>{};
+
+      await tester.pumpWidget(
+        createTestWidget(
+          PostSessionBodyCheckinDialog(
+            onComplete: (Map<InjuryRegion, int> pain, List<String> tags) {
+              finalPain = pain;
+            },
+          ),
+          injuryProvider: provider,
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // Tap Head / Neck area (near top center of canvas)
+      final Finder canvas = find.byWidgetPredicate(
+        (Widget w) => w is CustomPaint && w.painter is BodyMapPainter,
+      );
+      final Rect canvasRect = tester.getRect(canvas);
+      final Offset neckOffset = Offset(canvasRect.center.dx, canvasRect.top + canvasRect.height * 0.11);
+
+      // 1. Select Neck
+      await tester.tapAt(neckOffset);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Neck / Cervical'), findsWidgets);
+      expect(find.text('Unselect Area'), findsOneWidget);
+
+      // 2. Tap the same region again to unselect (re-query canvas position after card expansion)
+      final Rect newCanvasRect = tester.getRect(canvas);
+      final Offset newNeckOffset = Offset(newCanvasRect.center.dx, newCanvasRect.top + newCanvasRect.height * 0.11);
+      await tester.tapAt(newNeckOffset);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Unselect Area'), findsNothing);
+
+      // Complete and verify neck was removed
+      await tester.tap(find.text('Save & Finish'));
+      await tester.pumpAndSettle();
+
+      expect(finalPain.containsKey(InjuryRegion.neck), isFalse);
+    });
+
+    testWidgets('Unselects area using Unselect Area button', (
+      WidgetTester tester,
+    ) async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final StorageService storage = StorageService(prefs);
+      final InjuryProvider provider = InjuryProvider(storage);
+
+      Map<InjuryRegion, int> finalPain = <InjuryRegion, int>{};
+
+      await tester.pumpWidget(
+        createTestWidget(
+          PostSessionBodyCheckinDialog(
+            onComplete: (Map<InjuryRegion, int> pain, List<String> tags) {
+              finalPain = pain;
+            },
+          ),
+          injuryProvider: provider,
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // Tap Neck
+      final Finder canvas = find.byWidgetPredicate(
+        (Widget w) => w is CustomPaint && w.painter is BodyMapPainter,
+      );
+      final Rect canvasRect = tester.getRect(canvas);
+      final Offset neckOffset = Offset(canvasRect.center.dx, canvasRect.top + canvasRect.height * 0.11);
+      await tester.tapAt(neckOffset);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Unselect Area'), findsOneWidget);
+
+      // Click Unselect Area button
+      await tester.tap(find.text('Unselect Area'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Unselect Area'), findsNothing);
+
+      await tester.tap(find.text('Save & Finish'));
+      await tester.pumpAndSettle();
+
+      expect(finalPain.containsKey(InjuryRegion.neck), isFalse);
+    });
+
+    testWidgets('Unselects area using status chip delete button', (
+      WidgetTester tester,
+    ) async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final StorageService storage = StorageService(prefs);
+      final InjuryProvider provider = InjuryProvider(storage);
+
+      // Seed with active knee injury
+      await provider.addInjury(
+        InjuryRecord(
+          id: 'k1',
+          name: 'Patellar Tendon Strain',
+          region: InjuryRegion.leftKnee,
+          onsetDate: DateTime.now().subtract(const Duration(days: 2)),
+          painScale: 4,
+        ),
+      );
+
+      Map<InjuryRegion, int> finalPain = <InjuryRegion, int>{};
+
+      await tester.pumpWidget(
+        createTestWidget(
+          PostSessionBodyCheckinDialog(
+            onComplete: (Map<InjuryRegion, int> pain, List<String> tags) {
+              finalPain = pain;
+            },
+          ),
+          injuryProvider: provider,
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Left Knee'), findsWidgets);
+
+      // Find the status chip close icon
+      final Finder chipCloseIcon = find.byIcon(Icons.close).first;
+      await tester.tap(chipCloseIcon);
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Left Knee'), findsNothing);
+
+      await tester.tap(find.text('Save & Finish'));
+      await tester.pumpAndSettle();
+
+      expect(finalPain.containsKey(InjuryRegion.leftKnee), isFalse);
+    });
+
+    testWidgets('Allows viewing back and checking in posterior regions like Lumbar Spine', (
+      WidgetTester tester,
+    ) async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final StorageService storage = StorageService(prefs);
+      final InjuryProvider provider = InjuryProvider(storage);
+
+      Map<InjuryRegion, int> finalPain = <InjuryRegion, int>{};
+
+      await tester.pumpWidget(
+        createTestWidget(
+          PostSessionBodyCheckinDialog(
+            onComplete: (Map<InjuryRegion, int> pain, List<String> tags) {
+              finalPain = pain;
+            },
+          ),
+          injuryProvider: provider,
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // 1. Switch to Back view
+      await tester.tap(find.text('Back'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('POSTERIOR (BACK)'), findsOneWidget);
+
+      // 2. Tap Lumbar Spine (center x: 0.5, y: 0.38 on canvas)
+      final Finder canvas = find.byWidgetPredicate(
+        (Widget w) => w is CustomPaint && w.painter is BodyMapPainter,
+      );
+      final Rect canvasRect = tester.getRect(canvas);
+      final Offset lumbarOffset = Offset(
+        canvasRect.left + canvasRect.width * 0.50,
+        canvasRect.top + canvasRect.height * 0.38,
+      );
+
+      await tester.tapAt(lumbarOffset);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Lower Back (Lumbar)'), findsWidgets);
+
+      // 3. Save and verify lumbar spine is in check-in map
+      await tester.ensureVisible(find.text('Save & Finish'));
+      await tester.tap(find.text('Save & Finish'));
+      await tester.pumpAndSettle();
+
+      expect(finalPain.containsKey(InjuryRegion.lumbarSpine), isTrue);
+      expect(finalPain[InjuryRegion.lumbarSpine], equals(3));
+    });
   });
 }

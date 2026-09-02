@@ -45,10 +45,25 @@ class _PostSessionBodyCheckinDialogState
 
   void _onRegionSelected(InjuryRegion region) {
     setState(() {
-      _focusedRegion = region;
-      // Default to pain 3 if not present yet
-      if (!_sessionPainMap.containsKey(region)) {
-        _sessionPainMap[region] = 3;
+      if (_focusedRegion == region) {
+        // Tapping the currently selected region toggles it off / unselects it
+        _unselectRegion(region);
+      } else {
+        _focusedRegion = region;
+        // Default to pain 3 if not present yet
+        if (!_sessionPainMap.containsKey(region)) {
+          _sessionPainMap[region] = 3;
+        }
+        _syncJointTags();
+      }
+    });
+  }
+
+  void _unselectRegion(InjuryRegion region) {
+    setState(() {
+      _sessionPainMap.remove(region);
+      if (_focusedRegion == region) {
+        _focusedRegion = null;
       }
       _syncJointTags();
     });
@@ -172,21 +187,66 @@ class _PostSessionBodyCheckinDialogState
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: <Widget>[
-                          Text(
-                            _focusedRegion!.displayName,
-                            style: GoogleFonts.outfit(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: AppTheme.secondaryCyan,
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                Text(
+                                  _focusedRegion!.displayName,
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppTheme.secondaryCyan,
+                                  ),
+                                ),
+                                Text(
+                                  (_sessionPainMap[_focusedRegion!] ?? 0) == 0
+                                      ? 'Pain-Free / Clear'
+                                      : ((_sessionPainMap[_focusedRegion!] ?? 0) <= 3
+                                          ? 'Mild Strain / Discomfort'
+                                          : ((_sessionPainMap[_focusedRegion!] ?? 0) <= 6
+                                              ? 'Moderate Strain'
+                                              : 'Severe Strain')),
+                                  style: GoogleFonts.inter(
+                                    fontSize: 10,
+                                    color: AppTheme.textSecondary,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                          Text(
-                            '${_sessionPainMap[_focusedRegion!] ?? 0} / 10',
-                            style: GoogleFonts.inter(
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold,
-                              color: AppTheme.primaryAmber,
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: (_sessionPainMap[_focusedRegion!] ?? 0) == 0
+                                  ? AppTheme.successGreen.withValues(alpha: 0.2)
+                                  : AppTheme.primaryAmber.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(
+                                color: (_sessionPainMap[_focusedRegion!] ?? 0) == 0
+                                    ? AppTheme.successGreen
+                                    : AppTheme.primaryAmber,
+                              ),
                             ),
+                            child: Text(
+                              '${_sessionPainMap[_focusedRegion!] ?? 0} / 10',
+                              style: GoogleFonts.inter(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: (_sessionPainMap[_focusedRegion!] ?? 0) == 0
+                                    ? AppTheme.successGreen
+                                    : AppTheme.primaryAmber,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          IconButton(
+                            icon: const Icon(Icons.close, size: 18, color: AppTheme.textSecondary),
+                            tooltip: 'Close Editor',
+                            visualDensity: VisualDensity.compact,
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                            onPressed: () => setState(() => _focusedRegion = null),
                           ),
                         ],
                       ),
@@ -196,18 +256,74 @@ class _PostSessionBodyCheckinDialogState
                         min: 0,
                         max: 10,
                         divisions: 10,
-                        activeColor: AppTheme.primaryAmber,
+                        activeColor: (_sessionPainMap[_focusedRegion!] ?? 0) == 0
+                            ? AppTheme.successGreen
+                            : ((_sessionPainMap[_focusedRegion!] ?? 0) <= 3
+                                ? AppTheme.primaryAmber
+                                : ((_sessionPainMap[_focusedRegion!] ?? 0) <= 6
+                                    ? const Color(0xFFFF9F0A)
+                                    : Colors.redAccent)),
                         onChanged: (double v) {
                           setState(() {
                             final int val = v.round();
-                            if (val == 0) {
-                              _sessionPainMap.remove(_focusedRegion);
-                            } else {
-                              _sessionPainMap[_focusedRegion!] = val;
-                            }
+                            _sessionPainMap[_focusedRegion!] = val;
                             _syncJointTags();
                           });
                         },
+                      ),
+                      const SizedBox(height: 2),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: <Widget>[
+                          TextButton.icon(
+                            icon: const Icon(
+                              Icons.check_circle_outline,
+                              size: 14,
+                              color: AppTheme.successGreen,
+                            ),
+                            label: Text(
+                              'Mark Pain-Free (0)',
+                              style: GoogleFonts.inter(
+                                fontSize: 11,
+                                color: AppTheme.successGreen,
+                              ),
+                            ),
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              visualDensity: VisualDensity.compact,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _sessionPainMap[_focusedRegion!] = 0;
+                                _syncJointTags();
+                              });
+                            },
+                          ),
+                          OutlinedButton.icon(
+                            icon: const Icon(
+                              Icons.remove_circle_outline,
+                              size: 14,
+                              color: Colors.redAccent,
+                            ),
+                            label: Text(
+                              'Unselect Area',
+                              style: GoogleFonts.inter(
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.redAccent,
+                              ),
+                            ),
+                            style: OutlinedButton.styleFrom(
+                              side: BorderSide(color: Colors.redAccent.withValues(alpha: 0.6)),
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              visualDensity: VisualDensity.compact,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            onPressed: () => _unselectRegion(_focusedRegion!),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -217,14 +333,26 @@ class _PostSessionBodyCheckinDialogState
 
               // Active Region Diff Summary List
               if (_sessionPainMap.isNotEmpty) ...<Widget>[
-                Text(
-                  'CURRENT POST-SESSION STATUS:',
-                  style: GoogleFonts.inter(
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1.0,
-                    color: AppTheme.textSecondary,
-                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    Text(
+                      'CURRENT POST-SESSION STATUS:',
+                      style: GoogleFonts.inter(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.0,
+                        color: AppTheme.textSecondary,
+                      ),
+                    ),
+                    Text(
+                      'Tap to edit • ✕ to unselect',
+                      style: GoogleFonts.inter(
+                        fontSize: 10,
+                        color: AppTheme.textSecondary,
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 6),
                 Wrap(
@@ -234,26 +362,66 @@ class _PostSessionBodyCheckinDialogState
                     final int prePain = provider.getPainForRegion(entry.key);
                     final int postPain = entry.value;
                     final int delta = postPain - prePain;
+                    final bool isFocused = _focusedRegion == entry.key;
 
                     return Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        color: AppTheme.surfaceElevated,
+                        color: isFocused
+                            ? AppTheme.secondaryCyan.withValues(alpha: 0.15)
+                            : AppTheme.surfaceElevated,
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
-                          color: delta > 0
-                              ? Colors.redAccent
-                              : (delta < 0 ? AppTheme.successGreen : AppTheme.borderColor),
+                          color: isFocused
+                              ? AppTheme.secondaryCyan
+                              : (postPain == 0
+                                  ? AppTheme.successGreen
+                                  : (delta > 0
+                                      ? Colors.redAccent
+                                      : (delta < 0 ? AppTheme.successGreen : AppTheme.borderColor))),
                         ),
                       ),
-                      child: Text(
-                        '${entry.key.displayName}: $postPain/10 ${delta != 0 ? "(${delta > 0 ? "+$delta" : "$delta"})" : ""}',
-                        style: GoogleFonts.inter(
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                          color: delta > 0
-                              ? Colors.redAccent
-                              : (delta < 0 ? AppTheme.successGreen : AppTheme.textPrimary),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(8),
+                        onTap: () {
+                          setState(() {
+                            _focusedRegion = entry.key;
+                          });
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: <Widget>[
+                              Text(
+                                '${entry.key.displayName}: $postPain/10 ${delta != 0 ? "(${delta > 0 ? "+$delta" : "$delta"})" : ""}',
+                                style: GoogleFonts.inter(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: postPain == 0
+                                      ? AppTheme.successGreen
+                                      : (delta > 0
+                                          ? Colors.redAccent
+                                          : (delta < 0 ? AppTheme.successGreen : AppTheme.textPrimary)),
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              GestureDetector(
+                                onTap: () => _unselectRegion(entry.key),
+                                child: Container(
+                                  padding: const EdgeInsets.all(2),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.08),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Icons.close,
+                                    size: 11,
+                                    color: AppTheme.textSecondary,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     );

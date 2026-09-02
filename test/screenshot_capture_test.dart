@@ -48,6 +48,7 @@ import 'package:oly/views/warmup_session_screen.dart';
 import 'package:oly/views/workout_session_screen.dart';
 import 'package:oly/widgets/exercise_swap_modal.dart';
 import 'package:oly/widgets/injury_export_bottom_sheet.dart';
+import 'package:oly/widgets/interactive_body_map.dart';
 import 'package:oly/widgets/mobility_exercise_swap_modal.dart';
 import 'package:oly/widgets/nutrition/smart_portion_drawer.dart';
 import 'package:oly/widgets/post_session_body_checkin_dialog.dart';
@@ -765,9 +766,52 @@ void main() {
           ),
         ),
       );
+
+      // Focus an anatomical region to showcase the adjuster card and unselect controls
+      final Finder canvas = find.byWidgetPredicate(
+        (Widget w) => w is CustomPaint && w.painter is BodyMapPainter,
+      );
+      final Rect canvasRect = tester.getRect(canvas);
+      await tester.tapAt(Offset(canvasRect.center.dx, canvasRect.top + canvasRect.height * 0.11));
+      await tester.pumpAndSettle();
+
       await captureScreen(tester, '22_post_session_body_checkin');
       expect(find.text('Post-Session Strain Check-In'), findsOneWidget);
+      expect(find.text('Unselect Area'), findsOneWidget);
       expect(find.text('Save & Finish'), findsOneWidget);
+    });
+
+    testWidgets('22b Renders Post-Session Body Check-In Modal Back View', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(1170, 2532);
+      tester.view.devicePixelRatio = 2.0;
+      addTearDown(() => tester.view.resetPhysicalSize());
+
+      await tester.pumpWidget(
+        buildTestScreen(
+          PostSessionBodyCheckinDialog(
+            initialJointStrains: const <String>['Lower Back'],
+            onComplete: (Map<InjuryRegion, int> pain, List<String> tags) {},
+          ),
+        ),
+      );
+
+      // Switch to Back view
+      await tester.tap(find.text('Back'));
+      await tester.pumpAndSettle();
+
+      // Tap Lumbar Spine
+      final Finder canvas = find.byWidgetPredicate(
+        (Widget w) => w is CustomPaint && w.painter is BodyMapPainter,
+      );
+      final Rect canvasRect = tester.getRect(canvas);
+      await tester.tapAt(Offset(canvasRect.left + canvasRect.width * 0.50, canvasRect.top + canvasRect.height * 0.38));
+      await tester.pumpAndSettle();
+
+      await captureScreen(tester, '22b_post_session_body_checkin_back');
+      expect(find.text('POSTERIOR (BACK)'), findsOneWidget);
+      expect(find.text('Lower Back (Lumbar)'), findsWidgets);
     });
 
     testWidgets('23 Renders Injury Export Bottom Sheet (PDF & JSON)', (
