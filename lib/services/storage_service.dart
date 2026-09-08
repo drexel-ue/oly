@@ -38,6 +38,7 @@ class StorageService {
   static const String _keyInjuries = 'oly_injuries_v1';
   static const String _keyBreathingLogs = 'oly_breathing_logs_v1';
   static const String _keyBreathingConfig = 'oly_breathing_config_v1';
+  static const String _keyCindyEmomBeep = 'oly_cindy_emom_beep_v1';
 
   final SharedPreferences _prefs;
 
@@ -174,6 +175,10 @@ class StorageService {
   bool loadHapticsEnabled() => _prefs.getBool(_keyHapticsEnabled) ?? true;
   Future<void> saveHapticsEnabled(bool value) async =>
       _prefs.setBool(_keyHapticsEnabled, value);
+
+  bool loadCindyEmomBeep() => _prefs.getBool(_keyCindyEmomBeep) ?? false;
+  Future<void> saveCindyEmomBeep(bool value) async =>
+      _prefs.setBool(_keyCindyEmomBeep, value);
 
   // --- ACCESSORY LOGS STORAGE ---
   List<AccessoryLog> loadAccessoryLogs() {

@@ -11,6 +11,7 @@ import 'package:oly/models/mobility_exercise_model.dart';
 import 'package:oly/providers/body_comp_provider.dart';
 import 'package:oly/providers/nutrition_provider.dart';
 import 'package:oly/providers/recovery_provider.dart';
+import 'package:oly/providers/settings_provider.dart';
 import 'package:oly/services/notification_service.dart';
 import 'package:oly/theme/app_theme.dart';
 import 'package:oly/widgets/cindy_variation_modal.dart';
@@ -45,6 +46,8 @@ class _CindyWodCardState extends State<CindyWodCard> {
   int _secondsRemaining = _totalWodSeconds;
   bool _isTimerRunning = false;
   bool _hasStarted = false;
+  bool _isEmomBeepEnabled = false;
+  bool _initializedSettings = false;
 
   // Active round state
   int _completedRounds = 0;
@@ -102,6 +105,18 @@ class _CindyWodCardState extends State<CindyWodCard> {
 
   int get _elapsedSeconds => _totalWodSeconds - _secondsRemaining;
 
+  int get _currentEmomMinute => ((_elapsedSeconds ~/ 60) + 1).clamp(1, 20);
+
+  int get _secondsLeftInMinute {
+    if (_secondsRemaining <= 0) {
+      return 0;
+    }
+    final int rem = _secondsRemaining % 60;
+    return rem == 0 ? 60 : rem;
+  }
+
+  double get _currentMinuteProgress => (60 - _secondsLeftInMinute) / 60.0;
+
   int get _currentTotalReps {
     return (_completedRounds * 30) + _currentPullups + _currentPushups + _currentSquats;
   }
@@ -130,6 +145,44 @@ class _CindyWodCardState extends State<CindyWodCard> {
     return 'Rx';
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_initializedSettings) {
+      try {
+        final SettingsProvider settings =
+            Provider.of<SettingsProvider>(context, listen: false);
+        _isEmomBeepEnabled = settings.cindyEmomBeepEnabled;
+      } catch (_) {}
+      _initializedSettings = true;
+    }
+  }
+
+  void _toggleEmomBeep() {
+    HapticFeedback.selectionClick();
+    final bool updated = !_isEmomBeepEnabled;
+    setState(() {
+      _isEmomBeepEnabled = updated;
+    });
+    try {
+      final SettingsProvider settings =
+          Provider.of<SettingsProvider>(context, listen: false);
+      settings.setCindyEmomBeepEnabled(updated);
+    } catch (_) {}
+  }
+
+  void _playBeepIfEnabled() {
+    try {
+      final SettingsProvider settings =
+          Provider.of<SettingsProvider>(context, listen: false);
+      if (settings.soundAlertsEnabled) {
+        NotificationService().playTimerBeepSound();
+      }
+    } catch (_) {
+      NotificationService().playTimerBeepSound();
+    }
+  }
+
   void _toggleTimer() {
     HapticFeedback.mediumImpact();
     if (_isTimerRunning) {
@@ -137,7 +190,7 @@ class _CindyWodCardState extends State<CindyWodCard> {
       setState(() => _isTimerRunning = false);
     } else {
       if (!_hasStarted) {
-        NotificationService().playTimerBeepSound();
+        _playBeepIfEnabled();
         _hasStarted = true;
       }
       setState(() => _isTimerRunning = true);
@@ -147,11 +200,21 @@ class _CindyWodCardState extends State<CindyWodCard> {
             _secondsRemaining--;
           });
 
-          // Countdown alerts at 10, 5, 4, 3, 2, 1
-          if (_secondsRemaining <= 5 && _secondsRemaining > 0) {
-            HapticFeedback.selectionClick();
-          } else if (_secondsRemaining == 0) {
+          // Expiration & countdown alerts
+          if (_secondsRemaining == 0) {
             _handleTimeExpired();
+          } else if (_secondsRemaining <= 5) {
+            HapticFeedback.selectionClick();
+          } else if (_isEmomBeepEnabled) {
+            final int secInMin = _secondsRemaining % 60;
+            if (secInMin == 0) {
+              // Top of the minute interval beep!
+              HapticFeedback.heavyImpact();
+              _playBeepIfEnabled();
+            } else if (secInMin <= 3 && secInMin >= 1) {
+              // 3-2-1 tactile countdown clicks
+              HapticFeedback.selectionClick();
+            }
           }
         } else {
           timer.cancel();
@@ -181,7 +244,7 @@ class _CindyWodCardState extends State<CindyWodCard> {
   void _handleTimeExpired() {
     _wodTimer?.cancel();
     HapticFeedback.heavyImpact();
-    NotificationService().playTimerBeepSound();
+    _playBeepIfEnabled();
     setState(() => _isTimerRunning = false);
     _promptFinishWorkout();
   }
@@ -1020,11 +1083,11 @@ class _CindyWodCardState extends State<CindyWodCard> {
                   color: _isTimerRunning ? AppTheme.secondaryCyan : AppTheme.borderColor,
                 ),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              child: Column(
                 children: <Widget>[
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  // Top Row: Label & EMOM Beep Toggle
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
                       Text(
                         'TIME REMAINING',
@@ -1035,6 +1098,59 @@ class _CindyWodCardState extends State<CindyWodCard> {
                           color: AppTheme.textSecondary,
                         ),
                       ),
+                      // EMOM Beep Pill Switch
+                      InkWell(
+                        onTap: _toggleEmomBeep,
+                        borderRadius: BorderRadius.circular(20),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: _isEmomBeepEnabled
+                                ? AppTheme.successGreen.withValues(alpha: 0.15)
+                                : AppTheme.surfaceCard,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: _isEmomBeepEnabled
+                                  ? AppTheme.successGreen
+                                  : AppTheme.borderColor,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: <Widget>[
+                              Icon(
+                                _isEmomBeepEnabled
+                                    ? Icons.notifications_active_rounded
+                                    : Icons.notifications_off_outlined,
+                                size: 13,
+                                color: _isEmomBeepEnabled
+                                    ? AppTheme.successGreen
+                                    : AppTheme.textSecondary,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                _isEmomBeepEnabled ? 'EMOM BEEP ON' : 'EMOM BEEP OFF',
+                                style: GoogleFonts.outfit(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: _isEmomBeepEnabled
+                                      ? AppTheme.successGreen
+                                      : AppTheme.textSecondary,
+                                  letterSpacing: 0.6,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  // Middle Row: Big Digits & Action Buttons
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
                       Text(
                         timerFormatted,
                         style: GoogleFonts.outfit(
@@ -1043,29 +1159,99 @@ class _CindyWodCardState extends State<CindyWodCard> {
                           color: _secondsRemaining < 60 ? Colors.redAccent : AppTheme.textPrimary,
                         ),
                       ),
+                      Row(
+                        children: <Widget>[
+                          IconButton.filled(
+                            onPressed: _toggleTimer,
+                            icon: Icon(
+                              _isTimerRunning ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                              size: 28,
+                              color: Colors.black,
+                            ),
+                            style: IconButton.styleFrom(
+                              backgroundColor:
+                                  _isTimerRunning ? AppTheme.warningOrange : AppTheme.secondaryCyan,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          IconButton(
+                            onPressed: _resetTimer,
+                            icon: const Icon(Icons.refresh_rounded, color: AppTheme.textSecondary),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
-                  Row(
-                    children: <Widget>[
-                      IconButton.filled(
-                        onPressed: _toggleTimer,
-                        icon: Icon(
-                          _isTimerRunning ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                          size: 28,
-                          color: Colors.black,
-                        ),
-                        style: IconButton.styleFrom(
-                          backgroundColor:
-                              _isTimerRunning ? AppTheme.warningOrange : AppTheme.secondaryCyan,
+                  // EMOM Pacer Bar (visible when EMOM Beep is enabled)
+                  if (_isEmomBeepEnabled) ...<Widget>[
+                    const SizedBox(height: 10),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: AppTheme.surfaceCard,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: AppTheme.successGreen.withValues(alpha: 0.3),
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      IconButton(
-                        onPressed: _resetTimer,
-                        icon: const Icon(Icons.refresh_rounded, color: AppTheme.textSecondary),
+                      child: Column(
+                        children: <Widget>[
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: <Widget>[
+                              Row(
+                                children: <Widget>[
+                                  Container(
+                                    width: 8,
+                                    height: 8,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: _isTimerRunning ? AppTheme.successGreen : AppTheme.textSecondary,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    'EMOM Min $_currentEmomMinute of 20',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppTheme.textPrimary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              Text(
+                                _secondsRemaining == 0
+                                    ? 'Workout Complete'
+                                    : 'Beep in ${_secondsLeftInMinute}s',
+                                style: GoogleFonts.outfit(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: _secondsLeftInMinute <= 5
+                                      ? AppTheme.successGreen
+                                      : AppTheme.textSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(4),
+                            child: LinearProgressIndicator(
+                              value: _currentMinuteProgress,
+                              minHeight: 4,
+                              backgroundColor: AppTheme.borderColor,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                _secondsLeftInMinute <= 3
+                                    ? AppTheme.primaryAmber
+                                    : AppTheme.successGreen,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ],
               ),
             ),

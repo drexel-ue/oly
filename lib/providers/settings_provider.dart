@@ -8,6 +8,7 @@ class SettingsProvider extends ChangeNotifier {
     _collarWeight = _storage.loadCollarWeight();
     _soundAlertsEnabled = _storage.loadSoundAlerts();
     _hapticsEnabled = _storage.loadHapticsEnabled();
+    _cindyEmomBeepEnabled = _storage.loadCindyEmomBeep();
   }
   final StorageService _storage;
 
@@ -16,6 +17,7 @@ class SettingsProvider extends ChangeNotifier {
   double _collarWeight = 2.5;
   bool _soundAlertsEnabled = true;
   bool _hapticsEnabled = true;
+  bool _cindyEmomBeepEnabled = false;
 
   bool get isLbs => _isLbs;
   double get barWeight {
@@ -44,6 +46,7 @@ class SettingsProvider extends ChangeNotifier {
 
   bool get soundAlertsEnabled => _soundAlertsEnabled;
   bool get hapticsEnabled => _hapticsEnabled;
+  bool get cindyEmomBeepEnabled => _cindyEmomBeepEnabled;
   String get unitLabel => _isLbs ? 'lbs' : 'kg';
 
   // Conversion utilities (Base weight stored in DB is ALWAYS KG)
@@ -140,6 +143,18 @@ class SettingsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setCindyEmomBeepEnabled(bool value) {
+    if (_cindyEmomBeepEnabled != value) {
+      _cindyEmomBeepEnabled = value;
+      _storage.saveCindyEmomBeep(value);
+      notifyListeners();
+    }
+  }
+
+  void toggleCindyEmomBeep() {
+    setCindyEmomBeepEnabled(!_cindyEmomBeepEnabled);
+  }
+
   String exportFullDataJson() => _storage.exportFullAppDataJson();
   String exportPrsCsv() => _storage.exportPrsCsv();
   Future<bool> importDataJson(String jsonStr) async {
@@ -150,6 +165,7 @@ class SettingsProvider extends ChangeNotifier {
       _collarWeight = _storage.loadCollarWeight();
       _soundAlertsEnabled = _storage.loadSoundAlerts();
       _hapticsEnabled = _storage.loadHapticsEnabled();
+      _cindyEmomBeepEnabled = _storage.loadCindyEmomBeep();
       notifyListeners();
     }
     return success;

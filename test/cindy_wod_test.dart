@@ -281,6 +281,24 @@ void main() {
       expect(recovery.latestCindyWorkoutLog?.completedRounds, equals(19));
       expect(recovery.getCindyPersonalRecord()?.totalReps, equals(585)); // (19 * 30) + 15
     });
+
+    test('StorageService and SettingsProvider manage cindyEmomBeepEnabled', () async {
+      final SettingsProvider settings = SettingsProvider(storage);
+      expect(storage.loadCindyEmomBeep(), isFalse);
+      expect(settings.cindyEmomBeepEnabled, isFalse);
+
+      bool notified = false;
+      settings.addListener(() => notified = true);
+
+      settings.setCindyEmomBeepEnabled(true);
+      expect(notified, isTrue);
+      expect(settings.cindyEmomBeepEnabled, isTrue);
+      expect(storage.loadCindyEmomBeep(), isTrue);
+
+      settings.toggleCindyEmomBeep();
+      expect(settings.cindyEmomBeepEnabled, isFalse);
+      expect(storage.loadCindyEmomBeep(), isFalse);
+    });
   });
 
   group('CindyWodCard Widget Tests', () {
@@ -412,6 +430,79 @@ void main() {
 
       // Banner should now be dismissed
       expect(find.text('PREVIEW MODE — Test timers & scalings without saving.'), findsNothing);
+    });
+
+    testWidgets('Toggles EMOM Beep mode and renders EMOM pacer indicators',
+        (WidgetTester tester) async {
+      final MobilityExerciseModel cindy =
+          MobilityExerciseModel.defaultExercises().firstWhere(
+        (MobilityExerciseModel e) => e.id == 'cindy_wod',
+      );
+
+      final SettingsProvider settings = SettingsProvider(storage);
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: <SingleChildWidget>[
+            ChangeNotifierProvider<SettingsProvider>.value(value: settings),
+            ChangeNotifierProvider<RecoveryProvider>(create: (_) => RecoveryProvider(storage)),
+            ChangeNotifierProvider<BodyCompProvider>(create: (_) => BodyCompProvider(storage)),
+            ChangeNotifierProvider<NutritionProvider>(create: (_) => NutritionProvider(storage)),
+          ],
+          child: MaterialApp(
+            home: Scaffold(
+              body: SingleChildScrollView(
+                child: CindyWodCard(
+                  exercise: cindy,
+                  onCompleted: () {},
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // By default EMOM Beep is OFF
+      expect(find.text('EMOM BEEP OFF'), findsOneWidget);
+      expect(find.textContaining('EMOM Min'), findsNothing);
+
+      // Tap to toggle EMOM Beep ON
+      await tester.tap(find.text('EMOM BEEP OFF'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('EMOM BEEP ON'), findsOneWidget);
+      expect(settings.cindyEmomBeepEnabled, isTrue);
+      expect(find.text('EMOM Min 1 of 20'), findsOneWidget);
+      expect(find.text('Beep in 60s'), findsOneWidget);
+
+      // Start timer and advance 10 seconds
+      await tester.tap(find.byIcon(Icons.play_arrow_rounded));
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 10));
+
+      expect(find.text('19:50'), findsOneWidget);
+      expect(find.text('Beep in 50s'), findsOneWidget);
+      expect(find.text('EMOM Min 1 of 20'), findsOneWidget);
+
+      // Advance past the first minute mark (total 65 seconds elapsed -> 18:55 remaining)
+      await tester.pump(const Duration(seconds: 55));
+      expect(find.text('18:55'), findsOneWidget);
+      expect(find.text('EMOM Min 2 of 20'), findsOneWidget);
+      expect(find.text('Beep in 55s'), findsOneWidget);
+
+      // Pause timer
+      await tester.tap(find.byIcon(Icons.pause_rounded));
+      await tester.pump();
+
+      // Tap to toggle EMOM Beep OFF
+      await tester.tap(find.text('EMOM BEEP ON'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('EMOM BEEP OFF'), findsOneWidget);
+      expect(settings.cindyEmomBeepEnabled, isFalse);
+      expect(find.textContaining('EMOM Min'), findsNothing);
     });
   });
 }
