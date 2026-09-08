@@ -1707,6 +1707,8 @@ class _CindyWodCardState extends State<CindyWodCard> {
 
   String _getPullupLabel() {
     switch (_currentPullupVariation) {
+      case 'chin_up':
+        return 'Chin-up';
       case 'band_assisted':
         return 'Banded';
       case 'ring_rows':

@@ -30,6 +30,18 @@ void main() {
       expect(rxRound.pullupDisplayName, contains('Strict'));
       expect(rxRound.formattedSplit, equals('00:58'));
 
+      final CindyRoundDetail chinUpRound = CindyRoundDetail(
+        roundNumber: 2,
+        pullupVariation: 'chin_up',
+        pushupVariation: 'standard',
+        squatVariation: 'standard',
+        splitTimeSeconds: 115,
+        roundDurationSeconds: 57,
+      );
+
+      expect(chinUpRound.roundTier, equals('Rx'));
+      expect(chinUpRound.pullupDisplayName, equals('Chin-ups (Rx)'));
+
       final CindyRoundDetail scaledRound = CindyRoundDetail(
         roundNumber: 6,
         pullupVariation: 'band_assisted',
@@ -375,18 +387,19 @@ void main() {
 
       expect(find.text('Movement Progressions'), findsOneWidget);
       expect(find.text('1. PULL-UPS (5 REPS)'), findsOneWidget);
+      expect(find.text('Chin-up (Rx)'), findsOneWidget);
       expect(find.text('Banded'), findsOneWidget);
 
-      // Select Banded
-      await tester.tap(find.text('Banded'));
+      // Select Chin-up (Rx)
+      await tester.tap(find.text('Chin-up (Rx)'));
       await tester.pumpAndSettle();
 
-      // Apply
-      await tester.tap(find.text('Apply Progressions (Scaled)'));
+      // Apply (remains Rx tier)
+      await tester.tap(find.text('Apply Progressions (Rx)'));
       await tester.pumpAndSettle();
 
-      // Pull-ups row should now show Banded
-      expect(find.text('Banded'), findsOneWidget);
+      // Pull-ups row should now show Chin-up
+      expect(find.text('Chin-up'), findsOneWidget);
     });
 
     testWidgets('Renders Preview Mode banner and allows switching to Live Mode',

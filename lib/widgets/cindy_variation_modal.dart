@@ -250,6 +250,7 @@ class _CindyVariationModalState extends State<CindyVariationModal> {
                     _buildVariationChips(
                       options: const <Map<String, String>>[
                         <String, String>{'id': 'standard', 'label': 'Strict (Rx)'},
+                        <String, String>{'id': 'chin_up', 'label': 'Chin-up (Rx)'},
                         <String, String>{'id': 'band_assisted', 'label': 'Banded'},
                         <String, String>{'id': 'ring_rows', 'label': 'Ring Rows'},
                         <String, String>{'id': 'jumping', 'label': 'Jumping'},

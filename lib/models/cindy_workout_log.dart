@@ -41,7 +41,7 @@ class CindyRoundDetail {
   }
 
   final int roundNumber;
-  final String pullupVariation; // 'standard', 'band_assisted', 'ring_rows', 'jumping', 'weighted'
+  final String pullupVariation; // 'standard', 'chin_up', 'band_assisted', 'ring_rows', 'jumping', 'weighted'
   final double? pullupAddedWeightKg;
   final String? pullupBandAssistance; // 'light', 'medium', 'heavy'
   final String pushupVariation; // 'standard', 'knee', 'incline', 'pike', 'weighted', 'hspu'
@@ -92,6 +92,8 @@ class CindyRoundDetail {
 
   String get pullupDisplayName {
     switch (pullupVariation) {
+      case 'chin_up':
+        return 'Chin-ups (Rx)';
       case 'band_assisted':
         final String band = pullupBandAssistance != null ? ' (${pullupBandAssistance!.toUpperCase()})' : '';
         return 'Banded Pull-ups$band';
