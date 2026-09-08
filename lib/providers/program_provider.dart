@@ -6,7 +6,7 @@ import 'package:oly/services/storage_service.dart';
 class ProgramProvider extends ChangeNotifier {
   ProgramProvider(this._storage) {
     _cycle = _storage.loadProgramCycle();
-    _days = ProgramCycle.getBuiltInProgram();
+    _days = ProgramCycle.getBuiltInProgram(week: _cycle.currentWeek);
     _sessions = _storage.loadWorkoutSessions();
     _activeDraft = _storage.loadActiveWorkoutDraft();
   }
@@ -18,7 +18,8 @@ class ProgramProvider extends ChangeNotifier {
   ActiveWorkoutDraft? _activeDraft;
 
   ProgramCycle get cycle => _cycle;
-  List<DayTemplate> get days => List.unmodifiable(_days);
+  List<DayTemplate> get days =>
+      ProgramCycle.getBuiltInProgram(week: _cycle.currentWeek);
   List<WorkoutSession> get sessions => List.unmodifiable(_sessions);
   ActiveWorkoutDraft? get activeDraft => _activeDraft;
   bool get hasActiveDraft => _activeDraft != null;
@@ -57,9 +58,10 @@ class ProgramProvider extends ChangeNotifier {
   }
 
   DayTemplate get currentDayTemplate {
-    return _days.firstWhere(
+    final List<DayTemplate> currentDays = days;
+    return currentDays.firstWhere(
       (DayTemplate d) => d.dayNumber == _cycle.currentDay,
-      orElse: () => _days.first,
+      orElse: () => currentDays.first,
     );
   }
 
@@ -74,6 +76,7 @@ class ProgramProvider extends ChangeNotifier {
   void selectWeek(int weekNumber) {
     if (weekNumber >= 1 && weekNumber <= 5) {
       _cycle.currentWeek = weekNumber;
+      _days = ProgramCycle.getBuiltInProgram(week: _cycle.currentWeek);
       _storage.saveProgramCycle(_cycle);
       notifyListeners();
     }
@@ -88,6 +91,7 @@ class ProgramProvider extends ChangeNotifier {
       _cycle.currentWeek = 1;
     }
     _cycle.currentDay = 1;
+    _days = ProgramCycle.getBuiltInProgram(week: _cycle.currentWeek);
     await _storage.saveProgramCycle(_cycle);
     notifyListeners();
   }
@@ -96,6 +100,7 @@ class ProgramProvider extends ChangeNotifier {
     _cycle.currentCycle++;
     _cycle.currentWeek = 1;
     _cycle.currentDay = 1;
+    _days = ProgramCycle.getBuiltInProgram(week: _cycle.currentWeek);
     await _storage.saveProgramCycle(_cycle);
     notifyListeners();
   }
@@ -110,7 +115,7 @@ class ProgramProvider extends ChangeNotifier {
     if (_cycle.currentDay < _days.length) {
       _cycle.currentDay++;
     } else {
-      // Completed Day 5 -> Roll over to Week + 1, Day 1
+      // Completed Day 6 -> Roll over to Week + 1, Day 1
       _cycle.currentDay = 1;
       if (_cycle.currentWeek < 5) {
         _cycle.currentWeek++;
@@ -121,6 +126,7 @@ class ProgramProvider extends ChangeNotifier {
       }
     }
 
+    _days = ProgramCycle.getBuiltInProgram(week: _cycle.currentWeek);
     await _storage.saveWorkoutSessions(_sessions);
     await _storage.saveProgramCycle(_cycle);
     await clearActiveDraft();
@@ -141,6 +147,7 @@ class ProgramProvider extends ChangeNotifier {
 
   Future<void> reload() async {
     _cycle = _storage.loadProgramCycle();
+    _days = ProgramCycle.getBuiltInProgram(week: _cycle.currentWeek);
     _sessions = _storage.loadWorkoutSessions();
     _activeDraft = _storage.loadActiveWorkoutDraft();
     notifyListeners();

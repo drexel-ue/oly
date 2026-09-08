@@ -384,6 +384,19 @@ class DashboardScreen extends StatelessWidget {
               color: AppTheme.textPrimary,
             ),
           ),
+          const SizedBox(height: 4),
+          Text(
+            isRetest
+                ? 'Retest 1RM baselines to reset your training percentages'
+                : (program.currentWeek % 2 != 0
+                    ? 'Snatch Emphasis (2:1 Alternating Focus)'
+                    : 'Clean & Jerk Emphasis (1:2 Alternating Focus)'),
+            style: GoogleFonts.inter(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: isRetest ? Colors.redAccent : AppTheme.primaryAmber,
+            ),
+          ),
           const SizedBox(height: 12),
           // Week selection pills (Week 1..4 + Week 5 Retest)
           Row(
@@ -1390,9 +1403,11 @@ class DashboardScreen extends StatelessWidget {
       builder: (BuildContext ctx) {
         return StatefulBuilder(
           builder: (BuildContext context, setStateModal) {
-            final DayTemplate day = program.days.firstWhere(
+            final List<DayTemplate> previewDays =
+                ProgramCycle.getBuiltInProgram(week: selectedWeek);
+            final DayTemplate day = previewDays.firstWhere(
               (DayTemplate d) => d.dayNumber == selectedDayNum,
-              orElse: () => program.days.first,
+              orElse: () => previewDays.first,
             );
 
             return Container(
@@ -1506,7 +1521,7 @@ class DashboardScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
                       Row(
-                        children: program.days.map((DayTemplate d) {
+                        children: previewDays.map((DayTemplate d) {
                           final bool isSel = selectedDayNum == d.dayNumber;
                           String label;
                           if (d.dayNumber == 1) {

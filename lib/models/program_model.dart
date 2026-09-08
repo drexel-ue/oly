@@ -171,7 +171,7 @@ class ProgramCycle {
     };
   }
 
-  static List<DayTemplate> getBuiltInProgram() {
+  static List<DayTemplate> getBuiltInProgram({int week = 1}) {
     // Helper active recovery template reused for Day 2, Day 4, and Day 6
     DayTemplate createActiveRecoveryDay(int dayNum) {
       return DayTemplate(
@@ -261,230 +261,377 @@ class ProgramCycle {
       );
     }
 
-    return <DayTemplate>[
-      // STEP 1: DAY 1 (LIFT)
-      DayTemplate(
-        dayNumber: 1,
-        title: 'Day 1: Snatch & Clean Strength',
-        subtitle: 'Power Snatch + OHS, Hang Clean, Back Squat, Snatch Pull, Military Press',
-        phases: <PhaseTemplate>[
-          PhaseTemplate(
-            name: 'Phase 1 - Power and Technique Development',
-            exercises: <ExerciseTemplate>[
-              ExerciseTemplate(
-                name: 'Power Snatch + Overhead Squat',
-                liftId: 'snatch',
-                setScheme: '4 Sets of 2 Reps (1 Power Snatch + 1 OHS)',
-                weekPercentages: <int, double>{
-                  1: 65.0,
-                  2: 70.0,
-                  3: 75.0,
-                  4: 70.0,
-                },
-              ),
-              ExerciseTemplate(
-                name: 'Hang Clean',
-                liftId: 'clean_and_jerk',
-                setScheme: '4 Sets of 3 Reps',
-                weekPercentages: <int, double>{
-                  1: 65.0,
-                  2: 70.0,
-                  3: 75.0,
-                  4: 70.0,
-                },
-              ),
-            ],
-          ),
-          PhaseTemplate(
-            name: 'Phase 2 - Strength Building',
-            exercises: <ExerciseTemplate>[
-              ExerciseTemplate(
-                name: 'Back Squat',
-                liftId: 'back_squat',
-                setScheme: '4 Sets of 6-8 Reps',
-                weekPercentages: <int, double>{
-                  1: 65.0,
-                  2: 70.0,
-                  3: 75.0,
-                  4: 70.0,
-                },
-              ),
-            ],
-          ),
-          PhaseTemplate(
-            name: 'Phase 3 - Explosive Power and Pulling Strength',
-            exercises: <ExerciseTemplate>[
-              ExerciseTemplate(
-                name: 'Snatch Pull',
-                liftId: 'snatch',
-                setScheme: '3 Sets of 2 Reps',
-                fixedPercentage: 90.0,
-                notes: '@ 90% for all weeks',
-              ),
-            ],
-          ),
-          PhaseTemplate(
-            name: 'Phase 4 - Upper Body Development',
-            exercises: <ExerciseTemplate>[
-              ExerciseTemplate(
-                name: 'Military Press',
-                liftId: 'military_press',
-                setScheme: '3 Sets of 8 Reps',
-                weeklyWeightIncrementKg: 2.5,
-                notes: 'Progress 5-10lbs every week',
-              ),
-            ],
-          ),
-        ],
-      ),
+    // --- WEEK 5: 1RM RETEST WEEK ---
+    if (week == 5) {
+      return <DayTemplate>[
+        // Day 1: Snatch Retest + Squat Primer
+        DayTemplate(
+          dayNumber: 1,
+          title: 'Day 1: Snatch 1RM Retest',
+          subtitle: 'Snatch 1RM Retest Protocol, Back Squat Speed Primer',
+          phases: <PhaseTemplate>[
+            PhaseTemplate(
+              name: 'Phase 1 - Snatch 1RM Retest Protocol',
+              exercises: <ExerciseTemplate>[
+                ExerciseTemplate(
+                  name: 'Snatch',
+                  liftId: 'snatch',
+                  setScheme:
+                      '5 Sets: 1x3 @ 60%, 1x2 @ 75%, 1x1 @ 85%, 1x1 @ 95%, 1x1 @ New PR Target',
+                  fixedPercentage: 100.0,
+                  notes:
+                      'Ramp progressively through warmups to establish new 1RM baseline.',
+                ),
+              ],
+            ),
+            PhaseTemplate(
+              name: 'Phase 2 - Speed Squat Primer',
+              exercises: <ExerciseTemplate>[
+                ExerciseTemplate(
+                  name: 'Back Squat',
+                  liftId: 'back_squat',
+                  setScheme: '3 Sets of 3 Reps',
+                  fixedPercentage: 70.0,
+                  notes: '@ 70% dynamic speed effort; keep legs fresh and explosive.',
+                ),
+              ],
+            ),
+          ],
+        ),
 
-      // STEP 2: ACTIVE RECOVERY DAY 1
-      createActiveRecoveryDay(2),
+        // Day 2: Recovery
+        createActiveRecoveryDay(2),
 
-      // STEP 3: DAY 2 (LIFT)
-      DayTemplate(
-        dayNumber: 3,
-        title: 'Day 2: Muscle Snatch & Block Clean',
-        subtitle:
-            'Muscle Snatch, Block Clean, Snatch Deadlift, Push Press, Pull Ups',
-        phases: <PhaseTemplate>[
-          PhaseTemplate(
-            name: 'Phase 1 - Technique and Muscle Activation',
-            exercises: <ExerciseTemplate>[
-              ExerciseTemplate(
-                name: 'Muscle Snatch',
-                liftId: 'snatch',
-                setScheme: '3 Sets of 3 Reps',
-                fixedPercentage: 50.0,
-                notes: '@ 50% of Snatch Max for all weeks',
-              ),
-            ],
-          ),
-          PhaseTemplate(
-            name: 'Phase 2 - Power and Explosiveness',
-            exercises: <ExerciseTemplate>[
-              ExerciseTemplate(
-                name: 'Block Clean',
-                liftId: 'clean_and_jerk',
-                setScheme: '4 Sets of 2-3 Reps',
-                weekPercentages: <int, double>{
-                  1: 70.0,
-                  2: 75.0,
-                  3: 80.0,
-                  4: 75.0,
-                },
-              ),
-            ],
-          ),
-          PhaseTemplate(
-            name: 'Phase 3 - Strength and Pulling Power',
-            exercises: <ExerciseTemplate>[
-              ExerciseTemplate(
-                name: 'Snatch Deadlift',
-                liftId: 'snatch',
-                setScheme: '4 Sets of 5 Reps',
-                weeklyWeightIncrementKg: 2.5,
-                notes: 'Challenging load, progress 5-10lbs weekly',
-              ),
-            ],
-          ),
-          PhaseTemplate(
-            name: 'Phase 4 - Upper Body Development',
-            exercises: <ExerciseTemplate>[
-              ExerciseTemplate(
-                name: 'Push Press',
-                liftId: 'clean_and_jerk',
-                setScheme: '3 Sets of 5 Reps',
-                fixedPercentage: 60.0,
-                weeklyWeightIncrementKg: 2.5,
-                notes: '@ 60%, progress 5-10lbs every week',
-              ),
-              ExerciseTemplate(
-                name: 'Pull Up',
-                liftId: 'pull_up',
-                setScheme: '3 Sets of 8 Reps',
-                weeklyWeightIncrementKg: 2.5,
-                notes: 'Challenging load, progress 5-10lbs weekly',
-              ),
-            ],
-          ),
-        ],
-      ),
+        // Day 3: Clean & Jerk Retest + Front Squat Primer
+        DayTemplate(
+          dayNumber: 3,
+          title: 'Day 2: Clean & Jerk 1RM Retest',
+          subtitle:
+              'Clean & Jerk 1RM Retest Protocol, Front Squat Speed Primer',
+          phases: <PhaseTemplate>[
+            PhaseTemplate(
+              name: 'Phase 1 - Clean & Jerk 1RM Retest Protocol',
+              exercises: <ExerciseTemplate>[
+                ExerciseTemplate(
+                  name: 'Clean and Jerk',
+                  liftId: 'clean_and_jerk',
+                  setScheme:
+                      '5 Sets: 1x3 @ 60%, 1x2 @ 75%, 1x1 @ 85%, 1x1 @ 95%, 1x1 @ New PR Target',
+                  fixedPercentage: 100.0,
+                  notes:
+                      'Ramp progressively through warmups to establish new 1RM baseline.',
+                ),
+              ],
+            ),
+            PhaseTemplate(
+              name: 'Phase 2 - Front Squat Speed Primer',
+              exercises: <ExerciseTemplate>[
+                ExerciseTemplate(
+                  name: 'Front Squat',
+                  liftId: 'clean_and_jerk',
+                  anchorLiftId: 'clean_and_jerk',
+                  setScheme: '3 Sets of 2 Reps',
+                  fixedPercentage: 70.0,
+                  notes: '@ 70% speed effort; maintain sharp upright posture.',
+                ),
+              ],
+            ),
+          ],
+        ),
 
-      // STEP 4: ACTIVE RECOVERY DAY 2
-      createActiveRecoveryDay(4),
+        // Day 4: Recovery
+        createActiveRecoveryDay(4),
 
-      // STEP 5: DAY 3 (LIFT)
-      DayTemplate(
-        dayNumber: 5,
-        title: 'Day 3: Clean & Jerk Heavy & Front Squats',
-        subtitle: 'Hang Snatch, Clean & Jerk, Front Squat, RDL, Lunges',
-        phases: <PhaseTemplate>[
-          PhaseTemplate(
-            name: 'Phase 1 - Power and Technique Development',
-            exercises: <ExerciseTemplate>[
-              ExerciseTemplate(
-                name: 'Hang Snatch',
-                liftId: 'snatch',
-                setScheme: '4 Sets of 1 Rep',
-                weekPercentages: <int, double>{
-                  1: 70.0,
-                  2: 75.0,
-                  3: 80.0,
-                  4: 75.0,
-                },
-              ),
-              ExerciseTemplate(
-                name: 'Clean and Jerk',
-                liftId: 'clean_and_jerk',
-                setScheme: '4 Sets of 2 Reps',
-                weekPercentages: <int, double>{
-                  1: 70.0,
-                  2: 75.0,
-                  3: 80.0,
-                  4: 75.0,
-                },
-              ),
-            ],
-          ),
-          PhaseTemplate(
-            name: 'Phase 2 - Strength Building and Hypertrophy',
-            exercises: <ExerciseTemplate>[
-              ExerciseTemplate(
-                name: 'Front Squat',
-                liftId: 'clean_and_jerk',
-                anchorLiftId: 'clean_and_jerk',
-                setScheme: '4 Sets of 3-5 Reps',
-                fixedPercentage: 75.0,
-                notes: '@ 75% of Clean and Jerk Max',
-              ),
-            ],
-          ),
-          PhaseTemplate(
-            name: 'Phase 3 - Muscle Endurance and Stability',
-            exercises: <ExerciseTemplate>[
-              ExerciseTemplate(
-                name: 'Romanian Deadlift (RDL)',
-                liftId: 'clean_and_jerk',
-                anchorLiftId: 'clean_and_jerk',
-                setScheme: '3 Sets of 6-8 Reps',
-                fixedPercentage: 70.0,
-                notes: '@ 70% of Clean and Jerk Max',
-              ),
-              ExerciseTemplate(
-                name: 'Lunges',
-                liftId: 'lunges',
-                setScheme: '3 Sets of 8 Reps per Leg',
-                weeklyWeightIncrementKg: 2.5,
-                notes: 'Challenging load, progress 5-10lbs weekly',
-              ),
-            ],
-          ),
-        ],
-      ),
+        // Day 5: Back Squat 1RM Retest / Classic Total
+        DayTemplate(
+          dayNumber: 5,
+          title: 'Day 3: Back Squat 1RM Retest',
+          subtitle: 'Back Squat 1RM Retest Protocol & Cycle Culmination',
+          phases: <PhaseTemplate>[
+            PhaseTemplate(
+              name: 'Phase 1 - Back Squat 1RM Retest Protocol',
+              exercises: <ExerciseTemplate>[
+                ExerciseTemplate(
+                  name: 'Back Squat',
+                  liftId: 'back_squat',
+                  setScheme:
+                      '5 Sets: 1x3 @ 60%, 1x2 @ 75%, 1x1 @ 85%, 1x1 @ 95%, 1x1 @ New PR Target',
+                  fixedPercentage: 100.0,
+                  notes:
+                      'Test true squat baseline to anchor next cycle percentages.',
+                ),
+              ],
+            ),
+          ],
+        ),
 
-      // STEP 6: ACTIVE RECOVERY DAY 3 (AFTER DAY 3 LIFT)
-      createActiveRecoveryDay(6),
-    ];
+        // Day 6: Recovery
+        createActiveRecoveryDay(6),
+      ];
+    }
+
+    // --- WEEKS 1..4: 2:1 ALTERNATING PROGRAM ---
+    // Odd weeks (1 & 3): Week A -> 2 Snatch days (Days 1 & 5), 1 Clean & Jerk day (Day 3)
+    // Even weeks (2 & 4): Week B -> 1 Snatch day (Day 3), 2 Clean & Jerk days (Days 1 & 5)
+    final bool isSnatchEmphasisWeek = (week % 2 != 0);
+
+    if (isSnatchEmphasisWeek) {
+      // WEEK A (2 Snatch : 1 Clean & Jerk)
+      return <DayTemplate>[
+        // Day 1: Snatch Primary + Back Squat
+        DayTemplate(
+          dayNumber: 1,
+          title: 'Day 1: Snatch Focus & Squat',
+          subtitle: 'Power Snatch + OHS, Back Squat',
+          phases: <PhaseTemplate>[
+            PhaseTemplate(
+              name: 'Phase 1 - Power & Technique Development',
+              exercises: <ExerciseTemplate>[
+                ExerciseTemplate(
+                  name: 'Power Snatch + Overhead Squat',
+                  liftId: 'snatch',
+                  setScheme: '4 Sets of 2 Reps (1 Power Snatch + 1 OHS)',
+                  weekPercentages: <int, double>{
+                    1: 65.0,
+                    2: 70.0,
+                    3: 75.0,
+                    4: 70.0,
+                  },
+                ),
+              ],
+            ),
+            PhaseTemplate(
+              name: 'Phase 2 - Squat Strength Foundation',
+              exercises: <ExerciseTemplate>[
+                ExerciseTemplate(
+                  name: 'Back Squat',
+                  liftId: 'back_squat',
+                  setScheme: '4 Sets of 5 Reps',
+                  weekPercentages: <int, double>{
+                    1: 65.0,
+                    2: 70.0,
+                    3: 75.0,
+                    4: 70.0,
+                  },
+                ),
+              ],
+            ),
+          ],
+        ),
+
+        // Day 2: Active Recovery
+        createActiveRecoveryDay(2),
+
+        // Day 3: Clean & Jerk Primary + Front Squat
+        DayTemplate(
+          dayNumber: 3,
+          title: 'Day 2: Clean & Jerk Focus & Squat',
+          subtitle: 'Clean and Jerk, Front Squat',
+          phases: <PhaseTemplate>[
+            PhaseTemplate(
+              name: 'Phase 1 - Classic Lift Mastery',
+              exercises: <ExerciseTemplate>[
+                ExerciseTemplate(
+                  name: 'Clean and Jerk',
+                  liftId: 'clean_and_jerk',
+                  setScheme: '4 Sets of 2 Reps',
+                  weekPercentages: <int, double>{
+                    1: 70.0,
+                    2: 75.0,
+                    3: 80.0,
+                    4: 75.0,
+                  },
+                ),
+              ],
+            ),
+            PhaseTemplate(
+              name: 'Phase 2 - Anterior Squat Strength',
+              exercises: <ExerciseTemplate>[
+                ExerciseTemplate(
+                  name: 'Front Squat',
+                  liftId: 'clean_and_jerk',
+                  anchorLiftId: 'clean_and_jerk',
+                  setScheme: '4 Sets of 3 Reps',
+                  fixedPercentage: 75.0,
+                  notes: '@ 75% of Clean and Jerk Max',
+                ),
+              ],
+            ),
+          ],
+        ),
+
+        // Day 4: Active Recovery
+        createActiveRecoveryDay(4),
+
+        // Day 5: Hang Snatch + Snatch Pull
+        DayTemplate(
+          dayNumber: 5,
+          title: 'Day 3: Hang Snatch & Pull Power',
+          subtitle: 'Hang Snatch, Snatch Pull',
+          phases: <PhaseTemplate>[
+            PhaseTemplate(
+              name: 'Phase 1 - Explosive Second Pull & Turnover',
+              exercises: <ExerciseTemplate>[
+                ExerciseTemplate(
+                  name: 'Hang Snatch',
+                  liftId: 'snatch',
+                  setScheme: '4 Sets of 2 Reps',
+                  weekPercentages: <int, double>{
+                    1: 70.0,
+                    2: 75.0,
+                    3: 80.0,
+                    4: 75.0,
+                  },
+                ),
+              ],
+            ),
+            PhaseTemplate(
+              name: 'Phase 2 - Pulling Power & Mechanics',
+              exercises: <ExerciseTemplate>[
+                ExerciseTemplate(
+                  name: 'Snatch Pull',
+                  liftId: 'snatch',
+                  setScheme: '3 Sets of 2 Reps',
+                  fixedPercentage: 90.0,
+                  notes: '@ 90% for all weeks',
+                ),
+              ],
+            ),
+          ],
+        ),
+
+        // Day 6: Active Recovery
+        createActiveRecoveryDay(6),
+      ];
+    } else {
+      // WEEK B (1 Snatch : 2 Clean & Jerk)
+      return <DayTemplate>[
+        // Day 1: Clean & Jerk Primary + Front Squat
+        DayTemplate(
+          dayNumber: 1,
+          title: 'Day 1: Clean & Jerk Focus & Squat',
+          subtitle: 'Clean and Jerk, Front Squat',
+          phases: <PhaseTemplate>[
+            PhaseTemplate(
+              name: 'Phase 1 - Classic Lift Mastery',
+              exercises: <ExerciseTemplate>[
+                ExerciseTemplate(
+                  name: 'Clean and Jerk',
+                  liftId: 'clean_and_jerk',
+                  setScheme: '4 Sets of 2 Reps',
+                  weekPercentages: <int, double>{
+                    1: 70.0,
+                    2: 75.0,
+                    3: 80.0,
+                    4: 75.0,
+                  },
+                ),
+              ],
+            ),
+            PhaseTemplate(
+              name: 'Phase 2 - Anterior Squat Strength',
+              exercises: <ExerciseTemplate>[
+                ExerciseTemplate(
+                  name: 'Front Squat',
+                  liftId: 'clean_and_jerk',
+                  anchorLiftId: 'clean_and_jerk',
+                  setScheme: '4 Sets of 3 Reps',
+                  fixedPercentage: 75.0,
+                  notes: '@ 75% of Clean and Jerk Max',
+                ),
+              ],
+            ),
+          ],
+        ),
+
+        // Day 2: Active Recovery
+        createActiveRecoveryDay(2),
+
+        // Day 3: Snatch Primary + Back Squat
+        DayTemplate(
+          dayNumber: 3,
+          title: 'Day 2: Snatch Focus & Squat',
+          subtitle: 'Power Snatch + OHS, Back Squat',
+          phases: <PhaseTemplate>[
+            PhaseTemplate(
+              name: 'Phase 1 - Power & Technique Development',
+              exercises: <ExerciseTemplate>[
+                ExerciseTemplate(
+                  name: 'Power Snatch + Overhead Squat',
+                  liftId: 'snatch',
+                  setScheme: '4 Sets of 2 Reps (1 Power Snatch + 1 OHS)',
+                  weekPercentages: <int, double>{
+                    1: 65.0,
+                    2: 70.0,
+                    3: 75.0,
+                    4: 70.0,
+                  },
+                ),
+              ],
+            ),
+            PhaseTemplate(
+              name: 'Phase 2 - Squat Strength Foundation',
+              exercises: <ExerciseTemplate>[
+                ExerciseTemplate(
+                  name: 'Back Squat',
+                  liftId: 'back_squat',
+                  setScheme: '4 Sets of 5 Reps',
+                  weekPercentages: <int, double>{
+                    1: 65.0,
+                    2: 70.0,
+                    3: 75.0,
+                    4: 70.0,
+                  },
+                ),
+              ],
+            ),
+          ],
+        ),
+
+        // Day 4: Active Recovery
+        createActiveRecoveryDay(4),
+
+        // Day 5: Hang Clean + Clean Pull
+        DayTemplate(
+          dayNumber: 5,
+          title: 'Day 3: Hang Clean & Pull Power',
+          subtitle: 'Hang Clean, Clean Pull',
+          phases: <PhaseTemplate>[
+            PhaseTemplate(
+              name: 'Phase 1 - Extension & Turnover Power',
+              exercises: <ExerciseTemplate>[
+                ExerciseTemplate(
+                  name: 'Hang Clean',
+                  liftId: 'clean_and_jerk',
+                  setScheme: '4 Sets of 2 Reps',
+                  weekPercentages: <int, double>{
+                    1: 70.0,
+                    2: 75.0,
+                    3: 80.0,
+                    4: 75.0,
+                  },
+                ),
+              ],
+            ),
+            PhaseTemplate(
+              name: 'Phase 2 - Pulling Power & Positions',
+              exercises: <ExerciseTemplate>[
+                ExerciseTemplate(
+                  name: 'Clean Pull',
+                  liftId: 'clean_and_jerk',
+                  anchorLiftId: 'clean_and_jerk',
+                  setScheme: '3 Sets of 2 Reps',
+                  fixedPercentage: 95.0,
+                  notes: '@ 95% of Clean and Jerk Max',
+                ),
+              ],
+            ),
+          ],
+        ),
+
+        // Day 6: Active Recovery
+        createActiveRecoveryDay(6),
+      ];
+    }
   }
 }
