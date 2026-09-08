@@ -7,6 +7,7 @@ import 'package:oly/models/workout_session.dart';
 import 'package:oly/providers/recovery_provider.dart';
 import 'package:oly/providers/settings_provider.dart';
 import 'package:oly/theme/app_theme.dart';
+import 'package:oly/widgets/cindy_wod_card.dart';
 import 'package:oly/widgets/kettlebell_mile_card.dart';
 import 'package:oly/widgets/mobility_exercise_swap_modal.dart';
 import 'package:oly/widgets/rest_timer_widget.dart';
@@ -21,6 +22,7 @@ class VideoPlayerCard extends StatefulWidget {
     super.key,
     this.originalExercise,
     this.isSwapped = false,
+    this.isPreviewMode = false,
     this.onSwapExercise,
     this.onResetExercise,
     this.onSkip,
@@ -28,6 +30,7 @@ class VideoPlayerCard extends StatefulWidget {
   final MobilityExerciseModel exercise;
   final MobilityExerciseModel? originalExercise;
   final bool isSwapped;
+  final bool isPreviewMode;
   final ValueChanged<MobilityExerciseModel>? onSwapExercise;
   final VoidCallback? onResetExercise;
   final VoidCallback? onSkip;
@@ -506,6 +509,17 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
       return KettlebellMileCard(
         exercise: widget.exercise,
         isSwapped: widget.isSwapped,
+        onCompleted: widget.onCompleted,
+        onSkip: widget.onSkip ?? () {},
+        onOpenSwapModal: () => _openSwapModal(context),
+      );
+    }
+
+    if (widget.exercise.id == 'cindy_wod') {
+      return CindyWodCard(
+        exercise: widget.exercise,
+        isSwapped: widget.isSwapped,
+        isPreviewMode: widget.isPreviewMode,
         onCompleted: widget.onCompleted,
         onSkip: widget.onSkip ?? () {},
         onOpenSwapModal: () => _openSwapModal(context),

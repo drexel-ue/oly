@@ -12,6 +12,7 @@ import 'package:oly/services/recovery_engine_service.dart';
 import 'package:oly/theme/app_theme.dart';
 import 'package:oly/views/analytics_screen.dart';
 import 'package:oly/views/breathing/wim_hof_setup_sheet.dart';
+import 'package:oly/views/cindy_wod_screen.dart';
 import 'package:oly/views/injury_tracker_screen.dart';
 import 'package:oly/views/nutrition/nutrition_dashboard_screen.dart';
 import 'package:oly/views/nutrition/renpho_scanner_sheet.dart';
@@ -261,6 +262,41 @@ class DashboardScreen extends StatelessWidget {
                           );
                         }
                       },
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+
+              // CrossFit WOD & Conditioning Row
+              Row(
+                children: <Widget>[
+                  Expanded(
+                    child: _buildActionCard(
+                      context,
+                      title: 'CrossFit: Cindy',
+                      subtitle: '20m AMRAP (5/10/15)',
+                      icon: Icons.timer,
+                      accentColor: AppTheme.primaryAmber,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const CindyWodScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildActionCard(
+                      context,
+                      title: 'Routine Explorer',
+                      subtitle: 'Preview Any Week',
+                      icon: Icons.explore,
+                      accentColor: AppTheme.secondaryCyan,
+                      onTap: () => _showRoutineExplorerSheet(context, program),
                     ),
                   ),
                 ],

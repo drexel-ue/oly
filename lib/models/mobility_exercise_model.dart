@@ -228,6 +228,25 @@ class MobilityExerciseModel {
         videoUrl: _youtubeSearchUrl('Farmers Walk Mile'),
         isYoutube: true,
       ),
+      MobilityExerciseModel(
+        id: 'cindy_wod',
+        name: 'CrossFit WOD: Cindy (AMRAP 20m)',
+        focusArea: MobilityFocusArea.cardio,
+        category: MobilityCategory.cardioConditioning,
+        description:
+            'Classic 20-minute AMRAP: 5 Pull-ups, 10 Push-ups, 15 Air Squats. Track rounds and reps with per-round progression/scaling.',
+        cues: <String>[
+          '5 Pull-ups: Full dead-hang to chin clearly over bar (or band-assisted / weighted).',
+          '10 Push-ups: Chest touches deck, full lockout at top (or knee / pike / weighted).',
+          '15 Air Squats: Hip crease below knee, stand to full hip & knee extension (or goblet / vest).',
+          'Pace steadily across the 20 minutes; record rounds and partial reps.',
+        ],
+        durationSeconds: 1200,
+        defaultSets: 1,
+        defaultReps: 1,
+        videoUrl: _youtubeSearchUrl('Crossfit Cindy Workout Strategy'),
+        isYoutube: true,
+      ),
 
       // FOAM ROLLING
       MobilityExerciseModel(

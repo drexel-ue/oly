@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:oly/models/accessory_log.dart';
+import 'package:oly/models/cindy_workout_log.dart';
 import 'package:oly/models/kettlebell_mile_log.dart';
 import 'package:oly/models/mobility_exercise_model.dart';
 import 'package:oly/models/recovery_session_model.dart';
@@ -19,6 +20,7 @@ class RecoveryProvider extends ChangeNotifier {
   List<RecoverySessionLog> _recoveryLogs = <RecoverySessionLog>[];
   List<AccessoryLog> _accessoryLogs = <AccessoryLog>[];
   List<KettlebellMileLog> _kettlebellMileLogs = <KettlebellMileLog>[];
+  List<CindyWorkoutLog> _cindyWorkoutLogs = <CindyWorkoutLog>[];
 
   void _loadLogs() {
     final List<Map<String, dynamic>> raw = _storage.loadRawRecoveryLogs();
@@ -27,12 +29,15 @@ class RecoveryProvider extends ChangeNotifier {
         .toList();
     _accessoryLogs = _storage.loadAccessoryLogs();
     _kettlebellMileLogs = _storage.loadKettlebellMileLogs();
+    _cindyWorkoutLogs = _storage.loadCindyWorkoutLogs();
   }
 
   List<RecoverySessionLog> get recoveryLogs => List.unmodifiable(_recoveryLogs);
   List<AccessoryLog> get accessoryLogs => List.unmodifiable(_accessoryLogs);
   List<KettlebellMileLog> get kettlebellMileLogs =>
       List.unmodifiable(_kettlebellMileLogs);
+  List<CindyWorkoutLog> get cindyWorkoutLogs =>
+      List.unmodifiable(_cindyWorkoutLogs);
 
   int get totalMobilityMinutes {
     return _recoveryLogs.fold(
@@ -100,6 +105,38 @@ class RecoveryProvider extends ChangeNotifier {
     );
     _kettlebellMileLogs = _storage.loadKettlebellMileLogs();
     notifyListeners();
+  }
+
+  // --- CROSSFIT CINDY METHODS ---
+  List<CindyWorkoutLog> getCindyWorkoutHistory({String? tier}) {
+    final List<CindyWorkoutLog> list = List<CindyWorkoutLog>.from(_cindyWorkoutLogs)
+      ..sort((CindyWorkoutLog a, CindyWorkoutLog b) => b.date.compareTo(a.date));
+    if (tier != null) {
+      return list.where((CindyWorkoutLog e) => e.scalingTier == tier).toList();
+    }
+    return list;
+  }
+
+  CindyWorkoutLog? get latestCindyWorkoutLog {
+    final List<CindyWorkoutLog> history = getCindyWorkoutHistory();
+    return history.isNotEmpty ? history.first : null;
+  }
+
+  CindyWorkoutLog? getCindyPersonalRecord({String? tier}) {
+    final List<CindyWorkoutLog> history = getCindyWorkoutHistory(tier: tier);
+    if (history.isEmpty) {
+      return null;
+    }
+    return history.reduce(
+      (CindyWorkoutLog a, CindyWorkoutLog b) => a.totalReps >= b.totalReps ? a : b,
+    );
+  }
+
+  Future<CindyWorkoutLog> logCindyWorkout(CindyWorkoutLog log) async {
+    final CindyWorkoutLog finalized = await _storage.logCindyWorkout(log);
+    _cindyWorkoutLogs = _storage.loadCindyWorkoutLogs();
+    notifyListeners();
+    return finalized;
   }
 
   // --- ACCESSORY PROGRESSION METHODS ---

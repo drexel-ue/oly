@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:oly/models/accessory_log.dart';
 import 'package:oly/models/body_composition_entry.dart';
 import 'package:oly/models/breathing_session_model.dart';
+import 'package:oly/models/cindy_workout_log.dart';
 import 'package:oly/models/daily_nutrition_log.dart';
 import 'package:oly/models/injury_model.dart';
 import 'package:oly/models/kettlebell_mile_log.dart';
@@ -27,6 +28,7 @@ class StorageService {
   static const String _keyActiveDraft = 'oly_active_draft_v1';
   static const String _keyAccessoryLogs = 'oly_accessory_logs_v1';
   static const String _keyKettlebellMileLogs = 'oly_kettlebell_mile_logs_v1';
+  static const String _keyCindyWorkoutLogs = 'oly_cindy_workout_logs_v1';
   static const String _keyBodyCompEntries = 'oly_body_comp_entries_v1';
   static const String _keyNutritionLogs = 'oly_nutrition_logs_v1';
   static const String _keyNutritionGoal = 'oly_nutrition_goal_v1';
@@ -307,6 +309,79 @@ class StorageService {
     return history.isNotEmpty ? history.first : null;
   }
 
+  // --- CROSSFIT CINDY STORAGE ---
+  List<CindyWorkoutLog> loadCindyWorkoutLogs() {
+    final String? jsonStr = _prefs.getString(_keyCindyWorkoutLogs);
+    if (jsonStr == null || jsonStr.isEmpty) {
+      return <CindyWorkoutLog>[];
+    }
+    try {
+      final List<dynamic> list = jsonDecode(jsonStr);
+      return list
+          .map((dynamic e) => CindyWorkoutLog.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } catch (_) {
+      return <CindyWorkoutLog>[];
+    }
+  }
+
+  Future<void> saveCindyWorkoutLogs(List<CindyWorkoutLog> logs) async {
+    final String jsonStr = jsonEncode(
+      logs.map((CindyWorkoutLog e) => e.toJson()).toList(),
+    );
+    await _prefs.setString(_keyCindyWorkoutLogs, jsonStr);
+  }
+
+  Future<CindyWorkoutLog> logCindyWorkout(CindyWorkoutLog entry) async {
+    final List<CindyWorkoutLog> currentLogs = loadCindyWorkoutLogs();
+    final CindyWorkoutLog? currentPr = getCindyPersonalRecord(tier: entry.scalingTier);
+    final bool isNewPr = currentPr == null || entry.totalReps > currentPr.totalReps;
+
+    final CindyWorkoutLog finalized = CindyWorkoutLog(
+      id: entry.id,
+      date: entry.date,
+      durationSeconds: entry.durationSeconds,
+      completedRounds: entry.completedRounds,
+      partialPullups: entry.partialPullups,
+      partialPushups: entry.partialPushups,
+      partialSquats: entry.partialSquats,
+      rounds: entry.rounds,
+      partialPullupVariation: entry.partialPullupVariation,
+      partialPushupVariation: entry.partialPushupVariation,
+      partialSquatVariation: entry.partialSquatVariation,
+      isPr: isNewPr,
+      notes: entry.notes,
+    );
+
+    currentLogs.insert(0, finalized);
+    await saveCindyWorkoutLogs(currentLogs);
+    return finalized;
+  }
+
+  List<CindyWorkoutLog> getCindyWorkoutHistory({String? tier}) {
+    final List<CindyWorkoutLog> list = loadCindyWorkoutLogs();
+    list.sort((CindyWorkoutLog a, CindyWorkoutLog b) => b.date.compareTo(a.date));
+    if (tier != null) {
+      return list.where((CindyWorkoutLog e) => e.scalingTier == tier).toList();
+    }
+    return list;
+  }
+
+  CindyWorkoutLog? getLatestCindyWorkoutLog({String? tier}) {
+    final List<CindyWorkoutLog> history = getCindyWorkoutHistory(tier: tier);
+    return history.isNotEmpty ? history.first : null;
+  }
+
+  CindyWorkoutLog? getCindyPersonalRecord({String? tier}) {
+    final List<CindyWorkoutLog> history = getCindyWorkoutHistory(tier: tier);
+    if (history.isEmpty) {
+      return null;
+    }
+    return history.reduce(
+      (CindyWorkoutLog a, CindyWorkoutLog b) => a.totalReps >= b.totalReps ? a : b,
+    );
+  }
+
   // --- EXPORT & IMPORT UTILITIES ---
   String exportFullAppDataJson() {
     final Map<String, dynamic> map = <String, dynamic>{
@@ -317,6 +392,7 @@ class StorageService {
       'recoveryLogs': jsonDecode(_prefs.getString(_keyRecoveryLogs) ?? '[]'),
       'accessoryLogs': jsonDecode(_prefs.getString(_keyAccessoryLogs) ?? '[]'),
       'kettlebellMileLogs': jsonDecode(_prefs.getString(_keyKettlebellMileLogs) ?? '[]'),
+      'cindyWorkoutLogs': jsonDecode(_prefs.getString(_keyCindyWorkoutLogs) ?? '[]'),
       'breathingLogs': jsonDecode(_prefs.getString(_keyBreathingLogs) ?? '[]'),
       'breathingConfig': jsonDecode(_prefs.getString(_keyBreathingConfig) ?? '{}'),
       'settings': <String, Object>{

@@ -494,6 +494,7 @@ class _RecoverySessionScreenState extends State<RecoverySessionScreen> {
                 exercise: activeEx,
                 originalExercise: originalEx,
                 isSwapped: isSwapped,
+                isPreviewMode: widget.isPreviewMode,
                 onSwapExercise: (MobilityExerciseModel replacement) {
                   setState(() {
                     _swappedExercises[originalEx.id] = replacement;
