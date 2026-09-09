@@ -107,6 +107,7 @@ class DayTemplate {
     required this.subtitle,
     required this.phases,
     this.isActiveRecovery = false,
+    this.isFreeform = false,
   });
 
   factory DayTemplate.fromJson(Map<String, dynamic> json) {
@@ -118,6 +119,7 @@ class DayTemplate {
           .map((dynamic e) => PhaseTemplate.fromJson(e as Map<String, dynamic>))
           .toList(),
       isActiveRecovery: json['isActiveRecovery'] as bool? ?? false,
+      isFreeform: json['isFreeform'] as bool? ?? false,
     );
   }
   final int dayNumber;
@@ -125,6 +127,7 @@ class DayTemplate {
   final String subtitle;
   final List<PhaseTemplate> phases;
   final bool isActiveRecovery;
+  final bool isFreeform;
 
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
@@ -133,8 +136,73 @@ class DayTemplate {
       'subtitle': subtitle,
       'phases': phases.map((PhaseTemplate e) => e.toJson()).toList(),
       'isActiveRecovery': isActiveRecovery,
+      'isFreeform': isFreeform,
     };
   }
+
+  static List<PhaseTemplate> get recommendedActiveRecoveryPhases => <PhaseTemplate>[
+        PhaseTemplate(
+          name: 'Kettlebell Mile Conditioning',
+          exercises: <ExerciseTemplate>[
+            ExerciseTemplate(
+              name: 'Kettlebell Mile (Loaded Carry)',
+              liftId: 'kettlebell_mile',
+              setScheme: '1.0 Mile @ 10% to 30% Bodyweight',
+              notes:
+                  'Record speed, incline %, and time. Progress weight when finished in under 20 mins.',
+            ),
+          ],
+        ),
+        PhaseTemplate(
+          name: 'Core Stability & Anti-Extension',
+          exercises: <ExerciseTemplate>[
+            ExerciseTemplate(
+              name: 'Cable Crunches',
+              liftId: 'cable_crunches',
+              setScheme: '3 Sets of 8 Reps',
+              weeklyWeightIncrementKg: 2.5,
+              notes: 'Kneeling rope cable stack; track weight.',
+            ),
+            ExerciseTemplate(
+              name: 'Dragon Flags',
+              liftId: 'dragon_flags',
+              setScheme: '3 Sets of 5 Reps',
+              notes: 'Full body tension, controlled eccentric descent.',
+            ),
+            ExerciseTemplate(
+              name: 'GHD Machine Back Extensions',
+              liftId: 'ghd_back_extensions',
+              setScheme: '3 Sets of 12 Reps',
+              weeklyWeightIncrementKg: 2.5,
+              notes:
+                  'Glute-Ham Developer hyperextensions; track added plate weight.',
+            ),
+          ],
+        ),
+        PhaseTemplate(
+          name: 'Hypertrophy & Tendon Resilience',
+          exercises: <ExerciseTemplate>[
+            ExerciseTemplate(
+              name: 'Incline Dumbbell Bicep Curls',
+              liftId: 'incline_curls',
+              setScheme: '3 Sets of 12 Reps',
+              notes: 'Full biceps stretch; elbow flexor health.',
+            ),
+            ExerciseTemplate(
+              name: 'Overhead Rope Tricep Extensions',
+              liftId: 'rope_extensions',
+              setScheme: '3 Sets of 15 Reps',
+              notes: 'Long head tricep overhead lockouts.',
+            ),
+            ExerciseTemplate(
+              name: 'Leg Extensions (VMO Isolation)',
+              liftId: 'leg_extensions',
+              setScheme: '3 Sets of 20 Reps',
+              notes: 'High rep patellar tendon blood flow and knee health.',
+            ),
+          ],
+        ),
+      ];
 }
 
 class ProgramCycle {
@@ -172,92 +240,16 @@ class ProgramCycle {
   }
 
   static List<DayTemplate> getBuiltInProgram({int week = 1}) {
-    // Helper active recovery template reused for Day 2, Day 4, and Day 6
+    // Helper free-form conditioning day for Day 2, Day 4, and Day 6
     DayTemplate createActiveRecoveryDay(int dayNum) {
       return DayTemplate(
         dayNumber: dayNum,
-        title: 'Active Recovery Day',
+        title: 'Day $dayNum: Conditioning & Accessories',
         subtitle:
-            'Kettlebell Mile (10%->30% BW), Cable Crunches (3x8), Dragon Flags (3x5), GHD Extensions (3x12), Hypertrophy (Arms & Leg Extensions)',
-        isActiveRecovery: true,
-        phases: <PhaseTemplate>[
-          PhaseTemplate(
-            name: 'Kettlebell Mile Conditioning',
-            exercises: <ExerciseTemplate>[
-              ExerciseTemplate(
-                name: 'Kettlebell Mile (Loaded Carry)',
-                liftId: 'kettlebell_mile',
-                setScheme: '1.0 Mile @ 10% to 30% Bodyweight',
-                notes:
-                    'Record speed, incline %, and time. Progress weight when finished in under 20 mins.',
-              ),
-            ],
-          ),
-          PhaseTemplate(
-            name: 'Core Stability & Anti-Extension',
-            exercises: <ExerciseTemplate>[
-              ExerciseTemplate(
-                name: 'Cable Crunches',
-                liftId: 'cable_crunches',
-                setScheme: '3 Sets of 8 Reps',
-                weeklyWeightIncrementKg: 2.5,
-                notes: 'Kneeling rope cable stack; track weight.',
-              ),
-              ExerciseTemplate(
-                name: 'Dragon Flags',
-                liftId: 'dragon_flags',
-                setScheme: '3 Sets of 5 Reps',
-                notes: 'Full body tension, controlled eccentric descent.',
-              ),
-              ExerciseTemplate(
-                name: 'GHD Machine Back Extensions',
-                liftId: 'ghd_back_extensions',
-                setScheme: '3 Sets of 12 Reps',
-                weeklyWeightIncrementKg: 2.5,
-                notes:
-                    'Glute-Ham Developer hyperextensions; track added plate weight.',
-              ),
-            ],
-          ),
-          PhaseTemplate(
-            name: 'Hypertrophy & Tendon Resilience',
-            exercises: <ExerciseTemplate>[
-              ExerciseTemplate(
-                name: 'Dumbbell Bicep Curls',
-                liftId: 'db_bicep_curls',
-                setScheme: '3 Sets of 10 Reps',
-                weeklyWeightIncrementKg: 2.5,
-                notes: 'Strict form; track weight.',
-              ),
-              ExerciseTemplate(
-                name: 'Overhead Dumbbell Tricep Extension',
-                liftId: 'overhead_tricep_ext',
-                setScheme: '3 Sets of 10 Reps',
-                weeklyWeightIncrementKg: 2.5,
-                notes: 'Full elbow extension; track weight.',
-              ),
-              ExerciseTemplate(
-                name: 'Seated Machine Leg Extensions',
-                liftId: 'seated_leg_extensions',
-                setScheme: '3 Sets of 12 Reps',
-                weeklyWeightIncrementKg: 2.5,
-                notes:
-                    'Knee extension machine for quad & patellar tendon resilience; track weight.',
-              ),
-            ],
-          ),
-          PhaseTemplate(
-            name: 'Mobility & Joint Health Flow',
-            exercises: <ExerciseTemplate>[
-              ExerciseTemplate(
-                name: 'Thoracic Spine + Ankle & Hip Mobility Flow',
-                liftId: 'mobility',
-                setScheme: '10-15 Minutes Flow Routine',
-                notes: 'Thoracic extensions, ankle dorsiflexion, hip openers',
-              ),
-            ],
-          ),
-        ],
+            'Free-Form Canvas: Pick a WOD, Kettlebell Mile, or Accessories',
+        isActiveRecovery: false,
+        isFreeform: true,
+        phases: <PhaseTemplate>[],
       );
     }
 

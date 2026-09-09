@@ -1,3 +1,5 @@
+import 'package:uuid/uuid.dart';
+
 class CompletedSet {
   CompletedSet({
     required this.setIndex,
@@ -146,6 +148,110 @@ class WorkoutSession {
   }
 }
 
+enum DynamicItemType {
+  wod,
+  exercise,
+  kettlebellMile,
+  custom,
+}
+
+class DynamicWorkoutItem {
+  DynamicWorkoutItem({
+    required this.id,
+    required this.type,
+    required this.name,
+    this.refId,
+    this.subtitle,
+    this.setScheme,
+    this.targetWeightKg,
+    this.isCompleted = false,
+    this.completedResult,
+    this.data = const <String, dynamic>{},
+  });
+
+  factory DynamicWorkoutItem.fromJson(Map<String, dynamic> json) {
+    return DynamicWorkoutItem(
+      id: json['id'] as String? ?? const Uuid().v4(),
+      type: _typeFromString(json['type'] as String?),
+      name: json['name'] as String? ?? 'Custom Movement',
+      refId: json['refId'] as String?,
+      subtitle: json['subtitle'] as String?,
+      setScheme: json['setScheme'] as String?,
+      targetWeightKg: (json['targetWeightKg'] as num?)?.toDouble(),
+      isCompleted: json['isCompleted'] as bool? ?? false,
+      completedResult: json['completedResult'] as String?,
+      data: json['data'] as Map<String, dynamic>? ?? const <String, dynamic>{},
+    );
+  }
+
+  final String id;
+  final DynamicItemType type;
+  final String name;
+  final String? refId; // e.g., 'death_by_burpees', 'dt', 'snatch', 'cable_crunches'
+  final String? subtitle;
+  final String? setScheme; // e.g., '3 Sets of 8 Reps'
+  final double? targetWeightKg;
+  bool isCompleted;
+  String? completedResult; // e.g. '14 Mins + 8 Reps' or '07:15 (Rx)'
+  final Map<String, dynamic> data;
+
+  static DynamicItemType _typeFromString(String? typeStr) {
+    switch (typeStr) {
+      case 'wod':
+        return DynamicItemType.wod;
+      case 'kettlebellMile':
+      case 'kettlebell_mile':
+        return DynamicItemType.kettlebellMile;
+      case 'exercise':
+        return DynamicItemType.exercise;
+      case 'custom':
+      default:
+        return DynamicItemType.custom;
+    }
+  }
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'id': id,
+      'type': type.name,
+      'name': name,
+      'refId': refId,
+      'subtitle': subtitle,
+      'setScheme': setScheme,
+      'targetWeightKg': targetWeightKg,
+      'isCompleted': isCompleted,
+      'completedResult': completedResult,
+      'data': data,
+    };
+  }
+
+  DynamicWorkoutItem copyWith({
+    String? id,
+    DynamicItemType? type,
+    String? name,
+    String? refId,
+    String? subtitle,
+    String? setScheme,
+    double? targetWeightKg,
+    bool? isCompleted,
+    String? completedResult,
+    Map<String, dynamic>? data,
+  }) {
+    return DynamicWorkoutItem(
+      id: id ?? this.id,
+      type: type ?? this.type,
+      name: name ?? this.name,
+      refId: refId ?? this.refId,
+      subtitle: subtitle ?? this.subtitle,
+      setScheme: setScheme ?? this.setScheme,
+      targetWeightKg: targetWeightKg ?? this.targetWeightKg,
+      isCompleted: isCompleted ?? this.isCompleted,
+      completedResult: completedResult ?? this.completedResult,
+      data: data ?? this.data,
+    );
+  }
+}
+
 class ActiveWorkoutDraft {
   ActiveWorkoutDraft({
     required this.dayNumber,
@@ -160,6 +266,7 @@ class ActiveWorkoutDraft {
     this.selectedRpe = 8,
     this.selectedJointStrains = const <String>[],
     this.isPreviewMode = false,
+    this.dynamicItems = const <DynamicWorkoutItem>[],
   });
 
   factory ActiveWorkoutDraft.fromJson(Map<String, dynamic> json) {
@@ -194,6 +301,13 @@ class ActiveWorkoutDraft {
       }
     });
 
+    final List<dynamic>? rawDynamic = json['dynamicItems'] as List<dynamic>?;
+    final List<DynamicWorkoutItem> dynamicList = rawDynamic != null
+        ? rawDynamic
+            .map((dynamic e) => DynamicWorkoutItem.fromJson(e as Map<String, dynamic>))
+            .toList()
+        : const <DynamicWorkoutItem>[];
+
     return ActiveWorkoutDraft(
       dayNumber: json['dayNumber'] as int? ?? 1,
       weekNumber: json['weekNumber'] as int? ?? 1,
@@ -213,6 +327,7 @@ class ActiveWorkoutDraft {
               .toList() ??
           const <String>[],
       isPreviewMode: json['isPreviewMode'] as bool? ?? false,
+      dynamicItems: dynamicList,
     );
   }
   final int dayNumber;
@@ -227,6 +342,7 @@ class ActiveWorkoutDraft {
   final int selectedRpe;
   final List<String> selectedJointStrains;
   final bool isPreviewMode;
+  final List<DynamicWorkoutItem> dynamicItems;
 
   int get totalSetsCount => exerciseSets.values.fold(
     0,
@@ -239,8 +355,18 @@ class ActiveWorkoutDraft {
         sum + sets.where((CompletedSet s) => s.isCompleted).length,
   );
 
-  double get completionPercentage =>
-      totalSetsCount == 0 ? 0.0 : (totalCompletedSets / totalSetsCount);
+  int get totalDynamicCount => dynamicItems.length;
+
+  int get totalCompletedDynamic =>
+      dynamicItems.where((DynamicWorkoutItem i) => i.isCompleted).length;
+
+  double get completionPercentage {
+    final int total = totalSetsCount + totalDynamicCount;
+    if (total == 0) {
+      return 0.0;
+    }
+    return (totalCompletedSets + totalCompletedDynamic) / total;
+  }
 
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
@@ -259,6 +385,7 @@ class ActiveWorkoutDraft {
       'selectedRpe': selectedRpe,
       'selectedJointStrains': selectedJointStrains,
       'isPreviewMode': isPreviewMode,
+      'dynamicItems': dynamicItems.map((DynamicWorkoutItem e) => e.toJson()).toList(),
     };
   }
 }

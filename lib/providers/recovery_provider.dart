@@ -1,6 +1,12 @@
 import 'package:flutter/foundation.dart';
 import 'package:oly/models/accessory_log.dart';
 import 'package:oly/models/cindy_workout_log.dart';
+import 'package:oly/models/death_by_burpees_log.dart';
+import 'package:oly/models/dt_workout_log.dart';
+import 'package:oly/models/fran_workout_log.dart';
+import 'package:oly/models/grace_workout_log.dart';
+import 'package:oly/models/helen_workout_log.dart';
+import 'package:oly/models/jackie_workout_log.dart';
 import 'package:oly/models/kettlebell_mile_log.dart';
 import 'package:oly/models/mobility_exercise_model.dart';
 import 'package:oly/models/recovery_session_model.dart';
@@ -21,6 +27,12 @@ class RecoveryProvider extends ChangeNotifier {
   List<AccessoryLog> _accessoryLogs = <AccessoryLog>[];
   List<KettlebellMileLog> _kettlebellMileLogs = <KettlebellMileLog>[];
   List<CindyWorkoutLog> _cindyWorkoutLogs = <CindyWorkoutLog>[];
+  List<JackieWorkoutLog> _jackieWorkoutLogs = <JackieWorkoutLog>[];
+  List<FranWorkoutLog> _franWorkoutLogs = <FranWorkoutLog>[];
+  List<HelenWorkoutLog> _helenWorkoutLogs = <HelenWorkoutLog>[];
+  List<GraceWorkoutLog> _graceWorkoutLogs = <GraceWorkoutLog>[];
+  List<DtWorkoutLog> _dtWorkoutLogs = <DtWorkoutLog>[];
+  List<DeathByBurpeesLog> _deathByBurpeesLogs = <DeathByBurpeesLog>[];
 
   void _loadLogs() {
     final List<Map<String, dynamic>> raw = _storage.loadRawRecoveryLogs();
@@ -30,6 +42,12 @@ class RecoveryProvider extends ChangeNotifier {
     _accessoryLogs = _storage.loadAccessoryLogs();
     _kettlebellMileLogs = _storage.loadKettlebellMileLogs();
     _cindyWorkoutLogs = _storage.loadCindyWorkoutLogs();
+    _jackieWorkoutLogs = _storage.loadJackieWorkoutLogs();
+    _franWorkoutLogs = _storage.loadFranWorkoutLogs();
+    _helenWorkoutLogs = _storage.loadHelenWorkoutLogs();
+    _graceWorkoutLogs = _storage.loadGraceWorkoutLogs();
+    _dtWorkoutLogs = _storage.loadDtWorkoutLogs();
+    _deathByBurpeesLogs = _storage.loadDeathByBurpeesLogs();
   }
 
   List<RecoverySessionLog> get recoveryLogs => List.unmodifiable(_recoveryLogs);
@@ -38,6 +56,18 @@ class RecoveryProvider extends ChangeNotifier {
       List.unmodifiable(_kettlebellMileLogs);
   List<CindyWorkoutLog> get cindyWorkoutLogs =>
       List.unmodifiable(_cindyWorkoutLogs);
+  List<JackieWorkoutLog> get jackieWorkoutLogs =>
+      List.unmodifiable(_jackieWorkoutLogs);
+  List<FranWorkoutLog> get franWorkoutLogs =>
+      List.unmodifiable(_franWorkoutLogs);
+  List<HelenWorkoutLog> get helenWorkoutLogs =>
+      List.unmodifiable(_helenWorkoutLogs);
+  List<GraceWorkoutLog> get graceWorkoutLogs =>
+      List.unmodifiable(_graceWorkoutLogs);
+  List<DtWorkoutLog> get dtWorkoutLogs =>
+      List.unmodifiable(_dtWorkoutLogs);
+  List<DeathByBurpeesLog> get deathByBurpeesLogs =>
+      List.unmodifiable(_deathByBurpeesLogs);
 
   int get totalMobilityMinutes {
     return _recoveryLogs.fold(
@@ -135,6 +165,198 @@ class RecoveryProvider extends ChangeNotifier {
   Future<CindyWorkoutLog> logCindyWorkout(CindyWorkoutLog log) async {
     final CindyWorkoutLog finalized = await _storage.logCindyWorkout(log);
     _cindyWorkoutLogs = _storage.loadCindyWorkoutLogs();
+    notifyListeners();
+    return finalized;
+  }
+
+  // --- CROSSFIT JACKIE METHODS ---
+  List<JackieWorkoutLog> getJackieWorkoutHistory({String? tier}) {
+    final List<JackieWorkoutLog> list = List<JackieWorkoutLog>.from(_jackieWorkoutLogs)
+      ..sort((JackieWorkoutLog a, JackieWorkoutLog b) => b.date.compareTo(a.date));
+    if (tier != null) {
+      return list.where((JackieWorkoutLog e) => e.scalingTier == tier).toList();
+    }
+    return list;
+  }
+
+  JackieWorkoutLog? get latestJackieWorkoutLog {
+    final List<JackieWorkoutLog> history = getJackieWorkoutHistory();
+    return history.isNotEmpty ? history.first : null;
+  }
+
+  JackieWorkoutLog? getJackiePersonalRecord({String? tier}) {
+    final List<JackieWorkoutLog> history = getJackieWorkoutHistory(tier: tier);
+    if (history.isEmpty) {
+      return null;
+    }
+    return history.reduce(
+      (JackieWorkoutLog a, JackieWorkoutLog b) => a.totalTimeSeconds <= b.totalTimeSeconds ? a : b,
+    );
+  }
+
+  Future<JackieWorkoutLog> logJackieWorkout(JackieWorkoutLog log) async {
+    final JackieWorkoutLog finalized = await _storage.logJackieWorkout(log);
+    _jackieWorkoutLogs = _storage.loadJackieWorkoutLogs();
+    notifyListeners();
+    return finalized;
+  }
+
+  // --- CROSSFIT FRAN METHODS ---
+  List<FranWorkoutLog> getFranWorkoutHistory({String? tier}) {
+    final List<FranWorkoutLog> list = List<FranWorkoutLog>.from(_franWorkoutLogs)
+      ..sort((FranWorkoutLog a, FranWorkoutLog b) => b.date.compareTo(a.date));
+    if (tier != null) {
+      return list.where((FranWorkoutLog e) => e.scalingTier == tier).toList();
+    }
+    return list;
+  }
+
+  FranWorkoutLog? get latestFranWorkoutLog {
+    final List<FranWorkoutLog> history = getFranWorkoutHistory();
+    return history.isNotEmpty ? history.first : null;
+  }
+
+  FranWorkoutLog? getFranPersonalRecord({String? tier}) {
+    final List<FranWorkoutLog> history = getFranWorkoutHistory(tier: tier);
+    if (history.isEmpty) {
+      return null;
+    }
+    return history.reduce(
+      (FranWorkoutLog a, FranWorkoutLog b) => a.totalTimeSeconds <= b.totalTimeSeconds ? a : b,
+    );
+  }
+
+  Future<FranWorkoutLog> logFranWorkout(FranWorkoutLog log) async {
+    final FranWorkoutLog finalized = await _storage.logFranWorkout(log);
+    _franWorkoutLogs = _storage.loadFranWorkoutLogs();
+    notifyListeners();
+    return finalized;
+  }
+
+  // --- CROSSFIT HELEN METHODS ---
+  List<HelenWorkoutLog> getHelenWorkoutHistory({String? tier}) {
+    final List<HelenWorkoutLog> list = List<HelenWorkoutLog>.from(_helenWorkoutLogs)
+      ..sort((HelenWorkoutLog a, HelenWorkoutLog b) => b.date.compareTo(a.date));
+    if (tier != null) {
+      return list.where((HelenWorkoutLog e) => e.scalingTier == tier).toList();
+    }
+    return list;
+  }
+
+  HelenWorkoutLog? get latestHelenWorkoutLog {
+    final List<HelenWorkoutLog> history = getHelenWorkoutHistory();
+    return history.isNotEmpty ? history.first : null;
+  }
+
+  HelenWorkoutLog? getHelenPersonalRecord({String? tier}) {
+    final List<HelenWorkoutLog> history = getHelenWorkoutHistory(tier: tier);
+    if (history.isEmpty) {
+      return null;
+    }
+    return history.reduce(
+      (HelenWorkoutLog a, HelenWorkoutLog b) => a.totalTimeSeconds <= b.totalTimeSeconds ? a : b,
+    );
+  }
+
+  Future<HelenWorkoutLog> logHelenWorkout(HelenWorkoutLog log) async {
+    final HelenWorkoutLog finalized = await _storage.logHelenWorkout(log);
+    _helenWorkoutLogs = _storage.loadHelenWorkoutLogs();
+    notifyListeners();
+    return finalized;
+  }
+
+  // --- CROSSFIT GRACE METHODS ---
+  List<GraceWorkoutLog> getGraceWorkoutHistory({String? tier}) {
+    final List<GraceWorkoutLog> list = List<GraceWorkoutLog>.from(_graceWorkoutLogs)
+      ..sort((GraceWorkoutLog a, GraceWorkoutLog b) => b.date.compareTo(a.date));
+    if (tier != null) {
+      return list.where((GraceWorkoutLog e) => e.scalingTier == tier).toList();
+    }
+    return list;
+  }
+
+  GraceWorkoutLog? get latestGraceWorkoutLog {
+    final List<GraceWorkoutLog> history = getGraceWorkoutHistory();
+    return history.isNotEmpty ? history.first : null;
+  }
+
+  GraceWorkoutLog? getGracePersonalRecord({String? tier}) {
+    final List<GraceWorkoutLog> history = getGraceWorkoutHistory(tier: tier);
+    if (history.isEmpty) {
+      return null;
+    }
+    return history.reduce(
+      (GraceWorkoutLog a, GraceWorkoutLog b) => a.totalTimeSeconds <= b.totalTimeSeconds ? a : b,
+    );
+  }
+
+  Future<GraceWorkoutLog> logGraceWorkout(GraceWorkoutLog log) async {
+    final GraceWorkoutLog finalized = await _storage.logGraceWorkout(log);
+    _graceWorkoutLogs = _storage.loadGraceWorkoutLogs();
+    notifyListeners();
+    return finalized;
+  }
+
+  // --- CROSSFIT HERO WOD DT METHODS ---
+  List<DtWorkoutLog> getDtWorkoutHistory({String? tier}) {
+    final List<DtWorkoutLog> list = List<DtWorkoutLog>.from(_dtWorkoutLogs)
+      ..sort((DtWorkoutLog a, DtWorkoutLog b) => b.date.compareTo(a.date));
+    if (tier != null) {
+      return list.where((DtWorkoutLog e) => e.scalingTier == tier).toList();
+    }
+    return list;
+  }
+
+  DtWorkoutLog? get latestDtWorkoutLog {
+    final List<DtWorkoutLog> history = getDtWorkoutHistory();
+    return history.isNotEmpty ? history.first : null;
+  }
+
+  DtWorkoutLog? getDtPersonalRecord({String? tier}) {
+    final List<DtWorkoutLog> history = getDtWorkoutHistory(tier: tier);
+    if (history.isEmpty) {
+      return null;
+    }
+    return history.reduce(
+      (DtWorkoutLog a, DtWorkoutLog b) => a.totalTimeSeconds <= b.totalTimeSeconds ? a : b,
+    );
+  }
+
+  Future<DtWorkoutLog> logDtWorkout(DtWorkoutLog log) async {
+    final DtWorkoutLog finalized = await _storage.logDtWorkout(log);
+    _dtWorkoutLogs = _storage.loadDtWorkoutLogs();
+    notifyListeners();
+    return finalized;
+  }
+
+  // --- CROSSFIT BENCHMARK DEATH BY BURPEES METHODS ---
+  List<DeathByBurpeesLog> getDeathByBurpeesHistory({String? tier}) {
+    final List<DeathByBurpeesLog> list = List<DeathByBurpeesLog>.from(_deathByBurpeesLogs)
+      ..sort((DeathByBurpeesLog a, DeathByBurpeesLog b) => b.date.compareTo(a.date));
+    if (tier != null) {
+      return list.where((DeathByBurpeesLog e) => e.scalingTier == tier).toList();
+    }
+    return list;
+  }
+
+  DeathByBurpeesLog? get latestDeathByBurpeesLog {
+    final List<DeathByBurpeesLog> history = getDeathByBurpeesHistory();
+    return history.isNotEmpty ? history.first : null;
+  }
+
+  DeathByBurpeesLog? getDeathByBurpeesPersonalRecord({String? tier}) {
+    final List<DeathByBurpeesLog> history = getDeathByBurpeesHistory(tier: tier);
+    if (history.isEmpty) {
+      return null;
+    }
+    return history.reduce(
+      (DeathByBurpeesLog a, DeathByBurpeesLog b) => a.totalReps >= b.totalReps ? a : b,
+    );
+  }
+
+  Future<DeathByBurpeesLog> logDeathByBurpees(DeathByBurpeesLog log) async {
+    final DeathByBurpeesLog finalized = await _storage.logDeathByBurpees(log);
+    _deathByBurpeesLogs = _storage.loadDeathByBurpeesLogs();
     notifyListeners();
     return finalized;
   }

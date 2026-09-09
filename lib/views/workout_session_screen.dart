@@ -1,22 +1,42 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:oly/models/cindy_workout_log.dart';
+import 'package:oly/models/death_by_burpees_log.dart';
+import 'package:oly/models/dt_workout_log.dart';
+import 'package:oly/models/fran_workout_log.dart';
+import 'package:oly/models/grace_workout_log.dart';
+import 'package:oly/models/helen_workout_log.dart';
 import 'package:oly/models/injury_model.dart';
+import 'package:oly/models/jackie_workout_log.dart';
 import 'package:oly/models/lift_model.dart';
 import 'package:oly/models/program_model.dart';
+import 'package:oly/models/wod_definition.dart';
 import 'package:oly/models/workout_session.dart';
 import 'package:oly/providers/body_comp_provider.dart';
 import 'package:oly/providers/injury_provider.dart';
 import 'package:oly/providers/lift_provider.dart';
 import 'package:oly/providers/nutrition_provider.dart';
 import 'package:oly/providers/program_provider.dart';
+import 'package:oly/providers/recovery_provider.dart';
 import 'package:oly/providers/settings_provider.dart';
 import 'package:oly/theme/app_theme.dart';
+import 'package:oly/views/cindy_wod_screen.dart';
+import 'package:oly/views/death_by_burpees_screen.dart';
+import 'package:oly/views/dt_wod_screen.dart';
+import 'package:oly/views/fran_wod_screen.dart';
+import 'package:oly/views/grace_wod_screen.dart';
+import 'package:oly/views/helen_wod_screen.dart';
+import 'package:oly/views/jackie_wod_screen.dart';
 import 'package:oly/views/warmup_session_screen.dart';
+import 'package:oly/widgets/add_movement_modal_sheet.dart';
+import 'package:oly/widgets/empty_add_movement_card.dart';
 import 'package:oly/widgets/exercise_swap_modal.dart';
 import 'package:oly/widgets/plate_modal.dart';
 import 'package:oly/widgets/post_session_body_checkin_dialog.dart';
 import 'package:oly/widgets/rest_timer_widget.dart';
 import 'package:oly/widgets/session_injury_adaptation_card.dart';
+import 'package:oly/widgets/wod_setup_explainer_sheet.dart';
 import 'package:oly/widgets/workout_set_edit_dialog.dart';
 import 'package:oly/widgets/workout_weight_dialog.dart';
 import 'package:provider/provider.dart';
@@ -47,6 +67,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
   final Map<String, TextEditingController> _weightControllers =
       <String, TextEditingController>{};
   final Map<String, String> _swappedExerciseNames = <String, String>{};
+  final List<DynamicWorkoutItem> _dynamicItems = <DynamicWorkoutItem>[];
   final TextEditingController _notesController = TextEditingController();
   final FocusNode _notesFocusNode = FocusNode();
 
@@ -85,6 +106,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
       _selectedJointStrains.addAll(draft.selectedJointStrains);
       _notesController.text = draft.notes;
       _swappedExerciseNames.addAll(draft.swappedExerciseNames);
+      _dynamicItems.addAll(draft.dynamicItems);
 
       draft.exerciseSets.forEach((String name, List<CompletedSet> sets) {
         _exerciseSets[name] = List.from(sets);
@@ -95,6 +117,42 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
           text: weight.toStringAsFixed(1),
         );
       });
+    }
+
+    for (final DynamicWorkoutItem item in _dynamicItems) {
+      if (item.type == DynamicItemType.exercise ||
+          item.type == DynamicItemType.custom) {
+        final double targetKg = item.targetWeightKg ?? 0.0;
+        final String scheme = item.setScheme ?? '';
+        if (!_weightControllers.containsKey(item.name)) {
+          _weightControllers[item.name] = TextEditingController(
+            text: targetKg > 0 ? targetKg.toStringAsFixed(1) : '0.0',
+          );
+        }
+        if (!_exerciseSets.containsKey(item.name)) {
+          int setNum = 3;
+          final RegExpMatch? match =
+              RegExp(r'(\d+)\s+Sets').firstMatch(scheme);
+          if (match != null) {
+            setNum = int.tryParse(match.group(1)!) ?? 3;
+          }
+          int reps = 8;
+          final RegExpMatch? repMatch =
+              RegExp(r'(\d+)\s+Reps').firstMatch(scheme);
+          if (repMatch != null) {
+            reps = int.tryParse(repMatch.group(1)!) ?? 8;
+          }
+          _exerciseSets[item.name] = List.generate(
+            setNum,
+            (int i) => CompletedSet(
+              setIndex: i + 1,
+              weight: targetKg,
+              reps: reps,
+              isCompleted: false,
+            ),
+          );
+        }
+      }
     }
 
     for (final PhaseTemplate phase in widget.dayTemplate.phases) {
@@ -177,6 +235,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
       selectedRpe: _selectedRpe,
       selectedJointStrains: _selectedJointStrains.toList(),
       isPreviewMode: widget.isPreviewMode,
+      dynamicItems: _dynamicItems,
     );
 
     programProvider.saveActiveDraft(draft);
@@ -186,7 +245,13 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     final bool hasCompletedSets = _exerciseSets.values.any(
       (List<CompletedSet> sets) => sets.any((CompletedSet s) => s.isCompleted),
     );
-    return !hasCompletedSets && _notesController.text.trim().isEmpty;
+    final bool hasCompletedDynamic = _dynamicItems.any(
+      (DynamicWorkoutItem i) => i.isCompleted,
+    );
+    return !hasCompletedSets &&
+        !hasCompletedDynamic &&
+        _dynamicItems.isEmpty &&
+        _notesController.text.trim().isEmpty;
   }
 
   Future<bool?> _showExitPrompt(BuildContext context) async {
@@ -802,6 +867,45 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
       );
     });
 
+    for (final DynamicWorkoutItem item in _dynamicItems) {
+      if (item.isCompleted && !_exerciseSets.containsKey(item.name)) {
+        logs.add(
+          ExerciseLog(
+            exerciseName: item.name,
+            liftId: (item.refId != null && item.refId!.isNotEmpty)
+                ? item.refId!
+                : item.name.toLowerCase().replaceAll(' ', '_'),
+            sets: <CompletedSet>[
+              CompletedSet(
+                setIndex: 1,
+                weight: item.targetWeightKg ?? 0.0,
+                reps: 1,
+                isCompleted: true,
+                completedAt: DateTime.now(),
+              ),
+            ],
+          ),
+        );
+      }
+    }
+
+    final StringBuffer notesBuffer = StringBuffer(_notesController.text.trim());
+    final List<DynamicWorkoutItem> completedWods = _dynamicItems
+        .where(
+          (DynamicWorkoutItem item) =>
+              item.isCompleted && item.type == DynamicItemType.wod,
+        )
+        .toList();
+    if (completedWods.isNotEmpty) {
+      if (notesBuffer.isNotEmpty) {
+        notesBuffer.writeln('\n');
+      }
+      notesBuffer.writeln('Completed WODs:');
+      for (final DynamicWorkoutItem w in completedWods) {
+        notesBuffer.writeln('• ${w.name}: ${w.completedResult ?? "Done"}');
+      }
+    }
+
     final WorkoutSession session = WorkoutSession(
       id: _uuid.v4(),
       date: DateTime.now(),
@@ -809,7 +913,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
       weekNumber: programProvider.currentWeek,
       cycleNumber: programProvider.currentCycle,
       durationSeconds: durationSecs,
-      notes: _notesController.text,
+      notes: notesBuffer.toString(),
       sessionRpe: _selectedRpe,
       jointStrainTags: _selectedJointStrains.toList(),
       logs: logs,
@@ -873,6 +977,83 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
             style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
           ),
           actions: <Widget>[
+            // Mode Toggle Button in AppBar (Preview vs Live)
+            Padding(
+              padding: const EdgeInsets.only(right: 6),
+              child: Center(
+                child: InkWell(
+                  onTap: () {
+                    HapticFeedback.selectionClick();
+                    setState(() {
+                      _isLiveMode = !_isLiveMode;
+                    });
+                    if (_isLiveMode) {
+                      _persistDraft();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'Switched to Live Workout! You can now log your sets.',
+                          ),
+                          backgroundColor: AppTheme.primaryAmber,
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'Switched to Preview Mode. Explore movements and plan your session.',
+                          ),
+                          backgroundColor: AppTheme.secondaryCyan,
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                    }
+                  },
+                  borderRadius: BorderRadius.circular(10),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 5,
+                    ),
+                    decoration: BoxDecoration(
+                      color: !_isLiveMode
+                          ? AppTheme.secondaryCyan.withValues(alpha: 0.2)
+                          : AppTheme.primaryAmber.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: !_isLiveMode
+                            ? AppTheme.secondaryCyan
+                            : AppTheme.primaryAmber,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        Icon(
+                          !_isLiveMode ? Icons.explore : Icons.bolt,
+                          size: 14,
+                          color: !_isLiveMode
+                              ? AppTheme.secondaryCyan
+                              : AppTheme.primaryAmber,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          !_isLiveMode ? 'PREVIEW' : 'LIVE',
+                          style: GoogleFonts.outfit(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: !_isLiveMode
+                                ? AppTheme.secondaryCyan
+                                : AppTheme.primaryAmber,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
             IconButton(
               icon: const Icon(
                 Icons.directions_run,
@@ -912,11 +1093,50 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          'PREVIEW MODE — Viewing Periodization Week ${widget.previewWeek ?? 1}',
+                          widget.dayTemplate.isFreeform
+                              ? 'PREVIEW MODE — Free-Form Canvas & Planning'
+                              : 'PREVIEW MODE — Viewing Periodization Week ${widget.previewWeek ?? 1}',
                           style: GoogleFonts.outfit(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
                             color: AppTheme.secondaryCyan,
+                          ),
+                        ),
+                      ),
+                      InkWell(
+                        onTap: () {
+                          HapticFeedback.selectionClick();
+                          setState(() {
+                            _isLiveMode = true;
+                          });
+                          _persistDraft();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Switched to Live Workout! You can now log your sets.',
+                              ),
+                              backgroundColor: AppTheme.primaryAmber,
+                              duration: Duration(seconds: 2),
+                            ),
+                          );
+                        },
+                        borderRadius: BorderRadius.circular(6),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppTheme.primaryAmber,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            'GO LIVE',
+                            style: GoogleFonts.outfit(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
                           ),
                         ),
                       ),
@@ -959,6 +1179,23 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                       ...widget.dayTemplate.phases.map((PhaseTemplate phase) {
                         return _buildPhaseCard(context, phase, settings);
                       }),
+
+                      // Dynamic Items (WODs, Carries, Custom exercises)
+                      if (_dynamicItems.isNotEmpty)
+                        _buildDynamicItemsSection(context, settings),
+
+                      // Blank Canvas Hero or Dashed Add Card
+                      EmptyAddMovementCard(
+                        isSessionEmpty: widget.dayTemplate.phases.isEmpty &&
+                            _dynamicItems.isEmpty,
+                        isPreviewMode: !_isLiveMode,
+                        onAddPressed: _openAddMovementModal,
+                        onLoadRecommendedPressed: widget.dayTemplate.isFreeform &&
+                                widget.dayTemplate.phases.isEmpty &&
+                                _dynamicItems.isEmpty
+                            ? _loadRecommendedTemplate
+                            : null,
+                      ),
 
                       const SizedBox(height: 16),
 
@@ -1403,6 +1640,1076 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
               ),
             );
           }),
+        ],
+      ),
+    );
+  }
+  void _openAddMovementModal() {
+    AddMovementModalSheet.show(
+      context,
+      onAddMovement: _addDynamicItem,
+    );
+  }
+
+  void _addDynamicItem(DynamicWorkoutItem item, {bool shouldPersist = true}) {
+    setState(() {
+      _dynamicItems.add(item);
+      if (item.type == DynamicItemType.exercise ||
+          item.type == DynamicItemType.custom) {
+        final double targetKg = item.targetWeightKg ?? 0.0;
+        final String scheme = item.setScheme ?? '';
+        if (!_weightControllers.containsKey(item.name)) {
+          _weightControllers[item.name] = TextEditingController(
+            text: targetKg > 0 ? targetKg.toStringAsFixed(1) : '0.0',
+          );
+        }
+        if (!_exerciseSets.containsKey(item.name)) {
+          int setNum = 3;
+          final RegExpMatch? match =
+              RegExp(r'(\d+)\s+Sets').firstMatch(scheme);
+          if (match != null) {
+            setNum = int.tryParse(match.group(1)!) ?? 3;
+          }
+          int reps = 8;
+          final RegExpMatch? repMatch =
+              RegExp(r'(\d+)\s+Reps').firstMatch(scheme);
+          if (repMatch != null) {
+            reps = int.tryParse(repMatch.group(1)!) ?? 8;
+          }
+          _exerciseSets[item.name] = List.generate(
+            setNum,
+            (int i) => CompletedSet(
+              setIndex: i + 1,
+              weight: targetKg,
+              reps: reps,
+              isCompleted: false,
+            ),
+          );
+        }
+      }
+    });
+    if (shouldPersist) {
+      _persistDraft();
+    }
+  }
+
+  void _removeDynamicItem(int index) {
+    if (index < 0 || index >= _dynamicItems.length) {
+      return;
+    }
+    setState(() {
+      final DynamicWorkoutItem removed = _dynamicItems.removeAt(index);
+      _exerciseSets.remove(removed.name);
+      _weightControllers.remove(removed.name)?.dispose();
+    });
+    _persistDraft();
+  }
+
+  void _loadRecommendedTemplate() {
+    for (final PhaseTemplate phase
+        in DayTemplate.recommendedActiveRecoveryPhases) {
+      for (final ExerciseTemplate ex in phase.exercises) {
+        final DynamicWorkoutItem item = DynamicWorkoutItem(
+          id: _uuid.v4(),
+          type: ex.name.toLowerCase().contains('mile')
+              ? DynamicItemType.kettlebellMile
+              : DynamicItemType.exercise,
+          name: ex.name,
+          refId: ex.liftId,
+          subtitle: phase.name,
+          setScheme: ex.setScheme,
+          targetWeightKg: 0.0,
+        );
+        _addDynamicItem(item, shouldPersist: false);
+      }
+    }
+    _persistDraft();
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Loaded Recommended Active Recovery Template!'),
+          backgroundColor: AppTheme.secondaryCyan,
+        ),
+      );
+    }
+  }
+
+  void _toggleDynamicItemCompletion(DynamicWorkoutItem item) {
+    setState(() {
+      item.isCompleted = !item.isCompleted;
+      if (item.isCompleted &&
+          (item.completedResult == null || item.completedResult!.isEmpty)) {
+        item.completedResult = 'Completed';
+      }
+    });
+    _persistDraft();
+  }
+
+  Future<void> _launchWodScreen(DynamicWorkoutItem item) async {
+    Widget? screen;
+    switch (item.refId) {
+      case 'cindy':
+        screen = CindyWodScreen(isPreviewMode: !_isLiveMode);
+        break;
+      case 'jackie':
+        screen = JackieWodScreen(isPreviewMode: !_isLiveMode);
+        break;
+      case 'fran':
+        screen = FranWodScreen(isPreviewMode: !_isLiveMode);
+        break;
+      case 'helen':
+        screen = HelenWodScreen(isPreviewMode: !_isLiveMode);
+        break;
+      case 'grace':
+        screen = GraceWodScreen(isPreviewMode: !_isLiveMode);
+        break;
+      case 'dt':
+        screen = DtWodScreen(isPreviewMode: !_isLiveMode);
+        break;
+      case 'death_by_burpees':
+        screen = DeathByBurpeesScreen(isPreviewMode: !_isLiveMode);
+        break;
+    }
+
+    if (screen != null) {
+      await Navigator.push<void>(
+        context,
+        MaterialPageRoute<void>(builder: (_) => screen!),
+      );
+      if (mounted) {
+        _syncWodResult(item);
+      }
+    } else {
+      final WodDefinition wodDef = WodCatalog.allWods.firstWhere(
+        (WodDefinition w) => w.id == item.refId,
+        orElse: () => WodCatalog.allWods.first,
+      );
+      WodSetupExplainerSheet.show(context, wodDef);
+    }
+  }
+
+  void _syncWodResult(DynamicWorkoutItem item) {
+    final RecoveryProvider recovery =
+        Provider.of<RecoveryProvider>(context, listen: false);
+    final DateTime checkThreshold =
+        _startTime.subtract(const Duration(minutes: 5));
+    String? result;
+
+    switch (item.refId) {
+      case 'cindy':
+        final CindyWorkoutLog? log = recovery.latestCindyWorkoutLog;
+        if (log != null && log.date.isAfter(checkThreshold)) {
+          result = log.scoreDisplay;
+        }
+        break;
+      case 'jackie':
+        final JackieWorkoutLog? log = recovery.latestJackieWorkoutLog;
+        if (log != null && log.date.isAfter(checkThreshold)) {
+          result = log.scoreDisplay;
+        }
+        break;
+      case 'fran':
+        final FranWorkoutLog? log = recovery.latestFranWorkoutLog;
+        if (log != null && log.date.isAfter(checkThreshold)) {
+          result = log.scoreDisplay;
+        }
+        break;
+      case 'helen':
+        final HelenWorkoutLog? log = recovery.latestHelenWorkoutLog;
+        if (log != null && log.date.isAfter(checkThreshold)) {
+          result = log.scoreDisplay;
+        }
+        break;
+      case 'grace':
+        final GraceWorkoutLog? log = recovery.latestGraceWorkoutLog;
+        if (log != null && log.date.isAfter(checkThreshold)) {
+          result = log.scoreDisplay;
+        }
+        break;
+      case 'dt':
+        final DtWorkoutLog? log = recovery.latestDtWorkoutLog;
+        if (log != null && log.date.isAfter(checkThreshold)) {
+          result = log.scoreDisplay;
+        }
+        break;
+      case 'death_by_burpees':
+        final DeathByBurpeesLog? log = recovery.latestDeathByBurpeesLog;
+        if (log != null && log.date.isAfter(checkThreshold)) {
+          result = log.scoreDisplay;
+        }
+        break;
+    }
+
+    if (result != null) {
+      setState(() {
+        item.isCompleted = true;
+        item.completedResult = result;
+      });
+      _persistDraft();
+    }
+  }
+
+  Widget _buildDynamicItemsSection(
+    BuildContext context,
+    SettingsProvider settings,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        if (widget.dayTemplate.phases.isNotEmpty) ...<Widget>[
+          Padding(
+            padding: const EdgeInsets.only(top: 8, bottom: 12),
+            child: Row(
+              children: <Widget>[
+                const Icon(
+                  Icons.dashboard_customize_outlined,
+                  size: 16,
+                  color: AppTheme.secondaryCyan,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'DYNAMIC MOVEMENTS & WODS',
+                  style: GoogleFonts.outfit(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.0,
+                    color: AppTheme.secondaryCyan,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+        ...List.generate(_dynamicItems.length, (int index) {
+          final DynamicWorkoutItem item = _dynamicItems[index];
+          switch (item.type) {
+            case DynamicItemType.wod:
+              return _buildDynamicWodCard(item, index);
+            case DynamicItemType.kettlebellMile:
+              return _buildDynamicKettlebellMileCard(item, index, settings);
+            case DynamicItemType.exercise:
+            case DynamicItemType.custom:
+              return _buildDynamicExerciseCard(item, index, settings);
+          }
+        }),
+      ],
+    );
+  }
+
+  Widget _buildDynamicWodCard(DynamicWorkoutItem item, int index) {
+    final bool isDone = item.isCompleted;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceCard,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: isDone
+              ? const Color(0xFF10B981).withValues(alpha: 0.6)
+              : AppTheme.borderColor,
+          width: isDone ? 1.5 : 1.0,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: isDone
+                      ? const Color(0xFF10B981).withValues(alpha: 0.15)
+                      : const Color(0xFFF97316).withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  isDone ? Icons.check_circle : Icons.local_fire_department,
+                  color:
+                      isDone ? const Color(0xFF10B981) : const Color(0xFFF97316),
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Row(
+                      children: <Widget>[
+                        Flexible(
+                          child: Text(
+                            item.name,
+                            style: GoogleFonts.outfit(
+                              fontSize: 17,
+                              fontWeight: FontWeight.bold,
+                              color: AppTheme.textPrimary,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF97316)
+                                .withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            'WOD',
+                            style: GoogleFonts.outfit(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xFFF97316),
+                              letterSpacing: 0.8,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      (item.setScheme != null && item.setScheme!.isNotEmpty)
+                          ? item.setScheme!
+                          : (item.subtitle ?? ''),
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: AppTheme.textSecondary,
+                        height: 1.3,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              IconButton(
+                icon: const Icon(
+                  Icons.delete_outline,
+                  size: 20,
+                  color: Colors.redAccent,
+                ),
+                tooltip: 'Remove WOD',
+                onPressed: () => _removeDynamicItem(index),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          if (isDone) ...<Widget>[
+            Container(
+              width: double.infinity,
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: const Color(0xFF10B981).withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: const Color(0xFF10B981).withValues(alpha: 0.3),
+                ),
+              ),
+              child: Row(
+                children: <Widget>[
+                  const Icon(
+                    Icons.emoji_events_outlined,
+                    color: Color(0xFF10B981),
+                    size: 18,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Completed: ${item.completedResult ?? "Logged"}',
+                      style: GoogleFonts.outfit(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFF10B981),
+                      ),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () => _launchWodScreen(item),
+                    style: TextButton.styleFrom(
+                      padding: EdgeInsets.zero,
+                      minimumSize: const Size(50, 30),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    child: Text(
+                      'Re-open',
+                      style: GoogleFonts.outfit(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.primaryAmber,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ] else if (!_isLiveMode) ...<Widget>[
+            Row(
+              children: <Widget>[
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () => _launchWodScreen(item),
+                    icon: const Icon(Icons.explore, size: 18, color: Colors.black),
+                    label: Text(
+                      'PREVIEW WOD & STANDARDS',
+                      style: GoogleFonts.outfit(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                        letterSpacing: 0.8,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.secondaryCyan,
+                      foregroundColor: Colors.black,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ] else ...<Widget>[
+            Row(
+              children: <Widget>[
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () => _launchWodScreen(item),
+                    icon: const Icon(Icons.play_arrow, size: 18),
+                    label: Text(
+                      'LAUNCH LIVE WOD',
+                      style: GoogleFonts.outfit(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.8,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFF97316),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                IconButton(
+                  onPressed: () {
+                    final WodDefinition wodDef = WodCatalog.allWods.firstWhere(
+                      (WodDefinition w) => w.id == item.refId,
+                      orElse: () => WodCatalog.allWods.first,
+                    );
+                    WodSetupExplainerSheet.show(context, wodDef);
+                  },
+                  icon: const Icon(Icons.info_outline, size: 20, color: AppTheme.secondaryCyan),
+                  tooltip: 'Preview Setup & Standards',
+                ),
+                const SizedBox(width: 4),
+                OutlinedButton.icon(
+                  onPressed: () => _toggleDynamicItemCompletion(item),
+                  icon: const Icon(Icons.check, size: 16),
+                  label: Text(
+                    'Mark Done',
+                    style: GoogleFonts.outfit(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppTheme.textSecondary,
+                    side: const BorderSide(color: AppTheme.borderColor),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 12,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDynamicKettlebellMileCard(
+    DynamicWorkoutItem item,
+    int index,
+    SettingsProvider settings,
+  ) {
+    final bool isDone = item.isCompleted;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceCard,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: isDone
+              ? const Color(0xFF10B981).withValues(alpha: 0.6)
+              : AppTheme.secondaryCyan.withValues(alpha: 0.3),
+          width: isDone ? 1.5 : 1.0,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: isDone
+                      ? const Color(0xFF10B981).withValues(alpha: 0.15)
+                      : AppTheme.secondaryCyan.withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  isDone ? Icons.check_circle : Icons.directions_walk,
+                  color:
+                      isDone ? const Color(0xFF10B981) : AppTheme.secondaryCyan,
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      'Kettlebell Mile Carry',
+                      style: GoogleFonts.outfit(
+                        fontSize: 17,
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '1 Mile • 32kg (M) / 24kg (W) • 5 Burpees penalty per drop',
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: AppTheme.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (_isLiveMode)
+                IconButton(
+                  icon: const Icon(
+                    Icons.info_outline,
+                    size: 20,
+                    color: AppTheme.secondaryCyan,
+                  ),
+                  tooltip: 'Preview Protocol',
+                  onPressed: () => _showKettlebellMileProtocolModal(context),
+                ),
+              IconButton(
+                icon: const Icon(
+                  Icons.delete_outline,
+                  size: 20,
+                  color: Colors.redAccent,
+                ),
+                tooltip: 'Remove Kettlebell Mile',
+                onPressed: () => _removeDynamicItem(index),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          if (!_isLiveMode)
+            ElevatedButton.icon(
+              onPressed: () => _showKettlebellMileProtocolModal(context),
+              icon: const Icon(Icons.explore, size: 18, color: Colors.black),
+              label: Text(
+                'PREVIEW PROTOCOL & STANDARDS',
+                style: GoogleFonts.outfit(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.secondaryCyan,
+                foregroundColor: Colors.black,
+                minimumSize: const Size(double.infinity, 44),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            )
+          else
+            InkWell(
+              onTap: () => _toggleDynamicItemCompletion(item),
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                decoration: BoxDecoration(
+                  color: isDone
+                      ? const Color(0xFF10B981).withValues(alpha: 0.15)
+                      : AppTheme.surfaceElevated,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: isDone
+                        ? const Color(0xFF10B981).withValues(alpha: 0.4)
+                        : AppTheme.borderColor,
+                  ),
+                ),
+                child: Row(
+                  children: <Widget>[
+                    Icon(
+                      isDone ? Icons.check_box : Icons.check_box_outline_blank,
+                      color: isDone
+                          ? const Color(0xFF10B981)
+                          : AppTheme.textSecondary,
+                      size: 22,
+                    ),
+                    const SizedBox(width: 10),
+                    Text(
+                      isDone
+                          ? '1 Mile Carry Completed!'
+                          : 'Tap to Mark 1 Mile Complete',
+                      style: GoogleFonts.outfit(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: isDone
+                            ? const Color(0xFF10B981)
+                            : AppTheme.textPrimary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  void _showKettlebellMileProtocolModal(BuildContext context) {
+    HapticFeedback.mediumImpact();
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (BuildContext ctx) => Container(
+        height: MediaQuery.of(context).size.height * 0.70,
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: AppTheme.darkBackground,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+          border: Border.all(color: AppTheme.secondaryCyan.withValues(alpha: 0.3)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Center(
+              child: Container(
+                width: 44,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppTheme.textSecondary.withValues(alpha: 0.4),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: <Widget>[
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppTheme.secondaryCyan.withValues(alpha: 0.15),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.directions_walk,
+                    color: AppTheme.secondaryCyan,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                        'Kettlebell Mile Protocol & Standards',
+                        style: GoogleFonts.outfit(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.textPrimary,
+                        ),
+                      ),
+                      Text(
+                        'Loaded Carry Conditioning Standard',
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          color: AppTheme.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 18),
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: <Widget>[
+                    _buildProtocolItem(
+                      title: 'Distance Target',
+                      desc: '1.0 Continuous Mile (1,609m) carried outdoors or on treadmill. Complete in < 20:00 to advance weight.',
+                      icon: Icons.timer_outlined,
+                    ),
+                    const SizedBox(height: 10),
+                    _buildProtocolItem(
+                      title: 'Prescribed Loading Standards',
+                      desc: 'Men: 32kg (70 lb) / Women: 24kg (53 lb), or 10%–30% of total bodyweight (farmer carry or rack carry).',
+                      icon: Icons.fitness_center_rounded,
+                    ),
+                    const SizedBox(height: 10),
+                    _buildProtocolItem(
+                      title: '5 Burpees Drop Penalty Rule',
+                      desc: 'Every time the kettlebells touch the floor: immediately perform 5 Chest-to-Floor Burpees before continuing the walk.',
+                      icon: Icons.warning_amber_rounded,
+                      color: Colors.orangeAccent,
+                    ),
+                    const SizedBox(height: 10),
+                    _buildProtocolItem(
+                      title: 'Biomechanical Posture Standards',
+                      desc: 'Active shoulder retraction, ribs pulled down, neutral pelvic tilt, short rapid strides to avoid lumbar hyperextension.',
+                      icon: Icons.shield_outlined,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 14),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () => Navigator.pop(ctx),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryAmber,
+                  foregroundColor: Colors.black,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+                child: Text(
+                  'GOT IT, CLOSE PREVIEW',
+                  style: GoogleFonts.outfit(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProtocolItem({
+    required String title,
+    required String desc,
+    required IconData icon,
+    Color color = AppTheme.secondaryCyan,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceCard,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppTheme.surfaceElevated),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Icon(icon, color: color, size: 20),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  title,
+                  style: GoogleFonts.outfit(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  desc,
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    color: AppTheme.textSecondary,
+                    height: 1.3,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDynamicExerciseCard(
+    DynamicWorkoutItem item,
+    int index,
+    SettingsProvider settings,
+  ) {
+    final List<CompletedSet> sets =
+        _exerciseSets[item.name] ?? <CompletedSet>[];
+    final TextEditingController? weightCtrl = _weightControllers[item.name];
+    final double targetWeight =
+        double.tryParse(weightCtrl?.text ?? '0') ??
+            (item.targetWeightKg ?? 0.0);
+    final int targetReps = sets.isNotEmpty ? sets.first.reps : 8;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceCard,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppTheme.borderColor),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      item.name,
+                      style: GoogleFonts.outfit(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      (item.subtitle != null && item.subtitle!.isNotEmpty)
+                          ? item.subtitle!
+                          : (item.setScheme ?? ''),
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: AppTheme.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  IconButton(
+                    padding: EdgeInsets.zero,
+                    constraints:
+                        const BoxConstraints(minWidth: 32, minHeight: 32),
+                    icon: const Icon(
+                      Icons.play_circle_outline,
+                      size: 20,
+                      color: AppTheme.secondaryCyan,
+                    ),
+                    tooltip: 'Watch Tutorial',
+                    onPressed: () => _launchExerciseVideo(item.name),
+                  ),
+                  const SizedBox(width: 4),
+                  IconButton(
+                    padding: EdgeInsets.zero,
+                    constraints:
+                        const BoxConstraints(minWidth: 32, minHeight: 32),
+                    icon: const Icon(
+                      Icons.pie_chart_outline,
+                      size: 20,
+                      color: AppTheme.primaryAmber,
+                    ),
+                    tooltip: 'Plate Loader',
+                    onPressed: () {
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        useSafeArea: true,
+                        backgroundColor: Colors.transparent,
+                        builder: (_) =>
+                            PlateModal(initialWeightKg: targetWeight),
+                      );
+                    },
+                  ),
+                  const SizedBox(width: 4),
+                  IconButton(
+                    padding: EdgeInsets.zero,
+                    constraints:
+                        const BoxConstraints(minWidth: 32, minHeight: 32),
+                    icon: const Icon(
+                      Icons.delete_outline,
+                      size: 20,
+                      color: Colors.redAccent,
+                    ),
+                    tooltip: 'Remove Movement',
+                    onPressed: () => _removeDynamicItem(index),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+
+          // Target Weight / Reps banner
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+            decoration: BoxDecoration(
+              color: AppTheme.surfaceElevated,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: AppTheme.borderColor),
+            ),
+            child: Row(
+              children: <Widget>[
+                const Icon(
+                  Icons.fitness_center,
+                  size: 14,
+                  color: AppTheme.primaryAmber,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  'Target: ',
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    color: AppTheme.textSecondary,
+                  ),
+                ),
+                Text(
+                  targetWeight > 0
+                      ? '${settings.formatWeight(targetWeight)} × $targetReps reps'
+                      : 'Bodyweight / Banded',
+                  style: GoogleFonts.outfit(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.textPrimary,
+                  ),
+                ),
+                const Spacer(),
+                GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      final int newSetIndex = sets.length + 1;
+                      sets.add(
+                        CompletedSet(
+                          setIndex: newSetIndex,
+                          weight: targetWeight,
+                          reps: targetReps,
+                          isCompleted: false,
+                        ),
+                      );
+                    });
+                    _persistDraft();
+                  },
+                  child: Row(
+                    children: <Widget>[
+                      const Icon(
+                        Icons.add_circle_outline,
+                        size: 14,
+                        color: AppTheme.primaryAmber,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Add Set',
+                        style: GoogleFonts.outfit(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.primaryAmber,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+
+          // Set chips row
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: List.generate(sets.length, (int setIdx) {
+              final CompletedSet setItem = sets[setIdx];
+              return GestureDetector(
+                onLongPress: () => _showSetEditDialog(item.name, setIdx),
+                child: FilterChip(
+                  selected: setItem.isCompleted,
+                  avatar: setItem.isCompleted
+                      ? const Icon(
+                          Icons.check,
+                          size: 16,
+                          color: Colors.black,
+                        )
+                      : null,
+                  label: Text(
+                    setItem.weight > 0
+                        ? 'Set ${setItem.setIndex}: ${settings.formatWeight(setItem.weight, includeUnit: false)} × ${setItem.reps}'
+                        : 'Set ${setItem.setIndex}: BW × ${setItem.reps}',
+                    style: GoogleFonts.outfit(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: setItem.isCompleted
+                          ? Colors.black
+                          : AppTheme.textPrimary,
+                    ),
+                  ),
+                  selectedColor: AppTheme.primaryAmber,
+                  backgroundColor: AppTheme.surfaceElevated,
+                  onSelected: (_) => _toggleSetCompletion(item.name, setIdx),
+                ),
+              );
+            }),
+          ),
+          const SizedBox(height: 4),
+          Row(
+            children: <Widget>[
+              Icon(
+                Icons.info_outline,
+                size: 11,
+                color: AppTheme.textSecondary.withValues(alpha: 0.7),
+              ),
+              const SizedBox(width: 4),
+              Text(
+                'Tap to complete • Long-press to edit weight & reps',
+                style: GoogleFonts.inter(
+                  fontSize: 11,
+                  color: AppTheme.textSecondary.withValues(alpha: 0.7),
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );

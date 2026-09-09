@@ -8,6 +8,12 @@ import 'package:oly/providers/recovery_provider.dart';
 import 'package:oly/providers/settings_provider.dart';
 import 'package:oly/theme/app_theme.dart';
 import 'package:oly/widgets/cindy_wod_card.dart';
+import 'package:oly/widgets/death_by_burpees_wod_card.dart';
+import 'package:oly/widgets/dt_wod_card.dart';
+import 'package:oly/widgets/fran_wod_card.dart';
+import 'package:oly/widgets/grace_wod_card.dart';
+import 'package:oly/widgets/helen_wod_card.dart';
+import 'package:oly/widgets/jackie_wod_card.dart';
 import 'package:oly/widgets/kettlebell_mile_card.dart';
 import 'package:oly/widgets/mobility_exercise_swap_modal.dart';
 import 'package:oly/widgets/rest_timer_widget.dart';
@@ -517,6 +523,72 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
 
     if (widget.exercise.id == 'cindy_wod') {
       return CindyWodCard(
+        exercise: widget.exercise,
+        isSwapped: widget.isSwapped,
+        isPreviewMode: widget.isPreviewMode,
+        onCompleted: widget.onCompleted,
+        onSkip: widget.onSkip ?? () {},
+        onOpenSwapModal: () => _openSwapModal(context),
+      );
+    }
+
+    if (widget.exercise.id == 'jackie_wod') {
+      return JackieWodCard(
+        exercise: widget.exercise,
+        isSwapped: widget.isSwapped,
+        isPreviewMode: widget.isPreviewMode,
+        onCompleted: widget.onCompleted,
+        onSkip: widget.onSkip ?? () {},
+        onOpenSwapModal: () => _openSwapModal(context),
+      );
+    }
+
+    if (widget.exercise.id == 'fran_wod') {
+      return FranWodCard(
+        exercise: widget.exercise,
+        isSwapped: widget.isSwapped,
+        isPreviewMode: widget.isPreviewMode,
+        onCompleted: widget.onCompleted,
+        onSkip: widget.onSkip ?? () {},
+        onOpenSwapModal: () => _openSwapModal(context),
+      );
+    }
+
+    if (widget.exercise.id == 'helen_wod') {
+      return HelenWodCard(
+        exercise: widget.exercise,
+        isSwapped: widget.isSwapped,
+        isPreviewMode: widget.isPreviewMode,
+        onCompleted: widget.onCompleted,
+        onSkip: widget.onSkip ?? () {},
+        onOpenSwapModal: () => _openSwapModal(context),
+      );
+    }
+
+    if (widget.exercise.id == 'grace_wod') {
+      return GraceWodCard(
+        exercise: widget.exercise,
+        isSwapped: widget.isSwapped,
+        isPreviewMode: widget.isPreviewMode,
+        onCompleted: widget.onCompleted,
+        onSkip: widget.onSkip ?? () {},
+        onOpenSwapModal: () => _openSwapModal(context),
+      );
+    }
+
+    if (widget.exercise.id == 'dt_wod') {
+      return DtWodCard(
+        exercise: widget.exercise,
+        isSwapped: widget.isSwapped,
+        isPreviewMode: widget.isPreviewMode,
+        onCompleted: widget.onCompleted,
+        onSkip: widget.onSkip ?? () {},
+        onOpenSwapModal: () => _openSwapModal(context),
+      );
+    }
+
+    if (widget.exercise.id == 'death_by_burpees_wod') {
+      return DeathByBurpeesWodCard(
         exercise: widget.exercise,
         isSwapped: widget.isSwapped,
         isPreviewMode: widget.isPreviewMode,

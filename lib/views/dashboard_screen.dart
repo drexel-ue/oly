@@ -12,12 +12,12 @@ import 'package:oly/services/recovery_engine_service.dart';
 import 'package:oly/theme/app_theme.dart';
 import 'package:oly/views/analytics_screen.dart';
 import 'package:oly/views/breathing/wim_hof_setup_sheet.dart';
-import 'package:oly/views/cindy_wod_screen.dart';
 import 'package:oly/views/injury_tracker_screen.dart';
 import 'package:oly/views/nutrition/nutrition_dashboard_screen.dart';
 import 'package:oly/views/nutrition/renpho_scanner_sheet.dart';
 import 'package:oly/views/recovery_session_screen.dart';
 import 'package:oly/views/warmup_session_screen.dart';
+import 'package:oly/views/wod_hub_screen.dart';
 import 'package:oly/views/workout_session_screen.dart';
 import 'package:oly/widgets/active_recovery_card.dart';
 import 'package:oly/widgets/plate_modal.dart';
@@ -274,15 +274,15 @@ class DashboardScreen extends StatelessWidget {
                   Expanded(
                     child: _buildActionCard(
                       context,
-                      title: 'CrossFit: Cindy',
-                      subtitle: '20m AMRAP (5/10/15)',
-                      icon: Icons.timer,
+                      title: 'CrossFit WODs',
+                      subtitle: 'Cindy, Jackie, Fran, DT & Burpees',
+                      icon: Icons.fitness_center_rounded,
                       accentColor: AppTheme.primaryAmber,
                       onTap: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => const CindyWodScreen(),
+                            builder: (_) => const WodHubScreen(),
                           ),
                         );
                       },
@@ -539,7 +539,9 @@ class DashboardScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
-                  '${draft.totalCompletedSets}/${draft.totalSetsCount} Sets Done',
+                  draft.totalSetsCount > 0
+                      ? '${draft.totalCompletedSets}/${draft.totalSetsCount} Sets Done'
+                      : '${draft.totalCompletedDynamic}/${draft.totalDynamicCount} Items Done',
                   style: GoogleFonts.outfit(
                     fontSize: 11,
                     fontWeight: FontWeight.bold,

@@ -5,7 +5,13 @@ import 'package:oly/models/body_composition_entry.dart';
 import 'package:oly/models/breathing_session_model.dart';
 import 'package:oly/models/cindy_workout_log.dart';
 import 'package:oly/models/daily_nutrition_log.dart';
+import 'package:oly/models/death_by_burpees_log.dart';
+import 'package:oly/models/dt_workout_log.dart';
+import 'package:oly/models/fran_workout_log.dart';
+import 'package:oly/models/grace_workout_log.dart';
+import 'package:oly/models/helen_workout_log.dart';
 import 'package:oly/models/injury_model.dart';
+import 'package:oly/models/jackie_workout_log.dart';
 import 'package:oly/models/kettlebell_mile_log.dart';
 import 'package:oly/models/lift_model.dart';
 import 'package:oly/models/nutrition_entry.dart';
@@ -29,6 +35,12 @@ class StorageService {
   static const String _keyAccessoryLogs = 'oly_accessory_logs_v1';
   static const String _keyKettlebellMileLogs = 'oly_kettlebell_mile_logs_v1';
   static const String _keyCindyWorkoutLogs = 'oly_cindy_workout_logs_v1';
+  static const String _keyJackieWorkoutLogs = 'oly_jackie_workout_logs_v1';
+  static const String _keyFranWorkoutLogs = 'oly_fran_workout_logs_v1';
+  static const String _keyHelenWorkoutLogs = 'oly_helen_workout_logs_v1';
+  static const String _keyGraceWorkoutLogs = 'oly_grace_workout_logs_v1';
+  static const String _keyDtWorkoutLogs = 'oly_dt_workout_logs_v1';
+  static const String _keyDeathByBurpeesLogs = 'oly_death_by_burpees_logs_v1';
   static const String _keyBodyCompEntries = 'oly_body_comp_entries_v1';
   static const String _keyNutritionLogs = 'oly_nutrition_logs_v1';
   static const String _keyNutritionGoal = 'oly_nutrition_goal_v1';
@@ -387,6 +399,355 @@ class StorageService {
     );
   }
 
+  // --- CROSSFIT JACKIE STORAGE ---
+  List<JackieWorkoutLog> loadJackieWorkoutLogs() {
+    final String? jsonStr = _prefs.getString(_keyJackieWorkoutLogs);
+    if (jsonStr == null || jsonStr.isEmpty) {
+      return <JackieWorkoutLog>[];
+    }
+    try {
+      final List<dynamic> list = jsonDecode(jsonStr);
+      return list
+          .map((dynamic e) => JackieWorkoutLog.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } catch (_) {
+      return <JackieWorkoutLog>[];
+    }
+  }
+
+  Future<void> saveJackieWorkoutLogs(List<JackieWorkoutLog> logs) async {
+    final String jsonStr = jsonEncode(
+      logs.map((JackieWorkoutLog e) => e.toJson()).toList(),
+    );
+    await _prefs.setString(_keyJackieWorkoutLogs, jsonStr);
+  }
+
+  Future<JackieWorkoutLog> logJackieWorkout(JackieWorkoutLog entry) async {
+    final List<JackieWorkoutLog> currentLogs = loadJackieWorkoutLogs();
+    final JackieWorkoutLog? currentPr = getJackiePersonalRecord(tier: entry.scalingTier);
+    final bool isNewPr = currentPr == null || entry.totalTimeSeconds < currentPr.totalTimeSeconds;
+
+    final JackieWorkoutLog finalized = entry.copyWith(isPr: isNewPr);
+    currentLogs.insert(0, finalized);
+    await saveJackieWorkoutLogs(currentLogs);
+    return finalized;
+  }
+
+  List<JackieWorkoutLog> getJackieWorkoutHistory({String? tier}) {
+    final List<JackieWorkoutLog> list = loadJackieWorkoutLogs();
+    list.sort((JackieWorkoutLog a, JackieWorkoutLog b) => b.date.compareTo(a.date));
+    if (tier != null) {
+      return list.where((JackieWorkoutLog e) => e.scalingTier == tier).toList();
+    }
+    return list;
+  }
+
+  JackieWorkoutLog? getLatestJackieWorkoutLog({String? tier}) {
+    final List<JackieWorkoutLog> history = getJackieWorkoutHistory(tier: tier);
+    return history.isNotEmpty ? history.first : null;
+  }
+
+  JackieWorkoutLog? getJackiePersonalRecord({String? tier}) {
+    final List<JackieWorkoutLog> history = getJackieWorkoutHistory(tier: tier);
+    if (history.isEmpty) {
+      return null;
+    }
+    return history.reduce(
+      (JackieWorkoutLog a, JackieWorkoutLog b) => a.totalTimeSeconds <= b.totalTimeSeconds ? a : b,
+    );
+  }
+
+  // --- CROSSFIT FRAN STORAGE ---
+  List<FranWorkoutLog> loadFranWorkoutLogs() {
+    final String? jsonStr = _prefs.getString(_keyFranWorkoutLogs);
+    if (jsonStr == null || jsonStr.isEmpty) {
+      return <FranWorkoutLog>[];
+    }
+    try {
+      final List<dynamic> list = jsonDecode(jsonStr);
+      return list
+          .map((dynamic e) => FranWorkoutLog.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } catch (_) {
+      return <FranWorkoutLog>[];
+    }
+  }
+
+  Future<void> saveFranWorkoutLogs(List<FranWorkoutLog> logs) async {
+    final String jsonStr = jsonEncode(
+      logs.map((FranWorkoutLog e) => e.toJson()).toList(),
+    );
+    await _prefs.setString(_keyFranWorkoutLogs, jsonStr);
+  }
+
+  Future<FranWorkoutLog> logFranWorkout(FranWorkoutLog entry) async {
+    final List<FranWorkoutLog> currentLogs = loadFranWorkoutLogs();
+    final FranWorkoutLog? currentPr = getFranPersonalRecord(tier: entry.scalingTier);
+    final bool isNewPr = currentPr == null || entry.totalTimeSeconds < currentPr.totalTimeSeconds;
+
+    final FranWorkoutLog finalized = entry.copyWith(isPr: isNewPr);
+    currentLogs.insert(0, finalized);
+    await saveFranWorkoutLogs(currentLogs);
+    return finalized;
+  }
+
+  List<FranWorkoutLog> getFranWorkoutHistory({String? tier}) {
+    final List<FranWorkoutLog> list = loadFranWorkoutLogs();
+    list.sort((FranWorkoutLog a, FranWorkoutLog b) => b.date.compareTo(a.date));
+    if (tier != null) {
+      return list.where((FranWorkoutLog e) => e.scalingTier == tier).toList();
+    }
+    return list;
+  }
+
+  FranWorkoutLog? getLatestFranWorkoutLog({String? tier}) {
+    final List<FranWorkoutLog> history = getFranWorkoutHistory(tier: tier);
+    return history.isNotEmpty ? history.first : null;
+  }
+
+  FranWorkoutLog? getFranPersonalRecord({String? tier}) {
+    final List<FranWorkoutLog> history = getFranWorkoutHistory(tier: tier);
+    if (history.isEmpty) {
+      return null;
+    }
+    return history.reduce(
+      (FranWorkoutLog a, FranWorkoutLog b) => a.totalTimeSeconds <= b.totalTimeSeconds ? a : b,
+    );
+  }
+
+  // --- CROSSFIT HELEN STORAGE ---
+  List<HelenWorkoutLog> loadHelenWorkoutLogs() {
+    final String? jsonStr = _prefs.getString(_keyHelenWorkoutLogs);
+    if (jsonStr == null || jsonStr.isEmpty) {
+      return <HelenWorkoutLog>[];
+    }
+    try {
+      final List<dynamic> list = jsonDecode(jsonStr);
+      return list
+          .map((dynamic e) => HelenWorkoutLog.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } catch (_) {
+      return <HelenWorkoutLog>[];
+    }
+  }
+
+  Future<void> saveHelenWorkoutLogs(List<HelenWorkoutLog> logs) async {
+    final String jsonStr = jsonEncode(
+      logs.map((HelenWorkoutLog e) => e.toJson()).toList(),
+    );
+    await _prefs.setString(_keyHelenWorkoutLogs, jsonStr);
+  }
+
+  Future<HelenWorkoutLog> logHelenWorkout(HelenWorkoutLog entry) async {
+    final List<HelenWorkoutLog> currentLogs = loadHelenWorkoutLogs();
+    final HelenWorkoutLog? currentPr = getHelenPersonalRecord(tier: entry.scalingTier);
+    final bool isNewPr = currentPr == null || entry.totalTimeSeconds < currentPr.totalTimeSeconds;
+
+    final HelenWorkoutLog finalized = entry.copyWith(isPr: isNewPr);
+    currentLogs.insert(0, finalized);
+    await saveHelenWorkoutLogs(currentLogs);
+    return finalized;
+  }
+
+  List<HelenWorkoutLog> getHelenWorkoutHistory({String? tier}) {
+    final List<HelenWorkoutLog> list = loadHelenWorkoutLogs();
+    list.sort((HelenWorkoutLog a, HelenWorkoutLog b) => b.date.compareTo(a.date));
+    if (tier != null) {
+      return list.where((HelenWorkoutLog e) => e.scalingTier == tier).toList();
+    }
+    return list;
+  }
+
+  HelenWorkoutLog? getLatestHelenWorkoutLog({String? tier}) {
+    final List<HelenWorkoutLog> history = getHelenWorkoutHistory(tier: tier);
+    return history.isNotEmpty ? history.first : null;
+  }
+
+  HelenWorkoutLog? getHelenPersonalRecord({String? tier}) {
+    final List<HelenWorkoutLog> history = getHelenWorkoutHistory(tier: tier);
+    if (history.isEmpty) {
+      return null;
+    }
+    return history.reduce(
+      (HelenWorkoutLog a, HelenWorkoutLog b) => a.totalTimeSeconds <= b.totalTimeSeconds ? a : b,
+    );
+  }
+
+  // --- CROSSFIT GRACE STORAGE ---
+  List<GraceWorkoutLog> loadGraceWorkoutLogs() {
+    final String? jsonStr = _prefs.getString(_keyGraceWorkoutLogs);
+    if (jsonStr == null || jsonStr.isEmpty) {
+      return <GraceWorkoutLog>[];
+    }
+    try {
+      final List<dynamic> list = jsonDecode(jsonStr);
+      return list
+          .map((dynamic e) => GraceWorkoutLog.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } catch (_) {
+      return <GraceWorkoutLog>[];
+    }
+  }
+
+  Future<void> saveGraceWorkoutLogs(List<GraceWorkoutLog> logs) async {
+    final String jsonStr = jsonEncode(
+      logs.map((GraceWorkoutLog e) => e.toJson()).toList(),
+    );
+    await _prefs.setString(_keyGraceWorkoutLogs, jsonStr);
+  }
+
+  Future<GraceWorkoutLog> logGraceWorkout(GraceWorkoutLog entry) async {
+    final List<GraceWorkoutLog> currentLogs = loadGraceWorkoutLogs();
+    final GraceWorkoutLog? currentPr = getGracePersonalRecord(tier: entry.scalingTier);
+    final bool isNewPr = currentPr == null || entry.totalTimeSeconds < currentPr.totalTimeSeconds;
+
+    final GraceWorkoutLog finalized = entry.copyWith(isPr: isNewPr);
+    currentLogs.insert(0, finalized);
+    await saveGraceWorkoutLogs(currentLogs);
+    return finalized;
+  }
+
+  List<GraceWorkoutLog> getGraceWorkoutHistory({String? tier}) {
+    final List<GraceWorkoutLog> list = loadGraceWorkoutLogs();
+    list.sort((GraceWorkoutLog a, GraceWorkoutLog b) => b.date.compareTo(a.date));
+    if (tier != null) {
+      return list.where((GraceWorkoutLog e) => e.scalingTier == tier).toList();
+    }
+    return list;
+  }
+
+  GraceWorkoutLog? getLatestGraceWorkoutLog({String? tier}) {
+    final List<GraceWorkoutLog> history = getGraceWorkoutHistory(tier: tier);
+    return history.isNotEmpty ? history.first : null;
+  }
+
+  GraceWorkoutLog? getGracePersonalRecord({String? tier}) {
+    final List<GraceWorkoutLog> history = getGraceWorkoutHistory(tier: tier);
+    if (history.isEmpty) {
+      return null;
+    }
+    return history.reduce(
+      (GraceWorkoutLog a, GraceWorkoutLog b) => a.totalTimeSeconds <= b.totalTimeSeconds ? a : b,
+    );
+  }
+
+  // --- CROSSFIT HERO WOD DT STORAGE ---
+  List<DtWorkoutLog> loadDtWorkoutLogs() {
+    final String? jsonStr = _prefs.getString(_keyDtWorkoutLogs);
+    if (jsonStr == null || jsonStr.isEmpty) {
+      return <DtWorkoutLog>[];
+    }
+    try {
+      final List<dynamic> list = jsonDecode(jsonStr);
+      return list
+          .map((dynamic e) => DtWorkoutLog.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } catch (_) {
+      return <DtWorkoutLog>[];
+    }
+  }
+
+  Future<void> saveDtWorkoutLogs(List<DtWorkoutLog> logs) async {
+    final String jsonStr = jsonEncode(
+      logs.map((DtWorkoutLog e) => e.toJson()).toList(),
+    );
+    await _prefs.setString(_keyDtWorkoutLogs, jsonStr);
+  }
+
+  Future<DtWorkoutLog> logDtWorkout(DtWorkoutLog entry) async {
+    final List<DtWorkoutLog> currentLogs = loadDtWorkoutLogs();
+    final DtWorkoutLog? currentPr = getDtPersonalRecord(tier: entry.scalingTier);
+    final bool isNewPr = currentPr == null || entry.totalTimeSeconds < currentPr.totalTimeSeconds;
+
+    final DtWorkoutLog finalized = entry.copyWith(isPr: isNewPr);
+    currentLogs.insert(0, finalized);
+    await saveDtWorkoutLogs(currentLogs);
+    return finalized;
+  }
+
+  List<DtWorkoutLog> getDtWorkoutHistory({String? tier}) {
+    final List<DtWorkoutLog> list = loadDtWorkoutLogs();
+    list.sort((DtWorkoutLog a, DtWorkoutLog b) => b.date.compareTo(a.date));
+    if (tier != null) {
+      return list.where((DtWorkoutLog e) => e.scalingTier == tier).toList();
+    }
+    return list;
+  }
+
+  DtWorkoutLog? getLatestDtWorkoutLog({String? tier}) {
+    final List<DtWorkoutLog> history = getDtWorkoutHistory(tier: tier);
+    return history.isNotEmpty ? history.first : null;
+  }
+
+  DtWorkoutLog? getDtPersonalRecord({String? tier}) {
+    final List<DtWorkoutLog> history = getDtWorkoutHistory(tier: tier);
+    if (history.isEmpty) {
+      return null;
+    }
+    return history.reduce(
+      (DtWorkoutLog a, DtWorkoutLog b) => a.totalTimeSeconds <= b.totalTimeSeconds ? a : b,
+    );
+  }
+
+  // --- CROSSFIT BENCHMARK DEATH BY BURPEES STORAGE ---
+  List<DeathByBurpeesLog> loadDeathByBurpeesLogs() {
+    final String? jsonStr = _prefs.getString(_keyDeathByBurpeesLogs);
+    if (jsonStr == null || jsonStr.isEmpty) {
+      return <DeathByBurpeesLog>[];
+    }
+    try {
+      final List<dynamic> list = jsonDecode(jsonStr);
+      return list
+          .map((dynamic e) => DeathByBurpeesLog.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } catch (_) {
+      return <DeathByBurpeesLog>[];
+    }
+  }
+
+  Future<void> saveDeathByBurpeesLogs(List<DeathByBurpeesLog> logs) async {
+    final String jsonStr = jsonEncode(
+      logs.map((DeathByBurpeesLog e) => e.toJson()).toList(),
+    );
+    await _prefs.setString(_keyDeathByBurpeesLogs, jsonStr);
+  }
+
+  Future<DeathByBurpeesLog> logDeathByBurpees(DeathByBurpeesLog entry) async {
+    final List<DeathByBurpeesLog> currentLogs = loadDeathByBurpeesLogs();
+    final DeathByBurpeesLog? currentPr = getDeathByBurpeesPersonalRecord(tier: entry.scalingTier);
+    // In Death by Burpees, more total reps / minutes is better!
+    final bool isNewPr = currentPr == null || entry.totalReps > currentPr.totalReps;
+
+    final DeathByBurpeesLog finalized = entry.copyWith(isPr: isNewPr);
+    currentLogs.insert(0, finalized);
+    await saveDeathByBurpeesLogs(currentLogs);
+    return finalized;
+  }
+
+  List<DeathByBurpeesLog> getDeathByBurpeesHistory({String? tier}) {
+    final List<DeathByBurpeesLog> list = loadDeathByBurpeesLogs();
+    list.sort((DeathByBurpeesLog a, DeathByBurpeesLog b) => b.date.compareTo(a.date));
+    if (tier != null) {
+      return list.where((DeathByBurpeesLog e) => e.scalingTier == tier).toList();
+    }
+    return list;
+  }
+
+  DeathByBurpeesLog? getLatestDeathByBurpeesLog({String? tier}) {
+    final List<DeathByBurpeesLog> history = getDeathByBurpeesHistory(tier: tier);
+    return history.isNotEmpty ? history.first : null;
+  }
+
+  DeathByBurpeesLog? getDeathByBurpeesPersonalRecord({String? tier}) {
+    final List<DeathByBurpeesLog> history = getDeathByBurpeesHistory(tier: tier);
+    if (history.isEmpty) {
+      return null;
+    }
+    return history.reduce(
+      (DeathByBurpeesLog a, DeathByBurpeesLog b) => a.totalReps >= b.totalReps ? a : b,
+    );
+  }
+
   // --- EXPORT & IMPORT UTILITIES ---
   String exportFullAppDataJson() {
     final Map<String, dynamic> map = <String, dynamic>{
@@ -398,6 +759,12 @@ class StorageService {
       'accessoryLogs': jsonDecode(_prefs.getString(_keyAccessoryLogs) ?? '[]'),
       'kettlebellMileLogs': jsonDecode(_prefs.getString(_keyKettlebellMileLogs) ?? '[]'),
       'cindyWorkoutLogs': jsonDecode(_prefs.getString(_keyCindyWorkoutLogs) ?? '[]'),
+      'jackieWorkoutLogs': jsonDecode(_prefs.getString(_keyJackieWorkoutLogs) ?? '[]'),
+      'franWorkoutLogs': jsonDecode(_prefs.getString(_keyFranWorkoutLogs) ?? '[]'),
+      'helenWorkoutLogs': jsonDecode(_prefs.getString(_keyHelenWorkoutLogs) ?? '[]'),
+      'graceWorkoutLogs': jsonDecode(_prefs.getString(_keyGraceWorkoutLogs) ?? '[]'),
+      'dtWorkoutLogs': jsonDecode(_prefs.getString(_keyDtWorkoutLogs) ?? '[]'),
+      'deathByBurpeesLogs': jsonDecode(_prefs.getString(_keyDeathByBurpeesLogs) ?? '[]'),
       'breathingLogs': jsonDecode(_prefs.getString(_keyBreathingLogs) ?? '[]'),
       'breathingConfig': jsonDecode(_prefs.getString(_keyBreathingConfig) ?? '{}'),
       'settings': <String, Object>{
@@ -452,6 +819,48 @@ class StorageService {
         await _prefs.setString(
           _keyAccessoryLogs,
           jsonEncode(map['accessoryLogs']),
+        );
+      }
+      if (map.containsKey('cindyWorkoutLogs')) {
+        await _prefs.setString(
+          _keyCindyWorkoutLogs,
+          jsonEncode(map['cindyWorkoutLogs']),
+        );
+      }
+      if (map.containsKey('jackieWorkoutLogs')) {
+        await _prefs.setString(
+          _keyJackieWorkoutLogs,
+          jsonEncode(map['jackieWorkoutLogs']),
+        );
+      }
+      if (map.containsKey('franWorkoutLogs')) {
+        await _prefs.setString(
+          _keyFranWorkoutLogs,
+          jsonEncode(map['franWorkoutLogs']),
+        );
+      }
+      if (map.containsKey('helenWorkoutLogs')) {
+        await _prefs.setString(
+          _keyHelenWorkoutLogs,
+          jsonEncode(map['helenWorkoutLogs']),
+        );
+      }
+      if (map.containsKey('graceWorkoutLogs')) {
+        await _prefs.setString(
+          _keyGraceWorkoutLogs,
+          jsonEncode(map['graceWorkoutLogs']),
+        );
+      }
+      if (map.containsKey('dtWorkoutLogs')) {
+        await _prefs.setString(
+          _keyDtWorkoutLogs,
+          jsonEncode(map['dtWorkoutLogs']),
+        );
+      }
+      if (map.containsKey('deathByBurpeesLogs')) {
+        await _prefs.setString(
+          _keyDeathByBurpeesLogs,
+          jsonEncode(map['deathByBurpeesLogs']),
         );
       }
       if (map.containsKey('breathingLogs')) {

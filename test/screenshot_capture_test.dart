@@ -13,6 +13,8 @@ import 'package:oly/models/injury_model.dart';
 import 'package:oly/models/mobility_exercise_model.dart';
 import 'package:oly/models/nutrition_entry.dart';
 import 'package:oly/models/program_model.dart';
+import 'package:oly/models/wod_definition.dart';
+import 'package:oly/models/workout_session.dart';
 import 'package:oly/providers/body_comp_provider.dart';
 import 'package:oly/providers/breathing_provider.dart';
 import 'package:oly/providers/injury_provider.dart';
@@ -32,6 +34,7 @@ import 'package:oly/views/breathing/wim_hof_session_screen.dart';
 import 'package:oly/views/breathing/wim_hof_setup_sheet.dart';
 import 'package:oly/views/breathing/wim_hof_summary_screen.dart';
 import 'package:oly/views/dashboard_screen.dart';
+import 'package:oly/views/death_by_burpees_screen.dart';
 import 'package:oly/views/diagnostics/crash_report_screen.dart';
 import 'package:oly/views/injury_tracker_screen.dart';
 import 'package:oly/views/lifts_screen.dart';
@@ -46,6 +49,7 @@ import 'package:oly/views/plate_calculator_screen.dart';
 import 'package:oly/views/recovery_session_screen.dart';
 import 'package:oly/views/warmup_session_screen.dart';
 import 'package:oly/views/workout_session_screen.dart';
+import 'package:oly/widgets/add_movement_modal_sheet.dart';
 import 'package:oly/widgets/exercise_swap_modal.dart';
 import 'package:oly/widgets/injury_export_bottom_sheet.dart';
 import 'package:oly/widgets/interactive_body_map.dart';
@@ -53,6 +57,7 @@ import 'package:oly/widgets/mobility_exercise_swap_modal.dart';
 import 'package:oly/widgets/nutrition/smart_portion_drawer.dart';
 import 'package:oly/widgets/post_session_body_checkin_dialog.dart';
 import 'package:oly/widgets/standard_ratios_sheet.dart';
+import 'package:oly/widgets/wod_setup_explainer_sheet.dart';
 import 'package:oly/widgets/workout_weight_dialog.dart';
 import 'package:provider/provider.dart';
 
@@ -939,6 +944,233 @@ void main() {
       expect(find.text('ALL-TIME BREATHWORK TOTALS'), findsOneWidget);
       expect(find.text('RETENTION DURATION PROGRESSION'), findsOneWidget);
       expect(find.text('AVERAGE HOLD DURATION BY ROUND'), findsOneWidget);
+    });
+
+    testWidgets('29 Renders CrossFit Benchmark Death By Burpees Screen with EMOM Card', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(1170, 2532);
+      tester.view.devicePixelRatio = 2.0;
+      addTearDown(() => tester.view.resetPhysicalSize());
+
+      await tester.pumpWidget(buildTestScreen(const DeathByBurpeesScreen()));
+      await captureScreen(tester, '29_death_by_burpees_screen');
+      expect(find.text('Death By Burpees'), findsOneWidget);
+      expect(find.text('DEATH BY BURPEES'), findsOneWidget);
+    });
+
+    testWidgets('30 Renders Free-Form Workout Canvas (Day 2) with Blank Hero Card', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(1170, 2532);
+      tester.view.devicePixelRatio = 2.0;
+      addTearDown(() => tester.view.resetPhysicalSize());
+
+      final DayTemplate freeformDay = DayTemplate(
+        dayNumber: 2,
+        title: 'Day 2: Conditioning & Accessories',
+        subtitle: 'Free-Form Canvas: Pick a WOD, Kettlebell Mile, or Accessories',
+        phases: <PhaseTemplate>[],
+        isFreeform: true,
+      );
+
+      await tester.pumpWidget(
+        buildTestScreen(
+          WorkoutSessionScreen(
+            dayTemplate: freeformDay,
+            isPreviewMode: true,
+          ),
+        ),
+      );
+      await captureScreen(tester, '30_freeform_canvas_screen');
+      expect(find.text('FREE-FORM CONDITIONING DAY'), findsOneWidget);
+    });
+
+    testWidgets('31 Renders Add Movement Bottom Sheet with Benchmark WODs and Categories', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(1170, 2532);
+      tester.view.devicePixelRatio = 2.0;
+      addTearDown(() => tester.view.resetPhysicalSize());
+
+      await tester.pumpWidget(
+        buildTestScreen(
+          Scaffold(
+            body: AddMovementModalSheet(
+              onAddMovement: (_) {},
+            ),
+          ),
+        ),
+      );
+      await captureScreen(tester, '31_add_movement_modal_sheet');
+      expect(find.text('ADD TO WORKOUT'), findsOneWidget);
+    });
+
+    testWidgets('32 Renders Dynamic Free-Form Workout with Live WOD and Kettlebell Mile Cards', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(1170, 2532);
+      tester.view.devicePixelRatio = 2.0;
+      addTearDown(() => tester.view.resetPhysicalSize());
+
+      final DayTemplate freeformDay = DayTemplate(
+        dayNumber: 2,
+        title: 'Day 2: Conditioning & Accessories',
+        subtitle: 'Free-Form Canvas',
+        phases: <PhaseTemplate>[],
+        isFreeform: true,
+      );
+
+      final ActiveWorkoutDraft draft = ActiveWorkoutDraft(
+        dayNumber: 2,
+        weekNumber: 1,
+        cycleNumber: 1,
+        dayTitle: 'Day 2: Conditioning & Accessories',
+        startTime: DateTime.now(),
+        exerciseSets: <String, List<CompletedSet>>{
+          'Cable Crunches': <CompletedSet>[
+            CompletedSet(setIndex: 1, weight: 35.0, reps: 8, isCompleted: true),
+            CompletedSet(setIndex: 2, weight: 35.0, reps: 8, isCompleted: false),
+          ],
+        },
+        exerciseWeights: <String, double>{'Cable Crunches': 35.0},
+        dynamicItems: <DynamicWorkoutItem>[
+          DynamicWorkoutItem(
+            id: 'wod_dt',
+            type: DynamicItemType.wod,
+            name: 'DT',
+            refId: 'dt',
+            subtitle: '5 Rounds: 12 DL, 9 HPC, 6 PJ',
+            setScheme: '5 Rounds For Time',
+            isCompleted: false,
+          ),
+          DynamicWorkoutItem(
+            id: 'kb_mile',
+            type: DynamicItemType.kettlebellMile,
+            name: 'Kettlebell Mile Carry',
+            refId: 'kettlebell_mile',
+            subtitle: '1 Mile • 32kg/24kg',
+            isCompleted: true,
+            completedResult: 'Completed',
+          ),
+          DynamicWorkoutItem(
+            id: 'ex_cable',
+            type: DynamicItemType.exercise,
+            name: 'Cable Crunches',
+            refId: 'cable_crunches',
+            subtitle: 'Core Stability & Anti-Extension',
+            setScheme: '3 Sets of 8 Reps',
+            targetWeightKg: 35.0,
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        buildTestScreen(
+          WorkoutSessionScreen(
+            dayTemplate: freeformDay,
+            initialDraft: draft,
+          ),
+        ),
+      );
+      await captureScreen(tester, '32_dynamic_workout_session');
+      expect(find.text('DT'), findsOneWidget);
+      expect(find.text('1 Mile Carry Completed!'), findsOneWidget);
+    });
+
+    testWidgets('33 Renders Free-Form Workout in Preview Mode with Cyan Mode Pill and Standards', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(1170, 2532);
+      tester.view.devicePixelRatio = 2.0;
+      addTearDown(() => tester.view.resetPhysicalSize());
+
+      final DayTemplate freeformDay = DayTemplate(
+        dayNumber: 2,
+        title: 'Day 2: Conditioning & Accessories',
+        subtitle: 'Free-Form Canvas',
+        phases: <PhaseTemplate>[],
+        isFreeform: true,
+      );
+
+      final ActiveWorkoutDraft draft = ActiveWorkoutDraft(
+        dayNumber: 2,
+        weekNumber: 1,
+        cycleNumber: 1,
+        dayTitle: 'Day 2: Conditioning & Accessories',
+        startTime: DateTime.now(),
+        isPreviewMode: true,
+        exerciseSets: <String, List<CompletedSet>>{
+          'Cable Crunches': <CompletedSet>[
+            CompletedSet(setIndex: 1, weight: 35.0, reps: 8, isCompleted: false),
+            CompletedSet(setIndex: 2, weight: 35.0, reps: 8, isCompleted: false),
+          ],
+        },
+        exerciseWeights: <String, double>{'Cable Crunches': 35.0},
+        dynamicItems: <DynamicWorkoutItem>[
+          DynamicWorkoutItem(
+            id: 'wod_dt',
+            type: DynamicItemType.wod,
+            name: 'DT',
+            refId: 'dt',
+            subtitle: '5 Rounds: 12 DL, 9 HPC, 6 PJ',
+            setScheme: '5 Rounds For Time',
+            isCompleted: false,
+          ),
+          DynamicWorkoutItem(
+            id: 'kb_mile',
+            type: DynamicItemType.kettlebellMile,
+            name: 'Kettlebell Mile Carry',
+            refId: 'kettlebell_mile',
+            subtitle: '1 Mile • 32kg/24kg',
+            isCompleted: false,
+          ),
+          DynamicWorkoutItem(
+            id: 'ex_cable',
+            type: DynamicItemType.exercise,
+            name: 'Cable Crunches',
+            refId: 'cable_crunches',
+            subtitle: 'Core Stability & Anti-Extension',
+            setScheme: '3 Sets of 8 Reps',
+            targetWeightKg: 35.0,
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        buildTestScreen(
+          WorkoutSessionScreen(
+            dayTemplate: freeformDay,
+            initialDraft: draft,
+            isPreviewMode: true,
+          ),
+        ),
+      );
+      await captureScreen(tester, '33_freeform_preview_mode_session');
+      expect(find.text('PREVIEW'), findsOneWidget);
+      expect(find.text('PREVIEW WOD & STANDARDS'), findsOneWidget);
+      expect(find.text('PREVIEW PROTOCOL & STANDARDS'), findsOneWidget);
+    });
+
+    testWidgets('34 Renders WOD Setup Explainer Preview Sheet with ADD TO WORKOUT Action', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(1170, 2532);
+      tester.view.devicePixelRatio = 2.0;
+      addTearDown(() => tester.view.resetPhysicalSize());
+
+      await tester.pumpWidget(
+        buildTestScreen(
+          Scaffold(
+            body: WodSetupExplainerSheet(
+              wod: WodCatalog.jackie,
+              onAddWod: () {},
+            ),
+          ),
+        ),
+      );
+      await captureScreen(tester, '34_wod_explainer_preview_sheet');
+      expect(find.text('ADD JACKIE TO WORKOUT'), findsOneWidget);
     });
   });
 }
