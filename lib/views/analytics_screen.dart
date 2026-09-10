@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:oly/models/accessory_log.dart';
+import 'package:oly/models/benchmark_wod_log.dart';
 import 'package:oly/models/workout_session.dart';
 import 'package:oly/providers/lift_provider.dart';
 import 'package:oly/providers/program_provider.dart';
@@ -10,6 +12,7 @@ import 'package:oly/providers/settings_provider.dart';
 import 'package:oly/theme/app_theme.dart';
 import 'package:oly/views/breathing/breathing_analytics_tab.dart';
 import 'package:oly/widgets/ratio_chart_widget.dart';
+import 'package:oly/widgets/wod_history_sheet.dart';
 import 'package:provider/provider.dart';
 
 class AnalyticsScreen extends StatelessWidget {
@@ -27,7 +30,7 @@ class AnalyticsScreen extends StatelessWidget {
         recovery.groupedAccessoryProgressions;
 
     return DefaultTabController(
-      length: 4,
+      length: 5,
       child: Scaffold(
         appBar: AppBar(
           title: Text(
@@ -35,11 +38,14 @@ class AnalyticsScreen extends StatelessWidget {
             style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
           ),
           bottom: const TabBar(
+            isScrollable: true,
+            tabAlignment: TabAlignment.start,
             indicatorColor: AppTheme.primaryAmber,
             labelColor: AppTheme.primaryAmber,
             unselectedLabelColor: AppTheme.textSecondary,
             tabs: <Widget>[
               Tab(text: 'Workouts'),
+              Tab(text: 'WODs & Heroes'),
               Tab(text: 'Accessories'),
               Tab(text: 'Breathwork'),
               Tab(text: 'Ratios'),
@@ -52,17 +58,20 @@ class AnalyticsScreen extends StatelessWidget {
               // TAB 1: Session History Log + Tonnage Summary
               _buildWorkoutSessionsTab(program, sessions, settings),
 
-              // TAB 2: Accessory Weight Progressions
+              // TAB 2: CrossFit WODs & Hero Benchmark Progress
+              _buildWodAnalyticsTab(context, recovery),
+
+              // TAB 3: Accessory Weight Progressions
               _buildAccessoryProgressionsTab(
                 groupedAccessories,
                 recovery,
                 settings,
               ),
 
-              // TAB 3: Wim Hof Breathwork Retention Analytics
+              // TAB 4: Wim Hof Breathwork Retention Analytics
               const BreathingAnalyticsTab(),
 
-              // TAB 4: Ratio Balance Chart
+              // TAB 5: Ratio Balance Chart
               SingleChildScrollView(
                 padding: const EdgeInsets.all(16),
                 child: RatioChartWidget(ratios: lifts.getRatioAnalysis()),
@@ -626,6 +635,352 @@ class AnalyticsScreen extends StatelessWidget {
                 ),
               );
             }),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWodAnalyticsTab(
+    BuildContext context,
+    RecoveryProvider recovery,
+  ) {
+    final int completedHeroCount = recovery.totalCompletedHeroWodsCount;
+    final double heroPercent = (completedHeroCount / 248.0).clamp(0.0, 1.0);
+    final Map<String, BenchmarkWodLog> allPrsMap = recovery.getAllBenchmarkPersonalRecords();
+    final List<BenchmarkWodLog> prsList = allPrsMap.values.toList()
+      ..sort((BenchmarkWodLog a, BenchmarkWodLog b) => a.wodName.compareTo(b.wodName));
+    final List<BenchmarkWodLog> recentLogs = recovery.benchmarkWodLogs.take(10).toList();
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          // Hero WOD Progress Odyssey Banner
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: <Color>[AppTheme.surfaceElevated, AppTheme.surfaceCard],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: AppTheme.primaryAmber.withValues(alpha: 0.3),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    Text(
+                      'CROSSFIT HERO WOD ODYSSEY',
+                      style: GoogleFonts.outfit(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.2,
+                        color: AppTheme.primaryAmber,
+                      ),
+                    ),
+                    const Icon(
+                      Icons.military_tech_rounded,
+                      color: AppTheme.primaryAmber,
+                      size: 22,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  '$completedHeroCount / 248 Hero WODs',
+                  style: GoogleFonts.outfit(
+                    fontSize: 26,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(6),
+                  child: LinearProgressIndicator(
+                    value: heroPercent,
+                    backgroundColor: AppTheme.darkBackground,
+                    color: AppTheme.primaryAmber,
+                    minHeight: 8,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  '${(heroPercent * 100).toStringAsFixed(1)}% completed • ${248 - completedHeroCount} remaining tributes',
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    color: AppTheme.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: 14),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    _buildStatBadge('Total WODs', '${recovery.totalAllWodCompletionsCount}'),
+                    _buildStatBadge('Hero Tributes', '$completedHeroCount'),
+                    _buildStatBadge('All-Time PRs', '${allPrsMap.length}', color: Colors.greenAccent),
+                  ],
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 24),
+
+          // PR Leaderboard Section
+          Text(
+            'BENCHMARK PERSONAL RECORDS',
+            style: GoogleFonts.outfit(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.2,
+              color: AppTheme.primaryAmber,
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          if (prsList.isEmpty)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: AppTheme.surfaceCard,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppTheme.surfaceElevated),
+              ),
+              child: Column(
+                children: <Widget>[
+                  const Icon(
+                    Icons.emoji_events_outlined,
+                    size: 36,
+                    color: AppTheme.textSecondary,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'No Benchmark PRs logged yet',
+                    style: GoogleFonts.outfit(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Complete and log workouts from the WOD Hub to start tracking your records!',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      color: AppTheme.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            )
+          else
+            ...prsList.map((BenchmarkWodLog pr) {
+              return Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                decoration: BoxDecoration(
+                  color: AppTheme.surfaceCard,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: Colors.greenAccent.withValues(alpha: 0.25),
+                  ),
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+                    onTap: () {
+                      HapticFeedback.selectionClick();
+                      WodHistorySheet.show(
+                        context,
+                        wodId: pr.wodId,
+                        wodName: pr.wodName,
+                        wodFormat: pr.format,
+                      );
+                    },
+                    leading: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.greenAccent.withValues(alpha: 0.12),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.emoji_events_rounded,
+                        color: Colors.greenAccent,
+                        size: 18,
+                      ),
+                    ),
+                    title: Row(
+                      children: <Widget>[
+                        Expanded(
+                          child: Text(
+                            pr.wodName,
+                            style: GoogleFonts.outfit(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: AppTheme.textPrimary,
+                            ),
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: pr.isRx
+                                ? Colors.greenAccent.withValues(alpha: 0.15)
+                                : Colors.orangeAccent.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            pr.isRx ? 'Rx' : 'Scaled',
+                            style: GoogleFonts.outfit(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: pr.isRx ? Colors.greenAccent : Colors.orangeAccent,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    subtitle: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: <Widget>[
+                        Text(
+                          'PR: ${pr.scoreDisplay}',
+                          style: GoogleFonts.outfit(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.greenAccent,
+                          ),
+                        ),
+                        Text(
+                          DateFormat('MMM d, yyyy').format(pr.date),
+                          style: GoogleFonts.inter(
+                            fontSize: 10,
+                            color: AppTheme.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                    trailing: const Icon(
+                      Icons.history_rounded,
+                      size: 16,
+                      color: AppTheme.textSecondary,
+                    ),
+                  ),
+                ),
+              );
+            }),
+
+          if (recentLogs.isNotEmpty) ...<Widget>[
+            const SizedBox(height: 24),
+            Text(
+              'RECENT WOD SESSIONS',
+              style: GoogleFonts.outfit(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1.2,
+                color: AppTheme.primaryAmber,
+              ),
+            ),
+            const SizedBox(height: 12),
+            ...recentLogs.map((BenchmarkWodLog log) {
+              return Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                decoration: BoxDecoration(
+                  color: AppTheme.surfaceCard,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: AppTheme.surfaceElevated),
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+                    onTap: () {
+                      HapticFeedback.selectionClick();
+                      WodHistorySheet.show(
+                        context,
+                        wodId: log.wodId,
+                        wodName: log.wodName,
+                        wodFormat: log.format,
+                      );
+                    },
+                  title: Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: Text(
+                          log.wodName,
+                          style: GoogleFonts.outfit(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.textPrimary,
+                          ),
+                        ),
+                      ),
+                      if (log.isPr)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.greenAccent.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: <Widget>[
+                              const Icon(Icons.emoji_events_rounded, size: 10, color: Colors.greenAccent),
+                              const SizedBox(width: 2),
+                              Text(
+                                'PR',
+                                style: GoogleFonts.outfit(
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.greenAccent,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
+                  ),
+                  subtitle: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      Text(
+                        '${log.scoreDisplay} (${log.isRx ? "Rx" : "Scaled"})',
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.secondaryCyan,
+                        ),
+                      ),
+                      Text(
+                        DateFormat('MMM d, yyyy').format(log.date),
+                        style: GoogleFonts.inter(
+                          fontSize: 10,
+                          color: AppTheme.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                    trailing: const Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      size: 12,
+                      color: AppTheme.textSecondary,
+                    ),
+                  ),
+                ),
+              );
+            }),
+          ],
         ],
       ),
     );

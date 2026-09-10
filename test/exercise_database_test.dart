@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:oly/models/crossfit_hero_wod.dart';
 import 'package:oly/models/exercise_database_model.dart';
+import 'package:oly/models/wod_definition.dart';
 import 'package:oly/services/exercise_database_service.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
@@ -79,7 +81,7 @@ void main() {
       );
       expect(frontSquats.isNotEmpty, isTrue);
       final ExerciseDatabaseModel primary = frontSquats.firstWhere(
-        (ExerciseDatabaseModel e) => e.name.toLowerCase() == 'front squat',
+        (ExerciseDatabaseModel e) => e.source.contains('oly_curated'),
       );
       expect(primary.name, 'Front Squat');
       expect(primary.targetMuscle, 'quadriceps');
@@ -136,6 +138,19 @@ void main() {
       final List<ExerciseDatabaseModel> typoResults = await service.search('baysean');
       expect(typoResults.isNotEmpty, isTrue);
       expect(typoResults.any((ExerciseDatabaseModel e) => e.name.contains('Bayesian')), isTrue);
+
+      // Search for GHD Sit-Up across various spelling and hyphen formats
+      final List<ExerciseDatabaseModel> ghdResults = await service.search('ghd sit up');
+      expect(ghdResults.isNotEmpty, isTrue);
+      expect(ghdResults.any((ExerciseDatabaseModel e) => e.name == 'GHD Sit-Up'), isTrue);
+
+      final List<ExerciseDatabaseModel> ghdHyphenResults = await service.search('ghd sit-up');
+      expect(ghdHyphenResults.isNotEmpty, isTrue);
+      expect(ghdHyphenResults.any((ExerciseDatabaseModel e) => e.name == 'GHD Sit-Up'), isTrue);
+
+      final List<ExerciseDatabaseModel> ghdCompoundResults = await service.search('ghd situp');
+      expect(ghdCompoundResults.isNotEmpty, isTrue);
+      expect(ghdCompoundResults.any((ExerciseDatabaseModel e) => e.name == 'GHD Sit-Up'), isTrue);
     });
 
     test('Filters search results by category, muscle, and equipment', () async {
@@ -171,6 +186,44 @@ void main() {
       if (page1.isNotEmpty && page2.isNotEmpty) {
         expect(page1.first.id, isNot(equals(page2.first.id)));
       }
+    });
+
+    test('Hero WODs table is populated and queried correctly', () async {
+      final int heroCount = await service.getHeroWodCount();
+      expect(heroCount, greaterThanOrEqualTo(240));
+
+      final List<CrossfitHeroWod> allHeroWods = await service.getHeroWods(limit: 300);
+      expect(allHeroWods.length, equals(heroCount));
+
+      // Query Murph
+      final CrossfitHeroWod? murph = await service.getHeroWodBySlug('murph');
+      expect(murph, isNotNull);
+      expect(murph!.name, contains('Murph'));
+      expect(murph.tributeText, isNotEmpty);
+
+      // Query DT
+      final CrossfitHeroWod? dt = await service.getHeroWodBySlug('dt');
+      expect(dt, isNotNull);
+      expect(dt!.name, contains('DT'));
+      expect(dt.format, equals(WodFormat.forTime));
+
+      // FTS search for hero workout
+      final List<CrossfitHeroWod> searchResults = await service.getHeroWods(query: 'Michael');
+      expect(searchResults.isNotEmpty, isTrue);
+      expect(searchResults.any((CrossfitHeroWod w) => w.name.toLowerCase().contains('michael')), isTrue);
+    });
+
+    test('CrossFit Movements are ingested into exercises table with source crossfit', () async {
+      final List<ExerciseDatabaseModel> cfMovements = await service.search('', limit: 3000);
+      final List<ExerciseDatabaseModel> cfOnly =
+          cfMovements.where((ExerciseDatabaseModel e) => e.source.contains('crossfit')).toList();
+      expect(cfOnly.isNotEmpty, isTrue);
+      expect(cfOnly.length, greaterThanOrEqualTo(100));
+
+      final ExerciseDatabaseModel thruster =
+          cfOnly.firstWhere((ExerciseDatabaseModel e) => e.name.toLowerCase().contains('thruster'));
+      expect(thruster.name, isNotEmpty);
+      expect(thruster.source, 'crossfit');
     });
   });
 }

@@ -39,6 +39,7 @@ class SetupConfig {
   bool skipDb = false;
   bool skipExerciseDb = false;
   bool skipUsdaDb = false;
+  bool skipCrossfit = false;
   bool runTests = false;
   bool runAnalyze = false;
   bool clean = false;
@@ -75,6 +76,10 @@ class SetupConfig {
           break;
         case '--skip-usda-db':
           config.skipUsdaDb = true;
+          break;
+        case '--skip-crossfit':
+        case '--skip-cf':
+          config.skipCrossfit = true;
           break;
         case '-t':
         case '--test':
@@ -119,6 +124,7 @@ void printHelp() {
   stdout.writeln('  ${Ansi.brightCyan('--skip-db')}            Skip building all SQLite databases');
   stdout.writeln('  ${Ansi.brightCyan('--skip-exercise-db')}   Skip building the 2,748+ exercise SQLite database');
   stdout.writeln('  ${Ansi.brightCyan('--skip-usda-db')}       Skip building the USDA food SQLite database');
+  stdout.writeln('  ${Ansi.brightCyan('--skip-crossfit')}      Skip ingesting the 248 CrossFit Hero WODs & movements');
   stdout.writeln('  ${Ansi.brightCyan('-t, --test, --verify')} Run `flutter test` after setup to verify tests pass');
   stdout.writeln('  ${Ansi.brightCyan('-a, --analyze')}        Run `flutter analyze` after setup');
   stdout.writeln('  ${Ansi.brightCyan('--clean')}              Remove existing .db files and caches before rebuilding');
@@ -296,6 +302,12 @@ Future<void> cleanArtifacts(Directory projectRoot) async {
       stdout.writeln('  ${Ansi.bullet()} Deleted ${Ansi.dim(path)}');
     }
   }
+
+  final cfCache = Directory('${projectRoot.path}/.crossfit_cache');
+  if (cfCache.existsSync()) {
+    cfCache.deleteSync(recursive: true);
+    stdout.writeln('  ${Ansi.bullet()} Deleted ${Ansi.dim(cfCache.path)}');
+  }
   stdout.writeln('  ${Ansi.check()} Clean completed.\n');
 }
 
@@ -414,6 +426,23 @@ Future<void> main(List<String> args) async {
       stdout.writeln(Ansi.dim('  ⏩ Skipping USDA foods database build (--skip-usda-db)'));
     }
 
+    // 3D: CrossFit Hero WODs & Movements
+    if (!config.skipCrossfit) {
+      stdout.writeln(Ansi.dim('  3d. Ingesting 248 CrossFit Hero Workouts & 121 Movements (idempotent)...'));
+      final cfResult = await runStep(
+        stepName: 'Ingest CrossFit Hero WODs & Movements',
+        executable: 'dart',
+        arguments: ['run', 'tool/scrape_crossfit.dart'],
+        workingDirectory: projectRoot.path,
+      );
+      if (cfResult.exitCode != 0) {
+        stderr.writeln(Ansi.red('Failed ingesting CrossFit Hero WODs & Movements.'));
+        exit(cfResult.exitCode);
+      }
+    } else {
+      stdout.writeln(Ansi.dim('  ⏩ Skipping CrossFit dataset ingestion (--skip-crossfit)'));
+    }
+
     stdout.writeln();
   } else {
     stdout.writeln(Ansi.dim('⏩ Skipping database compilation (--skip-db)\n'));
@@ -425,6 +454,8 @@ Future<void> main(List<String> args) async {
   stdout.writeln(Ansi.bold(Ansi.brightCyan('📊 Step 4: Database & Asset Verification Summary')));
 
   final exerciseDbFile = File('${projectRoot.path}/assets/data/exercises.db');
+  final crossfitHeroWodsJson = File('${projectRoot.path}/assets/data/crossfit_hero_wods.json');
+  final crossfitMovementsJson = File('${projectRoot.path}/assets/data/crossfit_movements.json');
   final usdaDbFile = File('${projectRoot.path}/assets/data/usda_foods.db');
   final restaurantJsonFile = File('${projectRoot.path}/assets/data/restaurant_foods.json');
   final stapleJsonFile = File('${projectRoot.path}/assets/data/staple_foods.json');
@@ -443,6 +474,8 @@ Future<void> main(List<String> args) async {
   }
 
   printAssetStatus('Exercise SQLite Database', exerciseDbFile);
+  printAssetStatus('CrossFit Hero WODs Dataset', crossfitHeroWodsJson);
+  printAssetStatus('CrossFit Movements Dataset', crossfitMovementsJson);
   printAssetStatus('USDA Foods SQLite Database', usdaDbFile);
   printAssetStatus('Restaurant Menu Catalog', restaurantJsonFile);
   printAssetStatus('Staple Foods Catalog', stapleJsonFile);
@@ -493,6 +526,7 @@ Future<void> main(List<String> args) async {
   stdout.writeln('  ${Ansi.bullet()} Launch on iOS Simulator:    ${Ansi.brightCyan('flutter run -d iPhone')}');
   stdout.writeln('  ${Ansi.bullet()} Launch specific screen:      ${Ansi.brightCyan('flutter run --dart-define=TAB=5')} (0=Home, 5=Nutrition)');
   stdout.writeln('  ${Ansi.bullet()} Run verification tests:      ${Ansi.brightCyan('flutter test')}');
+  stdout.writeln('  ${Ansi.bullet()} Refresh CrossFit Hero WODs: ${Ansi.brightCyan('dart run tool/scrape_crossfit.dart')}');
   stdout.writeln('  ${Ansi.bullet()} Capture view screenshots:    ${Ansi.brightCyan('flutter test test/screenshot_capture_test.dart')}');
   stdout.writeln();
 }

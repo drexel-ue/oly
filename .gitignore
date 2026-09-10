@@ -9,6 +9,7 @@
 assets/data/usda_foods.db
 .usda_cache/
 .exercise_cache/
+.crossfit_cache/
 .DS_Store
 .atom/
 .build/

@@ -52,11 +52,13 @@ dependencies:
   http: ^1.2.2
   openfoodfacts: ^3.30.2
   mobile_scanner: ^7.4.0
+  html: ^0.15.6
 
   nested: any
   pdf: ^3.13.0
   printing: ^5.15.0
   sqflite: ^2.4.1
+  sqflite_common: ^2.5.4+6
   sqflite_common_ffi: ^2.3.4+4
   path_provider: ^2.1.5
   path: ^1.9.1
@@ -100,6 +102,8 @@ flutter:
     - assets/data/usda_foods.db
     - assets/data/exercises.db
     - assets/data/sports_injuries_catalog.json
+    - assets/data/crossfit_hero_wods.json
+    - assets/data/crossfit_movements.json
     - assets/fonts/
 
   fonts:

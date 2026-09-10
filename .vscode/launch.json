@@ -22,6 +22,12 @@
       "request": "launch",
       "type": "dart",
       "program": "test/screenshot_capture_test.dart"
+    },
+    {
+      "name": "Scrape CrossFit Workouts & Movements",
+      "request": "launch",
+      "type": "dart",
+      "program": "tool/scrape_crossfit.dart"
     }
   ]
 }

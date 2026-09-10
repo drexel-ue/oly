@@ -32,6 +32,7 @@
 - **🥞 Athlete Smart Portion Drawer**: Protein density index ($g\text{ protein} / 100\text{ kcal}$), 3-color macro split bar ($P\% / C\% / F\%$), standard serving steppers, and discrete piece-unit chips (`10 wings`, `6 nuggets`, `2 tacos`, `3 tenders`, `1 biscuit`, `1 patty`).
 - **🩺 Body Map & Injury Adaptation**: Interactive 14-region Front & Back vector anatomical body map, OSIICS-16 local sports medicine taxonomy, duration-based **Acute ($< 14$d)** vs. **Subacute ($14-42$d)** vs. **Chronic ($> 42$d)** stage tracking, pre-session 1-tap biomechanical movement regressions, and post-session before-vs-after strain check-ins.
 - **⚡ Nutrition & Metabolic Engine**: Dual Energy In / Energy Out balance gauge, Katch-McArdle LBM-based BMR calculation, Compendium of Physical Activities (Algorithm B net vs Algorithm A gross expenditure), automated WOD TUT physics calories sync, and dynamic daily hydration tracking.
+- **🎖️ CrossFit WOD Hub & Hero Memorials**: Ingested all 248 official CrossFit Hero WODs (Murph, DT, Badger, etc.) with soldier memorial biographies, Rx loads, timing formats (`forTime`, `amrap`, `emom`, `chipper`, `rft`), equipment checklists, and 121 official movements with coaching video guides.
 - **📷 Smart Barcode Scanner & Open Food Facts**: Live camera viewfinder with golden animated targeting reticle, continuous scanning with haptic feedback, local SQLite offline UPC lookup with fallback to typed Open Food Facts SDK, and recent scanned pantry ribbons.
 - **⚖️ Renpho Smart Scale OCR**: On-device text recognition extracting 13 biometric indicators directly from smart scale screenshots, visualized through an interactive Lean Mass vs. Fat Mass donut chart.
 - **🛡️ Local Diagnostics & Crash Reporting**: Real-time in-memory ring buffer (250 logs), persistent crash log storage (50 crashes), global error interceptors, and an in-app diagnostics inspector with copy-all reporting.
@@ -154,6 +155,31 @@ Size:            689 MB (standalone rollback journal, zero network latency)
 
 ---
 
+## 🎖️ CrossFit WOD Hub & Hero Memorial Database
+
+OLY features an integrated **CrossFit WOD Hub** with an embedded SQLite catalog of all **248 official CrossFit Hero Workouts** and **121 official CrossFit Movements**:
+
+```
+Total Hero WODs:      248 workouts (Murph, DT, Badger, Michael, Lumberjack 20, etc.)
+Total Movements:      121 official movements with coaching demo video tutorials
+Search Engine:        SQLite with FTS5 BM25 prefix search across names, tributes & equipment
+Data Format:          Embedded in assets/data/exercises.db (hero_wods table) + offline JSON
+Scraper Tool:         Pure Dart CLI (tool/scrape_crossfit.dart) with .crossfit_cache/ idempotency
+```
+
+### Dataset Features
+
+1. **Fallen Hero Memorial Biographies**: Complete historical tributes honoring fallen military service members, law enforcement officers, and first responders, surfaced directly via the custom **Hero Tribute** modal sheet.
+2. **Prescribed Standards & Equipment**: Exact Rx'd loads for men and women, round caps, timing formats (`forTime`, `amrap`, `emom`, `chipper`, `rft`), movement rep breakdowns, and required equipment checklists.
+3. **Movement Coaching Tutorials**: All 121 official CrossFit movements are merged into the 2,870+ exercise catalog with direct links to official CrossFit coaching video tutorials.
+4. **Idempotent Dart Scraper Tool & Run Configurations**:
+   ```bash
+   # Scrape or refresh CrossFit Hero WODs and movements (cached in .crossfit_cache/):
+   dart run tool/scrape_crossfit.dart
+   ```
+
+---
+
 ## 📸 Automated Screenshot Verification Pipeline
 
 OLY includes an automated screenshot capture suite supporting both top and scrolled viewports:
@@ -170,11 +196,16 @@ Generated screenshots are saved directly to `screenshots/` and verified across 2
 ## 🛠️ Architecture & Tech Stack
 
 ```
+tool/
+└── scrape_crossfit.dart                       # Pure Dart idempotent scraper & SQLite importer
+
 lib/
 ├── main.dart                                  # Application root, error interceptors & provider setup
 ├── theme/
 │   └── app_theme.dart                         # Dark Obsidian (#121214) & Neon Amber (#FF9E1B) design system
 ├── models/
+│   ├── crossfit_hero_wod.dart                 # CrossFit Hero WOD model, SQLite/JSON codec, & timing parser
+│   ├── wod_definition.dart                    # WOD catalog, benchmark specs, & setup explainers
 │   ├── lift_model.dart                        # Lift definitions & Olympic variation ratio math
 │   ├── program_model.dart                     # 4-Day & 5-Day periodization templates & week loaders
 │   ├── workout_session.dart                   # Workout session logs, RPE, and strain models
@@ -194,6 +225,8 @@ lib/
 │   ├── body_comp_provider.dart                # Renpho scale history & lean mass calculations
 │   └── settings_provider.dart                 # Units (kg/lbs), bar specs, audio/haptic toggles
 ├── services/
+│   ├── crossfit_scraper_service.dart          # Pure Dart batch scraper, HTML parser, & SQLite/JSON exporter
+│   ├── exercise_database_service.dart         # Embedded SQLite FTS5 catalog (2,870+ exercises & 248 Hero WODs)
 │   ├── usda_database_service.dart             # Embedded SQLite FTS5 2M+ USDA & fast-food search engine
 │   ├── food_database_service.dart             # SQLite first-pass search with fallback to OpenFoodFacts SDK
 │   ├── storage_service.dart                   # Local persistence, JSON/CSV backup & product caching
@@ -205,6 +238,7 @@ lib/
 ├── views/
 │   ├── splash_screen.dart                     # Animated launch splash
 │   ├── dashboard_screen.dart                  # Main hub with cycle status & workout launchers
+│   ├── wod_hub_screen.dart                    # CrossFit WOD Hub, Hero filters, shuffle modal, & tribute launcher
 │   ├── workout_session_screen.dart            # Live workout tracking, rest timer, weight adjust & swap
 │   ├── recovery_session_screen.dart           # Interactive 5-phase mobility routine
 │   ├── warmup_session_screen.dart             # Guided warm-up sequence with video drills
@@ -228,6 +262,8 @@ lib/
 │   └── diagnostics/
 │       └── crash_report_screen.dart           # In-app log inspector, error filter, & diagnostic export
 └── widgets/
+    ├── hero_wod_detail_sheet.dart             # Fallen Hero memorial tribute, RX prescription & equipment sheet
+    ├── wod_setup_explainer_sheet.dart         # WOD floor plan, spacing advice, & movement standards modal
     ├── barbell_visualizer.dart                # CustomPainted IWF bumper plate rendering
     ├── exercise_swap_modal.dart               # Segmented exercise swap modal (Suggested vs Other)
     ├── workout_weight_dialog.dart             # Working weight adjust & 1RM recalculator dialog
@@ -301,12 +337,28 @@ When you bundle an updated `assets/data/usda_foods.db` and launch the app on an 
 
 2. **Run the automated setup script**:
    ```bash
-   # Installs Flutter dependencies, verifies toolchain, and compiles all offline SQLite databases:
+   # Installs Flutter dependencies, verifies toolchain, compiles offline SQLite databases & ingests CrossFit Hero WODs:
    dart setup.dart
 
    # (Optional) For ultra-fast core database setup without full 2M+ branded products:
    # dart setup.dart --quick
+
+   # (Optional) Skip CrossFit dataset ingestion:
+   # dart setup.dart --skip-crossfit
    ```
+
+### 🎯 CrossFit Scraper CLI & IDE Run Configurations
+
+To scrape or refresh CrossFit Hero workouts and movement coaching demos on demand:
+
+```bash
+# Pure Dart CLI execution (caches responses in .crossfit_cache/ and upserts SQLite):
+dart run tool/scrape_crossfit.dart
+```
+
+**Preconfigured IDE Run Configurations**:
+- **VS Code / Antigravity IDE**: Press `F5` or select **Run and Debug** ➜ **`Scrape CrossFit Workouts & Movements`** (or press `Cmd+Shift+P` ➜ **Tasks: Run Task** ➜ **`Scrape CrossFit Workouts & Movements`**).
+- **Android Studio / IntelliJ IDEA**: Select **`Scrape CrossFit Workouts & Movements`** from the run configurations dropdown in the top toolbar and click **Run**.
 
 3. **Run code analysis & automated test suite**:
    ```bash
@@ -325,7 +377,7 @@ When you bundle an updated `assets/data/usda_foods.db` and launch the app on an 
 
 ---
 
-## 📄 Testing Suite (150 Passing Tests)
+## 📄 Testing Suite (180+ Passing Tests)
 
 Run the full suite of unit, widget, domain engine, and screenshot rendering tests:
 ```bash
@@ -333,6 +385,9 @@ flutter test
 ```
 
 Test coverage includes:
+- `crossfit_hero_wod_test.dart`: Hero WOD model serialization, timing format parsing (`forTime`, `amrap`, `emom`, etc.), `toWodDefinition()` bridge, and offline JSON dataset verification.
+- `wod_hub_test.dart`: `WodCatalog` benchmarks, `WodSetupExplainer` specifications, `WodHubScreen` rendering, search filtering, shuffle modal, Hero WOD category filtering, and `HeroWodDetailSheet` memorial tribute display.
+- `exercise_database_test.dart`: Deduplicated exercise catalog (>2,870 movements), merged multi-source attributions, FTS5 full-text queries, `hero_wods` table queries, and `crossfit` source movement queries.
 - `usda_database_test.dart`: SQLite database initialization, FTS5 BM25 token search, McDonald's/Wingstop/Cane's variety, whole food search, and direct UPC barcode lookups.
 - `injury_export_test.dart`: Clinical PDF document byte generation, structured JSON backup format, and export bottom sheet widget interactions.
 - `injury_model_test.dart`: OSIICS serialization, duration calculation, and acute/subacute/chronic classification.

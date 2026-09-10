@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:oly/models/accessory_log.dart';
+import 'package:oly/models/benchmark_wod_log.dart';
 import 'package:oly/models/body_composition_entry.dart';
 import 'package:oly/models/breathing_session_model.dart';
 import 'package:oly/models/cindy_workout_log.dart';
@@ -51,6 +52,7 @@ class StorageService {
   static const String _keyBreathingLogs = 'oly_breathing_logs_v1';
   static const String _keyBreathingConfig = 'oly_breathing_config_v1';
   static const String _keyCindyEmomBeep = 'oly_cindy_emom_beep_v1';
+  static const String _keyBenchmarkWodLogs = 'oly_benchmark_wod_logs_v1';
 
   final SharedPreferences _prefs;
 
@@ -746,6 +748,110 @@ class StorageService {
     return history.reduce(
       (DeathByBurpeesLog a, DeathByBurpeesLog b) => a.totalReps >= b.totalReps ? a : b,
     );
+  }
+
+  // --- BENCHMARK & HERO WOD STORAGE ---
+  List<BenchmarkWodLog> loadBenchmarkWodLogs() {
+    final String? jsonStr = _prefs.getString(_keyBenchmarkWodLogs);
+    if (jsonStr == null || jsonStr.isEmpty) {
+      return <BenchmarkWodLog>[];
+    }
+    try {
+      final List<dynamic> list = jsonDecode(jsonStr);
+      return list
+          .map((dynamic e) => BenchmarkWodLog.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } catch (_) {
+      return <BenchmarkWodLog>[];
+    }
+  }
+
+  Future<void> saveBenchmarkWodLogs(List<BenchmarkWodLog> logs) async {
+    final String jsonStr = jsonEncode(
+      logs.map((BenchmarkWodLog e) => e.toJson()).toList(),
+    );
+    await _prefs.setString(_keyBenchmarkWodLogs, jsonStr);
+  }
+
+  Future<BenchmarkWodLog> logBenchmarkWod(BenchmarkWodLog entry) async {
+    final List<BenchmarkWodLog> currentLogs = loadBenchmarkWodLogs();
+    final BenchmarkWodLog? currentPr = getBenchmarkWodPersonalRecord(entry.wodId, isRx: entry.isRx);
+
+    // Check if new attempt beats previous PR (or is the first attempt)
+    final bool isNewPr = currentPr == null || entry.isBetterScoreThan(currentPr);
+
+    final BenchmarkWodLog finalized = entry.copyWith(isPr: isNewPr);
+    currentLogs.insert(0, finalized);
+    await saveBenchmarkWodLogs(currentLogs);
+    return finalized;
+  }
+
+  Future<void> deleteBenchmarkWodLog(String id) async {
+    final List<BenchmarkWodLog> currentLogs = loadBenchmarkWodLogs();
+    currentLogs.removeWhere((BenchmarkWodLog log) => log.id == id);
+    _recalculateBenchmarkPrs(currentLogs);
+    await saveBenchmarkWodLogs(currentLogs);
+  }
+
+  void _recalculateBenchmarkPrs(List<BenchmarkWodLog> logs) {
+    final List<BenchmarkWodLog> chronological = List<BenchmarkWodLog>.from(logs)
+      ..sort((BenchmarkWodLog a, BenchmarkWodLog b) => a.date.compareTo(b.date));
+    final Map<String, BenchmarkWodLog> bestPerWodTier = <String, BenchmarkWodLog>{};
+    for (int i = 0; i < chronological.length; i++) {
+      final BenchmarkWodLog item = chronological[i];
+      final String key = '${item.wodId.toLowerCase()}_${item.isRx}';
+      final BenchmarkWodLog? prevBest = bestPerWodTier[key];
+      if (prevBest == null || item.isBetterScoreThan(prevBest)) {
+        bestPerWodTier[key] = item;
+      }
+    }
+    for (int i = 0; i < logs.length; i++) {
+      final BenchmarkWodLog log = logs[i];
+      final String key = '${log.wodId.toLowerCase()}_${log.isRx}';
+      final bool isBest = bestPerWodTier[key]?.id == log.id;
+      if (log.isPr != isBest) {
+        logs[i] = log.copyWith(isPr: isBest);
+      }
+    }
+  }
+
+  List<BenchmarkWodLog> getBenchmarkWodHistory(String wodId, {bool? isRx}) {
+    final List<BenchmarkWodLog> list = loadBenchmarkWodLogs()
+        .where((BenchmarkWodLog e) => e.wodId.toLowerCase() == wodId.toLowerCase())
+        .toList();
+    list.sort((BenchmarkWodLog a, BenchmarkWodLog b) => b.date.compareTo(a.date));
+    if (isRx != null) {
+      return list.where((BenchmarkWodLog e) => e.isRx == isRx).toList();
+    }
+    return list;
+  }
+
+  BenchmarkWodLog? getBenchmarkWodPersonalRecord(String wodId, {bool? isRx}) {
+    final List<BenchmarkWodLog> history = getBenchmarkWodHistory(wodId, isRx: isRx);
+    if (history.isEmpty) {
+      return null;
+    }
+    return history.reduce(
+      (BenchmarkWodLog a, BenchmarkWodLog b) => a.isBetterScoreThan(b) ? a : b,
+    );
+  }
+
+  Map<String, BenchmarkWodLog> getAllBenchmarkPersonalRecords() {
+    final List<BenchmarkWodLog> all = loadBenchmarkWodLogs();
+    final Map<String, BenchmarkWodLog> prs = <String, BenchmarkWodLog>{};
+    for (final BenchmarkWodLog log in all) {
+      final String key = log.wodId.toLowerCase();
+      final BenchmarkWodLog? existing = prs[key];
+      if (existing == null || log.isBetterScoreThan(existing)) {
+        prs[key] = log;
+      }
+    }
+    return prs;
+  }
+
+  Set<String> getCompletedWodIds() {
+    final List<BenchmarkWodLog> all = loadBenchmarkWodLogs();
+    return all.map((BenchmarkWodLog e) => e.wodId.toLowerCase()).toSet();
   }
 
   // --- EXPORT & IMPORT UTILITIES ---

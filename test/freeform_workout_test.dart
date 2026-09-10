@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nested/nested.dart';
@@ -10,15 +11,29 @@ import 'package:oly/providers/nutrition_provider.dart';
 import 'package:oly/providers/program_provider.dart';
 import 'package:oly/providers/recovery_provider.dart';
 import 'package:oly/providers/settings_provider.dart';
+import 'package:oly/services/exercise_database_service.dart';
 import 'package:oly/services/storage_service.dart';
 import 'package:oly/views/workout_session_screen.dart';
 import 'package:oly/widgets/add_movement_modal_sheet.dart';
 import 'package:oly/widgets/empty_add_movement_card.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  sqfliteFfiInit();
+  databaseFactory = databaseFactoryFfi;
+
+  setUpAll(() async {
+    final String dbPath = '${Directory.current.path}/assets/data/exercises.db';
+    if (File(dbPath).existsSync()) {
+      final ExerciseDatabaseService dbService =
+          ExerciseDatabaseService(dbPath: dbPath);
+      await dbService.initDatabase();
+      ExerciseDatabaseService.setMockInstance(dbService);
+    }
+  });
 
   late StorageService storage;
   late LiftProvider liftProvider;
@@ -308,6 +323,101 @@ void main() {
       expect(addedItem!.name, equals('Ring Dips'));
       expect(addedItem!.type, equals(DynamicItemType.custom));
       expect(addedItem!.setScheme, contains('Sets'));
+    });
+
+    testWidgets('Searches and adds exercise from 2,500+ SQLite Exercise Database in All category', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(1080, 2400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() => tester.view.resetPhysicalSize());
+
+      DynamicWorkoutItem? addedItem;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: AddMovementModalSheet(
+              onAddMovement: (DynamicWorkoutItem item) => addedItem = item,
+            ),
+          ),
+        ),
+      );
+
+      // Search for Lat Pulldown (database exercise)
+      await tester.enterText(find.byType(TextField).first, 'Lat Pulldown');
+      await tester.pump(const Duration(milliseconds: 250));
+      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 200)));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('DATABASE MOVEMENTS'), findsOneWidget);
+      expect(find.textContaining('Lat Pulldown'), findsWidgets);
+
+      // Tap + ADD on Lat Pulldown from database
+      final Finder addButtons = find.widgetWithText(ElevatedButton, '+ ADD');
+      expect(addButtons, findsWidgets);
+      await tester.tap(addButtons.first);
+      await tester.pumpAndSettle();
+
+      expect(addedItem, isNotNull);
+      expect(addedItem!.type, equals(DynamicItemType.exercise));
+      expect(addedItem!.name.toLowerCase(), contains('pulldown'));
+      expect(addedItem!.setScheme, equals('3 Sets of 8 Reps'));
+      expect(addedItem!.data['category'], isNotNull);
+    });
+
+    testWidgets('Browses Exercise Library tab, previews exercise and customizes sets and reps', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(1080, 2400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() => tester.view.resetPhysicalSize());
+
+      DynamicWorkoutItem? addedItem;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: AddMovementModalSheet(
+              onAddMovement: (DynamicWorkoutItem item) => addedItem = item,
+            ),
+          ),
+        ),
+      );
+
+      // Tap Exercise Library category
+      await tester.tap(find.text('Exercise Library'));
+      await tester.pump();
+      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 200)));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Barbell'), findsOneWidget);
+      expect(find.text('Dumbbell'), findsOneWidget);
+
+      // Tap Barbell equipment filter
+      await tester.tap(find.text('Barbell'));
+      await tester.pump();
+      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 200)));
+      await tester.pumpAndSettle();
+
+      // Tap PREVIEW on the first database exercise
+      final Finder previewButtons = find.widgetWithText(OutlinedButton, 'PREVIEW');
+      expect(previewButtons, findsWidgets);
+      await tester.tap(previewButtons.first);
+      await tester.pumpAndSettle();
+
+      // Check preview sheet opened
+      expect(find.text('TARGET SETS & REPS'), findsOneWidget);
+      expect(find.text('Watch Video Tutorial on YouTube'), findsOneWidget);
+      expect(find.textContaining('ADD TO WORKOUT (3 × 8)'), findsOneWidget);
+
+      // Tap ADD TO WORKOUT
+      await tester.tap(find.widgetWithText(ElevatedButton, 'ADD TO WORKOUT (3 × 8)'));
+      await tester.pumpAndSettle();
+
+      expect(addedItem, isNotNull);
+      expect(addedItem!.type, equals(DynamicItemType.exercise));
+      expect(addedItem!.setScheme, equals('3 Sets of 8 Reps'));
     });
   });
 

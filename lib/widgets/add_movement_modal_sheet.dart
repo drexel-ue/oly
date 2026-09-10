@@ -1,11 +1,17 @@
+import 'dart:async';
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:oly/models/crossfit_hero_wod.dart';
+import 'package:oly/models/exercise_database_model.dart';
 import 'package:oly/models/wod_definition.dart';
 import 'package:oly/models/workout_session.dart';
+import 'package:oly/services/exercise_database_service.dart';
 import 'package:oly/theme/app_theme.dart';
+import 'package:oly/widgets/hero_wod_detail_sheet.dart';
 import 'package:oly/widgets/wod_setup_explainer_sheet.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:uuid/uuid.dart';
@@ -45,6 +51,7 @@ class _AddMovementModalSheetState extends State<AddMovementModalSheet> {
 
   final List<String> _categories = <String>[
     'All',
+    'Exercise Library',
     'WODs',
     'Carries & Cardio',
     'Olympic & Strength',
@@ -52,8 +59,52 @@ class _AddMovementModalSheetState extends State<AddMovementModalSheet> {
     'Custom',
   ];
 
+  final List<String> _equipmentFilters = <String>[
+    'All',
+    'Barbell',
+    'Dumbbell',
+    'Cable',
+    'Bodyweight',
+    'Machine',
+  ];
+
+  String _selectedEquipmentFilter = 'All';
+  List<ExerciseDatabaseModel> _dbResults = <ExerciseDatabaseModel>[];
+  List<CrossfitHeroWod> _heroWods = <CrossfitHeroWod>[];
+  bool _isSearchingDb = false;
+  Timer? _debounceTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadHeroWods();
+  }
+
+  Future<void> _loadHeroWods() async {
+    try {
+      List<CrossfitHeroWod> list =
+          await ExerciseDatabaseService.instance.getHeroWods(limit: 500);
+      if (list.isEmpty) {
+        try {
+          final String jsonStr =
+              await rootBundle.loadString('assets/data/crossfit_hero_wods.json');
+          final List<dynamic> decoded = jsonDecode(jsonStr);
+          list = decoded
+              .map((dynamic e) => CrossfitHeroWod.fromJson(e as Map<String, dynamic>))
+              .toList();
+        } catch (_) {}
+      }
+      if (mounted) {
+        setState(() {
+          _heroWods = list;
+        });
+      }
+    } catch (_) {}
+  }
+
   @override
   void dispose() {
+    _debounceTimer?.cancel();
     _searchController.dispose();
     _customNameController.dispose();
     _customSetsController.dispose();
@@ -61,8 +112,81 @@ class _AddMovementModalSheetState extends State<AddMovementModalSheet> {
     super.dispose();
   }
 
+  void _onSearchChanged(String val) {
+    final String trimmed = val.trim();
+    setState(() => _searchQuery = trimmed);
+    _debounceTimer?.cancel();
+    if (trimmed.isNotEmpty || _selectedCategory == 'Exercise Library') {
+      _debounceTimer = Timer(const Duration(milliseconds: 200), () {
+        _performDbSearch(trimmed);
+      });
+    } else {
+      setState(() => _dbResults = <ExerciseDatabaseModel>[]);
+    }
+  }
+
+  Future<void> _performDbSearch(String query) async {
+    if (!mounted) {
+      return;
+    }
+    setState(() => _isSearchingDb = true);
+    try {
+      String? equipment;
+      if (_selectedEquipmentFilter != 'All') {
+        equipment = _selectedEquipmentFilter.toLowerCase();
+        if (equipment == 'bodyweight') {
+          equipment = 'body weight';
+        }
+      }
+
+      final List<ExerciseDatabaseModel> results =
+          await ExerciseDatabaseService.instance.search(
+        query,
+        equipment: equipment,
+        limit: 50,
+      );
+
+      if (mounted) {
+        setState(() {
+          _dbResults = results;
+          _isSearchingDb = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isSearchingDb = false);
+      }
+    }
+  }
+
+  void _addDatabaseExercise(
+    ExerciseDatabaseModel exercise, {
+    int sets = 3,
+    int reps = 8,
+  }) {
+    final DynamicWorkoutItem item = DynamicWorkoutItem(
+      id: const Uuid().v4(),
+      type: DynamicItemType.exercise,
+      name: exercise.name,
+      refId: exercise.id,
+      setScheme: '$sets Sets of $reps Reps',
+      subtitle: '${exercise.displayCategory} • ${exercise.displayTargetMuscle} • ${exercise.displayEquipment}',
+      targetWeightKg: 0.0,
+      data: <String, dynamic>{
+        'category': exercise.category,
+        'bodyPart': exercise.bodyPart,
+        'targetMuscle': exercise.targetMuscle,
+        'equipment': exercise.equipment,
+        'instructions': exercise.instructions,
+        'tips': exercise.tips,
+        'source': exercise.source,
+      },
+    );
+    _selectItem(item);
+  }
+
   void _selectItem(DynamicWorkoutItem item) {
-    HapticFeedback.mediumImpact();
+    HapticFeedback.selectionClick();
     widget.onAddMovement(item);
     Navigator.pop(context);
   }
@@ -72,8 +196,9 @@ class _AddMovementModalSheetState extends State<AddMovementModalSheet> {
     if (name.isEmpty) {
       return;
     }
-    final int sets = int.tryParse(_customSetsController.text.trim()) ?? 3;
-    final int reps = int.tryParse(_customRepsController.text.trim()) ?? 8;
+
+    final int sets = int.tryParse(_customSetsController.text) ?? 3;
+    final int reps = int.tryParse(_customRepsController.text) ?? 8;
 
     final DynamicWorkoutItem item = DynamicWorkoutItem(
       id: const Uuid().v4(),
@@ -89,8 +214,18 @@ class _AddMovementModalSheetState extends State<AddMovementModalSheet> {
   void _pickRandomWod() {
     HapticFeedback.heavyImpact();
     final Random rand = Random();
+    final Set<String> existingIds =
+        WodCatalog.allWods.map((WodDefinition w) => w.id.toLowerCase()).toSet();
+    final List<WodDefinition> allAvailable = <WodDefinition>[
+      ...WodCatalog.allWods,
+      ..._heroWods
+          .where((CrossfitHeroWod hw) =>
+              !existingIds.contains(hw.id.toLowerCase()) &&
+              !existingIds.contains(hw.slug.toLowerCase()))
+          .map((CrossfitHeroWod hw) => hw.toWodDefinition()),
+    ];
     final WodDefinition picked =
-        WodCatalog.allWods[rand.nextInt(WodCatalog.allWods.length)];
+        allAvailable[rand.nextInt(allAvailable.length)];
 
     final DynamicWorkoutItem item = DynamicWorkoutItem(
       id: const Uuid().v4(),
@@ -157,10 +292,10 @@ class _AddMovementModalSheetState extends State<AddMovementModalSheet> {
                 // Search Bar
                 TextField(
                   controller: _searchController,
-                  onChanged: (String val) => setState(() => _searchQuery = val.trim()),
+                  onChanged: _onSearchChanged,
                   style: GoogleFonts.inter(fontSize: 13, color: AppTheme.textPrimary),
                   decoration: InputDecoration(
-                    hintText: 'Search WODs, lifts, carries, accessories...',
+                    hintText: 'Search 2.5k+ exercises, WODs, lifts, carries...',
                     hintStyle: GoogleFonts.inter(fontSize: 12, color: AppTheme.textSecondary),
                     prefixIcon: const Icon(Icons.search, size: 18, color: AppTheme.textSecondary),
                     suffixIcon: _searchQuery.isNotEmpty
@@ -168,7 +303,7 @@ class _AddMovementModalSheetState extends State<AddMovementModalSheet> {
                             icon: const Icon(Icons.clear, size: 16),
                             onPressed: () {
                               _searchController.clear();
-                              setState(() => _searchQuery = '');
+                              _onSearchChanged('');
                             },
                           )
                         : null,
@@ -187,43 +322,60 @@ class _AddMovementModalSheetState extends State<AddMovementModalSheet> {
                 // Category Chips
                 SizedBox(
                   height: 34,
-                  child: ListView.separated(
+                  child: SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
-                    itemCount: _categories.length,
-                    separatorBuilder: (BuildContext _, int _) => const SizedBox(width: 8),
-                    itemBuilder: (BuildContext context, int index) {
-                      final String cat = _categories[index];
-                      final bool isSelected = _selectedCategory == cat;
-                      return InkWell(
-                        onTap: () {
-                          HapticFeedback.selectionClick();
-                          setState(() => _selectedCategory = cat);
-                        },
-                        borderRadius: BorderRadius.circular(16),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: isSelected
-                                ? AppTheme.primaryAmber.withValues(alpha: 0.2)
-                                : AppTheme.surfaceCard,
+                    child: Row(
+                      children: _categories.map((String cat) {
+                        final bool isSelected = _selectedCategory == cat;
+                        final bool isDatabaseCat = cat == 'Exercise Library';
+                        final Color activeColor = isDatabaseCat ? AppTheme.secondaryCyan : AppTheme.primaryAmber;
+
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: InkWell(
+                            onTap: () {
+                              HapticFeedback.selectionClick();
+                              setState(() => _selectedCategory = cat);
+                              if (isDatabaseCat && _dbResults.isEmpty) {
+                                _performDbSearch(_searchQuery);
+                              }
+                            },
                             borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: isSelected ? AppTheme.primaryAmber : AppTheme.surfaceElevated,
-                            ),
-                          ),
-                          child: Center(
-                            child: Text(
-                              cat,
-                              style: GoogleFonts.outfit(
-                                fontSize: 11,
-                                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                                color: isSelected ? AppTheme.primaryAmber : AppTheme.textSecondary,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: isSelected
+                                    ? activeColor.withValues(alpha: 0.2)
+                                    : AppTheme.surfaceCard,
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: isSelected ? activeColor : AppTheme.surfaceElevated,
+                                ),
+                              ),
+                              child: Center(
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: <Widget>[
+                                    if (isDatabaseCat) ...<Widget>[
+                                      Icon(Icons.storage_rounded, size: 13, color: isSelected ? activeColor : AppTheme.textSecondary),
+                                      const SizedBox(width: 4),
+                                    ],
+                                    Text(
+                                      cat,
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 11,
+                                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                        color: isSelected ? activeColor : AppTheme.textSecondary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      );
-                    },
+                        );
+                      }).toList(),
+                    ),
                   ),
                 ),
               ],
@@ -236,7 +388,9 @@ class _AddMovementModalSheetState extends State<AddMovementModalSheet> {
           Expanded(
             child: _selectedCategory == 'Custom'
                 ? _buildCustomInputView()
-                : _buildMovementListView(),
+                : _selectedCategory == 'Exercise Library'
+                    ? _buildDatabaseLibraryView()
+                    : _buildMovementListView(),
           ),
         ],
       ),
@@ -346,6 +500,65 @@ class _AddMovementModalSheetState extends State<AddMovementModalSheet> {
     final bool showAccessories =
         _selectedCategory == 'All' || _selectedCategory == 'Core & Accessories';
 
+    // 0. Browse 2,500+ Exercise Database Shortcut (at top of 'All' when not searching)
+    if (_selectedCategory == 'All' && _searchQuery.isEmpty) {
+      items.add(
+        InkWell(
+          onTap: () {
+            HapticFeedback.selectionClick();
+            setState(() => _selectedCategory = 'Exercise Library');
+            if (_dbResults.isEmpty) {
+              _performDbSearch('');
+            }
+          },
+          borderRadius: BorderRadius.circular(14),
+          child: Container(
+            margin: const EdgeInsets.only(bottom: 10),
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: <Color>[
+                  AppTheme.secondaryCyan.withValues(alpha: 0.15),
+                  AppTheme.surfaceCard,
+                ],
+              ),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: AppTheme.secondaryCyan.withValues(alpha: 0.4)),
+            ),
+            child: Row(
+              children: <Widget>[
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppTheme.secondaryCyan.withValues(alpha: 0.2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.storage_rounded, color: AppTheme.secondaryCyan, size: 20),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                        'Browse 2,500+ Exercise Database',
+                        style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 14),
+                      ),
+                      Text(
+                        'Full offline library: Barbell, dumbbell, machines & bodyweight',
+                        style: GoogleFonts.inter(fontSize: 11, color: AppTheme.textSecondary),
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(Icons.arrow_forward_ios, color: AppTheme.secondaryCyan, size: 14),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     // 1. Shuffle WOD Shortcut (at top of WODs)
     if (showWods && _searchQuery.isEmpty) {
       items.add(
@@ -400,7 +613,11 @@ class _AddMovementModalSheetState extends State<AddMovementModalSheet> {
     }
 
     // 2. CrossFit Benchmark WODs
+    // 2. CrossFit Benchmark WODs & Hero Memorial Workouts
     if (showWods) {
+      final Set<String> catalogIds =
+          WodCatalog.allWods.map((WodDefinition w) => w.id.toLowerCase()).toSet();
+
       for (final WodDefinition wod in WodCatalog.allWods) {
         if (_searchQuery.isNotEmpty) {
           final String q = _searchQuery.toLowerCase();
@@ -412,13 +629,15 @@ class _AddMovementModalSheetState extends State<AddMovementModalSheet> {
           }
         }
 
+        final bool isHero = wod.category.toLowerCase().contains('hero');
+
         items.add(
           _buildItemTile(
             title: wod.name,
             subtitle: '${wod.category} • ${wod.format.displayName}: ${wod.subtitle}',
-            badge: 'WOD',
+            badge: isHero ? 'HERO WOD' : 'WOD',
             badgeColor: AppTheme.primaryAmber,
-            icon: Icons.bolt_rounded,
+            icon: isHero ? Icons.military_tech_rounded : Icons.bolt_rounded,
             onAdd: () {
               _selectItem(
                 DynamicWorkoutItem(
@@ -446,6 +665,61 @@ class _AddMovementModalSheetState extends State<AddMovementModalSheet> {
                   );
                 },
               );
+            },
+          ),
+        );
+      }
+
+      // Add all scraped Hero WODs from database
+      for (final CrossfitHeroWod heroWod in _heroWods) {
+        if (catalogIds.contains(heroWod.id.toLowerCase()) ||
+            catalogIds.contains(heroWod.slug.toLowerCase())) {
+          continue;
+        }
+
+        if (_searchQuery.isNotEmpty) {
+          final String q = _searchQuery.toLowerCase();
+          final bool match = heroWod.name.toLowerCase().contains(q) ||
+              heroWod.subtitle.toLowerCase().contains(q) ||
+              heroWod.tributeText.toLowerCase().contains(q) ||
+              heroWod.movementsSummary.any((String m) => m.toLowerCase().contains(q)) ||
+              heroWod.equipment.any((String e) => e.toLowerCase().contains(q));
+          if (!match) {
+            continue;
+          }
+        }
+
+        items.add(
+          _buildItemTile(
+            title: heroWod.name,
+            subtitle: 'Hero Benchmark • ${heroWod.format.displayName}: ${heroWod.subtitle.isNotEmpty ? heroWod.subtitle : heroWod.targetTimeOrCap}',
+            badge: 'HERO WOD',
+            badgeColor: AppTheme.primaryAmber,
+            icon: Icons.military_tech_rounded,
+            onAdd: () {
+              _selectItem(
+                DynamicWorkoutItem(
+                  id: const Uuid().v4(),
+                  type: DynamicItemType.wod,
+                  name: '${heroWod.name} (Hero WOD)',
+                  refId: heroWod.id,
+                  setScheme: heroWod.format.displayName,
+                  subtitle: heroWod.subtitle.isNotEmpty ? heroWod.subtitle : heroWod.category,
+                  targetWeightKg: 0.0,
+                  data: <String, dynamic>{
+                    'wodId': heroWod.id,
+                    'format': heroWod.format.name,
+                    'equipment': heroWod.equipment,
+                    'movementsSummary': heroWod.movementsSummary,
+                    'rawWorkoutText': heroWod.rawWorkoutText,
+                    'rxWeights': heroWod.rxWeights,
+                    'tributeText': heroWod.tributeText,
+                  },
+                ),
+              );
+            },
+            onPreview: () {
+              HeroWodDetailSheet.show(context, heroWod);
             },
           ),
         );
@@ -591,6 +865,7 @@ class _AddMovementModalSheetState extends State<AddMovementModalSheet> {
         <String, String>{'name': 'Cable Crunches', 'id': 'cable_crunches', 'sets': '3 Sets of 8 Reps'},
         <String, String>{'name': 'Dragon Flags', 'id': 'dragon_flags', 'sets': '3 Sets of 5 Reps'},
         <String, String>{'name': 'GHD Machine Back Extensions', 'id': 'ghd_back_extensions', 'sets': '3 Sets of 12 Reps'},
+        <String, String>{'name': 'GHD Sit-Up', 'id': 'ghd_situp', 'sets': '3 Sets of 15 Reps'},
         <String, String>{'name': 'Pull-ups', 'id': 'pull_ups', 'sets': '3 Sets of 8 Reps'},
         <String, String>{'name': 'Dips (Parallel Bar / Rings)', 'id': 'dips', 'sets': '3 Sets of 8 Reps'},
         <String, String>{'name': 'Incline Dumbbell Bicep Curls', 'id': 'incline_curls', 'sets': '3 Sets of 12 Reps'},
@@ -638,7 +913,41 @@ class _AddMovementModalSheetState extends State<AddMovementModalSheet> {
       }
     }
 
+    // Database search results in 'All' view
+    if (_selectedCategory == 'All' && _searchQuery.isNotEmpty && _dbResults.isNotEmpty) {
+      items.add(
+        Container(
+          margin: const EdgeInsets.only(top: 14, bottom: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          child: Row(
+            children: <Widget>[
+              const Icon(Icons.storage_rounded, size: 15, color: AppTheme.secondaryCyan),
+              const SizedBox(width: 8),
+              Text(
+                'DATABASE MOVEMENTS (${_dbResults.length} FOUND)',
+                style: GoogleFonts.outfit(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w900,
+                  color: AppTheme.secondaryCyan,
+                  letterSpacing: 1.0,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+
+      for (final ExerciseDatabaseModel dbModel in _dbResults) {
+        items.add(_buildDatabaseItemTile(dbModel));
+      }
+    }
+
     if (items.isEmpty) {
+      if (_isSearchingDb) {
+        return const Center(
+          child: CircularProgressIndicator(color: AppTheme.secondaryCyan),
+        );
+      }
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -1081,6 +1390,646 @@ class _AddMovementModalSheetState extends State<AddMovementModalSheet> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildDatabaseLibraryView() {
+    return Column(
+      children: <Widget>[
+        // Equipment horizontal filter chips
+        Container(
+          height: 32,
+          margin: const EdgeInsets.fromLTRB(16, 10, 16, 6),
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: _equipmentFilters.length,
+            separatorBuilder: (BuildContext _, int _) => const SizedBox(width: 6),
+            itemBuilder: (BuildContext context, int index) {
+              final String eq = _equipmentFilters[index];
+              final bool isSelected = _selectedEquipmentFilter == eq;
+              return InkWell(
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  setState(() => _selectedEquipmentFilter = eq);
+                  _performDbSearch(_searchQuery);
+                },
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? AppTheme.secondaryCyan.withValues(alpha: 0.2)
+                        : AppTheme.surfaceCard,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isSelected ? AppTheme.secondaryCyan : AppTheme.surfaceElevated,
+                    ),
+                  ),
+                  child: Center(
+                    child: Text(
+                      eq,
+                      style: GoogleFonts.outfit(
+                        fontSize: 11,
+                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                        color: isSelected ? AppTheme.secondaryCyan : AppTheme.textSecondary,
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+
+        const Divider(height: 1, color: AppTheme.surfaceElevated),
+
+        Expanded(
+          child: _isSearchingDb
+              ? const Center(
+                  child: CircularProgressIndicator(color: AppTheme.secondaryCyan),
+                )
+              : _dbResults.isEmpty
+                  ? Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                            const Icon(Icons.search_off, size: 40, color: AppTheme.textSecondary),
+                            const SizedBox(height: 10),
+                            Text(
+                              'No matching exercises found',
+                              style: GoogleFonts.outfit(
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                                color: AppTheme.textPrimary,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Try a different keyword or equipment filter, or create a custom movement.',
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textSecondary),
+                            ),
+                            const SizedBox(height: 14),
+                            TextButton.icon(
+                              onPressed: () => setState(() => _selectedCategory = 'Custom'),
+                              icon: const Icon(Icons.add_circle_outline, color: AppTheme.primaryAmber, size: 16),
+                              label: Text(
+                                'Create Custom Movement',
+                                style: GoogleFonts.outfit(color: AppTheme.primaryAmber, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                  : ListView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      itemCount: _dbResults.length,
+                      itemBuilder: (BuildContext _, int i) =>
+                          _buildDatabaseItemTile(_dbResults[i]),
+                    ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDatabaseItemTile(ExerciseDatabaseModel exercise) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceCard,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppTheme.surfaceElevated),
+      ),
+      child: Row(
+        children: <Widget>[
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: AppTheme.secondaryCyan.withValues(alpha: 0.15),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.fitness_center_rounded, color: AppTheme.secondaryCyan, size: 18),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  exercise.name,
+                  style: GoogleFonts.outfit(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.textPrimary,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 3),
+                Row(
+                  children: <Widget>[
+                    if (exercise.source.toLowerCase().contains('crossfit')) ...<Widget>[
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                        decoration: BoxDecoration(
+                          color: AppTheme.primaryAmber.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border.all(
+                            color: AppTheme.primaryAmber.withValues(alpha: 0.4),
+                          ),
+                        ),
+                        child: Text(
+                          'CROSSFIT',
+                          style: GoogleFonts.outfit(
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.primaryAmber,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                    ],
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                      decoration: BoxDecoration(
+                        color: AppTheme.secondaryCyan.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        exercise.displayEquipment.toUpperCase(),
+                        style: GoogleFonts.outfit(
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.secondaryCyan,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Flexible(
+                      child: Text(
+                        exercise.displayTargetMuscle,
+                        style: GoogleFonts.inter(
+                          fontSize: 11,
+                          color: AppTheme.textSecondary,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          OutlinedButton.icon(
+            onPressed: () => _showDatabaseExerciseExplainer(exercise),
+            icon: const Icon(Icons.explore, size: 13, color: AppTheme.secondaryCyan),
+            label: Text(
+              'PREVIEW',
+              style: GoogleFonts.outfit(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.secondaryCyan),
+            ),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppTheme.secondaryCyan,
+              side: const BorderSide(color: AppTheme.secondaryCyan),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+              minimumSize: const Size(0, 32),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+          ),
+          const SizedBox(width: 6),
+          ElevatedButton(
+            onPressed: () => _addDatabaseExercise(exercise),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.primaryAmber,
+              foregroundColor: Colors.black,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              minimumSize: const Size(0, 32),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            child: Text(
+              '+ ADD',
+              style: GoogleFonts.outfit(fontSize: 11, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDatabaseExerciseExplainer(ExerciseDatabaseModel exercise) {
+    HapticFeedback.mediumImpact();
+    int chosenSets = 3;
+    int chosenReps = 8;
+
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (BuildContext ctx) => StatefulBuilder(
+        builder: (BuildContext sheetContext, StateSetter setSheetState) {
+          return Container(
+            height: MediaQuery.of(context).size.height * 0.82,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: AppTheme.darkBackground,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+              border: Border.all(color: AppTheme.secondaryCyan.withValues(alpha: 0.3)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Center(
+                  child: Container(
+                    width: 44,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: AppTheme.textSecondary.withValues(alpha: 0.4),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: <Widget>[
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: AppTheme.secondaryCyan.withValues(alpha: 0.15),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.fitness_center_rounded, color: AppTheme.secondaryCyan, size: 24),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Text(
+                            exercise.name,
+                            style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+                          ),
+                          Text(
+                            '${exercise.displayCategory} • ${exercise.displayBodyPart}',
+                            style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textSecondary),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+
+                // Quick Badges
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: <Widget>[
+                    if (exercise.source.toLowerCase().contains('crossfit'))
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: AppTheme.primaryAmber.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: AppTheme.primaryAmber.withValues(alpha: 0.3)),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[
+                            const Icon(Icons.bolt, size: 12, color: AppTheme.primaryAmber),
+                            const SizedBox(width: 4),
+                            Text(
+                              'CROSSFIT ESSENTIAL',
+                              style: GoogleFonts.outfit(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.primaryAmber),
+                            ),
+                          ],
+                        ),
+                      ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: AppTheme.secondaryCyan.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: AppTheme.secondaryCyan.withValues(alpha: 0.3)),
+                      ),
+                      child: Text(
+                        exercise.displayEquipment.toUpperCase(),
+                        style: GoogleFonts.outfit(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.secondaryCyan),
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryAmber.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: AppTheme.primaryAmber.withValues(alpha: 0.3)),
+                      ),
+                      child: Text(
+                        exercise.displayTargetMuscle.toUpperCase(),
+                        style: GoogleFonts.outfit(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.primaryAmber),
+                      ),
+                    ),
+                    if (exercise.mechanic != null && exercise.mechanic!.isNotEmpty)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: AppTheme.surfaceElevated,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          exercise.mechanic!.toUpperCase(),
+                          style: GoogleFonts.outfit(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.textSecondary),
+                        ),
+                      ),
+                    if (exercise.force != null && exercise.force!.isNotEmpty)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: AppTheme.surfaceElevated,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          exercise.force!.toUpperCase(),
+                          style: GoogleFonts.outfit(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.textSecondary),
+                        ),
+                      ),
+                  ],
+                ),
+
+                const SizedBox(height: 14),
+
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        // Target Sets & Reps Stepper
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: AppTheme.surfaceCard,
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: AppTheme.surfaceElevated),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              Text(
+                                'TARGET SETS & REPS',
+                                style: GoogleFonts.outfit(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppTheme.primaryAmber,
+                                  letterSpacing: 0.8,
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              Row(
+                                children: <Widget>[
+                                  Expanded(
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: <Widget>[
+                                        Text('Sets', style: GoogleFonts.inter(fontSize: 13, color: AppTheme.textSecondary)),
+                                        Row(
+                                          children: <Widget>[
+                                            IconButton(
+                                              padding: EdgeInsets.zero,
+                                              constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                                              icon: const Icon(Icons.remove_circle_outline, size: 20, color: AppTheme.textSecondary),
+                                              onPressed: chosenSets > 1
+                                                  ? () => setSheetState(() => chosenSets--)
+                                                  : null,
+                                            ),
+                                            Padding(
+                                              padding: const EdgeInsets.symmetric(horizontal: 8),
+                                              child: Text(
+                                                '$chosenSets',
+                                                style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+                                              ),
+                                            ),
+                                            IconButton(
+                                              padding: EdgeInsets.zero,
+                                              constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                                              icon: const Icon(Icons.add_circle_outline, size: 20, color: AppTheme.primaryAmber),
+                                              onPressed: chosenSets < 20
+                                                  ? () => setSheetState(() => chosenSets++)
+                                                  : null,
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Container(width: 1, height: 28, color: AppTheme.surfaceElevated, margin: const EdgeInsets.symmetric(horizontal: 14)),
+                                  Expanded(
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: <Widget>[
+                                        Text('Reps', style: GoogleFonts.inter(fontSize: 13, color: AppTheme.textSecondary)),
+                                        Row(
+                                          children: <Widget>[
+                                            IconButton(
+                                              padding: EdgeInsets.zero,
+                                              constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                                              icon: const Icon(Icons.remove_circle_outline, size: 20, color: AppTheme.textSecondary),
+                                              onPressed: chosenReps > 1
+                                                  ? () => setSheetState(() => chosenReps--)
+                                                  : null,
+                                            ),
+                                            Padding(
+                                              padding: const EdgeInsets.symmetric(horizontal: 8),
+                                              child: Text(
+                                                '$chosenReps',
+                                                style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+                                              ),
+                                            ),
+                                            IconButton(
+                                              padding: EdgeInsets.zero,
+                                              constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                                              icon: const Icon(Icons.add_circle_outline, size: 20, color: AppTheme.primaryAmber),
+                                              onPressed: chosenReps < 100
+                                                  ? () => setSheetState(() => chosenReps++)
+                                                  : null,
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        if (exercise.videoUrl != null && exercise.videoUrl!.isNotEmpty) ...<Widget>[
+                          const SizedBox(height: 10),
+                          InkWell(
+                            onTap: () async {
+                              final Uri uri = Uri.parse(exercise.videoUrl!);
+                              if (await canLaunchUrl(uri)) {
+                                await launchUrl(uri, mode: LaunchMode.externalApplication);
+                              }
+                            },
+                            borderRadius: BorderRadius.circular(12),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                              decoration: BoxDecoration(
+                                color: AppTheme.surfaceCard,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: Colors.redAccent.withValues(alpha: 0.5)),
+                              ),
+                              child: Row(
+                                children: <Widget>[
+                                  const Icon(Icons.play_circle_fill, color: Colors.redAccent, size: 24),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: <Widget>[
+                                        Text(
+                                          'Watch Official Coaching Demo',
+                                          style: GoogleFonts.outfit(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.bold,
+                                            color: AppTheme.textPrimary,
+                                          ),
+                                        ),
+                                        Text(
+                                          'Instructional video by CrossFit HQ',
+                                          style: GoogleFonts.inter(
+                                            fontSize: 11,
+                                            color: AppTheme.textSecondary,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const Icon(Icons.open_in_new, color: AppTheme.textSecondary, size: 16),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+
+                        if (exercise.instructions != null && exercise.instructions!.trim().isNotEmpty) ...<Widget>[
+                          const SizedBox(height: 10),
+                          _buildProtocolCard(
+                            title: 'Step-by-Step Instructions',
+                            desc: exercise.instructions!.trim(),
+                            icon: Icons.format_list_numbered_rounded,
+                            accentColor: AppTheme.secondaryCyan,
+                          ),
+                        ],
+
+                        if (exercise.tips != null && exercise.tips!.trim().isNotEmpty) ...<Widget>[
+                          const SizedBox(height: 10),
+                          _buildProtocolCard(
+                            title: 'Form Cues & Tips',
+                            desc: exercise.tips!.trim(),
+                            icon: Icons.lightbulb_outline_rounded,
+                            accentColor: Colors.orangeAccent,
+                          ),
+                        ],
+
+                        if (exercise.secondaryMuscles.isNotEmpty) ...<Widget>[
+                          const SizedBox(height: 10),
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: AppTheme.surfaceCard,
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(color: AppTheme.surfaceElevated),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                Text(
+                                  'Secondary Muscles Worked',
+                                  style: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+                                ),
+                                const SizedBox(height: 6),
+                                Wrap(
+                                  spacing: 6,
+                                  runSpacing: 4,
+                                  children: exercise.secondaryMuscles.map((String m) {
+                                    return Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: AppTheme.surfaceElevated,
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: Text(
+                                        m.replaceAll('_', ' '),
+                                        style: GoogleFonts.inter(fontSize: 11, color: AppTheme.textSecondary),
+                                      ),
+                                    );
+                                  }).toList(),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+
+                        const SizedBox(height: 12),
+                        OutlinedButton.icon(
+                          onPressed: () async {
+                            final String query = '${exercise.name} exercise tutorial';
+                            final Uri uri = Uri.parse(
+                              'https://www.youtube.com/results?search_query=${Uri.encodeComponent(query)}',
+                            );
+                            try {
+                              if (await canLaunchUrl(uri)) {
+                                await launchUrl(uri, mode: LaunchMode.externalApplication);
+                              }
+                            } catch (_) {}
+                          },
+                          icon: const Icon(Icons.smart_display_outlined, size: 18, color: Colors.redAccent),
+                          label: Text(
+                            'Watch Video Tutorial on YouTube',
+                            style: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.redAccent),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            side: BorderSide(color: Colors.redAccent.withValues(alpha: 0.5)),
+                            minimumSize: const Size(double.infinity, 44),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 14),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.pop(ctx);
+                      _addDatabaseExercise(exercise, sets: chosenSets, reps: chosenReps);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primaryAmber,
+                      foregroundColor: Colors.black,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    ),
+                    icon: const Icon(Icons.add_circle_outline, size: 20),
+                    label: Text(
+                      'ADD TO WORKOUT ($chosenSets × $chosenReps)',
+                      style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 13),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }

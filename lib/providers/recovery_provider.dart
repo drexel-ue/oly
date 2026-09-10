@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:oly/models/accessory_log.dart';
+import 'package:oly/models/benchmark_wod_log.dart';
 import 'package:oly/models/cindy_workout_log.dart';
 import 'package:oly/models/death_by_burpees_log.dart';
 import 'package:oly/models/dt_workout_log.dart';
@@ -33,6 +34,7 @@ class RecoveryProvider extends ChangeNotifier {
   List<GraceWorkoutLog> _graceWorkoutLogs = <GraceWorkoutLog>[];
   List<DtWorkoutLog> _dtWorkoutLogs = <DtWorkoutLog>[];
   List<DeathByBurpeesLog> _deathByBurpeesLogs = <DeathByBurpeesLog>[];
+  List<BenchmarkWodLog> _benchmarkWodLogs = <BenchmarkWodLog>[];
 
   void _loadLogs() {
     final List<Map<String, dynamic>> raw = _storage.loadRawRecoveryLogs();
@@ -48,6 +50,7 @@ class RecoveryProvider extends ChangeNotifier {
     _graceWorkoutLogs = _storage.loadGraceWorkoutLogs();
     _dtWorkoutLogs = _storage.loadDtWorkoutLogs();
     _deathByBurpeesLogs = _storage.loadDeathByBurpeesLogs();
+    _benchmarkWodLogs = _storage.loadBenchmarkWodLogs();
   }
 
   List<RecoverySessionLog> get recoveryLogs => List.unmodifiable(_recoveryLogs);
@@ -68,6 +71,8 @@ class RecoveryProvider extends ChangeNotifier {
       List.unmodifiable(_dtWorkoutLogs);
   List<DeathByBurpeesLog> get deathByBurpeesLogs =>
       List.unmodifiable(_deathByBurpeesLogs);
+  List<BenchmarkWodLog> get benchmarkWodLogs =>
+      List.unmodifiable(_benchmarkWodLogs);
 
   int get totalMobilityMinutes {
     return _recoveryLogs.fold(
@@ -455,6 +460,216 @@ class RecoveryProvider extends ChangeNotifier {
         .map((RecoverySessionLog log) => log.toJson())
         .toList();
     await _storage.saveRawRecoveryLogs(rawList);
+    notifyListeners();
+  }
+
+  // --- UNIFIED BENCHMARK & HERO WOD METHODS ---
+  List<BenchmarkWodLog> getBenchmarkWodHistory(String wodId, {bool? isRx}) {
+    return _storage.getBenchmarkWodHistory(wodId, isRx: isRx);
+  }
+
+  BenchmarkWodLog? getBenchmarkWodPersonalRecord(String wodId, {bool? isRx}) {
+    return _storage.getBenchmarkWodPersonalRecord(wodId, isRx: isRx);
+  }
+
+  Map<String, BenchmarkWodLog> getAllBenchmarkPersonalRecords() {
+    final Map<String, BenchmarkWodLog> map =
+        Map<String, BenchmarkWodLog>.from(_storage.getAllBenchmarkPersonalRecords());
+
+    // Seamlessly include legacy PRs if no dedicated BenchmarkWodLog exists yet
+    if (!map.containsKey('cindy_rx') && !map.containsKey('cindy_scaled')) {
+      final CindyWorkoutLog? cindy = getCindyPersonalRecord();
+      if (cindy != null) {
+        map['cindy_rx'] = BenchmarkWodLog(
+          id: cindy.id,
+          wodId: 'cindy',
+          wodName: 'Cindy',
+          format: 'amrap',
+          date: cindy.date,
+          durationSeconds: cindy.durationSeconds,
+          scoreDisplay: cindy.scoreDisplay,
+          completedRounds: cindy.completedRounds,
+          completedReps: cindy.partialReps,
+          isRx: true,
+          isPr: true,
+          category: 'The Girls',
+        );
+      }
+    }
+    if (!map.containsKey('jackie_rx') && !map.containsKey('jackie_scaled')) {
+      final JackieWorkoutLog? jackie = getJackiePersonalRecord();
+      if (jackie != null) {
+        map['jackie_rx'] = BenchmarkWodLog(
+          id: jackie.id,
+          wodId: 'jackie',
+          wodName: 'Jackie',
+          format: 'forTime',
+          date: jackie.date,
+          durationSeconds: jackie.totalTimeSeconds,
+          scoreDisplay: jackie.scoreDisplay,
+          isRx: jackie.scalingTier == 'Rx',
+          isPr: true,
+          category: 'The Girls',
+        );
+      }
+    }
+    if (!map.containsKey('fran_rx') && !map.containsKey('fran_scaled')) {
+      final FranWorkoutLog? fran = getFranPersonalRecord();
+      if (fran != null) {
+        map['fran_rx'] = BenchmarkWodLog(
+          id: fran.id,
+          wodId: 'fran',
+          wodName: 'Fran',
+          format: 'forTime',
+          date: fran.date,
+          durationSeconds: fran.totalTimeSeconds,
+          scoreDisplay: fran.scoreDisplay,
+          isRx: fran.scalingTier == 'Rx',
+          isPr: true,
+          category: 'The Girls',
+        );
+      }
+    }
+    if (!map.containsKey('helen_rx') && !map.containsKey('helen_scaled')) {
+      final HelenWorkoutLog? helen = getHelenPersonalRecord();
+      if (helen != null) {
+        map['helen_rx'] = BenchmarkWodLog(
+          id: helen.id,
+          wodId: 'helen',
+          wodName: 'Helen',
+          format: 'forTime',
+          date: helen.date,
+          durationSeconds: helen.totalTimeSeconds,
+          scoreDisplay: helen.scoreDisplay,
+          isRx: helen.scalingTier == 'Rx',
+          isPr: true,
+          category: 'The Girls',
+        );
+      }
+    }
+    if (!map.containsKey('grace_rx') && !map.containsKey('grace_scaled')) {
+      final GraceWorkoutLog? grace = getGracePersonalRecord();
+      if (grace != null) {
+        map['grace_rx'] = BenchmarkWodLog(
+          id: grace.id,
+          wodId: 'grace',
+          wodName: 'Grace',
+          format: 'forTime',
+          date: grace.date,
+          durationSeconds: grace.totalTimeSeconds,
+          scoreDisplay: grace.scoreDisplay,
+          isRx: grace.scalingTier == 'Rx',
+          isPr: true,
+          category: 'The Girls',
+        );
+      }
+    }
+    if (!map.containsKey('dt_rx') && !map.containsKey('dt_scaled')) {
+      final DtWorkoutLog? dt = getDtPersonalRecord();
+      if (dt != null) {
+        map['dt_rx'] = BenchmarkWodLog(
+          id: dt.id,
+          wodId: 'dt',
+          wodName: 'DT',
+          format: 'forTime',
+          date: dt.date,
+          durationSeconds: dt.totalTimeSeconds,
+          scoreDisplay: dt.scoreDisplay,
+          isRx: dt.scalingTier == 'Rx',
+          isPr: true,
+          category: 'Hero WODs',
+        );
+      }
+    }
+    if (!map.containsKey('death_by_burpees_rx') &&
+        !map.containsKey('death_by_burpees_scaled')) {
+      final DeathByBurpeesLog? burpees = getDeathByBurpeesPersonalRecord();
+      if (burpees != null) {
+        map['death_by_burpees_rx'] = BenchmarkWodLog(
+          id: burpees.id,
+          wodId: 'death_by_burpees',
+          wodName: 'Death by Burpees',
+          format: 'emom',
+          date: burpees.date,
+          durationSeconds: burpees.totalDurationSeconds,
+          scoreDisplay: burpees.scoreDisplay,
+          completedRounds: burpees.completedMinutes,
+          completedReps: burpees.partialReps,
+          isRx: burpees.scalingTier == 'Rx',
+          isPr: true,
+          category: 'Interactive Trackers',
+        );
+      }
+    }
+
+    return map;
+  }
+
+  Set<String> getCompletedWodIds() {
+    final Set<String> ids = _storage.getCompletedWodIds();
+    if (_cindyWorkoutLogs.isNotEmpty) {
+      ids.add('cindy');
+    }
+    if (_jackieWorkoutLogs.isNotEmpty) {
+      ids.add('jackie');
+    }
+    if (_franWorkoutLogs.isNotEmpty) {
+      ids.add('fran');
+    }
+    if (_helenWorkoutLogs.isNotEmpty) {
+      ids.add('helen');
+    }
+    if (_graceWorkoutLogs.isNotEmpty) {
+      ids.add('grace');
+    }
+    if (_dtWorkoutLogs.isNotEmpty) {
+      ids.add('dt');
+    }
+    if (_deathByBurpeesLogs.isNotEmpty) {
+      ids.add('death_by_burpees');
+    }
+    return ids;
+  }
+
+  int get totalCompletedHeroWodsCount {
+    final Set<String> completed = getCompletedWodIds();
+    int count = 0;
+    for (final BenchmarkWodLog log in _benchmarkWodLogs) {
+      final String idLower = log.wodId.toLowerCase();
+      if ((log.category.toLowerCase().contains('hero') || idLower.startsWith('cf_hero_')) &&
+          completed.contains(idLower)) {
+        count++;
+        completed.remove(idLower);
+      }
+    }
+    // Check DT as Hero WOD
+    if (_dtWorkoutLogs.isNotEmpty && completed.contains('dt')) {
+      count++;
+    }
+    return count;
+  }
+
+  int get totalAllWodCompletionsCount {
+    return _benchmarkWodLogs.length +
+        _cindyWorkoutLogs.length +
+        _jackieWorkoutLogs.length +
+        _franWorkoutLogs.length +
+        _helenWorkoutLogs.length +
+        _graceWorkoutLogs.length +
+        _dtWorkoutLogs.length +
+        _deathByBurpeesLogs.length;
+  }
+
+  Future<BenchmarkWodLog> logBenchmarkWod(BenchmarkWodLog log) async {
+    final BenchmarkWodLog finalized = await _storage.logBenchmarkWod(log);
+    _benchmarkWodLogs = _storage.loadBenchmarkWodLogs();
+    notifyListeners();
+    return finalized;
+  }
+
+  Future<void> deleteBenchmarkWodLog(String id) async {
+    await _storage.deleteBenchmarkWodLog(id);
+    _benchmarkWodLogs = _storage.loadBenchmarkWodLogs();
     notifyListeners();
   }
 }
