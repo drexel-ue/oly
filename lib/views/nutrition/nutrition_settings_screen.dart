@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:oly/models/nutrition_goal_model.dart';
 import 'package:oly/providers/body_comp_provider.dart';
+import 'package:oly/providers/fasting_provider.dart';
 import 'package:oly/providers/nutrition_provider.dart';
 import 'package:oly/theme/app_theme.dart';
+import 'package:oly/views/nutrition/fasting_circadian_sheet.dart';
 import 'package:provider/provider.dart';
 
 class NutritionSettingsScreen extends StatefulWidget {
@@ -361,6 +363,167 @@ class _NutritionSettingsScreenState extends State<NutritionSettingsScreen> {
                     ),
                   ],
                 ),
+              ),
+
+              const SizedBox(height: 14),
+
+              // Circadian Notifications & Reminders
+              Consumer<FastingProvider>(
+                builder: (BuildContext context, FastingProvider fasting, _) {
+                  final config = fasting.circadianConfig;
+                  return Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppTheme.surfaceCard,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppTheme.borderColor),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: <Widget>[
+                            Row(
+                              children: <Widget>[
+                                Container(
+                                  padding: const EdgeInsets.all(6),
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.primaryAmber
+                                        .withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: const Icon(
+                                    Icons.notifications_active_outlined,
+                                    color: AppTheme.primaryAmber,
+                                    size: 18,
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: <Widget>[
+                                    Text(
+                                      'Circadian & Fasting Reminders',
+                                      style: GoogleFonts.inter(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                        color: AppTheme.textPrimary,
+                                      ),
+                                    ),
+                                    Text(
+                                      'Paced water, coffee & sleep alerts',
+                                      style: GoogleFonts.inter(
+                                        fontSize: 11,
+                                        color: AppTheme.textSecondary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                            TextButton(
+                              onPressed: () =>
+                                  FastingCircadianSheet.show(context),
+                              style: TextButton.styleFrom(
+                                padding: EdgeInsets.zero,
+                                visualDensity: VisualDensity.compact,
+                              ),
+                              child: Text(
+                                'Details →',
+                                style: GoogleFonts.outfit(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppTheme.primaryAmber,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const Divider(color: AppTheme.borderColor, height: 20),
+
+                        // Water Switch
+                        Row(
+                          children: <Widget>[
+                            const Icon(Icons.water_drop,
+                                size: 16, color: Colors.cyanAccent),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: <Widget>[
+                                  Text(
+                                    'Paced Water Reminders (6x Daily)',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppTheme.textPrimary,
+                                    ),
+                                  ),
+                                  Text(
+                                    '5:00 AM, 7:30 AM, 10:00 AM, 12:30 PM, 3:30 PM, 6:00 PM',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 10,
+                                      color: AppTheme.textSecondary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Switch.adaptive(
+                              value: config.waterRemindersEnabled,
+                              activeThumbColor: Colors.cyanAccent,
+                              activeTrackColor:
+                                  Colors.cyanAccent.withValues(alpha: 0.4),
+                              onChanged: (bool enabled) =>
+                                  fasting.toggleWaterReminders(enabled),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+
+                        // Coffee Switch
+                        Row(
+                          children: <Widget>[
+                            const Icon(Icons.coffee,
+                                size: 16, color: Color(0xFFFFB74D)),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: <Widget>[
+                                  Text(
+                                    'Coffee Alerts & 12:00 PM Curfew (3x Daily)',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppTheme.textPrimary,
+                                    ),
+                                  ),
+                                  Text(
+                                    '5:15 AM primer, 9:30 AM ghrelin shield, 12:00 PM curfew',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 10,
+                                      color: AppTheme.textSecondary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Switch.adaptive(
+                              value: config.coffeeRemindersEnabled,
+                              activeThumbColor: const Color(0xFFFFB74D),
+                              activeTrackColor: const Color(0xFFFFB74D)
+                                  .withValues(alpha: 0.4),
+                              onChanged: (bool enabled) =>
+                                  fasting.toggleCoffeeReminders(enabled),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  );
+                },
               ),
 
               const SizedBox(height: 24),

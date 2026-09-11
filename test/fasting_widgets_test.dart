@@ -7,6 +7,7 @@ import 'package:oly/providers/nutrition_provider.dart';
 import 'package:oly/services/fasting_engine_service.dart';
 import 'package:oly/services/storage_service.dart';
 import 'package:oly/views/nutrition/fasting_biomarker_history_sheet.dart';
+import 'package:oly/views/nutrition/fasting_circadian_sheet.dart';
 import 'package:oly/views/nutrition/nutrition_dashboard_screen.dart';
 import 'package:oly/widgets/nutrition/fasting_cellular_card.dart';
 import 'package:oly/widgets/nutrition/fasting_projection_card.dart';
@@ -176,4 +177,62 @@ void main() {
     expect(find.text('📝 Post-lift fast'), findsOneWidget);
     expect(find.text('LOG NEW BIOMARKER READING'), findsOneWidget);
   });
+
+  testWidgets('FastingCircadianSheet renders switches, schedule timelines, and updates config',
+      (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final StorageService storage = StorageService(prefs);
+    final FastingProvider fastingProvider = FastingProvider(storage);
+
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: <ChangeNotifierProvider<dynamic>>[
+          ChangeNotifierProvider<FastingProvider>.value(value: fastingProvider),
+        ],
+        child: const MaterialApp(
+          home: Scaffold(
+            body: FastingCircadianSheet(),
+          ),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    // Verify Title & Sections
+    expect(find.text('CIRCADIAN & REMINDERS'), findsOneWidget);
+    expect(find.text('Paced Hydration Reminders'), findsOneWidget);
+    expect(find.text('Fasting Coffee & Caffeine Alerts'), findsOneWidget);
+    expect(find.text('ATHLETE CIRCADIAN ANCHORS'), findsOneWidget);
+
+    // Verify Hydration Schedule Entries
+    expect(find.text('DAILY WATER TARGET'), findsOneWidget);
+    expect(find.text('3000 mL'), findsOneWidget);
+    expect(find.textContaining('Morning Primer'), findsOneWidget);
+    expect(find.textContaining('Post-Lift Rehydration'), findsOneWidget);
+
+    // Verify Coffee Timeline
+    expect(find.text('Pre-Workout Platform Primer'), findsOneWidget);
+    expect(find.text('Fasting Bridge (Ghrelin Shield)'), findsOneWidget);
+    expect(find.text('Caffeine Curfew (HRV Shield)'), findsOneWidget);
+
+    // Tap 3500 mL ChoiceChip
+    await tester.tap(find.text('3500 mL'));
+    await tester.pumpAndSettle();
+    expect(fastingProvider.circadianConfig.dailyWaterTargetMl, equals(3500));
+
+    // Toggle Water Switch OFF
+    final Finder waterSwitch = find.byType(Switch).first;
+    await tester.tap(waterSwitch);
+    await tester.pumpAndSettle();
+    expect(fastingProvider.circadianConfig.waterRemindersEnabled, isFalse);
+
+    // Toggle Coffee Switch OFF
+    final Finder coffeeSwitch = find.byType(Switch).last;
+    await tester.tap(coffeeSwitch);
+    await tester.pumpAndSettle();
+    expect(fastingProvider.circadianConfig.coffeeRemindersEnabled, isFalse);
+  });
 }
+

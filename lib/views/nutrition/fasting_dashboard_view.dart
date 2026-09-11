@@ -7,6 +7,7 @@ import 'package:oly/providers/fasting_provider.dart';
 import 'package:oly/theme/app_theme.dart';
 import 'package:oly/views/nutrition/fasting_biomarker_history_sheet.dart';
 import 'package:oly/views/nutrition/fasting_biomarker_sheet.dart';
+import 'package:oly/views/nutrition/fasting_circadian_sheet.dart';
 import 'package:oly/views/nutrition/fasting_refeed_guide_sheet.dart';
 import 'package:oly/views/nutrition/fasting_science_explainer_screen.dart';
 import 'package:oly/views/nutrition/fasting_setup_sheet.dart';
@@ -246,24 +247,76 @@ class FastingDashboardView extends StatelessWidget {
                   ),
                 ],
               ),
-              InkWell(
-                onTap: () => _showSnakeJuiceDialog(context),
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: Colors.cyanAccent.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Text(
-                    'Saline Recipe',
-                    style: GoogleFonts.outfit(
-                      fontSize: 9,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.cyanAccent,
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  InkWell(
+                    onTap: () => FastingCircadianSheet.show(context),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 7, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: (fasting.circadianConfig.waterRemindersEnabled
+                                ? Colors.cyanAccent
+                                : Colors.white24)
+                            .withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                          color: (fasting.circadianConfig.waterRemindersEnabled
+                                  ? Colors.cyanAccent
+                                  : Colors.white24)
+                              .withValues(alpha: 0.4),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          Icon(
+                            Icons.notifications_active,
+                            size: 10,
+                            color: fasting.circadianConfig.waterRemindersEnabled
+                                ? Colors.cyanAccent
+                                : AppTheme.textSecondary,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            fasting.circadianConfig.waterRemindersEnabled
+                                ? 'Alerts ON'
+                                : 'Alerts OFF',
+                            style: GoogleFonts.outfit(
+                              fontSize: 9,
+                              fontWeight: FontWeight.bold,
+                              color: fasting
+                                      .circadianConfig.waterRemindersEnabled
+                                  ? Colors.cyanAccent
+                                  : AppTheme.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
+                  const SizedBox(width: 6),
+                  InkWell(
+                    onTap: () => _showSnakeJuiceDialog(context),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: Colors.cyanAccent.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        'Saline Recipe',
+                        style: GoogleFonts.outfit(
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.cyanAccent,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -591,131 +644,118 @@ class FastingDashboardView extends StatelessWidget {
   }
 
   Widget _buildQuickToolsRow(BuildContext context) {
-    return Row(
+    return Column(
       children: <Widget>[
-        // Pantry Checklist
-        Expanded(
-          child: InkWell(
-            onTap: () => FastingGrocerySheet.show(context),
-            borderRadius: BorderRadius.circular(12),
-            child: Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppTheme.surfaceCard,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.white12),
-              ),
-              child: Row(
-                children: <Widget>[
-                  const Icon(Icons.shopping_basket_outlined,
-                      color: AppTheme.primaryAmber, size: 20),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Text('PANTRY & FOOD',
-                            style: GoogleFonts.outfit(
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white)),
-                        Text('Fasting essentials',
-                            style: GoogleFonts.inter(
-                                fontSize: 9, color: AppTheme.textSecondary)),
-                      ],
-                    ),
-                  ),
-                ],
+        Row(
+          children: <Widget>[
+            // Pantry Checklist
+            Expanded(
+              child: _buildQuickToolCard(
+                icon: Icons.shopping_basket_outlined,
+                iconColor: AppTheme.primaryAmber,
+                title: 'PANTRY & FOOD',
+                subtitle: 'Fasting essentials',
+                onTap: () => FastingGrocerySheet.show(context),
               ),
             ),
-          ),
-        ),
-        const SizedBox(width: 8),
+            const SizedBox(width: 8),
 
-        // Biomarker Tracking
-        Expanded(
-          child: InkWell(
-            onTap: () => FastingBiomarkerHistorySheet.show(context),
-            borderRadius: BorderRadius.circular(12),
-            child: Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppTheme.surfaceCard,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.white12),
-              ),
-              child: Row(
-                children: <Widget>[
-                  const Icon(Icons.insights,
-                      color: Colors.cyanAccent, size: 20),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Text('GKI TRACKING',
-                            style: GoogleFonts.outfit(
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white)),
-                        Text('Blood history',
-                            style: GoogleFonts.inter(
-                                fontSize: 9, color: AppTheme.textSecondary)),
-                      ],
-                    ),
-                  ),
-                ],
+            // Biomarker Tracking
+            Expanded(
+              child: _buildQuickToolCard(
+                icon: Icons.insights,
+                iconColor: Colors.cyanAccent,
+                title: 'GKI TRACKING',
+                subtitle: 'Blood history',
+                onTap: () => FastingBiomarkerHistorySheet.show(context),
               ),
             ),
-          ),
+          ],
         ),
-        const SizedBox(width: 8),
-
-        // Science Explainer
-        Expanded(
-          child: InkWell(
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (BuildContext _) =>
-                      const FastingScienceExplainerScreen(),
-                ),
-              );
-            },
-            borderRadius: BorderRadius.circular(12),
-            child: Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppTheme.surfaceCard,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.white12),
-              ),
-              child: Row(
-                children: <Widget>[
-                  const Icon(Icons.science_outlined,
-                      color: Color(0xFF00E676), size: 20),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Text('SCIENCE',
-                            style: GoogleFonts.outfit(
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white)),
-                        Text('mTOR & 72h',
-                            style: GoogleFonts.inter(
-                                fontSize: 9, color: AppTheme.textSecondary)),
-                      ],
-                    ),
-                  ),
-                ],
+        const SizedBox(height: 8),
+        Row(
+          children: <Widget>[
+            // Reminders (Water & Coffee)
+            Expanded(
+              child: _buildQuickToolCard(
+                icon: Icons.notifications_active_outlined,
+                iconColor: const Color(0xFFFFB74D),
+                title: 'REMINDERS',
+                subtitle: 'Water & coffee alerts',
+                onTap: () => FastingCircadianSheet.show(context),
               ),
             ),
-          ),
+            const SizedBox(width: 8),
+
+            // Science Explainer
+            Expanded(
+              child: _buildQuickToolCard(
+                icon: Icons.science_outlined,
+                iconColor: const Color(0xFF00E676),
+                title: 'SCIENCE',
+                subtitle: 'mTOR & 72h guide',
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (BuildContext _) =>
+                          const FastingScienceExplainerScreen(),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
         ),
       ],
+    );
+  }
+
+  Widget _buildQuickToolCard({
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: AppTheme.surfaceCard,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.white12),
+        ),
+        child: Row(
+          children: <Widget>[
+            Icon(icon, color: iconColor, size: 20),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(
+                    title,
+                    style: GoogleFonts.outfit(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    style: GoogleFonts.inter(
+                      fontSize: 9,
+                      color: AppTheme.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
