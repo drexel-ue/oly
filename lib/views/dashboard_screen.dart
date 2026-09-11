@@ -20,6 +20,7 @@ import 'package:oly/views/warmup_session_screen.dart';
 import 'package:oly/views/wod_hub_screen.dart';
 import 'package:oly/views/workout_session_screen.dart';
 import 'package:oly/widgets/active_recovery_card.dart';
+import 'package:oly/widgets/athlete_summary_overview_card.dart';
 import 'package:oly/widgets/plate_modal.dart';
 import 'package:oly/widgets/settings_modal.dart';
 import 'package:provider/provider.dart';
@@ -68,6 +69,22 @@ class DashboardScreen extends StatelessWidget {
         ),
         actions: <Widget>[
           IconButton(
+            icon: const Icon(
+              Icons.pie_chart_outline_rounded,
+              color: AppTheme.primaryAmber,
+            ),
+            tooltip: 'Plate Calculator',
+            onPressed: () {
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                useSafeArea: true,
+                backgroundColor: Colors.transparent,
+                builder: (_) => const PlateModal(initialWeightKg: 100.0),
+              );
+            },
+          ),
+          IconButton(
             icon: Icon(
               settings.isLbs ? Icons.scale_outlined : Icons.scale,
               color: AppTheme.primaryAmber,
@@ -99,6 +116,13 @@ class DashboardScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
+              // Athlete Daily Briefing / Summary Overview Card
+              AthleteSummaryOverviewCard(
+                dayTemplate: currentDay,
+                onNavigateTab: onNavigateTab,
+              ),
+              const SizedBox(height: 16),
+
               // Active Cycle Banner
               _buildCycleCard(context, program),
               const SizedBox(height: 16),

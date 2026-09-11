@@ -2,8 +2,10 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:nested/nested.dart';
 import 'package:oly/models/program_model.dart';
+import 'package:oly/providers/active_session_provider.dart';
 import 'package:oly/providers/body_comp_provider.dart';
 import 'package:oly/providers/breathing_provider.dart';
 import 'package:oly/providers/injury_provider.dart';
@@ -19,14 +21,13 @@ import 'package:oly/services/storage_service.dart';
 import 'package:oly/theme/app_theme.dart';
 import 'package:oly/views/analytics_screen.dart';
 import 'package:oly/views/dashboard_screen.dart';
-import 'package:oly/views/lifts_screen.dart';
-import 'package:oly/views/max_test_screen.dart';
 import 'package:oly/views/nutrition/nutrition_dashboard_screen.dart';
-import 'package:oly/views/plate_calculator_screen.dart';
+import 'package:oly/views/recover_screen.dart';
 import 'package:oly/views/recovery_session_screen.dart';
 import 'package:oly/views/splash_screen.dart';
 import 'package:oly/views/warmup_session_screen.dart';
 import 'package:oly/views/workout_session_screen.dart';
+import 'package:oly/widgets/active_session_mini_dock.dart';
 import 'package:provider/provider.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
@@ -104,6 +105,9 @@ void main() async {
         ChangeNotifierProvider<BreathingProvider>(
           create: (BuildContext _) => BreathingProvider(storageService),
         ),
+        ChangeNotifierProvider<ActiveSessionProvider>(
+          create: (BuildContext _) => ActiveSessionProvider(),
+        ),
       ],
       child: const OlyApp(),
     ),
@@ -172,21 +176,25 @@ class MainNavigationContainer extends StatefulWidget {
 
 class _MainNavigationContainerState extends State<MainNavigationContainer> {
   late int _currentIndex;
+  late final List<Widget> _screens;
 
   @override
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex;
+    _screens = <Widget>[
+      DashboardScreen(onNavigateTab: _switchTab),
+      const RecoverScreen(),
+      const NutritionDashboardScreen(),
+      const AnalyticsScreen(),
+    ];
   }
 
-  final List<Widget> _screens = <Widget>[
-    const DashboardScreen(),
-    const LiftsScreen(),
-    const NutritionDashboardScreen(),
-    const PlateCalculatorScreen(),
-    const MaxTestScreen(),
-    const AnalyticsScreen(),
-  ];
+  void _switchTab(int index) {
+    if (index >= 0 && index < _screens.length) {
+      setState(() => _currentIndex = index);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -194,39 +202,49 @@ class _MainNavigationContainerState extends State<MainNavigationContainer> {
       body: SafeArea(
         child: IndexedStack(index: _currentIndex, children: _screens),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (int index) => setState(() => _currentIndex = index),
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.dashboard_outlined),
-            activeIcon: Icon(Icons.dashboard),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.fitness_center_outlined),
-            activeIcon: Icon(Icons.fitness_center),
-            label: 'Lifts',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.restaurant_outlined),
-            activeIcon: Icon(Icons.restaurant),
-            label: 'Nutrition',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.pie_chart_outline),
-            activeIcon: Icon(Icons.pie_chart),
-            label: 'Loader',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.emoji_events_outlined),
-            activeIcon: Icon(Icons.emoji_events),
-            label: 'Max Test',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.insights_outlined),
-            activeIcon: Icon(Icons.insights),
-            label: 'Analytics',
+      bottomNavigationBar: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          const ActiveSessionMiniDock(),
+          BottomNavigationBar(
+            currentIndex: _currentIndex,
+            onTap: (int index) => setState(() => _currentIndex = index),
+            type: BottomNavigationBarType.fixed,
+            backgroundColor: AppTheme.surfaceCard,
+            selectedItemColor: AppTheme.primaryAmber,
+            unselectedItemColor: AppTheme.textSecondary,
+            selectedLabelStyle: GoogleFonts.outfit(
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.6,
+            ),
+            unselectedLabelStyle: GoogleFonts.outfit(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.6,
+            ),
+            items: const <BottomNavigationBarItem>[
+              BottomNavigationBarItem(
+                icon: Icon(Icons.fitness_center_outlined),
+                activeIcon: Icon(Icons.fitness_center_rounded),
+                label: 'TRAIN',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.self_improvement_outlined),
+                activeIcon: Icon(Icons.self_improvement_rounded),
+                label: 'RECOVER',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.restaurant_outlined),
+                activeIcon: Icon(Icons.restaurant_rounded),
+                label: 'FUEL',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.insights_outlined),
+                activeIcon: Icon(Icons.insights_rounded),
+                label: 'INSIGHTS',
+              ),
+            ],
           ),
         ],
       ),

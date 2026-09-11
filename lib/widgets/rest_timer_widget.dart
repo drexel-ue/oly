@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:oly/providers/active_session_provider.dart';
 import 'package:oly/providers/settings_provider.dart';
 import 'package:oly/services/notification_service.dart';
 import 'package:oly/theme/app_theme.dart';
@@ -106,6 +107,7 @@ class _RestTimerWidgetState extends State<RestTimerWidget>
       _timer?.cancel();
       NotificationService().cancelTimerNotification();
       setState(() => _isRunning = false);
+      _syncPauseWithGlobalSession();
     } else {
       if (_secondsRemaining <= 0) {
         _secondsRemaining = _totalSeconds;
@@ -121,12 +123,14 @@ class _RestTimerWidgetState extends State<RestTimerWidget>
       _secondsRemaining = _totalSeconds;
       _isRunning = false;
     });
+    _syncResetWithGlobalSession();
   }
 
   void _startTimer() {
     _timer?.cancel();
     _targetEndTime = DateTime.now().add(Duration(seconds: _secondsRemaining));
     setState(() => _isRunning = true);
+    _syncStartWithGlobalSession();
 
     NotificationService().scheduleTimerNotification(
       secondsRemaining: _secondsRemaining,
@@ -198,6 +202,43 @@ class _RestTimerWidgetState extends State<RestTimerWidget>
         _startTimer();
       }
     });
+    _syncAdjustWithGlobalSession(deltaSeconds);
+  }
+
+  void _syncStartWithGlobalSession() {
+    try {
+      final ActiveSessionProvider activeSession =
+          Provider.of<ActiveSessionProvider>(context, listen: false);
+      activeSession.startRestTimer(
+        seconds: _secondsRemaining,
+        notificationTitle: widget.notificationTitle,
+        notificationBody: widget.notificationBody,
+      );
+    } catch (_) {}
+  }
+
+  void _syncPauseWithGlobalSession() {
+    try {
+      final ActiveSessionProvider activeSession =
+          Provider.of<ActiveSessionProvider>(context, listen: false);
+      activeSession.pauseRestTimer();
+    } catch (_) {}
+  }
+
+  void _syncResetWithGlobalSession() {
+    try {
+      final ActiveSessionProvider activeSession =
+          Provider.of<ActiveSessionProvider>(context, listen: false);
+      activeSession.resetRestTimer();
+    } catch (_) {}
+  }
+
+  void _syncAdjustWithGlobalSession(int deltaSeconds) {
+    try {
+      final ActiveSessionProvider activeSession =
+          Provider.of<ActiveSessionProvider>(context, listen: false);
+      activeSession.adjustRestTimer(deltaSeconds);
+    } catch (_) {}
   }
 
   void _setDuration(int seconds) {
@@ -208,6 +249,7 @@ class _RestTimerWidgetState extends State<RestTimerWidget>
       _secondsRemaining = seconds;
       _isRunning = false;
     });
+    _syncResetWithGlobalSession();
   }
 
   String get _formattedTime {

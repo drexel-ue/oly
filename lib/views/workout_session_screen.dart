@@ -13,6 +13,7 @@ import 'package:oly/models/lift_model.dart';
 import 'package:oly/models/program_model.dart';
 import 'package:oly/models/wod_definition.dart';
 import 'package:oly/models/workout_session.dart';
+import 'package:oly/providers/active_session_provider.dart';
 import 'package:oly/providers/body_comp_provider.dart';
 import 'package:oly/providers/injury_provider.dart';
 import 'package:oly/providers/lift_provider.dart';
@@ -198,15 +199,59 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
 
     _notesController.addListener(_persistDraft);
 
-    // Initial save of active live session if starting fresh
-    if (_isLiveMode && widget.initialDraft == null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _persistDraft();
-      });
+    // Initial sync with ActiveSessionProvider
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _syncActiveSession();
+      }
+    });
+  }
+
+  void _syncActiveSession() {
+    if (!mounted) {
+      return;
     }
+    try {
+      final ProgramProvider programProvider = Provider.of<ProgramProvider>(
+        context,
+        listen: false,
+      );
+      final ActiveSessionProvider activeSession =
+          Provider.of<ActiveSessionProvider>(context, listen: false);
+
+      String activeEx = '';
+      String activeSet = '';
+      for (final MapEntry<String, List<CompletedSet>> entry in _exerciseSets.entries) {
+        final int nextIdx = entry.value.indexWhere((CompletedSet s) => !s.isCompleted);
+        if (nextIdx != -1) {
+          activeEx = _swappedExerciseNames[entry.key] ?? entry.key;
+          final String wtStr = _weightControllers[entry.key]?.text ?? '';
+          final double? wt = double.tryParse(wtStr);
+          activeSet =
+              'Set ${nextIdx + 1} of ${entry.value.length}${wt != null && wt > 0 ? ' • ${wt.toStringAsFixed(1)}kg' : ''}';
+          break;
+        }
+      }
+      if (activeEx.isEmpty && _exerciseSets.isNotEmpty) {
+        final String lastKey = _exerciseSets.keys.last;
+        activeEx = _swappedExerciseNames[lastKey] ?? lastKey;
+        activeSet = 'All sets done';
+      }
+
+      activeSession.startSession(
+        sessionTitle: widget.dayTemplate.title,
+        sessionType: SessionType.workout,
+        isPreviewMode: !_isLiveMode,
+        currentExercise: activeEx,
+        currentSetInfo: activeSet,
+        dayNumber: widget.dayTemplate.dayNumber,
+        weekNumber: widget.previewWeek ?? programProvider.currentWeek,
+      );
+    } catch (_) {}
   }
 
   void _persistDraft() {
+    _syncActiveSession();
     if (!_isLiveMode || !mounted) {
       return;
     }
@@ -287,7 +332,13 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
         actions: <Widget>[
           TextButton(
             onPressed: () async {
+              ActiveSessionProvider? activeSession;
+              try {
+                activeSession =
+                    Provider.of<ActiveSessionProvider>(context, listen: false);
+              } catch (_) {}
               await programProvider.clearActiveDraft();
+              activeSession?.endSession();
               if (ctx.mounted) {
                 Navigator.pop(ctx, true);
               }
@@ -302,7 +353,14 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
               backgroundColor: AppTheme.primaryAmber,
               foregroundColor: Colors.black,
             ),
-            onPressed: () => Navigator.pop(ctx, true),
+            onPressed: () {
+              try {
+                final ActiveSessionProvider activeSession =
+                    Provider.of<ActiveSessionProvider>(context, listen: false);
+                activeSession.minimizeSession();
+              } catch (_) {}
+              Navigator.pop(ctx, true);
+            },
             child: const Text('Keep Draft & Exit'),
           ),
         ],
@@ -935,6 +993,11 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
       }
 
       Navigator.pop(context);
+      try {
+        final ActiveSessionProvider activeSession =
+            Provider.of<ActiveSessionProvider>(context, listen: false);
+        activeSession.endSession();
+      } catch (_) {}
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
@@ -963,6 +1026,15 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
       canPop: !_isLiveMode || _isDraftEmpty(),
       onPopInvokedWithResult: (bool didPop, Object? result) async {
         if (didPop) {
+          if (!_isLiveMode) {
+            try {
+              final ActiveSessionProvider activeSession =
+                  Provider.of<ActiveSessionProvider>(context, listen: false);
+              if (!activeSession.isMinimized) {
+                activeSession.endSession();
+              }
+            } catch (_) {}
+          }
           return;
         }
         final bool? shouldLeave = await _showExitPrompt(context);
@@ -972,6 +1044,46 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
       },
       child: Scaffold(
         appBar: AppBar(
+          leading: !_isLiveMode
+              ? IconButton(
+                  icon: const Icon(
+                    Icons.close_rounded,
+                    size: 28,
+                    color: AppTheme.secondaryCyan,
+                  ),
+                  tooltip: 'Close Preview',
+                  onPressed: () {
+                    try {
+                      final ActiveSessionProvider activeSession =
+                          Provider.of<ActiveSessionProvider>(
+                        context,
+                        listen: false,
+                      );
+                      activeSession.endSession();
+                    } catch (_) {}
+                    Navigator.pop(context);
+                  },
+                )
+              : IconButton(
+                  icon: const Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    size: 30,
+                    color: AppTheme.primaryAmber,
+                  ),
+                  tooltip: 'Minimize to Dock',
+                  onPressed: () {
+                    _persistDraft();
+                    try {
+                      final ActiveSessionProvider activeSession =
+                          Provider.of<ActiveSessionProvider>(
+                        context,
+                        listen: false,
+                      );
+                      activeSession.minimizeSession();
+                    } catch (_) {}
+                    Navigator.pop(context);
+                  },
+                ),
           title: Text(
             widget.dayTemplate.title,
             style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
@@ -987,6 +1099,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                     setState(() {
                       _isLiveMode = !_isLiveMode;
                     });
+                    _syncActiveSession();
                     if (_isLiveMode) {
                       _persistDraft();
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -1054,6 +1167,26 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                 ),
               ),
             ),
+            if (!_isLiveMode)
+              IconButton(
+                icon: const Icon(
+                  Icons.keyboard_arrow_down_rounded,
+                  color: AppTheme.secondaryCyan,
+                  size: 28,
+                ),
+                tooltip: 'Minimize to Dock',
+                onPressed: () {
+                  try {
+                    final ActiveSessionProvider activeSession =
+                        Provider.of<ActiveSessionProvider>(
+                      context,
+                      listen: false,
+                    );
+                    activeSession.minimizeSession();
+                  } catch (_) {}
+                  Navigator.pop(context);
+                },
+              ),
             IconButton(
               icon: const Icon(
                 Icons.directions_run,
@@ -1254,7 +1387,17 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                           children: <Widget>[
                             Expanded(
                               child: OutlinedButton(
-                                onPressed: () => Navigator.pop(context),
+                                onPressed: () {
+                                  try {
+                                    final ActiveSessionProvider activeSession =
+                                        Provider.of<ActiveSessionProvider>(
+                                      context,
+                                      listen: false,
+                                    );
+                                    activeSession.endSession();
+                                  } catch (_) {}
+                                  Navigator.pop(context);
+                                },
                                 style: OutlinedButton.styleFrom(
                                   minimumSize: const Size(0, 50),
                                   foregroundColor: AppTheme.textSecondary,

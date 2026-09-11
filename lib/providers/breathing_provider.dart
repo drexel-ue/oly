@@ -29,6 +29,20 @@ class BreathingProvider extends ChangeNotifier {
     );
   }
 
+  int get todayCompletedRounds {
+    final DateTime now = DateTime.now();
+    return _sessions
+        .where(
+          (BreathingSessionLog s) =>
+              s.date.year == now.year &&
+              s.date.month == now.month &&
+              s.date.day == now.day,
+        )
+        .fold(0, (int sum, BreathingSessionLog s) => sum + s.rounds.length);
+  }
+
+  int get personalBestRetentionSeconds => allTimeMaxHoldSeconds;
+
   int get allTimeMaxHoldSeconds {
     if (_sessions.isEmpty) {
       return 0;

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:oly/models/mobility_exercise_model.dart';
+import 'package:oly/providers/active_session_provider.dart';
 import 'package:oly/providers/recovery_provider.dart';
 import 'package:oly/services/recovery_engine_service.dart';
 import 'package:oly/theme/app_theme.dart';
@@ -36,9 +37,10 @@ class _RecoverySessionScreenState extends State<RecoverySessionScreen> {
     _phaseKeys.addAll(
       List.generate(widget.routine.phaseGroups.length, (_) => GlobalKey()),
     );
-    WidgetsBinding.instance.addPostFrameCallback(
-      (_) => _scrollToCurrentPhase(),
-    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollToCurrentPhase();
+      _syncActiveMobilitySession();
+    });
   }
 
   @override
@@ -77,17 +79,48 @@ class _RecoverySessionScreenState extends State<RecoverySessionScreen> {
     });
   }
 
+  void _syncActiveMobilitySession() {
+    if (!mounted) {
+      return;
+    }
+    try {
+      final ActiveSessionProvider activeSession =
+          Provider.of<ActiveSessionProvider>(context, listen: false);
+      final List<MobilityExerciseModel> exercises = widget.routine.exercises;
+      if (_currentIndex < exercises.length) {
+        final MobilityExerciseModel currentEx = exercises[_currentIndex];
+        final MobilityExerciseModel activeEx =
+            _swappedExercises[currentEx.id] ?? currentEx;
+
+        activeSession.startSession(
+          sessionTitle: widget.routine.diagnosticReasons.isNotEmpty
+              ? widget.routine.diagnosticReasons.first
+              : 'Active Recovery Flow',
+          sessionType: SessionType.mobility,
+          isPreviewMode: widget.isPreviewMode,
+          currentExercise: activeEx.name,
+          currentSetInfo: 'Ex ${_currentIndex + 1} of ${exercises.length}',
+          mobilityRoutine: widget.routine,
+          mobilityExerciseIndex: _currentIndex,
+          completedMobilityIds: _completedExerciseIds,
+        );
+      }
+    } catch (_) {}
+  }
+
   void _setExerciseIndex(int newIndex) {
     setState(() {
       _currentIndex = newIndex;
     });
     _scrollToCurrentPhase();
+    _syncActiveMobilitySession();
   }
 
   void _markExerciseCompleted(String id) {
     setState(() {
       _completedExerciseIds.add(id);
     });
+    _syncActiveMobilitySession();
   }
 
   void _skipExercise() {
@@ -250,6 +283,14 @@ class _RecoverySessionScreenState extends State<RecoverySessionScreen> {
                     }
                     if (mounted && ctx.mounted) {
                       Navigator.pop(ctx); // Close dialog
+                      try {
+                        final ActiveSessionProvider activeSession =
+                            Provider.of<ActiveSessionProvider>(
+                          context,
+                          listen: false,
+                        );
+                        activeSession.endSession();
+                      } catch (_) {}
                       nav.pop(); // Exit recovery screen back to dashboard
                       messenger.showSnackBar(
                         SnackBar(
@@ -333,23 +374,99 @@ class _RecoverySessionScreenState extends State<RecoverySessionScreen> {
     final MobilityExerciseModel currentEx = activeEx;
     final double progress = (_currentIndex + 1) / exercises.length;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Active Recovery Routine',
-          style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
-        ),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(6),
-          child: LinearProgressIndicator(
-            value: progress,
-            backgroundColor: AppTheme.surfaceElevated,
-            valueColor: const AlwaysStoppedAnimation<Color>(
-              AppTheme.accentBlue,
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (bool didPop, Object? result) {
+        if (didPop) {
+          try {
+            final ActiveSessionProvider activeSession =
+                Provider.of<ActiveSessionProvider>(context, listen: false);
+            if (!activeSession.isMinimized) {
+              activeSession.endSession();
+            }
+          } catch (_) {}
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          leading: widget.isPreviewMode
+              ? IconButton(
+                  icon: const Icon(
+                    Icons.close_rounded,
+                    size: 28,
+                    color: AppTheme.secondaryCyan,
+                  ),
+                  tooltip: 'Close Preview',
+                  onPressed: () {
+                    try {
+                      final ActiveSessionProvider activeSession =
+                          Provider.of<ActiveSessionProvider>(
+                        context,
+                        listen: false,
+                      );
+                      activeSession.endSession();
+                    } catch (_) {}
+                    Navigator.pop(context);
+                  },
+                )
+              : IconButton(
+                  icon: const Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    size: 30,
+                    color: AppTheme.secondaryCyan,
+                  ),
+                  tooltip: 'Minimize to Dock',
+                  onPressed: () {
+                    _syncActiveMobilitySession();
+                    try {
+                      final ActiveSessionProvider activeSession =
+                          Provider.of<ActiveSessionProvider>(
+                        context,
+                        listen: false,
+                      );
+                      activeSession.minimizeSession();
+                    } catch (_) {}
+                    Navigator.pop(context);
+                  },
+                ),
+          title: Text(
+            'Active Recovery Routine',
+            style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
+          ),
+          actions: <Widget>[
+            if (widget.isPreviewMode)
+              IconButton(
+                icon: const Icon(
+                  Icons.keyboard_arrow_down_rounded,
+                  size: 28,
+                  color: AppTheme.secondaryCyan,
+                ),
+                tooltip: 'Minimize to Dock',
+                onPressed: () {
+                  _syncActiveMobilitySession();
+                  try {
+                    final ActiveSessionProvider activeSession =
+                        Provider.of<ActiveSessionProvider>(
+                      context,
+                      listen: false,
+                    );
+                    activeSession.minimizeSession();
+                  } catch (_) {}
+                  Navigator.pop(context);
+                },
+              ),
+          ],
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(6),
+            child: LinearProgressIndicator(
+              value: progress,
+              backgroundColor: AppTheme.surfaceElevated,
+              valueColor: const AlwaysStoppedAnimation<Color>(
+                AppTheme.accentBlue,
+              ),
             ),
           ),
         ),
-      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
@@ -588,6 +705,7 @@ class _RecoverySessionScreenState extends State<RecoverySessionScreen> {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }
