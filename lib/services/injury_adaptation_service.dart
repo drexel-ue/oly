@@ -13,6 +13,7 @@ class ExerciseAdaptationRecommendation {
     this.rationale = '',
     this.triggeringInjuryName,
     this.triggeringInjuryRegion,
+    this.triggeringInjurySubRegion,
     this.triggeringInjuryStage,
   });
 
@@ -25,6 +26,7 @@ class ExerciseAdaptationRecommendation {
   final String rationale;
   final String? triggeringInjuryName;
   final InjuryRegion? triggeringInjuryRegion;
+  final InjurySubRegion? triggeringInjurySubRegion;
   final InjuryStage? triggeringInjuryStage;
 }
 
@@ -96,12 +98,72 @@ class InjuryAdaptationService {
             rationale: sub.rationale,
             triggeringInjuryName: injury.name,
             triggeringInjuryRegion: injury.region,
+            triggeringInjurySubRegion: injury.subRegion,
             triggeringInjuryStage: injury.stage,
           );
         }
       }
 
-      // 2. Generic constraint rules
+      // 2. Specific Anatomical Sub-Region rules
+      if (injury.subRegion != null) {
+        if (injury.subRegion == InjurySubRegion.bigToeMtp &&
+            exNameLower.contains('jerk') &&
+            !exNameLower.contains('power')) {
+          return ExerciseAdaptationRecommendation(
+            originalExerciseName: exercise.name,
+            isContraindicated: true,
+            replacementName: 'Clean and Power Jerk',
+            replacementLiftId: 'power_clean',
+            weightMultiplier: 0.85,
+            suggestedWeightKg: standardTarget * 0.85,
+            rationale:
+                'Power jerk receiving position eliminates rear foot 1st MTP hyperextension.',
+            triggeringInjuryName: injury.name,
+            triggeringInjuryRegion: injury.region,
+            triggeringInjurySubRegion: injury.subRegion,
+            triggeringInjuryStage: injury.stage,
+          );
+        }
+        if (injury.subRegion == InjurySubRegion.adductorGroin &&
+            exNameLower.contains('squat') &&
+            !exNameLower.contains('box') &&
+            !exNameLower.contains('narrow')) {
+          return ExerciseAdaptationRecommendation(
+            originalExerciseName: exercise.name,
+            isContraindicated: true,
+            replacementName: 'Narrow Stance Box Squat',
+            replacementLiftId: 'back_squat',
+            weightMultiplier: 0.80,
+            suggestedWeightKg: standardTarget * 0.80,
+            rationale:
+                'Narrow stance eliminates dynamic adductor shear and wide-stance groin strain.',
+            triggeringInjuryName: injury.name,
+            triggeringInjuryRegion: injury.region,
+            triggeringInjurySubRegion: injury.subRegion,
+            triggeringInjuryStage: injury.stage,
+          );
+        }
+        if (injury.subRegion == InjurySubRegion.thumbHookGrip &&
+            (exNameLower.contains('snatch') || exNameLower.contains('clean')) &&
+            !exNameLower.contains('strap')) {
+          return ExerciseAdaptationRecommendation(
+            originalExerciseName: exercise.name,
+            isContraindicated: true,
+            replacementName: '${exercise.name} (with Lifting Straps)',
+            replacementLiftId: exercise.liftId,
+            weightMultiplier: 0.90,
+            suggestedWeightKg: standardTarget * 0.90,
+            rationale:
+                'Use lifting straps to completely eliminate hook grip thumb UCL shear.',
+            triggeringInjuryName: injury.name,
+            triggeringInjuryRegion: injury.region,
+            triggeringInjurySubRegion: injury.subRegion,
+            triggeringInjuryStage: injury.stage,
+          );
+        }
+      }
+
+      // 3. Generic constraint rules
       for (final BiomechanicalConstraint constraint in injury.constraints) {
         // Knee flexion constraint
         if (constraint == BiomechanicalConstraint.avoidDeepKneeFlexion) {
@@ -116,6 +178,7 @@ class InjuryAdaptationService {
               rationale: 'Avoid deep knee flexion catch. Power variation from blocks protects patellofemoral joint.',
               triggeringInjuryName: injury.name,
               triggeringInjuryRegion: injury.region,
+              triggeringInjurySubRegion: injury.subRegion,
               triggeringInjuryStage: injury.stage,
             );
           }
@@ -130,6 +193,7 @@ class InjuryAdaptationService {
               rationale: 'Box squat eliminates forward knee translation while maintaining squat loading.',
               triggeringInjuryName: injury.name,
               triggeringInjuryRegion: injury.region,
+              triggeringInjurySubRegion: injury.subRegion,
               triggeringInjuryStage: injury.stage,
             );
           }
@@ -148,6 +212,7 @@ class InjuryAdaptationService {
               rationale: 'Snatch pulls preserve triple extension power without putting shoulder into overhead lockout.',
               triggeringInjuryName: injury.name,
               triggeringInjuryRegion: injury.region,
+              triggeringInjurySubRegion: injury.subRegion,
               triggeringInjuryStage: injury.stage,
             );
           }
@@ -162,6 +227,7 @@ class InjuryAdaptationService {
               rationale: 'Scapular plane pressing relieves subacromial impingement and rotator cuff strain.',
               triggeringInjuryName: injury.name,
               triggeringInjuryRegion: injury.region,
+              triggeringInjurySubRegion: injury.subRegion,
               triggeringInjuryStage: injury.stage,
             );
           }
@@ -181,6 +247,7 @@ class InjuryAdaptationService {
               rationale: 'Pulling from blocks reduces lumbar spinal shear moment arm.',
               triggeringInjuryName: injury.name,
               triggeringInjuryRegion: injury.region,
+              triggeringInjurySubRegion: injury.subRegion,
               triggeringInjuryStage: injury.stage,
             );
           }
@@ -199,6 +266,7 @@ class InjuryAdaptationService {
               rationale: 'Pull with straps allows full pulling triple extension without wrist extension impact.',
               triggeringInjuryName: injury.name,
               triggeringInjuryRegion: injury.region,
+              triggeringInjurySubRegion: injury.subRegion,
               triggeringInjuryStage: injury.stage,
             );
           }

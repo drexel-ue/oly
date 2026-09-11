@@ -12,10 +12,12 @@ class InjuryLogBottomSheet extends StatefulWidget {
   const InjuryLogBottomSheet({
     required this.initialRegion,
     super.key,
+    this.initialSubRegion,
     this.existingInjury,
   });
 
   final InjuryRegion initialRegion;
+  final InjurySubRegion? initialSubRegion;
   final InjuryRecord? existingInjury;
 
   @override
@@ -25,6 +27,7 @@ class InjuryLogBottomSheet extends StatefulWidget {
 class _InjuryLogBottomSheetState extends State<InjuryLogBottomSheet> {
   final Uuid _uuid = const Uuid();
   late InjuryRegion _region;
+  InjurySubRegion? _subRegion;
   late TextEditingController _nameController;
   late TextEditingController _notesController;
   late DateTime _onsetDate;
@@ -39,9 +42,18 @@ class _InjuryLogBottomSheetState extends State<InjuryLogBottomSheet> {
   void initState() {
     super.initState();
     _region = widget.existingInjury?.region ?? widget.initialRegion;
-    _nameController = TextEditingController(
-      text: widget.existingInjury?.name ?? '${_region.displayName} Strain',
-    );
+    _subRegion = widget.existingInjury?.subRegion ?? widget.initialSubRegion;
+
+    final String initialName;
+    if (widget.existingInjury != null) {
+      initialName = widget.existingInjury!.name;
+    } else if (_subRegion != null && !_subRegion!.isGeneral) {
+      initialName = '${_region.displayName} • ${_subRegion!.shortName}';
+    } else {
+      initialName = '${_region.displayName} Strain';
+    }
+
+    _nameController = TextEditingController(text: initialName);
     _notesController = TextEditingController(
       text: widget.existingInjury?.notes ?? '',
     );
@@ -50,6 +62,12 @@ class _InjuryLogBottomSheetState extends State<InjuryLogBottomSheet> {
     _selectedConstraints = Set<BiomechanicalConstraint>.from(
       widget.existingInjury?.constraints ?? <BiomechanicalConstraint>[],
     );
+
+    // If new injury and sub-region specified, apply its default constraints
+    if (widget.existingInjury == null && _subRegion != null) {
+      _selectedConstraints.addAll(_subRegion!.defaultConstraints);
+    }
+
     _osiicsCode = widget.existingInjury?.osiicsCode ?? '';
     _safeSubstitutions = List<InjurySubstitution>.from(
       widget.existingInjury?.safeSubstitutions ?? <InjurySubstitution>[],
@@ -60,7 +78,8 @@ class _InjuryLogBottomSheetState extends State<InjuryLogBottomSheet> {
 
   void _loadCatalogForRegion() {
     setState(() {
-      _catalogSuggestions = InjuryDatabaseService.instance.getByRegion(_region);
+      _catalogSuggestions =
+          InjuryDatabaseService.instance.getByRegionAndSubRegion(_region, _subRegion);
     });
   }
 
@@ -89,6 +108,9 @@ class _InjuryLogBottomSheetState extends State<InjuryLogBottomSheet> {
     setState(() {
       _nameController.text = catalog.name;
       _osiicsCode = catalog.osiicsCode;
+      if (catalog.subRegion != null) {
+        _subRegion = catalog.subRegion;
+      }
       _selectedConstraints.addAll(catalog.aggravatingVectors);
       _safeSubstitutions = List<InjurySubstitution>.from(catalog.safeSubstitutions);
     });
@@ -129,9 +151,12 @@ class _InjuryLogBottomSheetState extends State<InjuryLogBottomSheet> {
       id: widget.existingInjury?.id ?? _uuid.v4(),
       name: _nameController.text.trim().isNotEmpty
           ? _nameController.text.trim()
-          : '${_region.displayName} Strain',
+          : (_subRegion != null && !_subRegion!.isGeneral
+              ? '${_region.displayName} • ${_subRegion!.shortName}'
+              : '${_region.displayName} Strain'),
       osiicsCode: _osiicsCode,
       region: _region,
+      subRegion: _subRegion,
       onsetDate: _onsetDate,
       painScale: _painScale,
       constraints: _selectedConstraints.toList(),
@@ -251,6 +276,57 @@ class _InjuryLogBottomSheetState extends State<InjuryLogBottomSheet> {
           Expanded(
             child: ListView(
               children: <Widget>[
+                // Anatomical Sub-Target Chips
+                Text(
+                  'ANATOMICAL TARGET / SPECIFIC TISSUE',
+                  style: GoogleFonts.inter(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.0,
+                    color: AppTheme.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: InjurySubRegionExtension.forRegion(_region).map((InjurySubRegion sub) {
+                    final bool isSelected = _subRegion == sub;
+                    return ChoiceChip(
+                      selected: isSelected,
+                      label: Text(
+                        sub.shortName,
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                          color: isSelected ? Colors.black : AppTheme.textPrimary,
+                        ),
+                      ),
+                      selectedColor: AppTheme.primaryAmber,
+                      backgroundColor: AppTheme.surfaceElevated,
+                      side: BorderSide(
+                        color: isSelected ? AppTheme.primaryAmber : AppTheme.borderColor,
+                      ),
+                      onSelected: (bool val) {
+                        if (val) {
+                          setState(() {
+                            _subRegion = sub;
+                            if (!sub.isGeneral &&
+                                (_nameController.text.isEmpty ||
+                                    _nameController.text.contains('Strain') ||
+                                    _nameController.text.contains('•'))) {
+                              _nameController.text = '${_region.displayName} • ${sub.shortName}';
+                            }
+                            _selectedConstraints.addAll(sub.defaultConstraints);
+                            _loadCatalogForRegion();
+                          });
+                        }
+                      },
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 16),
+
                 // OSIICS / Preset Diagnosis Catalog Chips
                 if (_catalogSuggestions.isNotEmpty) ...<Widget>[
                   Text(

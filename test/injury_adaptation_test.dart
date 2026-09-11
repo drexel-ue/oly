@@ -148,5 +148,93 @@ void main() {
         isTrue,
       );
     });
+
+    test('Adapts Split Jerk to Power Jerk when bigToeMtp injury is active', () {
+      final ExerciseTemplate jerkEx = ExerciseTemplate(
+        name: 'Split Jerk',
+        liftId: 'clean_and_jerk',
+        setScheme: '3 Sets of 2 Reps',
+      );
+
+      final InjuryRecord turfToe = InjuryRecord(
+        id: 'toe_1',
+        name: 'Turf Toe Strain',
+        region: InjuryRegion.leftCalfAnkle,
+        subRegion: InjurySubRegion.bigToeMtp,
+        onsetDate: DateTime.now().subtract(const Duration(days: 4)),
+        painScale: 5,
+      );
+
+      final ExerciseAdaptationRecommendation result =
+          InjuryAdaptationService.evaluateExercise(
+        exercise: jerkEx,
+        activeInjuries: <InjuryRecord>[turfToe],
+        currentWeek: 1,
+        currentMaxes: mockMaxes,
+      );
+
+      expect(result.isContraindicated, isTrue);
+      expect(result.replacementName, equals('Clean and Power Jerk'));
+      expect(result.triggeringInjurySubRegion, equals(InjurySubRegion.bigToeMtp));
+      expect(result.rationale, contains('1st MTP'));
+    });
+
+    test('Adapts Back Squat to Narrow Stance Box Squat when adductorGroin is active', () {
+      final ExerciseTemplate squatEx = ExerciseTemplate(
+        name: 'Back Squat',
+        liftId: 'back_squat',
+        setScheme: '5 Sets of 3 Reps',
+      );
+
+      final InjuryRecord groinStrain = InjuryRecord(
+        id: 'groin_1',
+        name: 'Adductor Strain',
+        region: InjuryRegion.leftHipGlute,
+        subRegion: InjurySubRegion.adductorGroin,
+        onsetDate: DateTime.now().subtract(const Duration(days: 8)),
+        painScale: 6,
+      );
+
+      final ExerciseAdaptationRecommendation result =
+          InjuryAdaptationService.evaluateExercise(
+        exercise: squatEx,
+        activeInjuries: <InjuryRecord>[groinStrain],
+        currentWeek: 1,
+        currentMaxes: mockMaxes,
+      );
+
+      expect(result.isContraindicated, isTrue);
+      expect(result.replacementName, equals('Narrow Stance Box Squat'));
+      expect(result.triggeringInjurySubRegion, equals(InjurySubRegion.adductorGroin));
+    });
+
+    test('Recommends lifting straps when thumbHookGrip is active', () {
+      final ExerciseTemplate snatchEx = ExerciseTemplate(
+        name: 'Snatch',
+        liftId: 'snatch',
+        setScheme: '4 Sets of 2 Reps',
+      );
+
+      final InjuryRecord thumbStrain = InjuryRecord(
+        id: 'thumb_1',
+        name: 'Hook Grip Thumb Pain',
+        region: InjuryRegion.rightWrist,
+        subRegion: InjurySubRegion.thumbHookGrip,
+        onsetDate: DateTime.now().subtract(const Duration(days: 2)),
+        painScale: 4,
+      );
+
+      final ExerciseAdaptationRecommendation result =
+          InjuryAdaptationService.evaluateExercise(
+        exercise: snatchEx,
+        activeInjuries: <InjuryRecord>[thumbStrain],
+        currentWeek: 1,
+        currentMaxes: mockMaxes,
+      );
+
+      expect(result.isContraindicated, isTrue);
+      expect(result.replacementName, contains('Lifting Straps'));
+      expect(result.triggeringInjurySubRegion, equals(InjurySubRegion.thumbHookGrip));
+    });
   });
 }

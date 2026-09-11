@@ -798,10 +798,15 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                     children:
                         <String>[
                           'Shoulders',
-                          'Hips',
+                          'Upper Back / Traps',
                           'Lower Back',
+                          'Hips & Groin',
+                          'Quads',
+                          'Hamstrings',
                           'Knees',
-                          'Wrists',
+                          'Calves & Achilles',
+                          'Wrists & Hands',
+                          'Elbows & Arms',
                         ].map((String tag) {
                           final bool isSelected = _selectedJointStrains
                               .contains(tag);

@@ -115,5 +115,86 @@ void main() {
       expect(improved.hasImproved, isTrue);
       expect(improved.hasWorsened, isFalse);
     });
+
+    test('InjurySubRegion returns appropriate targets for each InjuryRegion', () {
+      final List<InjurySubRegion> kneeTargets =
+          InjurySubRegionExtension.forRegion(InjuryRegion.leftKnee);
+      expect(kneeTargets, contains(InjurySubRegion.patellarTendon));
+      expect(kneeTargets, contains(InjurySubRegion.quadricepsTendon));
+      expect(kneeTargets, contains(InjurySubRegion.medialCompartment));
+      expect(kneeTargets, contains(InjurySubRegion.generalKnee));
+
+      final List<InjurySubRegion> ankleTargets =
+          InjurySubRegionExtension.forRegion(InjuryRegion.leftCalfAnkle);
+      expect(ankleTargets, contains(InjurySubRegion.achillesTendonMid));
+      expect(ankleTargets, contains(InjurySubRegion.bigToeMtp));
+      expect(ankleTargets, contains(InjurySubRegion.shinSplints));
+
+      final List<InjurySubRegion> hipTargets =
+          InjurySubRegionExtension.forRegion(InjuryRegion.rightHipGlute);
+      expect(hipTargets, contains(InjurySubRegion.adductorGroin));
+      expect(hipTargets, contains(InjurySubRegion.hipFlexorPsoas));
+      expect(hipTargets, contains(InjurySubRegion.siJoint));
+    });
+
+    test('InjuryRecord fullDisplayName handles sub-regions correctly', () {
+      final InjuryRecord withSub = InjuryRecord(
+        id: 'rec_sub',
+        name: 'Patellar Tendon Soreness',
+        region: InjuryRegion.leftKnee,
+        subRegion: InjurySubRegion.patellarTendon,
+        onsetDate: DateTime.now(),
+        painScale: 4,
+      );
+      expect(withSub.fullDisplayName, equals('Left Knee • Patellar Tendon'));
+
+      final InjuryRecord withGeneral = InjuryRecord(
+        id: 'rec_gen',
+        name: 'Left Knee Strain',
+        region: InjuryRegion.leftKnee,
+        subRegion: InjurySubRegion.generalKnee,
+        onsetDate: DateTime.now(),
+        painScale: 3,
+      );
+      expect(withGeneral.fullDisplayName, equals('Left Knee'));
+
+      final InjuryRecord withoutSub = InjuryRecord(
+        id: 'rec_none',
+        name: 'Left Knee Strain',
+        region: InjuryRegion.leftKnee,
+        onsetDate: DateTime.now(),
+        painScale: 3,
+      );
+      expect(withoutSub.fullDisplayName, equals('Left Knee'));
+    });
+
+    test('InjuryRecord serializes and deserializes subRegion with backwards compatibility', () {
+      final InjuryRecord recordWithSub = InjuryRecord(
+        id: 'rec_1',
+        name: 'Groin Strain',
+        region: InjuryRegion.leftHipGlute,
+        subRegion: InjurySubRegion.adductorGroin,
+        onsetDate: DateTime.now(),
+        painScale: 5,
+      );
+
+      final Map<String, dynamic> json = recordWithSub.toJson();
+      expect(json['subRegion'], equals('adductorGroin'));
+
+      final InjuryRecord restored = InjuryRecord.fromJson(json);
+      expect(restored.subRegion, equals(InjurySubRegion.adductorGroin));
+
+      // Legacy JSON without subRegion
+      final Map<String, dynamic> legacyJson = <String, dynamic>{
+        'id': 'legacy_1',
+        'name': 'Shoulder Ache',
+        'region': 'rightShoulder',
+        'onsetDate': DateTime.now().toIso8601String(),
+        'painScale': 3,
+      };
+      final InjuryRecord legacyRestored = InjuryRecord.fromJson(legacyJson);
+      expect(legacyRestored.subRegion, isNull);
+      expect(legacyRestored.fullDisplayName, equals('Right Shoulder'));
+    });
   });
 }

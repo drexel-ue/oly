@@ -4,6 +4,7 @@ import 'package:oly/models/injury_model.dart';
 import 'package:oly/models/mobility_exercise_model.dart';
 import 'package:oly/providers/injury_provider.dart';
 import 'package:oly/theme/app_theme.dart';
+import 'package:oly/widgets/anatomical_subregion_sheet.dart';
 import 'package:oly/widgets/injury_export_bottom_sheet.dart';
 import 'package:oly/widgets/injury_log_bottom_sheet.dart';
 import 'package:oly/widgets/interactive_body_map.dart';
@@ -46,8 +47,32 @@ class _InjuryTrackerScreenState extends State<InjuryTrackerScreen>
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
+      builder: (BuildContext _) => AnatomicalSubRegionSheet(
+        region: region,
+        existingInjury: existing,
+        onSubRegionSelected: (InjurySubRegion subRegion) {
+          _openLogSheet(
+            region: region,
+            subRegion: subRegion,
+            existing: existing,
+          );
+        },
+      ),
+    );
+  }
+
+  void _openLogSheet({
+    required InjuryRegion region,
+    InjurySubRegion? subRegion,
+    InjuryRecord? existing,
+  }) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
       builder: (BuildContext _) => InjuryLogBottomSheet(
         initialRegion: region,
+        initialSubRegion: subRegion,
         existingInjury: existing,
       ),
     );
@@ -450,7 +475,7 @@ class _InjuryTrackerScreenState extends State<InjuryTrackerScreen>
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          injury.region.displayName,
+                          injury.fullDisplayName,
                           style: GoogleFonts.inter(
                             fontSize: 12,
                             color: AppTheme.secondaryCyan,
@@ -518,7 +543,11 @@ class _InjuryTrackerScreenState extends State<InjuryTrackerScreen>
                         backgroundColor: AppTheme.primaryAmber,
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       ),
-                      onPressed: () => _onRegionTapped(injury.region),
+                      onPressed: () => _openLogSheet(
+                        region: injury.region,
+                        subRegion: injury.subRegion,
+                        existing: injury,
+                      ),
                     ),
                   ],
                 ),
@@ -654,7 +683,7 @@ class _InjuryTrackerScreenState extends State<InjuryTrackerScreen>
                           style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
                         ),
                         subtitle: Text(
-                          '${record.region.displayName} • Duration: ${record.formattedDuration}',
+                          '${record.fullDisplayName} • Duration: ${record.formattedDuration}',
                           style: GoogleFonts.inter(
                             fontSize: 11,
                             color: AppTheme.textSecondary,

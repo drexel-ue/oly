@@ -6,6 +6,8 @@ import 'package:oly/providers/injury_provider.dart';
 import 'package:oly/services/storage_service.dart';
 import 'package:oly/theme/app_theme.dart';
 import 'package:oly/views/injury_tracker_screen.dart';
+import 'package:oly/widgets/anatomical_subregion_sheet.dart';
+import 'package:oly/widgets/injury_log_bottom_sheet.dart';
 import 'package:oly/widgets/interactive_body_map.dart';
 import 'package:oly/widgets/post_session_body_checkin_dialog.dart';
 import 'package:oly/widgets/session_injury_adaptation_card.dart';
@@ -442,6 +444,109 @@ void main() {
 
       expect(finalPain.containsKey(InjuryRegion.lumbarSpine), isTrue);
       expect(finalPain[InjuryRegion.lumbarSpine], equals(3));
+    });
+  });
+
+  group('AnatomicalSubRegionSheet Widget Tests', () {
+    testWidgets('Renders sub-regions for Left Knee and selects Patellar Tendon', (
+      WidgetTester tester,
+    ) async {
+      InjurySubRegion? selected;
+
+      await tester.pumpWidget(
+        createTestWidget(
+          AnatomicalSubRegionSheet(
+            region: InjuryRegion.leftKnee,
+            onSubRegionSelected: (InjurySubRegion sub) {
+              selected = sub;
+            },
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(find.text('Left Knee'), findsOneWidget);
+      expect(find.text('Patellar Tendon'), findsOneWidget);
+      expect(find.text('Quad Tendon'), findsOneWidget);
+      expect(find.text('Medial Knee / MCL'), findsOneWidget);
+
+      await tester.tap(find.text('Patellar Tendon'));
+      await tester.pumpAndSettle();
+
+      expect(selected, equals(InjurySubRegion.patellarTendon));
+    });
+
+    testWidgets('Renders existing active injury banner in AnatomicalSubRegionSheet', (
+      WidgetTester tester,
+    ) async {
+      final InjuryRecord existing = InjuryRecord(
+        id: 'k1',
+        name: 'Left Patellar Strain',
+        region: InjuryRegion.leftKnee,
+        subRegion: InjurySubRegion.patellarTendon,
+        onsetDate: DateTime.now().subtract(const Duration(days: 3)),
+        painScale: 5,
+      );
+
+      await tester.pumpWidget(
+        createTestWidget(
+          AnatomicalSubRegionSheet(
+            region: InjuryRegion.leftKnee,
+            existingInjury: existing,
+            onSubRegionSelected: (_) {},
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(find.text('Left Patellar Strain'), findsOneWidget);
+      expect(find.text('Pain: 5/10 • ACUTE'), findsOneWidget);
+      expect(find.text('Edit Log'), findsOneWidget);
+    });
+  });
+
+  group('InjuryLogBottomSheet Sub-Region Selection Tests', () {
+    testWidgets('Renders sub-region choice chips and saves with subRegion', (
+      WidgetTester tester,
+    ) async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final StorageService storage = StorageService(prefs);
+      final InjuryProvider provider = InjuryProvider(storage);
+
+      await tester.pumpWidget(
+        createTestWidget(
+          const InjuryLogBottomSheet(
+            initialRegion: InjuryRegion.leftKnee,
+            initialSubRegion: InjurySubRegion.patellarTendon,
+          ),
+          injuryProvider: provider,
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // Check sub-target section is visible
+      expect(find.text('ANATOMICAL TARGET / SPECIFIC TISSUE'), findsOneWidget);
+      expect(find.text('Patellar Tendon'), findsWidgets);
+      expect(find.text('Quad Tendon'), findsOneWidget);
+
+      // Save injury
+      await tester.ensureVisible(find.text('Log Injury'));
+      await tester.tap(find.text('Log Injury'));
+      await tester.pumpAndSettle();
+
+      expect(provider.activeInjuries.length, equals(1));
+      expect(
+        provider.activeInjuries.first.subRegion,
+        equals(InjurySubRegion.patellarTendon),
+      );
+      expect(
+        provider.activeInjuries.first.fullDisplayName,
+        equals('Left Knee • Patellar Tendon'),
+      );
     });
   });
 }

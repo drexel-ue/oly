@@ -58,6 +58,27 @@ class InjuryDatabaseService {
         .toList();
   }
 
+  List<CatalogInjury> getBySubRegion(InjurySubRegion subRegion) {
+    final List<CatalogInjury> source =
+        _isLoaded && _cachedCatalog.isNotEmpty ? _cachedCatalog : _builtInFallbackCatalog();
+    return source.where((CatalogInjury c) => c.subRegion == subRegion).toList();
+  }
+
+  List<CatalogInjury> getByRegionAndSubRegion(InjuryRegion region, [InjurySubRegion? subRegion]) {
+    final List<CatalogInjury> regionInjuries = getByRegion(region);
+    if (subRegion == null || subRegion.isGeneral) {
+      return regionInjuries;
+    }
+    final List<CatalogInjury> specific =
+        regionInjuries.where((CatalogInjury c) => c.subRegion == subRegion).toList();
+    if (specific.isNotEmpty) {
+      final List<CatalogInjury> others =
+          regionInjuries.where((CatalogInjury c) => c.subRegion != subRegion).toList();
+      return <CatalogInjury>[...specific, ...others];
+    }
+    return regionInjuries;
+  }
+
   List<CatalogInjury> search(String query) {
     final String clean = query.trim().toLowerCase();
     final List<CatalogInjury> source =
@@ -93,6 +114,7 @@ class InjuryDatabaseService {
         osiicsCode: 'KJTP',
         name: "Patellar Tendinopathy (Jumper's Knee)",
         region: InjuryRegion.leftKnee,
+        subRegion: InjurySubRegion.patellarTendon,
         supportedRegions: <InjuryRegion>[InjuryRegion.leftKnee, InjuryRegion.rightKnee],
         description: 'Pain and microtrauma at the inferior pole of the patella, aggravated by deep knee flexion.',
         acuteDurationDays: 14,
@@ -126,6 +148,7 @@ class InjuryDatabaseService {
         osiicsCode: 'SJSI',
         name: 'Subacromial Impingement / Rotator Cuff Tendinopathy',
         region: InjuryRegion.leftShoulder,
+        subRegion: InjurySubRegion.subacromialBursa,
         supportedRegions: <InjuryRegion>[InjuryRegion.leftShoulder, InjuryRegion.rightShoulder],
         description: 'Compression of rotator cuff tendons during overhead abduction and internal rotation.',
         acuteDurationDays: 14,
@@ -159,6 +182,7 @@ class InjuryDatabaseService {
         osiicsCode: 'LBLS',
         name: 'Lumbar Strain / Low Back Pain',
         region: InjuryRegion.lumbarSpine,
+        subRegion: InjurySubRegion.lumbarDisc,
         supportedRegions: <InjuryRegion>[InjuryRegion.lumbarSpine],
         description: 'Ache or sharp tightness in the lower back with flexion and spinal axial compression.',
         acuteDurationDays: 14,

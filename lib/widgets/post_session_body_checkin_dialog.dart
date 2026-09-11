@@ -78,11 +78,23 @@ class _PostSessionBodyCheckinDialogState
         } else if (r == InjuryRegion.leftKnee || r == InjuryRegion.rightKnee) {
           _jointTags.add('Knees');
         } else if (r == InjuryRegion.leftWrist || r == InjuryRegion.rightWrist) {
-          _jointTags.add('Wrists');
+          _jointTags.add('Wrists & Hands');
+        } else if (r == InjuryRegion.leftElbow || r == InjuryRegion.rightElbow) {
+          _jointTags.add('Elbows & Arms');
         } else if (r == InjuryRegion.leftHipGlute || r == InjuryRegion.rightHipGlute) {
-          _jointTags.add('Hips');
-        } else if (r == InjuryRegion.lumbarSpine || r == InjuryRegion.thoracicSpine) {
+          _jointTags.add('Hips & Groin');
+        } else if (r == InjuryRegion.lumbarSpine) {
           _jointTags.add('Lower Back');
+        } else if (r == InjuryRegion.thoracicSpine || r == InjuryRegion.neck) {
+          _jointTags.add('Upper Back / Traps');
+        } else if (r == InjuryRegion.leftQuad || r == InjuryRegion.rightQuad) {
+          _jointTags.add('Quads');
+        } else if (r == InjuryRegion.leftHamstring || r == InjuryRegion.rightHamstring) {
+          _jointTags.add('Hamstrings');
+        } else if (r == InjuryRegion.leftCalfAnkle || r == InjuryRegion.rightCalfAnkle) {
+          _jointTags.add('Calves & Achilles');
+        } else if (r == InjuryRegion.chestPecs || r == InjuryRegion.coreAbs) {
+          _jointTags.add('Chest & Core');
         }
       }
     });
