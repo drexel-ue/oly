@@ -9,6 +9,7 @@ import 'package:golden_toolkit/golden_toolkit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:nested/nested.dart';
 import 'package:oly/models/breathing_session_model.dart';
+import 'package:oly/models/fasting_session_model.dart';
 import 'package:oly/models/injury_model.dart';
 import 'package:oly/models/mobility_exercise_model.dart';
 import 'package:oly/models/nutrition_entry.dart';
@@ -17,6 +18,7 @@ import 'package:oly/models/wod_definition.dart';
 import 'package:oly/models/workout_session.dart';
 import 'package:oly/providers/body_comp_provider.dart';
 import 'package:oly/providers/breathing_provider.dart';
+import 'package:oly/providers/fasting_provider.dart';
 import 'package:oly/providers/injury_provider.dart';
 import 'package:oly/providers/lift_provider.dart';
 import 'package:oly/providers/nutrition_provider.dart';
@@ -40,6 +42,10 @@ import 'package:oly/views/injury_tracker_screen.dart';
 import 'package:oly/views/lifts_screen.dart';
 import 'package:oly/views/max_test_screen.dart';
 import 'package:oly/views/nutrition/edit_food_entry_sheet.dart';
+import 'package:oly/views/nutrition/fasting_biomarker_history_sheet.dart';
+import 'package:oly/views/nutrition/fasting_biomarker_sheet.dart';
+import 'package:oly/views/nutrition/fasting_refeed_guide_sheet.dart';
+import 'package:oly/views/nutrition/fasting_science_explainer_screen.dart';
 import 'package:oly/views/nutrition/food_search_sheet.dart';
 import 'package:oly/views/nutrition/live_barcode_scanner_sheet.dart';
 import 'package:oly/views/nutrition/metabolic_science_explainer_screen.dart';
@@ -54,6 +60,7 @@ import 'package:oly/widgets/exercise_swap_modal.dart';
 import 'package:oly/widgets/injury_export_bottom_sheet.dart';
 import 'package:oly/widgets/interactive_body_map.dart';
 import 'package:oly/widgets/mobility_exercise_swap_modal.dart';
+import 'package:oly/widgets/nutrition/fasting_grocery_sheet.dart';
 import 'package:oly/widgets/nutrition/smart_portion_drawer.dart';
 import 'package:oly/widgets/post_session_body_checkin_dialog.dart';
 import 'package:oly/widgets/standard_ratios_sheet.dart';
@@ -135,6 +142,7 @@ void main() {
   late NutritionProvider nutritionProvider;
   late InjuryProvider injuryProvider;
   late BreathingProvider breathingProvider;
+  late FastingProvider fastingProvider;
 
   setUpAll(() async {
     GoogleFonts.config.allowRuntimeFetching = false;
@@ -151,6 +159,49 @@ void main() {
     GoogleFonts.inter(fontWeight: FontWeight.w500);
     GoogleFonts.firaCode();
     await GoogleFonts.pendingFonts();
+
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+      const MethodChannel('plugins.flutter.io/flutter_timezone'),
+      (MethodCall methodCall) async {
+        if (methodCall.method == 'getLocalTimezone') {
+          return 'America/New_York';
+        }
+        return null;
+      },
+    );
+
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+      const MethodChannel('dexterous.com/flutter/local_notifications'),
+      (MethodCall methodCall) async {
+        return true;
+      },
+    );
+
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+      const MethodChannel('xyz.luan/audioplayers'),
+      (MethodCall methodCall) async {
+        return 1;
+      },
+    );
+
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+      const MethodChannel('xyz.luan/audioplayers.global'),
+      (MethodCall methodCall) async {
+        return 1;
+      },
+    );
+
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+      const MethodChannel('com.ryanheise.audio_session'),
+      (MethodCall methodCall) async {
+        return null;
+      },
+    );
   });
 
   setUp(() async {
@@ -163,6 +214,7 @@ void main() {
     nutritionProvider = NutritionProvider(storage);
     injuryProvider = InjuryProvider(storage);
     breathingProvider = BreathingProvider(storage);
+    fastingProvider = FastingProvider(storage);
   });
 
   GlobalKey boundaryKey = GlobalKey();
@@ -179,6 +231,7 @@ void main() {
         ChangeNotifierProvider.value(value: nutritionProvider),
         ChangeNotifierProvider.value(value: injuryProvider),
         ChangeNotifierProvider.value(value: breathingProvider),
+        ChangeNotifierProvider.value(value: fastingProvider),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -1172,5 +1225,156 @@ void main() {
       await captureScreen(tester, '34_wod_explainer_preview_sheet');
       expect(find.text('ADD JACKIE TO WORKOUT'), findsOneWidget);
     });
+
+    testWidgets(
+      '35 Renders Guided Fasting Dashboard in Fuel Domain with Active Fast',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(1170, 2532);
+        tester.view.devicePixelRatio = 2.0;
+        addTearDown(() => tester.view.resetPhysicalSize());
+
+        // Start active 16:8 fast at 14 hours ago
+        await fastingProvider.startFast(
+          protocol: FastingProtocol.intermittent16_8,
+          customStartTime: DateTime.now().subtract(const Duration(hours: 14)),
+        );
+        await fastingProvider.logSodium(500);
+        await fastingProvider.logWater(1000);
+        await fastingProvider.addBiomarkerEntry(
+          glucoseMgDl: 78.0,
+          ketoneMmolL: 1.8,
+          notes: 'Fasted baseline before 6:00 AM snatch session',
+        );
+
+        await tester.pumpWidget(
+          buildTestScreen(const NutritionDashboardScreen()),
+        );
+        await tester.pumpAndSettle();
+
+        // Switch to Fasting tab
+        await tester.tap(find.text('Fasting'));
+        await tester.pumpAndSettle();
+
+        await captureScreen(tester, '35_fasting_dashboard_screen');
+
+        // Scrolled view
+        final Finder scrollable = find.byType(Scrollable);
+        if (scrollable.evaluate().isNotEmpty) {
+          await tester.drag(scrollable.first, const Offset(0, -700));
+          await captureScreen(tester, '35_fasting_dashboard_screen_scrolled');
+        }
+
+        expect(find.text('KETO-MOJO BIOMARKERS & GKI'), findsOneWidget);
+        expect(find.text('END FAST & REFEED'), findsOneWidget);
+
+        // Cancel active fast so ticker timer does not leak
+        await fastingProvider.cancelFast();
+      },
+    );
+
+    testWidgets(
+      '36 Renders Keto-Mojo Biomarker Logging Sheet with Live GKI Meter',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(1170, 2532);
+        tester.view.devicePixelRatio = 2.0;
+        addTearDown(() => tester.view.resetPhysicalSize());
+
+        await tester.pumpWidget(
+          buildTestScreen(
+            const Scaffold(
+              body: FastingBiomarkerSheet(),
+            ),
+          ),
+        );
+        await captureScreen(tester, '36_fasting_biomarker_sheet');
+        expect(find.text('LOG KETO-MOJO BIOMARKERS'), findsOneWidget);
+        expect(find.text('RECORD BIOMARKER ENTRY'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      '37 Renders Fasting Biomarker History & GKI Tracking Sheet',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(1170, 2532);
+        tester.view.devicePixelRatio = 2.0;
+        addTearDown(() => tester.view.resetPhysicalSize());
+
+        await fastingProvider.addBiomarkerEntry(
+          glucoseMgDl: 85.0,
+          ketoneMmolL: 1.2,
+          notes: 'Fasted baseline test',
+        );
+        await fastingProvider.addBiomarkerEntry(
+          glucoseMgDl: 74.0,
+          ketoneMmolL: 2.4,
+          notes: 'Post-lift deep ketosis',
+        );
+
+        await tester.pumpWidget(
+          buildTestScreen(
+            const Scaffold(
+              body: FastingBiomarkerHistorySheet(),
+            ),
+          ),
+        );
+        await captureScreen(tester, '37_fasting_biomarker_history_sheet');
+        expect(find.text('BIOMARKER TRACKING & GKI'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      '38 Renders Fasting Pantry & Refeeding Grocery Prep Checklist',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(1170, 2532);
+        tester.view.devicePixelRatio = 2.0;
+        addTearDown(() => tester.view.resetPhysicalSize());
+
+        await tester.pumpWidget(
+          buildTestScreen(
+            const Scaffold(
+              body: FastingGrocerySheet(),
+            ),
+          ),
+        );
+        await captureScreen(tester, '38_fasting_grocery_sheet');
+        expect(find.text('FASTING PANTRY & GROCERY LIST'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      '39 Renders Fasting Science & Cellular Longevity Explainer Screen',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(1170, 2532);
+        tester.view.devicePixelRatio = 2.0;
+        addTearDown(() => tester.view.resetPhysicalSize());
+
+        await tester.pumpWidget(
+          buildTestScreen(
+            const FastingScienceExplainerScreen(),
+          ),
+        );
+        await captureScreen(tester, '39_fasting_science_explainer_screen');
+        expect(find.text('Fasting Science & Physiology'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      '40 Renders 3-Phase Gentle Refeeding Protocol Guide Sheet',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(1170, 2532);
+        tester.view.devicePixelRatio = 2.0;
+        addTearDown(() => tester.view.resetPhysicalSize());
+
+        await tester.pumpWidget(
+          buildTestScreen(
+            const Scaffold(
+              body: FastingRefeedGuideSheet(elapsedHours: 24.0),
+            ),
+          ),
+        );
+        await captureScreen(tester, '40_fasting_refeed_guide_sheet');
+        expect(find.text('STRUCTURED REFEEDING PROTOCOL'), findsOneWidget);
+      },
+    );
   });
 }

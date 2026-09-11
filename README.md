@@ -16,7 +16,7 @@
   <img src="https://img.shields.io/badge/Open%20Food%20Facts-SDK%20v3-00B259?logo=openfoodfacts&logoColor=white" alt="Open Food Facts SDK" />
   <img src="https://img.shields.io/badge/Google%20ML%20Kit-OCR%20Vision-4285F4?logo=google&logoColor=white" alt="ML Kit Vision" />
   <img src="https://img.shields.io/badge/Theme-Dark%20Obsidian-121214" alt="Theme" />
-  <img src="https://img.shields.io/badge/Tests-183%20Passing-brightgreen" alt="Tests" />
+  <img src="https://img.shields.io/badge/Tests-327%20Passing-brightgreen" alt="Tests" />
   <img src="https://img.shields.io/badge/License-Proprietary-FF9E1B" alt="License" />
 </p>
 
@@ -24,9 +24,10 @@
 
 ## 🌟 Overview
 
-**OLY** unites elite Olympic weightlifting periodization with a rigorous athlete nutrition engine, metabolic expenditure modeling, an offline-first **Anatomical Body Map & Biomechanical Injury Adaptation Engine**, a **Guided Wim Hof Breathwork & Retention Analytics Suite**, and a complete **2.06M+ item USDA & Restaurant SQLite database with FTS5 token search**. Designed from the ground up for serious athletes:
+**OLY** unites elite Olympic weightlifting periodization with a rigorous athlete nutrition engine, metabolic expenditure modeling, an offline-first **Anatomical Body Map & Biomechanical Injury Adaptation Engine**, a **Guided Wim Hof Breathwork & Retention Analytics Suite**, a clinical-grade **Guided Fasting & Metabolic Longevity Engine**, and a complete **2.06M+ item USDA & Restaurant SQLite database with FTS5 token search**. Designed from the ground up for serious athletes:
 
 - **🏋️ Periodization & Lifts**: 4-Day and 5-Day wave loading programs (`65% → 70% → 75% → Deload → Retest`), Catalyst Athletics / Greg Everett 1RM variation ratios, dynamic in-workout exercise swapping, working weight & rep adjustments with live Epley 1RM recalculation, per-set fine-tuning, and an IWF color-coded bumper plate visualizer.
+- **⏳ Guided Fasting & Metabolic Longevity Engine**: Structured progression ladder from intermittent fasting (16:8, 18:6, 20:4) to extended therapeutic fasts (24h, 36h, 48h, 72h). Specifically tailored to athlete circadian rhythm (4:45 AM wake, 6:00 AM barbell lift, 8:45 PM sleep) with contextual heavy lifting advisories, Seymour-Seyfried Glucose Ketone Index (GKI) capillary blood tracking (Keto-Mojo), automated paced hydration & strategic black coffee alert scheduling, 7-day projection planner, pantry checklist, 3-phase structured refeeding guide, and in-depth cellular biology & longevity library.
 - **🌬️ Guided Wim Hof Breathwork & Retention Tracking**: Configurable 1–10 round breathing protocol, 20/30/40 breath counts, adjustable pacing (Relaxed, Normal, Fast), animated pulsing breathing orb, exhale breath hold stopwatch timer, 15-second recovery countdown, and dedicated **Breathwork Analytics** tracking retention progression over time via `fl_chart` LineCharts and round-by-round averages.
 - **🥗 Complete Offline 2.06M+ USDA & Restaurant Database**: Embedded SQLite database (`usda_foods.db`) powered by FTS5 full-text indexing. Contains **Foundation Foods**, **SR Legacy**, **Survey Foods (FNDDS)**, **1.98M+ Branded products** with offline UPC barcode lookup, and curated menus across 26 major restaurant chains (McDonald's, Wingstop, Wendy's, Chick-fil-A, Chipotle, Starbucks, In-N-Out, Panda Express, Subway, Popeyes, Raising Cane's, Five Guys, Shake Shack, etc.).
 - **🥞 Athlete Smart Portion Drawer**: Protein density index ($g\text{ protein} / 100\text{ kcal}$), 3-color macro split bar ($P\% / C\% / F\%$), standard serving steppers, and discrete piece-unit chips (`10 wings`, `6 nuggets`, `2 tacos`, `3 tenders`, `1 biscuit`, `1 patty`).
@@ -71,6 +72,30 @@
 | :---: | :---: |
 | <img src="screenshots/15_metabolic_science_explainer_screen.png" width="360" alt="Metabolic Science Explainer Top" /> | <img src="screenshots/15_metabolic_science_explainer_screen_scrolled.png" width="360" alt="Metabolic Science Explainer Scrolled" /> |
 | *Interactive 5-tab science reference: Energy & TDEE, Algorithm B vs A, and WOD physics* | *Katch-McArdle formula breakdown, MET math, and open-source scientific citations* |
+
+---
+
+### ⏳ Guided Fasting & Metabolic Longevity Engine
+
+| Fasting Console & Stages (Top) | Fasting Projection & Science (Scrolled) |
+| :---: | :---: |
+| <img src="screenshots/35_fasting_dashboard_screen.png" width="360" alt="Fasting Dashboard Top" /> | <img src="screenshots/35_fasting_dashboard_screen_scrolled.png" width="360" alt="Fasting Dashboard Scrolled" /> |
+| *Radial progress gauge, metabolic stage badge (Ketosis/Autophagy), Keto-Mojo Seyfried GKI glance, and 6 AM barbell lifting advisory* | *Biological stage breakdown, 7-day forward fasting projection planner, and science/refeed action triggers* |
+
+| Keto-Mojo Capillary Blood Logger | Capillary Blood History & GKI Tracking |
+| :---: | :---: |
+| <img src="screenshots/36_fasting_biomarker_sheet.png" width="360" alt="Keto-Mojo Biomarker Sheet" /> | <img src="screenshots/37_fasting_biomarker_history_sheet.png" width="360" alt="Fasting Biomarker History" /> |
+| *Capillary blood glucose (mg/dL) & β-hydroxybutyrate ketone (mmol/L) inputs with live Seyfried GKI zone meter* | *Chronological biomarker log with therapeutic zone badges (Highest, Moderate, Low Ketosis, Glucose Fuel)* |
+
+| Fasting Pantry & Refeed Grocery Prep | 3-Phase Gentle Refeeding Protocol |
+| :---: | :---: |
+| <img src="screenshots/38_fasting_grocery_sheet.png" width="360" alt="Fasting Grocery Checklist" /> | <img src="screenshots/40_fasting_refeed_guide_sheet.png" width="360" alt="Refeeding Protocol Guide" /> |
+| *Categorized pantry checklist (Electrolytes, Broths, Healthy Fats, Refeed Staples) with instant item toggle* | *Structured refeeding stages: Phase 1 Awakening (0–2h), Phase 2 Reintroduction (2–6h), Phase 3 Full Sustenance* |
+
+| Cellular Longevity & Autophagy Science Library |
+| :---: |
+| <img src="screenshots/39_fasting_science_explainer_screen.png" width="480" alt="Fasting Science Library" /> |
+| *5-tab educational compendium covering Fasting Stages, Ketosis & GKI Math, Fasted Heavy Lifting, Refeeding Protocols, and Scientific Citations* |
 
 ---
 
@@ -212,6 +237,9 @@ lib/
 │   ├── mobility_exercise_model.dart           # Active recovery exercises with cues & video links
 │   ├── injury_model.dart                      # Anatomical regions, OSIICS catalog, & rehabilitation plans
 │   ├── breathing_session_model.dart           # Wim Hof round logs, retention hold times, & pace configs
+│   ├── fasting_session_model.dart             # Fasting protocols (16:8 to 72h), stages, and projection schedule
+│   ├── fasting_biomarker_entry.dart           # Capillary glucose, ketone, and Seyfried GKI zone model
+│   ├── fasting_grocery_item.dart              # Electrolyte, broth, and refeeding grocery checklist models
 │   ├── nutrition_entry.dart                   # Daily food logs, activities, and macro models
 │   ├── body_comp_model.dart                   # 13-field Renpho scale biometrics & historical trends
 │   └── plate_calc.dart                        # Barbell sleeve greedy plate allocation algorithm
@@ -221,6 +249,7 @@ lib/
 │   ├── recovery_provider.dart                 # Recovery routine generation & readiness tracking
 │   ├── injury_provider.dart                   # Joint strain lifecycle, regressions, & PDF export
 │   ├── breathing_provider.dart                # Wim Hof session history, PR detection, & retention trends
+│   ├── fasting_provider.dart                  # Fasting timers, Seyfried GKI logging, and notification scheduling
 │   ├── nutrition_provider.dart                # Calorie balance, macro tracking, & hydration
 │   ├── body_comp_provider.dart                # Renpho scale history & lean mass calculations
 │   └── settings_provider.dart                 # Units (kg/lbs), bar specs, audio/haptic toggles
@@ -233,6 +262,7 @@ lib/
 │   ├── renpho_ocr_service.dart                # Google ML Kit OCR text parser for smart scale screens
 │   ├── app_log_service.dart                   # Ring-buffer logging & persistent crash storage
 │   ├── notification_service.dart              # Timezone-aware local notifications & audio alerts
+│   ├── fasting_engine_service.dart            # Circadian alignment, stages, GKI zones, and lifting advisories
 │   ├── recovery_engine_service.dart           # Adaptive mobility routine generator
 │   └── warmup_engine_service.dart             # Dynamic warmup generator
 ├── views/
@@ -253,7 +283,13 @@ lib/
 │   │   ├── wim_hof_summary_screen.dart        # Post-session summary, PR banner & readiness rating
 │   │   └── breathing_analytics_tab.dart       # Retention duration progression & round averages
 │   ├── nutrition/
-│   │   ├── nutrition_dashboard_screen.dart    # Energy In vs Out gauge, macros, and activity logs
+│   │   ├── nutrition_dashboard_screen.dart    # Segmented Macros & Fasting dashboard hub
+│   │   ├── fasting_dashboard_view.dart        # Radial dial, metabolic stages, GKI, & projection planner
+│   │   ├── fasting_setup_sheet.dart           # Protocol selector (16:8 to 72h) & start fast launcher
+│   │   ├── fasting_biomarker_sheet.dart       # Keto-Mojo glucose & ketone logger with live GKI meter
+│   │   ├── fasting_biomarker_history_sheet.dart # Capillary blood history & metabolic zone log
+│   │   ├── fasting_refeed_guide_sheet.dart    # 3-phase structured refeeding protocol guide
+│   │   ├── fasting_science_explainer_screen.dart # 5-tab cellular biology & longevity compendium
 │   │   ├── live_barcode_scanner_sheet.dart    # Live camera barcode scanner with reticle overlay
 │   │   ├── food_search_sheet.dart             # Zero-latency search across 2M+ items with source filter tabs
 │   │   ├── renpho_scanner_sheet.dart          # Smart scale OCR scanner & donut chart view
@@ -273,6 +309,11 @@ lib/
     ├── body_map_painter.dart                  # Interactive 14-region vector anatomical map painter
     └── nutrition/
         ├── energy_balance_card.dart           # Circular Energy In/Out gauge & deficit indicator
+        ├── fasting_radial_gauge.dart          # Glowing circular progress dial with stage pill
+        ├── fasting_active_card.dart           # Active fast status banner & elapsed timer
+        ├── fasting_cellular_card.dart         # Biological stage cards & heavy lifting advisories
+        ├── fasting_projection_card.dart       # 7-day forward fasting schedule planner
+        ├── fasting_grocery_sheet.dart         # Pantry checklist with item status toggles
         ├── smart_portion_drawer.dart          # Protein density pill, macro split bar, piece chips & steppers
         ├── macro_summary_card.dart            # Linear progress bars for Protein, Carbs, and Fat
         └── body_donut_chart.dart              # CustomPainted Lean Mass vs Fat Mass donut visualizer
@@ -377,7 +418,7 @@ dart run tool/scrape_crossfit.dart
 
 ---
 
-## 📄 Testing Suite (180+ Passing Tests)
+## 📄 Testing Suite (320+ Passing Tests)
 
 Run the full suite of unit, widget, domain engine, and screenshot rendering tests:
 ```bash
@@ -385,6 +426,8 @@ flutter test
 ```
 
 Test coverage includes:
+- `fasting_engine_test.dart`: Circadian schedule alignment (4:45 AM wake / 6:00 AM lift / 8:45 PM bed), 16:8 to 72h progression, Seymour-Seyfried GKI index math, metabolic stage transitions, and barbell lifting advisories.
+- `fasting_widgets_test.dart`: Fasting radial gauge rendering, biological breakdown card, 7-day forward projection planner, biomarker logging & history sheets, pantry checklist, and gentle refeed guide.
 - `crossfit_hero_wod_test.dart`: Hero WOD model serialization, timing format parsing (`forTime`, `amrap`, `emom`, etc.), `toWodDefinition()` bridge, and offline JSON dataset verification.
 - `wod_hub_test.dart`: `WodCatalog` benchmarks, `WodSetupExplainer` specifications, `WodHubScreen` rendering, search filtering, shuffle modal, Hero WOD category filtering, and `HeroWodDetailSheet` memorial tribute display.
 - `exercise_database_test.dart`: Deduplicated exercise catalog (>2,870 movements), merged multi-source attributions, FTS5 full-text queries, `hero_wods` table queries, and `crossfit` source movement queries.
@@ -400,7 +443,7 @@ Test coverage includes:
 - `smart_portion_widget_test.dart`: Protein density index, macro split bar, custom piece chips (wings, nuggets, tenders), steppers, and live barcode camera scanner.
 - `renpho_ocr_test.dart`: 13-field OCR regex parsing from smart scale screenshots, lean mass calculations, and BMR updates.
 - `app_log_service_test.dart`: Ring-buffer logging, persistent crash storage, and `CrashReportScreen` UI controls.
-- `screenshot_capture_test.dart`: 23 multi-view layout tests verifying rendering and generating high-res PNGs for all views.
+- `screenshot_capture_test.dart`: 40 multi-view layout tests verifying rendering and generating high-res PNGs for all views.
 - `exercise_swap_test.dart`: Movement substitution, variation categorization, and weight recalculation.
 - `workout_weight_recalculation_test.dart`: In-workout weight adjustment, 1RM reverse formulas, steppers, and save modes.
 - `feature_audit_test.dart`: Session serialization, RPE, joint strain tags, recovery adaptation, and JSON/CSV backup.

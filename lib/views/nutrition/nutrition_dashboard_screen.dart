@@ -6,17 +6,20 @@ import 'package:oly/models/daily_activity_entry.dart';
 import 'package:oly/models/daily_nutrition_log.dart';
 import 'package:oly/models/nutrition_entry.dart';
 import 'package:oly/providers/body_comp_provider.dart';
+import 'package:oly/providers/fasting_provider.dart';
 import 'package:oly/providers/nutrition_provider.dart';
 import 'package:oly/theme/app_theme.dart';
 import 'package:oly/views/nutrition/activity_log_sheet.dart';
 import 'package:oly/views/nutrition/body_comp_analytics_screen.dart';
 import 'package:oly/views/nutrition/edit_food_entry_sheet.dart';
+import 'package:oly/views/nutrition/fasting_dashboard_view.dart';
 import 'package:oly/views/nutrition/food_search_sheet.dart';
 import 'package:oly/views/nutrition/metabolic_science_explainer_screen.dart';
 import 'package:oly/views/nutrition/nutrition_settings_screen.dart';
 import 'package:oly/views/nutrition/quick_macro_log_sheet.dart';
 import 'package:oly/views/nutrition/renpho_scanner_sheet.dart';
 import 'package:oly/widgets/nutrition/energy_balance_card.dart';
+import 'package:oly/widgets/nutrition/fasting_active_card.dart';
 import 'package:oly/widgets/nutrition/macro_ring_card.dart';
 import 'package:provider/provider.dart';
 
@@ -36,6 +39,12 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
   Widget build(BuildContext context) {
     final NutritionProvider nutrition = Provider.of<NutritionProvider>(context);
     final BodyCompProvider bodyComp = Provider.of<BodyCompProvider>(context);
+    FastingProvider? fasting;
+    try {
+      fasting = Provider.of<FastingProvider>(context);
+    } catch (_) {
+      fasting = null;
+    }
     final DailyNutritionLog currentLog = nutrition.getDayLog(
       nutrition.selectedDateKey,
       latestBodyComp: bodyComp.latestEntry,
@@ -121,86 +130,100 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
               _buildDateSwitcher(context, nutrition),
               const SizedBox(height: 12),
 
-              // View Selector Segment (Energy Balance vs Macro Targets)
-              _buildViewSelector(),
+              // View Selector Segment (Energy Balance vs Macro Targets vs Guided Fasting)
+              _buildViewSelector(fasting),
               const SizedBox(height: 12),
 
-              // Hero View (Energy Balance or Macro Ring)
-              if (_selectedViewIndex == 0)
-                EnergyBalanceCard(
-                  log: currentLog,
-                  latestBodyComp: bodyComp.latestEntry,
-                  goal: nutrition.goal,
-                  onLogActivityTap: () => _openActivityLogSheet(context),
-                )
-              else
-                MacroRingCard(
-                  log: currentLog,
-                  onToggleTrainingDay: () {
-                    nutrition.toggleTrainingDay(
-                      !currentLog.isTrainingDay,
-                      latestBodyComp: bodyComp.latestEntry,
-                    );
-                  },
+              // Active Fasting Glance Banner (when outside fasting view)
+              if (_selectedViewIndex != 2 && (fasting?.isFastingActive ?? false)) ...<Widget>[
+                FastingActiveCard(
+                  session: fasting!.activeSession!,
+                  onTap: () => setState(() => _selectedViewIndex = 2),
                 ),
+                const SizedBox(height: 12),
+              ],
 
-              const SizedBox(height: 14),
-
-              // Renpho Biometrics Glance Card
-              _buildRenphoGlanceCard(context, bodyComp),
-              const SizedBox(height: 14),
-
-              // Water Tracker Strip
-              _buildWaterTracker(context, nutrition, currentLog),
-              const SizedBox(height: 16),
-
-              // Daily Activities & Workout Energy Section
-              _buildActivitiesSection(context, nutrition, currentLog, bodyComp),
-              const SizedBox(height: 16),
-
-              // Meal Category Sections
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: <Widget>[
-                  Text(
-                    'DAILY MEALS & FOOD LOG',
-                    style: GoogleFonts.inter(
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1.0,
-                      color: AppTheme.textSecondary,
-                    ),
+              // View Routing
+              if (_selectedViewIndex == 2)
+                const FastingDashboardView()
+              else ...<Widget>[
+                // Hero View (Energy Balance or Macro Ring)
+                if (_selectedViewIndex == 0)
+                  EnergyBalanceCard(
+                    log: currentLog,
+                    latestBodyComp: bodyComp.latestEntry,
+                    goal: nutrition.goal,
+                    onLogActivityTap: () => _openActivityLogSheet(context),
+                  )
+                else
+                  MacroRingCard(
+                    log: currentLog,
+                    onToggleTrainingDay: () {
+                      nutrition.toggleTrainingDay(
+                        !currentLog.isTrainingDay,
+                        latestBodyComp: bodyComp.latestEntry,
+                      );
+                    },
                   ),
-                  TextButton.icon(
-                    onPressed: () =>
-                        _openFoodSearchSheet(context, MealCategory.lunch),
-                    icon: const Icon(
-                      Icons.search,
-                      size: 14,
-                      color: AppTheme.primaryAmber,
-                    ),
-                    label: Text(
-                      'Search / Barcode',
+
+                const SizedBox(height: 14),
+
+                // Renpho Biometrics Glance Card
+                _buildRenphoGlanceCard(context, bodyComp),
+                const SizedBox(height: 14),
+
+                // Water Tracker Strip
+                _buildWaterTracker(context, nutrition, currentLog),
+                const SizedBox(height: 16),
+
+                // Daily Activities & Workout Energy Section
+                _buildActivitiesSection(context, nutrition, currentLog, bodyComp),
+                const SizedBox(height: 16),
+
+                // Meal Category Sections
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    Text(
+                      'DAILY MEALS & FOOD LOG',
                       style: GoogleFonts.inter(
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
-                        color: AppTheme.primaryAmber,
+                        letterSpacing: 1.0,
+                        color: AppTheme.textSecondary,
                       ),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
+                    TextButton.icon(
+                      onPressed: () =>
+                          _openFoodSearchSheet(context, MealCategory.lunch),
+                      icon: const Icon(
+                        Icons.search,
+                        size: 14,
+                        color: AppTheme.primaryAmber,
+                      ),
+                      label: Text(
+                        'Search / Barcode',
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.primaryAmber,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
 
-              ...MealCategory.values.map((MealCategory category) {
-                return _buildMealCategorySection(
-                  context,
-                  nutrition,
-                  currentLog,
-                  category,
-                  bodyComp,
-                );
-              }),
+                ...MealCategory.values.map((MealCategory category) {
+                  return _buildMealCategorySection(
+                    context,
+                    nutrition,
+                    currentLog,
+                    category,
+                    bodyComp,
+                  );
+                }),
+              ],
 
               const SizedBox(height: 80), // Padding for FAB
             ],
@@ -228,7 +251,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
     );
   }
 
-  Widget _buildViewSelector() {
+  Widget _buildViewSelector(FastingProvider? fasting) {
     return Container(
       decoration: BoxDecoration(
         color: AppTheme.surfaceCard,
@@ -237,6 +260,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
       ),
       child: Row(
         children: <Widget>[
+          // 0: Energy Balance
           Expanded(
             child: InkWell(
               onTap: () => setState(() => _selectedViewIndex = 0),
@@ -259,16 +283,16 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
                     children: <Widget>[
                       Icon(
                         Icons.bolt,
-                        size: 15,
+                        size: 14,
                         color: _selectedViewIndex == 0
                             ? AppTheme.secondaryCyan
                             : AppTheme.textSecondary,
                       ),
-                      const SizedBox(width: 6),
+                      const SizedBox(width: 4),
                       Text(
                         'Energy In vs Out',
                         style: GoogleFonts.inter(
-                          fontSize: 12,
+                          fontSize: 11,
                           fontWeight: _selectedViewIndex == 0
                               ? FontWeight.bold
                               : FontWeight.normal,
@@ -283,17 +307,61 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
               ),
             ),
           ),
+
+          // 1: Macro Targets
           Expanded(
             child: InkWell(
               onTap: () => setState(() => _selectedViewIndex = 1),
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                decoration: BoxDecoration(
+                  color: _selectedViewIndex == 1
+                      ? AppTheme.primaryAmber.withValues(alpha: 0.15)
+                      : Colors.transparent,
+                ),
+                child: Center(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      Icon(
+                        Icons.pie_chart_outline,
+                        size: 14,
+                        color: _selectedViewIndex == 1
+                            ? AppTheme.primaryAmber
+                            : AppTheme.textSecondary,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Macro Targets',
+                        style: GoogleFonts.inter(
+                          fontSize: 11,
+                          fontWeight: _selectedViewIndex == 1
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                          color: _selectedViewIndex == 1
+                              ? AppTheme.primaryAmber
+                              : AppTheme.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          // 2: Guided Fasting
+          Expanded(
+            child: InkWell(
+              onTap: () => setState(() => _selectedViewIndex = 2),
               borderRadius: const BorderRadius.horizontal(
                 right: Radius.circular(12),
               ),
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 decoration: BoxDecoration(
-                  color: _selectedViewIndex == 1
-                      ? AppTheme.primaryAmber.withValues(alpha: 0.15)
+                  color: _selectedViewIndex == 2
+                      ? const Color(0xFFAB47BC).withValues(alpha: 0.2)
                       : Colors.transparent,
                   borderRadius: const BorderRadius.horizontal(
                     right: Radius.circular(12),
@@ -304,25 +372,40 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
                       Icon(
-                        Icons.pie_chart_outline,
-                        size: 15,
-                        color: _selectedViewIndex == 1
-                            ? AppTheme.primaryAmber
-                            : AppTheme.textSecondary,
+                        Icons.hourglass_top_rounded,
+                        size: 14,
+                        color: _selectedViewIndex == 2
+                            ? const Color(0xFFAB47BC)
+                            : ((fasting?.isFastingActive ?? false)
+                                ? AppTheme.primaryAmber
+                                : AppTheme.textSecondary),
                       ),
-                      const SizedBox(width: 6),
+                      const SizedBox(width: 4),
                       Text(
-                        'Macro Targets',
+                        'Fasting',
                         style: GoogleFonts.inter(
-                          fontSize: 12,
-                          fontWeight: _selectedViewIndex == 1
+                          fontSize: 11,
+                          fontWeight: _selectedViewIndex == 2
                               ? FontWeight.bold
                               : FontWeight.normal,
-                          color: _selectedViewIndex == 1
-                              ? AppTheme.primaryAmber
-                              : AppTheme.textSecondary,
+                          color: _selectedViewIndex == 2
+                              ? const Color(0xFFAB47BC)
+                              : ((fasting?.isFastingActive ?? false)
+                                  ? AppTheme.primaryAmber
+                                  : AppTheme.textSecondary),
                         ),
                       ),
+                      if (fasting?.isFastingActive ?? false) ...<Widget>[
+                        const SizedBox(width: 4),
+                        Container(
+                          width: 6,
+                          height: 6,
+                          decoration: const BoxDecoration(
+                            color: AppTheme.primaryAmber,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),

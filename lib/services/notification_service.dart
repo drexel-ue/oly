@@ -16,7 +16,7 @@ class NotificationService {
 
   final FlutterLocalNotificationsPlugin _notifications =
       FlutterLocalNotificationsPlugin();
-  final ap.AudioPlayer _audioPlayer = ap.AudioPlayer();
+  ap.AudioPlayer? _audioPlayer;
   bool _initialized = false;
   StreamSubscription<void>? _playerCompleteSubscription;
   Timer? _sessionDeactivationTimer;
@@ -64,19 +64,6 @@ class NotificationService {
         ),
       );
 
-      await _audioPlayer.setAudioContext(
-        ap.AudioContext(
-          iOS: ap.AudioContextIOS(
-            category: ap.AVAudioSessionCategory.playback,
-            options: const <ap.AVAudioSessionOptions>{},
-          ),
-          android: const ap.AudioContextAndroid(
-            usageType: ap.AndroidUsageType.alarm,
-            contentType: ap.AndroidContentType.sonification,
-            audioFocus: ap.AndroidAudioFocus.gainTransient,
-          ),
-        ),
-      );
     } catch (e) {
       debugPrint('AudioSession init error: $e');
     }
@@ -124,11 +111,27 @@ class NotificationService {
         debugPrint('AudioSession activate error: $e');
       }
 
-      await _audioPlayer.stop();
+      if (_audioPlayer == null) {
+        _audioPlayer = ap.AudioPlayer();
+        await _audioPlayer!.setAudioContext(
+          ap.AudioContext(
+            iOS: ap.AudioContextIOS(
+              category: ap.AVAudioSessionCategory.playback,
+              options: const <ap.AVAudioSessionOptions>{},
+            ),
+            android: const ap.AudioContextAndroid(
+              usageType: ap.AndroidUsageType.alarm,
+              contentType: ap.AndroidContentType.sonification,
+              audioFocus: ap.AndroidAudioFocus.gainTransient,
+            ),
+          ),
+        );
+      }
+      await _audioPlayer!.stop();
 
       // Set up completion handler to deactivate audio session with notifyOthersOnDeactivation
       final Completer<void> completer = Completer<void>();
-      _playerCompleteSubscription = _audioPlayer.onPlayerComplete.listen((_) {
+      _playerCompleteSubscription = _audioPlayer!.onPlayerComplete.listen((_) {
         if (!completer.isCompleted) {
           completer.complete();
         }
@@ -145,7 +148,7 @@ class NotificationService {
         await _deactivateAudioSession();
       });
 
-      await _audioPlayer.play(ap.AssetSource('sounds/timer_beep.wav'));
+      await _audioPlayer!.play(ap.AssetSource('sounds/timer_beep.wav'));
     } catch (e) {
       debugPrint('Audio playback error: $e');
       await _deactivateAudioSession();
@@ -231,6 +234,229 @@ class NotificationService {
     try {
       await _notifications.cancel(888);
     } catch (_) {}
+  }
+
+  // --- FASTING & HYDRATION REMINDERS ---
+
+  static const List<int> _hydrationNotificationIds = <int>[701, 702, 703, 704, 705, 706];
+  static const List<int> _coffeeNotificationIds = <int>[751, 752, 753];
+
+  /// Schedule paced water notifications across waking hours to reach the daily target
+  Future<void> scheduleFastingHydrationReminders({
+    required int dailyTargetMl,
+    int wakeHour = 4,
+    int wakeMinute = 45,
+  }) async {
+    await init();
+    await cancelHydrationReminders();
+
+    final int portionMl = (dailyTargetMl / 6).round();
+    final List<Map<String, dynamic>> scheduleTimes = <Map<String, dynamic>>[
+      <String, dynamic>{
+        'id': 701,
+        'hour': 5,
+        'minute': 0,
+        'title': '💧 Morning Hydration Primer ($portionMl mL)',
+        'body': 'Drink $portionMl mL water + a pinch of salt to restore plasma volume before your 6 AM lift.',
+      },
+      <String, dynamic>{
+        'id': 702,
+        'hour': 7,
+        'minute': 30,
+        'title': '💧 Post-Lift Rehydration ($portionMl mL)',
+        'body': 'Refill with $portionMl mL water to rehydrate muscle tissue after training.',
+      },
+      <String, dynamic>{
+        'id': 703,
+        'hour': 10,
+        'minute': 0,
+        'title': '💧 Mid-Morning Hydration Check ($portionMl mL)',
+        'body': 'Pacing towards your $dailyTargetMl mL goal. Drink $portionMl mL cool or sparkling water.',
+      },
+      <String, dynamic>{
+        'id': 704,
+        'hour': 12,
+        'minute': 30,
+        'title': '💧 Midday Cellular Hydration ($portionMl mL)',
+        'body': 'Keep electrolytes and fluid balanced during your fast. $portionMl mL target.',
+      },
+      <String, dynamic>{
+        'id': 705,
+        'hour': 15,
+        'minute': 30,
+        'title': '💧 Afternoon Metabolic Hydration ($portionMl mL)',
+        'body': 'Afternoon slump? Salted water boosts alertness and blunts appetite.',
+      },
+      <String, dynamic>{
+        'id': 706,
+        'hour': 18,
+        'minute': 0,
+        'title': '💧 Final Evening Hydration ($portionMl mL)',
+        'body': 'Last water target before night. Finish hydration by 6:30 PM for uninterrupted sleep.',
+      },
+    ];
+
+    const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+      'oly_hydration_channel',
+      'Hydration Reminders',
+      channelDescription: 'Paced hydration reminders to hit daily water goal',
+      importance: Importance.defaultImportance,
+      priority: Priority.defaultPriority,
+    );
+
+    const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentSound: true,
+      presentBadge: false,
+    );
+
+    const NotificationDetails details = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
+
+    final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
+
+    for (final Map<String, dynamic> item in scheduleTimes) {
+      try {
+        final int id = item['id'] as int;
+        final int hour = item['hour'] as int;
+        final int minute = item['minute'] as int;
+        final String title = item['title'] as String;
+        final String body = item['body'] as String;
+
+        tz.TZDateTime scheduledDate = tz.TZDateTime(
+          tz.local,
+          now.year,
+          now.month,
+          now.day,
+          hour,
+          minute,
+        );
+
+        if (scheduledDate.isBefore(now)) {
+          scheduledDate = scheduledDate.add(const Duration(days: 1));
+        }
+
+        await _notifications.zonedSchedule(
+          id,
+          title,
+          body,
+          scheduledDate,
+          details,
+          androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+          uiLocalNotificationDateInterpretation:
+              UILocalNotificationDateInterpretation.absoluteTime,
+          matchDateTimeComponents: DateTimeComponents.time,
+        );
+      } catch (e) {
+        debugPrint('Error scheduling hydration alert: $e');
+      }
+    }
+  }
+
+  Future<void> cancelHydrationReminders() async {
+    for (final int id in _hydrationNotificationIds) {
+      try {
+        await _notifications.cancel(id);
+      } catch (_) {}
+    }
+  }
+
+  /// Schedule strategic fasting coffee & caffeine reminders
+  Future<void> scheduleFastingCoffeeReminders() async {
+    await init();
+    await cancelCoffeeReminders();
+
+    final List<Map<String, dynamic>> coffeeReminders = <Map<String, dynamic>>[
+      <String, dynamic>{
+        'id': 751,
+        'hour': 5,
+        'minute': 15,
+        'title': '☕ 5:15 AM Pre-Workout Platform Primer',
+        'body': 'Black coffee + 600mg salt spikes free fatty acid mobilization 45m before your 6:00 AM lift.',
+      },
+      <String, dynamic>{
+        'id': 752,
+        'hour': 9,
+        'minute': 30,
+        'title': '☕ 9:30 AM Fasting Bridge (Ghrelin Shield)',
+        'body': 'Mid-morning hunger wave? Black coffee or green tea stimulates peptide YY to blunt appetite.',
+      },
+      <String, dynamic>{
+        'id': 753,
+        'hour': 12,
+        'minute': 0,
+        'title': '🛑 12:00 PM Caffeine Curfew',
+        'body': 'Last call for coffee! Shutting down caffeine now clears adenosine for your 8:45 PM bedtime and deep HRV.',
+      },
+    ];
+
+    const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+      'oly_coffee_channel',
+      'Fasting Coffee Alerts',
+      channelDescription: 'Strategic coffee timing to assist fasting & athletic sleep',
+      importance: Importance.defaultImportance,
+      priority: Priority.defaultPriority,
+    );
+
+    const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentSound: true,
+      presentBadge: false,
+    );
+
+    const NotificationDetails details = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
+
+    final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
+
+    for (final Map<String, dynamic> item in coffeeReminders) {
+      try {
+        final int id = item['id'] as int;
+        final int hour = item['hour'] as int;
+        final int minute = item['minute'] as int;
+        final String title = item['title'] as String;
+        final String body = item['body'] as String;
+
+        tz.TZDateTime scheduledDate = tz.TZDateTime(
+          tz.local,
+          now.year,
+          now.month,
+          now.day,
+          hour,
+          minute,
+        );
+
+        if (scheduledDate.isBefore(now)) {
+          scheduledDate = scheduledDate.add(const Duration(days: 1));
+        }
+
+        await _notifications.zonedSchedule(
+          id,
+          title,
+          body,
+          scheduledDate,
+          details,
+          androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+          uiLocalNotificationDateInterpretation:
+              UILocalNotificationDateInterpretation.absoluteTime,
+          matchDateTimeComponents: DateTimeComponents.time,
+        );
+      } catch (e) {
+        debugPrint('Error scheduling coffee alert: $e');
+      }
+    }
+  }
+
+  Future<void> cancelCoffeeReminders() async {
+    for (final int id in _coffeeNotificationIds) {
+      try {
+        await _notifications.cancel(id);
+      } catch (_) {}
+    }
   }
 
   /// Trigger prominent haptic feedback loop on iOS & Android

@@ -8,6 +8,9 @@ import 'package:oly/models/cindy_workout_log.dart';
 import 'package:oly/models/daily_nutrition_log.dart';
 import 'package:oly/models/death_by_burpees_log.dart';
 import 'package:oly/models/dt_workout_log.dart';
+import 'package:oly/models/fasting_biomarker_entry.dart';
+import 'package:oly/models/fasting_grocery_item.dart';
+import 'package:oly/models/fasting_session_model.dart';
 import 'package:oly/models/fran_workout_log.dart';
 import 'package:oly/models/grace_workout_log.dart';
 import 'package:oly/models/helen_workout_log.dart';
@@ -53,6 +56,12 @@ class StorageService {
   static const String _keyBreathingConfig = 'oly_breathing_config_v1';
   static const String _keyCindyEmomBeep = 'oly_cindy_emom_beep_v1';
   static const String _keyBenchmarkWodLogs = 'oly_benchmark_wod_logs_v1';
+  static const String _keyActiveFastingSession = 'oly_active_fasting_session_v1';
+  static const String _keyFastingHistory = 'oly_fasting_history_v1';
+  static const String _keyAthleteCircadianConfig =
+      'oly_athlete_circadian_config_v1';
+  static const String _keyFastingPantryItems = 'oly_fasting_pantry_items_v1';
+  static const String _keyFastingBiomarkers = 'oly_fasting_biomarkers_v1';
 
   final SharedPreferences _prefs;
 
@@ -1272,5 +1281,119 @@ class StorageService {
   Future<void> saveBreathingConfig(WimHofConfig config) async {
     final String jsonStr = jsonEncode(config.toJson());
     await _prefs.setString(_keyBreathingConfig, jsonStr);
+  }
+
+  // --- GUIDED FASTING STORAGE ---
+  FastingSession? loadActiveFastingSession() {
+    final String? jsonStr = _prefs.getString(_keyActiveFastingSession);
+    if (jsonStr == null || jsonStr.isEmpty) {
+      return null;
+    }
+    try {
+      final Map<String, dynamic> map =
+          jsonDecode(jsonStr) as Map<String, dynamic>;
+      return FastingSession.fromJson(map);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> saveActiveFastingSession(FastingSession? session) async {
+    if (session == null) {
+      await _prefs.remove(_keyActiveFastingSession);
+    } else {
+      final String jsonStr = jsonEncode(session.toJson());
+      await _prefs.setString(_keyActiveFastingSession, jsonStr);
+    }
+  }
+
+  List<FastingSession> loadFastingHistory() {
+    final String? jsonStr = _prefs.getString(_keyFastingHistory);
+    if (jsonStr == null || jsonStr.isEmpty) {
+      return <FastingSession>[];
+    }
+    try {
+      final List<dynamic> list = jsonDecode(jsonStr);
+      final List<FastingSession> history = list
+          .map((dynamic e) => FastingSession.fromJson(e as Map<String, dynamic>))
+          .toList();
+      history.sort((FastingSession a, FastingSession b) =>
+          b.startTime.compareTo(a.startTime));
+      return history;
+    } catch (_) {
+      return <FastingSession>[];
+    }
+  }
+
+  Future<void> saveFastingHistory(List<FastingSession> history) async {
+    final String jsonStr = jsonEncode(
+      history.map((FastingSession s) => s.toJson()).toList(),
+    );
+    await _prefs.setString(_keyFastingHistory, jsonStr);
+  }
+
+  AthleteCircadianConfig loadAthleteCircadianConfig() {
+    final String? jsonStr = _prefs.getString(_keyAthleteCircadianConfig);
+    if (jsonStr == null || jsonStr.isEmpty) {
+      return const AthleteCircadianConfig();
+    }
+    try {
+      final Map<String, dynamic> map =
+          jsonDecode(jsonStr) as Map<String, dynamic>;
+      return AthleteCircadianConfig.fromJson(map);
+    } catch (_) {
+      return const AthleteCircadianConfig();
+    }
+  }
+
+  Future<void> saveAthleteCircadianConfig(AthleteCircadianConfig config) async {
+    final String jsonStr = jsonEncode(config.toJson());
+    await _prefs.setString(_keyAthleteCircadianConfig, jsonStr);
+  }
+
+  List<FastingGroceryItem> loadFastingPantryItems() {
+    final String? jsonStr = _prefs.getString(_keyFastingPantryItems);
+    if (jsonStr == null || jsonStr.isEmpty) {
+      return <FastingGroceryItem>[];
+    }
+    try {
+      final List<dynamic> list = jsonDecode(jsonStr);
+      return list
+          .map((dynamic e) =>
+              FastingGroceryItem.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } catch (_) {
+      return <FastingGroceryItem>[];
+    }
+  }
+
+  Future<void> saveFastingPantryItems(List<FastingGroceryItem> items) async {
+    final String jsonStr = jsonEncode(
+      items.map((FastingGroceryItem i) => i.toJson()).toList(),
+    );
+    await _prefs.setString(_keyFastingPantryItems, jsonStr);
+  }
+
+  List<FastingBiomarkerEntry> loadFastingBiomarkers() {
+    final String? jsonStr = _prefs.getString(_keyFastingBiomarkers);
+    if (jsonStr == null || jsonStr.isEmpty) {
+      return <FastingBiomarkerEntry>[];
+    }
+    try {
+      final List<dynamic> list = jsonDecode(jsonStr);
+      return list
+          .map((dynamic e) =>
+              FastingBiomarkerEntry.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } catch (_) {
+      return <FastingBiomarkerEntry>[];
+    }
+  }
+
+  Future<void> saveFastingBiomarkers(List<FastingBiomarkerEntry> entries) async {
+    final String jsonStr = jsonEncode(
+      entries.map((FastingBiomarkerEntry e) => e.toJson()).toList(),
+    );
+    await _prefs.setString(_keyFastingBiomarkers, jsonStr);
   }
 }
