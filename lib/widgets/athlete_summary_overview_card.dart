@@ -11,6 +11,8 @@ import 'package:oly/providers/program_provider.dart';
 import 'package:oly/theme/app_theme.dart';
 import 'package:oly/views/warmup_session_screen.dart';
 import 'package:oly/views/workout_session_screen.dart';
+import 'package:oly/widgets/motion/oly_pressable.dart';
+import 'package:oly/widgets/motion/pulsing_glow.dart';
 import 'package:provider/provider.dart';
 
 /// The high-level Athlete Daily Briefing / Summary Overview Card that sits
@@ -66,102 +68,106 @@ class AthleteSummaryOverviewCard extends StatelessWidget {
       (sum, p) => sum + p.exercises.length,
     );
 
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: AppTheme.surfaceCard,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: hasDraft
-              ? AppTheme.primaryAmber.withValues(alpha: 0.8)
-              : AppTheme.borderColor,
-          width: hasDraft ? 1.8 : 1.2,
+    return PulsingGlow(
+      glowColor: AppTheme.primaryAmber,
+      isPulsing: hasDraft,
+      borderRadius: BorderRadius.circular(24),
+      child: Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: AppTheme.surfaceCard,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: hasDraft
+                ? AppTheme.primaryAmber.withValues(alpha: 0.8)
+                : AppTheme.borderColor,
+            width: hasDraft ? 1.8 : 1.2,
+          ),
+          boxShadow: <BoxShadow>[
+            BoxShadow(
+              color: (hasDraft ? AppTheme.primaryAmber : AppTheme.secondaryCyan)
+                  .withValues(alpha: 0.12),
+              blurRadius: 20,
+              offset: const Offset(0, 6),
+            ),
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.4),
+              blurRadius: 10,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
-        boxShadow: <BoxShadow>[
-          BoxShadow(
-            color: (hasDraft ? AppTheme.primaryAmber : AppTheme.secondaryCyan)
-                .withValues(alpha: 0.12),
-            blurRadius: 20,
-            offset: const Offset(0, 6),
-          ),
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.4),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          // Header: Date & Readiness Pill
-          Padding(
-            padding: const EdgeInsets.fromLTRB(18, 16, 18, 12),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                Row(
-                  children: <Widget>[
-                    const Icon(
-                      Icons.calendar_today_rounded,
-                      size: 14,
-                      color: AppTheme.textSecondary,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      todayDateStr,
-                      style: GoogleFonts.outfit(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            // Header: Date & Readiness Pill
+            Padding(
+              padding: const EdgeInsets.fromLTRB(18, 16, 18, 12),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  Row(
+                    children: <Widget>[
+                      const Icon(
+                        Icons.calendar_today_rounded,
+                        size: 14,
                         color: AppTheme.textSecondary,
-                        letterSpacing: 1,
                       ),
-                    ),
-                  ],
-                ),
-                InkWell(
-                  onTap: () => onNavigateTab?.call(1), // Jump to RECOVER tab
-                  borderRadius: BorderRadius.circular(12),
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: readinessColor.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: readinessColor.withValues(alpha: 0.4),
+                      const SizedBox(width: 6),
+                      Text(
+                        todayDateStr,
+                        style: GoogleFonts.outfit(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: AppTheme.textSecondary,
+                          letterSpacing: 1,
+                        ),
                       ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: <Widget>[
-                        Container(
-                          width: 7,
-                          height: 7,
-                          decoration: BoxDecoration(
-                            color: readinessColor,
-                            shape: BoxShape.circle,
-                          ),
+                    ],
+                  ),
+                  OlyPressable(
+                    onPressed: () => onNavigateTab?.call(1), // Jump to RECOVER tab
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: readinessColor.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: readinessColor.withValues(alpha: 0.4),
                         ),
-                        const SizedBox(width: 6),
-                        Text(
-                          '$readinessScore% READINESS',
-                          style: GoogleFonts.outfit(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w800,
-                            color: readinessColor,
-                            letterSpacing: 0.5,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          Container(
+                            width: 7,
+                            height: 7,
+                            decoration: BoxDecoration(
+                              color: readinessColor,
+                              shape: BoxShape.circle,
+                            ),
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: 6),
+                          Text(
+                            '$readinessScore% READINESS',
+                            style: GoogleFonts.outfit(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800,
+                              color: readinessColor,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
 
-          const Divider(height: 1, color: AppTheme.borderColor),
+            const Divider(height: 1, color: AppTheme.borderColor),
 
           // Main Training Mission Content
           Padding(
@@ -267,38 +273,43 @@ class AthleteSummaryOverviewCard extends StatelessWidget {
                   children: <Widget>[
                     Expanded(
                       flex: 3,
-                      child: ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: hasDraft
-                              ? AppTheme.primaryAmber
-                              : AppTheme.secondaryCyan,
-                          foregroundColor: Colors.black,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                        ),
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute<void>(
-                              builder: (_) => WorkoutSessionScreen(
-                                dayTemplate: activeDay,
-                                initialDraft: draft,
-                              ),
+                      child: OlyPressable(
+                        borderRadius: BorderRadius.circular(14),
+                        child: ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: hasDraft
+                                ? AppTheme.primaryAmber
+                                : AppTheme.secondaryCyan,
+                            foregroundColor: Colors.black,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
                             ),
-                          );
-                        },
-                        icon: Icon(
-                          hasDraft ? Icons.play_arrow_rounded : Icons.flash_on_rounded,
-                          size: 20,
-                        ),
-                        label: Text(
-                          hasDraft ? 'RESUME SESSION' : 'START WORKOUT',
-                          style: GoogleFonts.outfit(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                            letterSpacing: 0.6,
+                          ),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute<void>(
+                                builder: (_) => WorkoutSessionScreen(
+                                  dayTemplate: activeDay,
+                                  initialDraft: draft,
+                                ),
+                              ),
+                            );
+                          },
+                          icon: Icon(
+                            hasDraft
+                                ? Icons.play_arrow_rounded
+                                : Icons.flash_on_rounded,
+                            size: 20,
+                          ),
+                          label: Text(
+                            hasDraft ? 'RESUME SESSION' : 'START WORKOUT',
+                            style: GoogleFonts.outfit(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                              letterSpacing: 0.6,
+                            ),
                           ),
                         ),
                       ),
@@ -306,30 +317,34 @@ class AthleteSummaryOverviewCard extends StatelessWidget {
                     const SizedBox(width: 10),
                     Expanded(
                       flex: 2,
-                      child: OutlinedButton.icon(
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: AppTheme.secondaryCyan,
-                          side: const BorderSide(color: AppTheme.secondaryCyan),
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                        ),
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute<void>(
-                              builder: (_) =>
-                                  WarmupSessionScreen(dayTemplate: activeDay),
+                      child: OlyPressable(
+                        borderRadius: BorderRadius.circular(14),
+                        child: OutlinedButton.icon(
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppTheme.secondaryCyan,
+                            side: const BorderSide(color: AppTheme.secondaryCyan),
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
                             ),
-                          );
-                        },
-                        icon: const Icon(Icons.directions_run_rounded, size: 18),
-                        label: Text(
-                          'Warm-Up',
-                          style: GoogleFonts.outfit(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 13,
+                          ),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute<void>(
+                                builder: (_) =>
+                                    WarmupSessionScreen(dayTemplate: activeDay),
+                              ),
+                            );
+                          },
+                          icon:
+                              const Icon(Icons.directions_run_rounded, size: 18),
+                          label: Text(
+                            'Warm-Up',
+                            style: GoogleFonts.outfit(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                            ),
                           ),
                         ),
                       ),
@@ -474,6 +489,7 @@ class AthleteSummaryOverviewCard extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 }

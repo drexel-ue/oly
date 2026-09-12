@@ -12,6 +12,7 @@ import 'package:oly/views/nutrition/fasting_circadian_sheet.dart';
 import 'package:oly/views/nutrition/fasting_refeed_guide_sheet.dart';
 import 'package:oly/views/nutrition/fasting_science_explainer_screen.dart';
 import 'package:oly/views/nutrition/fasting_setup_sheet.dart';
+import 'package:oly/widgets/motion/oly_pressable.dart';
 import 'package:oly/widgets/nutrition/fasting_cellular_card.dart';
 import 'package:oly/widgets/nutrition/fasting_grocery_sheet.dart';
 import 'package:oly/widgets/nutrition/fasting_projection_card.dart';
@@ -103,24 +104,27 @@ class FastingDashboardView extends StatelessWidget {
               SizedBox(
                 width: double.infinity,
                 height: 48,
-                child: ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primaryAmber,
-                    foregroundColor: Colors.black,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                child: OlyPressable(
+                  borderRadius: BorderRadius.circular(12),
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primaryAmber,
+                      foregroundColor: Colors.black,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
-                  ),
-                  icon: const Icon(Icons.play_arrow, size: 22),
-                  label: Text(
-                    'START GUIDED FAST',
-                    style: GoogleFonts.outfit(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 0.8,
+                    icon: const Icon(Icons.play_arrow, size: 22),
+                    label: Text(
+                      'START GUIDED FAST',
+                      style: GoogleFonts.outfit(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.8,
+                      ),
                     ),
+                    onPressed: () => FastingSetupSheet.show(context),
                   ),
-                  onPressed: () => FastingSetupSheet.show(context),
                 ),
               ),
             ],
@@ -191,41 +195,47 @@ class FastingDashboardView extends StatelessWidget {
         Row(
           children: <Widget>[
             Expanded(
-              child: OutlinedButton(
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.redAccent,
-                  side: const BorderSide(color: Colors.redAccent),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                ),
-                onPressed: () => _confirmCancelFast(context, fasting),
-                child: Text(
-                  'Cancel Fast',
-                  style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
+              child: OlyPressable(
+                borderRadius: BorderRadius.circular(12),
+                child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.redAccent,
+                    side: const BorderSide(color: Colors.redAccent),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                  ),
+                  onPressed: () => _confirmCancelFast(context, fasting),
+                  child: Text(
+                    'Cancel Fast',
+                    style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
+                  ),
                 ),
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
               flex: 2,
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primaryAmber,
-                  foregroundColor: Colors.black,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                ),
-                icon: const Icon(Icons.check_circle_outline, size: 18),
-                label: Text(
-                  'END FAST & REFEED',
-                  style: GoogleFonts.outfit(
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 0.6,
+              child: OlyPressable(
+                borderRadius: BorderRadius.circular(12),
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primaryAmber,
+                    foregroundColor: Colors.black,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
                   ),
+                  icon: const Icon(Icons.check_circle_outline, size: 18),
+                  label: Text(
+                    'END FAST & REFEED',
+                    style: GoogleFonts.outfit(
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.6,
+                    ),
+                  ),
+                  onPressed: () => _confirmEndFast(context, fasting, session),
                 ),
-                onPressed: () => _confirmEndFast(context, fasting, session),
               ),
             ),
           ],

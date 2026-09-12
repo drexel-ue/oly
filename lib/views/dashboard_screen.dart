@@ -17,6 +17,8 @@ import 'package:oly/views/warmup_session_screen.dart';
 import 'package:oly/views/wod_hub_screen.dart';
 import 'package:oly/views/workout_session_screen.dart';
 import 'package:oly/widgets/athlete_summary_overview_card.dart';
+import 'package:oly/widgets/motion/kinetic_counter.dart';
+import 'package:oly/widgets/motion/oly_pressable.dart';
 import 'package:oly/widgets/plate_modal.dart';
 import 'package:oly/widgets/settings_modal.dart';
 import 'package:provider/provider.dart';
@@ -403,8 +405,9 @@ class DashboardScreen extends StatelessWidget {
               final bool isSelected = program.currentWeek == w;
               final String label = w == 5 ? 'Retest' : 'W$w';
 
-              return InkWell(
-                onTap: () => program.selectWeek(w),
+              return OlyPressable(
+                onPressed: () => program.selectWeek(w),
+                borderRadius: BorderRadius.circular(10),
                 child: Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 10,
@@ -432,8 +435,8 @@ class DashboardScreen extends StatelessWidget {
             }),
           ),
           const SizedBox(height: 14),
-          InkWell(
-            onTap: () => _showRoutineExplorerSheet(context, program),
+          OlyPressable(
+            onPressed: () => _showRoutineExplorerSheet(context, program),
             borderRadius: BorderRadius.circular(12),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -953,7 +956,21 @@ class DashboardScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppTheme.surfaceCard,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppTheme.borderColor),
+        border: Border.all(
+          color: AppTheme.primaryAmber.withValues(alpha: 0.35),
+        ),
+        boxShadow: <BoxShadow>[
+          BoxShadow(
+            color: AppTheme.primaryAmber.withValues(alpha: 0.08),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.4),
+            blurRadius: 12,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -966,12 +983,13 @@ class DashboardScreen extends StatelessWidget {
                 style: GoogleFonts.outfit(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
-                  letterSpacing: 1,
-                  color: AppTheme.textSecondary,
+                  letterSpacing: 1.2,
+                  color: AppTheme.primaryAmber,
                 ),
               ),
-              Text(
-                settings.formatWeight(total),
+              KineticCounter(
+                value: settings.toDisplayWeight(total),
+                suffix: ' ${settings.unitLabel}',
                 style: GoogleFonts.outfit(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
@@ -997,8 +1015,9 @@ class DashboardScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 2),
-                    Text(
-                      settings.formatWeight(snatch),
+                    KineticCounter(
+                      value: settings.toDisplayWeight(snatch),
+                      suffix: ' ${settings.unitLabel}',
                       style: GoogleFonts.outfit(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -1022,8 +1041,9 @@ class DashboardScreen extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 2),
-                      Text(
-                        settings.formatWeight(cj),
+                      KineticCounter(
+                        value: settings.toDisplayWeight(cj),
+                        suffix: ' ${settings.unitLabel}',
                         style: GoogleFonts.outfit(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -1081,15 +1101,24 @@ class DashboardScreen extends StatelessWidget {
     required Color accentColor,
     required VoidCallback onTap,
   }) {
-    return InkWell(
-      onTap: onTap,
+    return OlyPressable(
+      onPressed: onTap,
       borderRadius: BorderRadius.circular(16),
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: AppTheme.surfaceCard,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppTheme.borderColor),
+          border: Border.all(
+            color: accentColor.withValues(alpha: 0.25),
+          ),
+          boxShadow: <BoxShadow>[
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.35),
+              blurRadius: 10,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Row(
           children: <Widget>[
@@ -1098,6 +1127,9 @@ class DashboardScreen extends StatelessWidget {
               decoration: BoxDecoration(
                 color: accentColor.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: accentColor.withValues(alpha: 0.4),
+                ),
               ),
               child: Icon(icon, color: accentColor, size: 22),
             ),
@@ -1124,6 +1156,11 @@ class DashboardScreen extends StatelessWidget {
                   ),
                 ],
               ),
+            ),
+            Icon(
+              Icons.chevron_right_rounded,
+              color: accentColor.withValues(alpha: 0.6),
+              size: 18,
             ),
           ],
         ),
@@ -1235,30 +1272,33 @@ class DashboardScreen extends StatelessWidget {
           const SizedBox(height: 14),
           SizedBox(
             width: double.infinity,
-            child: ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primaryAmber,
-                foregroundColor: Colors.black,
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                elevation: 0,
-              ),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute<void>(
-                    builder: (_) => const WodHubScreen(),
+            child: OlyPressable(
+              borderRadius: BorderRadius.circular(12),
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryAmber,
+                  foregroundColor: Colors.black,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                );
-              },
-              icon: const Icon(Icons.explore_rounded, size: 18),
-              label: Text(
-                'Explore WOD Hub & Memorials',
-                style: GoogleFonts.outfit(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 13,
+                  elevation: 0,
+                ),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute<void>(
+                      builder: (_) => const WodHubScreen(),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.explore_rounded, size: 18),
+                label: Text(
+                  'Explore WOD Hub & Memorials',
+                  style: GoogleFonts.outfit(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                  ),
                 ),
               ),
             ),
@@ -1269,8 +1309,8 @@ class DashboardScreen extends StatelessWidget {
   }
 
   Widget _buildWodChip(BuildContext context, String label) {
-    return InkWell(
-      onTap: () {
+    return OlyPressable(
+      onPressed: () {
         Navigator.push(
           context,
           MaterialPageRoute<void>(

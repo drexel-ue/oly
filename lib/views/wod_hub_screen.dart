@@ -29,6 +29,7 @@ import 'package:oly/views/helen_wod_screen.dart';
 import 'package:oly/views/jackie_wod_screen.dart';
 import 'package:oly/widgets/hero_wod_detail_sheet.dart';
 import 'package:oly/widgets/log_wod_score_sheet.dart';
+import 'package:oly/widgets/motion/oly_pressable.dart';
 import 'package:oly/widgets/wod_history_sheet.dart';
 import 'package:oly/widgets/wod_setup_explainer_sheet.dart';
 import 'package:provider/provider.dart';
@@ -593,8 +594,8 @@ class _WodHubScreenState extends State<WodHubScreen> {
       child: Row(
         children: <Widget>[
           Expanded(
-            child: InkWell(
-              onTap: () {
+            child: OlyPressable(
+              onPressed: () {
                 HapticFeedback.selectionClick();
                 setState(() => _currentTabIndex = 0);
               },
@@ -630,8 +631,8 @@ class _WodHubScreenState extends State<WodHubScreen> {
             ),
           ),
           Expanded(
-            child: InkWell(
-              onTap: () {
+            child: OlyPressable(
+              onPressed: () {
                 HapticFeedback.selectionClick();
                 setState(() => _currentTabIndex = 1);
               },
@@ -737,8 +738,8 @@ class _WodHubScreenState extends State<WodHubScreen> {
                   itemBuilder: (context, index) {
                     final String cat = _filterCategories[index];
                     final bool isSelected = _selectedCategory == cat;
-                    return InkWell(
-                      onTap: () {
+                    return OlyPressable(
+                      onPressed: () {
                         HapticFeedback.selectionClick();
                         setState(() => _selectedCategory = cat);
                       },
@@ -1629,17 +1630,20 @@ class _WodHubScreenState extends State<WodHubScreen> {
               ],
             ),
           ),
-          ElevatedButton(
-            onPressed: _showShuffleDialog,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.primaryAmber,
-              foregroundColor: Colors.black,
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            ),
-            child: Text(
-              'SHUFFLE',
-              style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 12),
+          OlyPressable(
+            borderRadius: BorderRadius.circular(10),
+            child: ElevatedButton(
+              onPressed: _showShuffleDialog,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryAmber,
+                foregroundColor: Colors.black,
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+              child: Text(
+                'SHUFFLE',
+                style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 12),
+              ),
             ),
           ),
         ],
@@ -2061,71 +2065,80 @@ class _WodHubScreenState extends State<WodHubScreen> {
               alignment: WrapAlignment.spaceBetween,
               crossAxisAlignment: WrapCrossAlignment.center,
               children: <Widget>[
-                TextButton.icon(
-                  onPressed: () {
-                    if (heroWod != null) {
-                      HeroWodDetailSheet.show(context, heroWod);
-                    } else {
-                      WodSetupExplainerSheet.show(
-                        context,
-                        wod,
-                        onStartWod: () => _launchWod(wod),
-                      );
-                    }
-                  },
-                  icon: Icon(
-                    heroWod != null ? Icons.military_tech_outlined : Icons.tips_and_updates_outlined,
-                    size: 16,
-                    color: heroWod != null ? AppTheme.primaryAmber : AppTheme.secondaryCyan,
-                  ),
-                  label: Text(
-                    heroWod != null ? 'Hero Tribute' : 'Setup Explainer',
-                    style: GoogleFonts.outfit(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
+                OlyPressable(
+                  borderRadius: BorderRadius.circular(8),
+                  child: TextButton.icon(
+                    onPressed: () {
+                      if (heroWod != null) {
+                        HeroWodDetailSheet.show(context, heroWod);
+                      } else {
+                        WodSetupExplainerSheet.show(
+                          context,
+                          wod,
+                          onStartWod: () => _launchWod(wod),
+                        );
+                      }
+                    },
+                    icon: Icon(
+                      heroWod != null ? Icons.military_tech_outlined : Icons.tips_and_updates_outlined,
+                      size: 16,
                       color: heroWod != null ? AppTheme.primaryAmber : AppTheme.secondaryCyan,
                     ),
-                  ),
-                ),
-                TextButton.icon(
-                  onPressed: () {
-                    HapticFeedback.lightImpact();
-                    LogWodScoreSheet.show(
-                      context,
-                      wodId: wod.id,
-                      wodName: wod.name,
-                      wodFormat: wod.format.name,
-                    );
-                  },
-                  icon: const Icon(Icons.add_task_rounded, size: 16, color: Colors.greenAccent),
-                  label: Text(
-                    'Log Score',
-                    style: GoogleFonts.outfit(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.greenAccent,
+                    label: Text(
+                      heroWod != null ? 'Hero Tribute' : 'Setup Explainer',
+                      style: GoogleFonts.outfit(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: heroWod != null ? AppTheme.primaryAmber : AppTheme.secondaryCyan,
+                      ),
                     ),
                   ),
                 ),
-                ElevatedButton.icon(
-                  onPressed: () => _launchWod(wod),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primaryAmber,
-                    foregroundColor: Colors.black,
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                OlyPressable(
+                  borderRadius: BorderRadius.circular(8),
+                  child: TextButton.icon(
+                    onPressed: () {
+                      HapticFeedback.lightImpact();
+                      LogWodScoreSheet.show(
+                        context,
+                        wodId: wod.id,
+                        wodName: wod.name,
+                        wodFormat: wod.format.name,
+                      );
+                    },
+                    icon: const Icon(Icons.add_task_rounded, size: 16, color: Colors.greenAccent),
+                    label: Text(
+                      'Log Score',
+                      style: GoogleFonts.outfit(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.greenAccent,
+                      ),
+                    ),
                   ),
-                  icon: Icon(
-                    wod.hasInteractiveTracker
-                        ? Icons.play_arrow_rounded
-                        : (heroWod != null ? Icons.military_tech_rounded : Icons.explore_outlined),
-                    size: 18,
-                  ),
-                  label: Text(
-                    wod.hasInteractiveTracker
-                        ? 'START WOD'
-                        : (heroWod != null ? 'VIEW HERO WOD' : 'VIEW SETUP'),
-                    style: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.bold),
+                ),
+                OlyPressable(
+                  borderRadius: BorderRadius.circular(10),
+                  child: ElevatedButton.icon(
+                    onPressed: () => _launchWod(wod),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primaryAmber,
+                      foregroundColor: Colors.black,
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                    icon: Icon(
+                      wod.hasInteractiveTracker
+                          ? Icons.play_arrow_rounded
+                          : (heroWod != null ? Icons.military_tech_rounded : Icons.explore_outlined),
+                      size: 18,
+                    ),
+                    label: Text(
+                      wod.hasInteractiveTracker
+                          ? 'START WOD'
+                          : (heroWod != null ? 'VIEW HERO WOD' : 'VIEW SETUP'),
+                      style: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.bold),
+                    ),
                   ),
                 ),
               ],

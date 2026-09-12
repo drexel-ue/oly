@@ -10,6 +10,7 @@ import 'package:oly/theme/app_theme.dart';
 import 'package:oly/views/breathing/wim_hof_session_screen.dart';
 import 'package:oly/views/recovery_session_screen.dart';
 import 'package:oly/views/workout_session_screen.dart';
+import 'package:oly/widgets/motion/pulsing_glow.dart';
 import 'package:provider/provider.dart';
 
 /// A floating, glassmorphic 54px mini-dock that hovers directly above
@@ -79,39 +80,38 @@ class ActiveSessionMiniDock extends StatelessWidget {
                                 ? 'PREVIEW EXPLORATION'
                                 : 'SESSION IN PROGRESS')))));
 
-        return Container(
-          margin: const EdgeInsets.fromLTRB(12, 0, 12, 8),
-          decoration: BoxDecoration(
-            color: const Color(0xFF1C1C22),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: accentColor.withValues(alpha: 0.6),
-              width: 1.5,
+        return PulsingGlow(
+          glowColor: accentColor,
+          isPulsing: isResting || session.isActive,
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            margin: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+            decoration: BoxDecoration(
+              color: AppTheme.surfaceElevated,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: accentColor.withValues(alpha: 0.65),
+                width: 1.5,
+              ),
+              boxShadow: <BoxShadow>[
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.6),
+                  blurRadius: 12,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
-            boxShadow: <BoxShadow>[
-              BoxShadow(
-                color: accentColor.withValues(alpha: 0.2),
-                blurRadius: 16,
-                offset: const Offset(0, 4),
-              ),
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.6),
-                blurRadius: 10,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(15),
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: () => _handleExpand(context, session, program),
-                splashColor: accentColor.withValues(alpha: 0.15),
-                highlightColor: accentColor.withValues(alpha: 0.08),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(15),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () => _handleExpand(context, session, program),
+                  splashColor: accentColor.withValues(alpha: 0.15),
+                  highlightColor: accentColor.withValues(alpha: 0.08),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
                     // 2.5px Dynamic Progress Bar along top edge
                     if (session.restTotalSeconds > 0)
                       LinearProgressIndicator(
@@ -340,8 +340,9 @@ class ActiveSessionMiniDock extends StatelessWidget {
               ),
             ),
           ),
-        );
-      },
+        ),
+      );
+    },
     );
   }
 

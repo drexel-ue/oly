@@ -100,11 +100,11 @@ class FastingRadialGauge extends StatelessWidget {
                 // Elapsed Time
                 Text(
                   timeStr,
-                  style: GoogleFonts.outfit(
-                    fontSize: 28,
+                  style: GoogleFonts.firaCode(
+                    fontSize: 26,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
-                    letterSpacing: 1,
+                    letterSpacing: 0.8,
                   ),
                 ),
                 const SizedBox(height: 2),
