@@ -9,7 +9,7 @@ enum SessionType { workout, mobility, breathwork }
 /// Manages global active session state, including active exercise, set details,
 /// and the real-time rest timer that persists across all app navigation tabs.
 class ActiveSessionProvider extends ChangeNotifier {
-  ActiveSessionProvider({NotificationService? notificationService})
+  new({NotificationService? notificationService})
       : _notificationService = notificationService ?? NotificationService();
 
   final NotificationService _notificationService;
@@ -59,7 +59,7 @@ class ActiveSessionProvider extends ChangeNotifier {
 
   double get timerProgress {
     if (_restTotalSeconds <= 0) {
-      return 0.0;
+      return 0;
     }
     return (_restSecondsRemaining / _restTotalSeconds).clamp(0.0, 1.0);
   }
@@ -189,7 +189,7 @@ class ActiveSessionProvider extends ChangeNotifier {
       body: notificationBody,
     );
 
-    _timer = Timer.periodic(const Duration(seconds: 1), (Timer t) {
+    _timer = Timer.periodic(const Duration(seconds: 1), (t) {
       if (_restTargetEndTime == null) {
         return;
       }

@@ -19,20 +19,27 @@ import 'package:oly/widgets/nutrition/fasting_radial_gauge.dart';
 import 'package:provider/provider.dart';
 
 class FastingDashboardView extends StatelessWidget {
-  const FastingDashboardView({super.key});
+  const new({super.key});
 
   @override
   Widget build(BuildContext context) {
     final FastingProvider fasting = Provider.of<FastingProvider>(context);
-    final NutritionProvider nutrition = Provider.of<NutritionProvider>(context);
+    final NutritionProvider? nutrition =
+        Provider.of<NutritionProvider?>(context);
 
-    // Keep fuel context synchronized with the active nutrition day log
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      fasting.syncFuelContext(
-        fuelWaterOz: nutrition.currentDayLog.targetWaterOz,
-        isTrainingDay: nutrition.currentDayLog.isTrainingDay,
-      );
-    });
+    if (nutrition != null) {
+      final double targetWaterOz = nutrition.currentDayLog.targetWaterOz;
+      final bool isTraining = nutrition.currentDayLog.isTrainingDay;
+      if (fasting.cachedFuelWaterOz != targetWaterOz ||
+          fasting.cachedIsTrainingDay != isTraining) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          fasting.syncFuelContext(
+            fuelWaterOz: targetWaterOz,
+            isTrainingDay: isTraining,
+          );
+        });
+      }
+    }
 
     final FastingSession? active = fasting.activeSession;
 
@@ -140,12 +147,12 @@ class FastingDashboardView extends StatelessWidget {
             style: GoogleFonts.outfit(
               fontSize: 11,
               fontWeight: FontWeight.w800,
-              letterSpacing: 1.0,
+              letterSpacing: 1,
               color: AppTheme.textSecondary,
             ),
           ),
           const SizedBox(height: 8),
-          ...history.take(5).map((FastingSession s) => _buildHistoryTile(s)),
+          ...history.take(5).map(_buildHistoryTile),
         ],
       ],
     );
@@ -414,7 +421,7 @@ class FastingDashboardView extends StatelessWidget {
                       Provider.of<NutritionProvider>(context, listen: false);
                   fasting.logWater(
                     250,
-                    onLogToFuel: (double oz) => nutrition.addWater(oz),
+                    onLogToFuel: nutrition.addWater,
                   );
                 },
               ),
@@ -428,7 +435,7 @@ class FastingDashboardView extends StatelessWidget {
                       Provider.of<NutritionProvider>(context, listen: false);
                   fasting.logWater(
                     500,
-                    onLogToFuel: (double oz) => nutrition.addWater(oz),
+                    onLogToFuel: nutrition.addWater,
                   );
                 },
               ),
@@ -722,7 +729,7 @@ class FastingDashboardView extends StatelessWidget {
                 onTap: () {
                   Navigator.of(context).push(
                     MaterialPageRoute<void>(
-                      builder: (BuildContext _) =>
+                      builder: (_) =>
                           const FastingScienceExplainerScreen(),
                     ),
                   );
@@ -843,7 +850,7 @@ class FastingDashboardView extends StatelessWidget {
   void _showSnakeJuiceDialog(BuildContext context) {
     showDialog<void>(
       context: context,
-      builder: (BuildContext ctx) {
+      builder: (ctx) {
         return AlertDialog(
           backgroundColor: AppTheme.surfaceCard,
           shape:
@@ -880,7 +887,7 @@ class FastingDashboardView extends StatelessWidget {
   void _confirmCancelFast(BuildContext context, FastingProvider fasting) {
     showDialog<void>(
       context: context,
-      builder: (BuildContext ctx) {
+      builder: (ctx) {
         return AlertDialog(
           backgroundColor: AppTheme.surfaceCard,
           shape:
@@ -914,7 +921,7 @@ class FastingDashboardView extends StatelessWidget {
       BuildContext context, FastingProvider fasting, FastingSession session) {
     showDialog<void>(
       context: context,
-      builder: (BuildContext ctx) {
+      builder: (ctx) {
         return AlertDialog(
           backgroundColor: AppTheme.surfaceCard,
           shape:

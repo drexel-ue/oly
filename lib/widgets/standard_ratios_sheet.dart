@@ -7,7 +7,7 @@ import 'package:oly/theme/app_theme.dart';
 import 'package:provider/provider.dart';
 
 class StandardRatiosSheet extends StatelessWidget {
-  const StandardRatiosSheet({super.key});
+  const new({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -17,7 +17,7 @@ class StandardRatiosSheet extends StatelessWidget {
     final List<LiftModel> allLifts = lifts.lifts;
     final List<LiftModel> anchorLifts = allLifts
         .where(
-          (LiftModel l) => l.anchorLiftId != null && l.anchorLiftId!.isNotEmpty,
+          (l) => l.anchorLiftId != null && l.anchorLiftId!.isNotEmpty,
         )
         .toList();
 
@@ -150,7 +150,7 @@ class StandardRatiosSheet extends StatelessWidget {
                     const Divider(height: 1, color: AppTheme.borderColor),
 
                     // Table Rows
-                    ...anchorLifts.map((LiftModel lift) {
+                    ...anchorLifts.map((lift) {
                       final LiftModel? anchor = lifts.getLift(
                         lift.anchorLiftId!,
                       );

@@ -11,7 +11,7 @@ import 'package:provider/provider.dart';
 
 /// Modal bottom sheet for logging or recording a score for any CrossFit Benchmark or Hero WOD.
 class LogWodScoreSheet extends StatefulWidget {
-  const LogWodScoreSheet({
+  const new({
     this.wod,
     this.heroWod,
     this.allWods = const <WodDefinition>[],
@@ -189,7 +189,7 @@ class _LogWodScoreSheetState extends State<LogWodScoreSheet> {
       initialDate: _selectedDate,
       firstDate: DateTime(2010),
       lastDate: DateTime.now(),
-      builder: (BuildContext context, Widget? child) {
+      builder: (context, child) {
         return Theme(
           data: ThemeData.dark().copyWith(
             colorScheme: const ColorScheme.dark(
@@ -246,7 +246,7 @@ class _LogWodScoreSheetState extends State<LogWodScoreSheet> {
 
     final BenchmarkWodLog saved = await recovery.logBenchmarkWod(newLog);
 
-    HapticFeedback.heavyImpact();
+    await HapticFeedback.heavyImpact();
     if (mounted) {
       Navigator.pop(context, saved);
       ScaffoldMessenger.of(context).showSnackBar(
@@ -440,7 +440,7 @@ class _LogWodScoreSheetState extends State<LogWodScoreSheet> {
               fontSize: 11,
               fontWeight: FontWeight.bold,
               color: AppTheme.textSecondary,
-              letterSpacing: 1.0,
+              letterSpacing: 1,
             ),
           ),
           const SizedBox(height: 8),
@@ -450,7 +450,7 @@ class _LogWodScoreSheetState extends State<LogWodScoreSheet> {
               isExpanded: true,
               dropdownColor: AppTheme.surfaceCard,
               icon: const Icon(Icons.arrow_drop_down_rounded, color: AppTheme.primaryAmber),
-              items: widget.allWods.map((WodDefinition item) {
+              items: widget.allWods.map((item) {
                 return DropdownMenuItem<String>(
                   value: item.id,
                   child: Text(
@@ -463,10 +463,10 @@ class _LogWodScoreSheetState extends State<LogWodScoreSheet> {
                   ),
                 );
               }).toList(),
-              onChanged: (String? newId) {
+              onChanged: (newId) {
                 if (newId != null) {
                   final WodDefinition selected =
-                      widget.allWods.firstWhere((WodDefinition w) => w.id == newId);
+                      widget.allWods.firstWhere((w) => w.id == newId);
                   _onWodSelected(selected);
                 }
               },
@@ -724,7 +724,7 @@ class _LogWodScoreSheetState extends State<LogWodScoreSheet> {
             Wrap(
               spacing: 6,
               runSpacing: 6,
-              children: _commonScalings.map((String tag) {
+              children: _commonScalings.map((tag) {
                 final bool isIncluded = _scalingController.text.contains(tag);
                 return InkWell(
                   onTap: () {
@@ -802,7 +802,7 @@ class _LogWodScoreSheetState extends State<LogWodScoreSheet> {
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
                   color: AppTheme.textSecondary,
-                  letterSpacing: 1.0,
+                  letterSpacing: 1,
                 ),
               ),
               const Spacer(),
@@ -832,7 +832,7 @@ class _LogWodScoreSheetState extends State<LogWodScoreSheet> {
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
                   color: Colors.orangeAccent,
-                  letterSpacing: 1.0,
+                  letterSpacing: 1,
                 ),
               ),
             ],
@@ -843,7 +843,7 @@ class _LogWodScoreSheetState extends State<LogWodScoreSheet> {
             max: 10,
             divisions: 9,
             activeColor: _rpe >= 9 ? Colors.redAccent : (_rpe >= 7 ? AppTheme.primaryAmber : AppTheme.secondaryCyan),
-            onChanged: (double val) => setState(() => _rpe = val.round()),
+            onChanged: (val) => setState(() => _rpe = val.round()),
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -879,7 +879,7 @@ class _LogWodScoreSheetState extends State<LogWodScoreSheet> {
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
                   color: AppTheme.textSecondary,
-                  letterSpacing: 1.0,
+                  letterSpacing: 1,
                 ),
               ),
             ],

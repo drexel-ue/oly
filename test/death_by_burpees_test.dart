@@ -18,22 +18,21 @@ void main() {
   group('DeathByBurpeesLog Model Tests', () {
     test('Calculates total reps accurately from completed minutes and partial reps', () {
       // 1 minute: 1 rep
-      final DeathByBurpeesLog log1 = DeathByBurpeesLog(completedMinutes: 1, partialReps: 0);
+      final DeathByBurpeesLog log1 = DeathByBurpeesLog(completedMinutes: 1);
       expect(log1.totalReps, equals(1));
 
       // 5 minutes: 1 + 2 + 3 + 4 + 5 = 15 reps
-      final DeathByBurpeesLog log5 = DeathByBurpeesLog(completedMinutes: 5, partialReps: 0);
+      final DeathByBurpeesLog log5 = DeathByBurpeesLog(completedMinutes: 5);
       expect(log5.totalReps, equals(15));
 
       // 12 minutes: 12 * 13 / 2 = 78 reps
-      final DeathByBurpeesLog log12 = DeathByBurpeesLog(completedMinutes: 12, partialReps: 0);
+      final DeathByBurpeesLog log12 = DeathByBurpeesLog(completedMinutes: 12);
       expect(log12.totalReps, equals(78));
 
       // 15 minutes + 8 partial reps: 15 * 16 / 2 + 8 = 120 + 8 = 128 reps
       final DeathByBurpeesLog log15plus8 = DeathByBurpeesLog(
         completedMinutes: 15,
         partialReps: 8,
-        burpeeVariation: 'standard',
       );
       expect(log15plus8.totalReps, equals(128));
       expect(log15plus8.scalingTier, equals('Rx'));
@@ -43,7 +42,6 @@ void main() {
     test('Detects variations and scaling tiers', () {
       final DeathByBurpeesLog standard = DeathByBurpeesLog(
         completedMinutes: 14,
-        burpeeVariation: 'standard',
       );
       expect(standard.scalingTier, equals('Rx'));
       expect(standard.variationDisplayName, equals('Chest-to-Floor (Rx)'));
@@ -68,7 +66,6 @@ void main() {
         completedMinutes: 13,
         partialReps: 5,
         totalDurationSeconds: 810,
-        burpeeVariation: 'standard',
         notes: 'Paced well until minute 12',
         isPr: true,
       );
@@ -104,8 +101,6 @@ void main() {
       // First session: 12 minutes (78 reps) -> should be PR
       final DeathByBurpeesLog log1 = DeathByBurpeesLog(
         completedMinutes: 12,
-        partialReps: 0,
-        burpeeVariation: 'standard',
       );
       final DeathByBurpeesLog saved1 = await recovery.logDeathByBurpees(log1);
       expect(saved1.isPr, isTrue);
@@ -115,8 +110,6 @@ void main() {
       // Second session: 10 minutes (55 reps) -> NOT PR
       final DeathByBurpeesLog log2 = DeathByBurpeesLog(
         completedMinutes: 10,
-        partialReps: 0,
-        burpeeVariation: 'standard',
       );
       final DeathByBurpeesLog saved2 = await recovery.logDeathByBurpees(log2);
       expect(saved2.isPr, isFalse);
@@ -127,7 +120,6 @@ void main() {
       final DeathByBurpeesLog log3 = DeathByBurpeesLog(
         completedMinutes: 14,
         partialReps: 6,
-        burpeeVariation: 'standard',
       );
       final DeathByBurpeesLog saved3 = await recovery.logDeathByBurpees(log3);
       expect(saved3.isPr, isTrue);
@@ -138,14 +130,11 @@ void main() {
     test('Filters PR and history by scaling tier', () async {
       final DeathByBurpeesLog rxLog = DeathByBurpeesLog(
         completedMinutes: 13,
-        partialReps: 0,
-        burpeeVariation: 'standard',
       );
       await recovery.logDeathByBurpees(rxLog);
 
       final DeathByBurpeesLog scaledLog = DeathByBurpeesLog(
         completedMinutes: 17,
-        partialReps: 0,
         burpeeVariation: 'no_pushup',
       );
       await recovery.logDeathByBurpees(scaledLog);
@@ -158,7 +147,6 @@ void main() {
       final DeathByBurpeesLog log = DeathByBurpeesLog(
         completedMinutes: 15,
         partialReps: 4,
-        burpeeVariation: 'standard',
       );
       await storage.logDeathByBurpees(log);
 
@@ -211,10 +199,10 @@ void main() {
     }
 
     testWidgets('Renders interactive EMOM card with timer, targets, and rep controls',
-        (WidgetTester tester) async {
+        (tester) async {
       final MobilityExerciseModel exercise =
           MobilityExerciseModel.defaultExercises().firstWhere(
-        (MobilityExerciseModel e) => e.id == 'death_by_burpees_wod',
+        (e) => e.id == 'death_by_burpees_wod',
       );
 
       await tester.pumpWidget(
@@ -240,14 +228,14 @@ void main() {
     });
 
     testWidgets('Stepping reps marks target complete and shows rest / advance button',
-        (WidgetTester tester) async {
+        (tester) async {
       tester.view.physicalSize = const Size(1080, 2400);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() => tester.view.resetPhysicalSize());
 
       final MobilityExerciseModel exercise =
           MobilityExerciseModel.defaultExercises().firstWhere(
-        (MobilityExerciseModel e) => e.id == 'death_by_burpees_wod',
+        (e) => e.id == 'death_by_burpees_wod',
       );
 
       await tester.pumpWidget(
@@ -277,10 +265,10 @@ void main() {
     });
 
     testWidgets('Manual score entry opens completion dialog and saves log',
-        (WidgetTester tester) async {
+        (tester) async {
       final MobilityExerciseModel exercise =
           MobilityExerciseModel.defaultExercises().firstWhere(
-        (MobilityExerciseModel e) => e.id == 'death_by_burpees_wod',
+        (e) => e.id == 'death_by_burpees_wod',
       );
 
       await tester.pumpWidget(

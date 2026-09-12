@@ -81,7 +81,7 @@ void main() {
       );
       expect(frontSquats.isNotEmpty, isTrue);
       final ExerciseDatabaseModel primary = frontSquats.firstWhere(
-        (ExerciseDatabaseModel e) => e.source.contains('oly_curated'),
+        (e) => e.source.contains('oly_curated'),
       );
       expect(primary.name, 'Front Squat');
       expect(primary.targetMuscle, 'quadriceps');
@@ -124,33 +124,33 @@ void main() {
     test('FTS5 full-text search retrieves relevant Olympic and strength movements', () async {
       final List<ExerciseDatabaseModel> snatchResults = await service.search('snatch');
       expect(snatchResults.isNotEmpty, isTrue);
-      expect(snatchResults.any((ExerciseDatabaseModel e) => e.name.toLowerCase().contains('snatch')), isTrue);
+      expect(snatchResults.any((e) => e.name.toLowerCase().contains('snatch')), isTrue);
 
       final List<ExerciseDatabaseModel> benchResults = await service.search('bench press');
       expect(benchResults.isNotEmpty, isTrue);
-      expect(benchResults.any((ExerciseDatabaseModel e) => e.name.toLowerCase().contains('bench')), isTrue);
+      expect(benchResults.any((e) => e.name.toLowerCase().contains('bench')), isTrue);
 
       // Search for Bayesian curl with standard spelling and common typo 'baysean'
       final List<ExerciseDatabaseModel> bayesianResults = await service.search('Bayesian');
       expect(bayesianResults.isNotEmpty, isTrue);
-      expect(bayesianResults.any((ExerciseDatabaseModel e) => e.name.contains('Bayesian')), isTrue);
+      expect(bayesianResults.any((e) => e.name.contains('Bayesian')), isTrue);
 
       final List<ExerciseDatabaseModel> typoResults = await service.search('baysean');
       expect(typoResults.isNotEmpty, isTrue);
-      expect(typoResults.any((ExerciseDatabaseModel e) => e.name.contains('Bayesian')), isTrue);
+      expect(typoResults.any((e) => e.name.contains('Bayesian')), isTrue);
 
       // Search for GHD Sit-Up across various spelling and hyphen formats
       final List<ExerciseDatabaseModel> ghdResults = await service.search('ghd sit up');
       expect(ghdResults.isNotEmpty, isTrue);
-      expect(ghdResults.any((ExerciseDatabaseModel e) => e.name == 'GHD Sit-Up'), isTrue);
+      expect(ghdResults.any((e) => e.name == 'GHD Sit-Up'), isTrue);
 
       final List<ExerciseDatabaseModel> ghdHyphenResults = await service.search('ghd sit-up');
       expect(ghdHyphenResults.isNotEmpty, isTrue);
-      expect(ghdHyphenResults.any((ExerciseDatabaseModel e) => e.name == 'GHD Sit-Up'), isTrue);
+      expect(ghdHyphenResults.any((e) => e.name == 'GHD Sit-Up'), isTrue);
 
       final List<ExerciseDatabaseModel> ghdCompoundResults = await service.search('ghd situp');
       expect(ghdCompoundResults.isNotEmpty, isTrue);
-      expect(ghdCompoundResults.any((ExerciseDatabaseModel e) => e.name == 'GHD Sit-Up'), isTrue);
+      expect(ghdCompoundResults.any((e) => e.name == 'GHD Sit-Up'), isTrue);
     });
 
     test('Filters search results by category, muscle, and equipment', () async {
@@ -178,7 +178,7 @@ void main() {
     });
 
     test('Supports pagination with limit and offset', () async {
-      final List<ExerciseDatabaseModel> page1 = await service.search('squat', limit: 5, offset: 0);
+      final List<ExerciseDatabaseModel> page1 = await service.search('squat', limit: 5);
       final List<ExerciseDatabaseModel> page2 = await service.search('squat', limit: 5, offset: 5);
 
       expect(page1.length, lessThanOrEqualTo(5));
@@ -210,18 +210,18 @@ void main() {
       // FTS search for hero workout
       final List<CrossfitHeroWod> searchResults = await service.getHeroWods(query: 'Michael');
       expect(searchResults.isNotEmpty, isTrue);
-      expect(searchResults.any((CrossfitHeroWod w) => w.name.toLowerCase().contains('michael')), isTrue);
+      expect(searchResults.any((w) => w.name.toLowerCase().contains('michael')), isTrue);
     });
 
     test('CrossFit Movements are ingested into exercises table with source crossfit', () async {
       final List<ExerciseDatabaseModel> cfMovements = await service.search('', limit: 3000);
       final List<ExerciseDatabaseModel> cfOnly =
-          cfMovements.where((ExerciseDatabaseModel e) => e.source.contains('crossfit')).toList();
+          cfMovements.where((e) => e.source.contains('crossfit')).toList();
       expect(cfOnly.isNotEmpty, isTrue);
       expect(cfOnly.length, greaterThanOrEqualTo(100));
 
       final ExerciseDatabaseModel thruster =
-          cfOnly.firstWhere((ExerciseDatabaseModel e) => e.name.toLowerCase().contains('thruster'));
+          cfOnly.firstWhere((e) => e.name.toLowerCase().contains('thruster'));
       expect(thruster.name, isNotEmpty);
       expect(thruster.source, 'crossfit');
     });

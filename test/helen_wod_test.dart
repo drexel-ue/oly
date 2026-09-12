@@ -22,9 +22,6 @@ void main() {
         round1TimeSeconds: 180, // 3:00
         round2TimeSeconds: 195, // 3:15
         round3TimeSeconds: 200, // 3:20
-        kettlebellWeightKg: 24.0,
-        swingType: 'american',
-        pullupVariation: 'kipping',
       );
 
       expect(rxLog.scalingTier, equals('Rx'));
@@ -47,16 +44,14 @@ void main() {
     test('Helen scaling tiers detect Rx Women (35 lb / 16 kg), Scaled (russian swing / banded / light KB / short run), and Weighted', () {
       final HelenWorkoutLog rxWomen = HelenWorkoutLog(
         totalTimeSeconds: 610,
-        kettlebellWeightKg: 16.0,
+        kettlebellWeightKg: 16,
         isRxWomen: true,
-        swingType: 'american',
         pullupVariation: 'butterfly',
       );
       expect(rxWomen.scalingTier, equals('Rx'));
 
       final HelenWorkoutLog scaledRussian = HelenWorkoutLog(
         totalTimeSeconds: 650,
-        kettlebellWeightKg: 24.0,
         swingType: 'russian',
       );
       expect(scaledRussian.scalingTier, equals('Scaled'));
@@ -70,8 +65,7 @@ void main() {
 
       final HelenWorkoutLog scaledLightKb = HelenWorkoutLog(
         totalTimeSeconds: 680,
-        kettlebellWeightKg: 12.0, // 26 lb
-        isRxWomen: false,
+        kettlebellWeightKg: 12, // 26 lb
       );
       expect(scaledLightKb.scalingTier, equals('Scaled'));
 
@@ -83,7 +77,7 @@ void main() {
 
       final HelenWorkoutLog heavyKb = HelenWorkoutLog(
         totalTimeSeconds: 800,
-        kettlebellWeightKg: 32.0, // 70 lb
+        kettlebellWeightKg: 32, // 70 lb
       );
       expect(heavyKb.scalingTier, equals('Weighted'));
     });
@@ -105,7 +99,6 @@ void main() {
       // First session: 10:00 (600s) -> should be PR
       final HelenWorkoutLog firstLog = HelenWorkoutLog(
         totalTimeSeconds: 600,
-        kettlebellWeightKg: 24.0,
         scalingTier: 'Rx',
       );
       final HelenWorkoutLog result1 = await recovery.logHelenWorkout(firstLog);
@@ -117,7 +110,6 @@ void main() {
       // Slower session: 10:30 (630s) -> NOT a PR
       final HelenWorkoutLog slowerLog = HelenWorkoutLog(
         totalTimeSeconds: 630,
-        kettlebellWeightKg: 24.0,
         scalingTier: 'Rx',
       );
       final HelenWorkoutLog result2 = await recovery.logHelenWorkout(slowerLog);
@@ -127,7 +119,6 @@ void main() {
       // Faster session: 8:45 (525s) -> NEW PR
       final HelenWorkoutLog fasterLog = HelenWorkoutLog(
         totalTimeSeconds: 525,
-        kettlebellWeightKg: 24.0,
         scalingTier: 'Rx',
       );
       final HelenWorkoutLog result3 = await recovery.logHelenWorkout(fasterLog);
@@ -171,10 +162,10 @@ void main() {
     }
 
     testWidgets('Renders HelenWodCard header, stopwatch, rounds, and setup explainer button',
-        (WidgetTester tester) async {
+        (tester) async {
       final MobilityExerciseModel helenExercise =
           MobilityExerciseModel.defaultExercises().firstWhere(
-        (MobilityExerciseModel e) => e.id == 'helen_wod',
+        (e) => e.id == 'helen_wod',
       );
 
       await tester.pumpWidget(
@@ -197,14 +188,14 @@ void main() {
     });
 
     testWidgets('Can start stopwatch, toggle run, and progress through Round 1 to Round 2',
-        (WidgetTester tester) async {
+        (tester) async {
       tester.view.physicalSize = const Size(1080, 2400);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() => tester.view.resetPhysicalSize());
 
       final MobilityExerciseModel helenExercise =
           MobilityExerciseModel.defaultExercises().firstWhere(
-        (MobilityExerciseModel e) => e.id == 'helen_wod',
+        (e) => e.id == 'helen_wod',
       );
 
       await tester.pumpWidget(
@@ -242,10 +233,10 @@ void main() {
     });
 
     testWidgets('Toggles between Live Mode and Manual Entry mode',
-        (WidgetTester tester) async {
+        (tester) async {
       final MobilityExerciseModel helenExercise =
           MobilityExerciseModel.defaultExercises().firstWhere(
-        (MobilityExerciseModel e) => e.id == 'helen_wod',
+        (e) => e.id == 'helen_wod',
       );
 
       await tester.pumpWidget(

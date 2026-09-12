@@ -7,7 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 
 class WimHofSummaryScreen extends StatefulWidget {
-  const WimHofSummaryScreen({
+  const new({
     required this.rounds,
     required this.config,
     super.key,
@@ -73,12 +73,12 @@ class _WimHofSummaryScreenState extends State<WimHofSummaryScreen> {
     final int maxHoldSeconds = widget.rounds.isEmpty
         ? 0
         : widget.rounds
-            .map((BreathingRoundLog r) => r.retentionSeconds)
-            .reduce((int a, int b) => a > b ? a : b);
+            .map((r) => r.retentionSeconds)
+            .reduce((a, b) => a > b ? a : b);
 
     final int totalHoldSeconds = widget.rounds.fold(
       0,
-      (int sum, BreathingRoundLog r) => sum + r.retentionSeconds,
+      (sum, r) => sum + r.retentionSeconds,
     );
 
     final int avgHoldSeconds = widget.rounds.isEmpty
@@ -232,13 +232,13 @@ class _WimHofSummaryScreenState extends State<WimHofSummaryScreen> {
                 style: GoogleFonts.inter(
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
-                  letterSpacing: 1.0,
+                  letterSpacing: 1,
                   color: AppTheme.textSecondary,
                 ),
               ),
               const SizedBox(height: 12),
 
-              ...widget.rounds.map((BreathingRoundLog round) {
+              ...widget.rounds.map((round) {
                 final double ratio = maxHoldSeconds > 0
                     ? (round.retentionSeconds / maxHoldSeconds).clamp(0.0, 1.0)
                     : 0.0;
@@ -337,14 +337,14 @@ class _WimHofSummaryScreenState extends State<WimHofSummaryScreen> {
                 style: GoogleFonts.inter(
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
-                  letterSpacing: 1.0,
+                  letterSpacing: 1,
                   color: AppTheme.textSecondary,
                 ),
               ),
               const SizedBox(height: 12),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: List.generate(5, (int index) {
+                children: List.generate(5, (index) {
                   final int star = index + 1;
                   final bool isSelected = star == _readinessRating;
                   return GestureDetector(

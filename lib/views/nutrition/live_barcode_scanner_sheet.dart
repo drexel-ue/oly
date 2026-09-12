@@ -14,7 +14,7 @@ import 'package:oly/widgets/nutrition/smart_portion_drawer.dart';
 import 'package:provider/provider.dart';
 
 class LiveBarcodeScannerSheet extends StatefulWidget {
-  const LiveBarcodeScannerSheet({
+  const new({
     super.key,
     this.defaultCategory = MealCategory.lunch,
   });
@@ -54,8 +54,6 @@ class _LiveBarcodeScannerSheetState extends State<LiveBarcodeScannerSheet>
     super.initState();
     _scannerController = MobileScannerController(
       detectionSpeed: DetectionSpeed.noDuplicates,
-      facing: CameraFacing.back,
-      torchEnabled: false,
     );
 
     _reticleAnimation = AnimationController(
@@ -116,12 +114,12 @@ class _LiveBarcodeScannerSheetState extends State<LiveBarcodeScannerSheet>
     if (_scannedBarcodes.contains(clean)) {
       // Find previously scanned item in session list
       final FoodItem existing = _scannedSessionItems.firstWhere(
-        (FoodItem e) => e.id == clean || e.barcode == clean,
+        (e) => e.id == clean || e.barcode == clean,
         orElse: () => FoodItem(
           id: clean,
           name: 'Scanned Item',
           servingSize: '100g',
-          servingWeightGrams: 100.0,
+          servingWeightGrams: 100,
           calories: 0,
           protein: 0,
           carbs: 0,
@@ -129,7 +127,7 @@ class _LiveBarcodeScannerSheetState extends State<LiveBarcodeScannerSheet>
           source: 'open_food_facts',
         ),
       );
-      HapticFeedback.selectionClick();
+      unawaited(HapticFeedback.selectionClick());
       await _openPortionDrawer(existing);
       return;
     }
@@ -139,7 +137,7 @@ class _LiveBarcodeScannerSheetState extends State<LiveBarcodeScannerSheet>
       _statusText = 'Querying Open Food Facts for $clean...';
     });
 
-    HapticFeedback.mediumImpact();
+    unawaited(HapticFeedback.mediumImpact());
     AppLogService.instance.info(
       'SCANNER',
       'Live camera detected barcode: $clean',
@@ -205,7 +203,7 @@ class _LiveBarcodeScannerSheetState extends State<LiveBarcodeScannerSheet>
         context: context,
         isScrollControlled: true,
         backgroundColor: Colors.transparent,
-        builder: (BuildContext sheetContext) => SmartPortionDrawer(
+        builder: (sheetContext) => SmartPortionDrawer(
           initialFoodItem: item,
           defaultCategory: widget.defaultCategory,
           onAdded: () {
@@ -271,7 +269,7 @@ class _LiveBarcodeScannerSheetState extends State<LiveBarcodeScannerSheet>
     try {
       final String? enteredCode = await showDialog<String>(
         context: context,
-        builder: (BuildContext ctx) => AlertDialog(
+        builder: (ctx) => AlertDialog(
           backgroundColor: AppTheme.surfaceCard,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: Text(
@@ -373,7 +371,7 @@ class _LiveBarcodeScannerSheetState extends State<LiveBarcodeScannerSheet>
           Positioned.fill(
             child: MobileScanner(
               controller: _scannerController,
-              onDetect: (BarcodeCapture capture) {
+              onDetect: (capture) {
                 if (_isScanningBlocked) {
                   return;
                 }
@@ -386,7 +384,7 @@ class _LiveBarcodeScannerSheetState extends State<LiveBarcodeScannerSheet>
                 }
               },
               errorBuilder:
-                  (BuildContext context, MobileScannerException error) {
+                  (context, error) {
                     return _buildCameraFallback(error.toString());
                   },
             ),
@@ -407,7 +405,7 @@ class _LiveBarcodeScannerSheetState extends State<LiveBarcodeScannerSheet>
           Center(
             child: AnimatedBuilder(
               animation: _reticleAnimation,
-              builder: (BuildContext context, Widget? child) {
+              builder: (context, child) {
                 final double scale = 1.0 + (_reticleAnimation.value * 0.03);
                 return Transform.scale(
                   scale: scale,
@@ -420,7 +418,7 @@ class _LiveBarcodeScannerSheetState extends State<LiveBarcodeScannerSheet>
                         color: AppTheme.primaryAmber.withValues(
                           alpha: 0.85 + (_reticleAnimation.value * 0.15),
                         ),
-                        width: 3.0,
+                        width: 3,
                       ),
                     ),
                     child: Stack(
@@ -672,7 +670,7 @@ class _LiveBarcodeScannerSheetState extends State<LiveBarcodeScannerSheet>
                         scrollDirection: Axis.horizontal,
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         itemCount: _scannedSessionItems.length,
-                        itemBuilder: (BuildContext context, int index) {
+                        itemBuilder: (context, index) {
                           final FoodItem item = _scannedSessionItems[index];
                           return Container(
                             width: 220,
@@ -770,7 +768,7 @@ class _LiveBarcodeScannerSheetState extends State<LiveBarcodeScannerSheet>
   }
 
   Widget _buildCameraFallback(String errorMessage) {
-    return Container(
+    return ColoredBox(
       color: Colors.black,
       child: Center(
         child: Padding(
@@ -811,7 +809,7 @@ class _LiveBarcodeScannerSheetState extends State<LiveBarcodeScannerSheet>
 
 /// Custom painter for semi-transparent dark mask with a rounded rectangular camera window cutout
 class _ScannerOverlayPainter extends CustomPainter {
-  _ScannerOverlayPainter({
+  new({
     required this.cutoutWidth,
     required this.cutoutHeight,
     required this.borderRadius,

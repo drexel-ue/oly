@@ -6,7 +6,7 @@ import 'package:oly/theme/app_theme.dart';
 import 'package:oly/widgets/standard_ratios_sheet.dart';
 
 class RatioChartWidget extends StatelessWidget {
-  const RatioChartWidget({required this.ratios, super.key});
+  const new({required this.ratios, super.key});
   final List<LiftRatioAnalysis> ratios;
 
   @override
@@ -17,7 +17,7 @@ class RatioChartWidget extends StatelessWidget {
         // Standard Ratios Reference Chart Launcher Card
         InkWell(
           onTap: () {
-            showModalBottomSheet(
+            showModalBottomSheet<void>(
               context: context,
               isScrollControlled: true,
               useSafeArea: true,
@@ -86,7 +86,7 @@ class RatioChartWidget extends StatelessWidget {
             ),
           )
         else
-          ...ratios.map((LiftRatioAnalysis analysis) {
+          ...ratios.map((analysis) {
             final double pct = (analysis.ratioPercentage / 100.0).clamp(
               0.0,
               1.5,

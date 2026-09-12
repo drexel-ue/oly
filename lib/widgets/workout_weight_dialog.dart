@@ -15,7 +15,7 @@ class WorkoutWeightHelper {
     required int currentWeek,
   }) {
     if (workingWeightKg <= 0) {
-      return 0.0;
+      return 0;
     }
 
     if (exerciseTemplate.weekPercentages != null &&
@@ -51,7 +51,7 @@ class WorkoutWeightHelper {
     required int reps,
   }) {
     if (workingWeightKg <= 0) {
-      return 0.0;
+      return 0;
     }
     if (reps <= 1) {
       return workingWeightKg;
@@ -88,7 +88,7 @@ class WorkoutWeightHelper {
 }
 
 class WorkoutWeightDialog extends StatefulWidget {
-  const WorkoutWeightDialog({
+  const new({
     required this.exercise,
     required this.displayName,
     required this.initialWeightKg,
@@ -119,9 +119,9 @@ class _WorkoutWeightDialogState extends State<WorkoutWeightDialog> {
   late TextEditingController _repsController;
   late TextEditingController _target1RMController;
 
-  double _currentWeightKg = 0.0;
+  double _currentWeightKg = 0;
   int _currentReps = 1;
-  double _calculated1RMKg = 0.0;
+  double _calculated1RMKg = 0;
   bool _useEpleyFormula = false;
 
   @override
@@ -228,9 +228,9 @@ class _WorkoutWeightDialogState extends State<WorkoutWeightDialog> {
   LiftModel _resolveTargetLift(LiftProvider liftProvider) {
     // 1. Try finding by displayName (if swapped)
     final LiftModel byName = liftProvider.lifts.firstWhere(
-      (LiftModel l) => l.name.toLowerCase() == widget.displayName.toLowerCase(),
+      (l) => l.name.toLowerCase() == widget.displayName.toLowerCase(),
       orElse: () => liftProvider.lifts.firstWhere(
-        (LiftModel l) =>
+        (l) =>
             l.id.toLowerCase() == widget.exercise.liftId.toLowerCase(),
         orElse: () => liftProvider.lifts.first,
       ),
@@ -254,8 +254,8 @@ class _WorkoutWeightDialogState extends State<WorkoutWeightDialog> {
     final String deltaSign = deltaKg >= 0 ? '+' : '';
 
     final List<double> steppers = settings.isLbs
-        ? <double>[-10.0, -5.0, -2.5, 2.5, 5.0, 10.0]
-        : <double>[-5.0, -2.5, -1.0, 1.0, 2.5, 5.0];
+        ? <double>[-10, -5, -2.5, 2.5, 5, 10]
+        : <double>[-5, -2.5, -1, 1, 2.5, 5];
 
     const List<int> repPresets = <int>[1, 2, 3, 5, 8, 10, 12];
 
@@ -404,7 +404,7 @@ class _WorkoutWeightDialogState extends State<WorkoutWeightDialog> {
                 style: GoogleFonts.outfit(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
-                  letterSpacing: 1.0,
+                  letterSpacing: 1,
                   color: AppTheme.textSecondary,
                 ),
               ),
@@ -441,7 +441,7 @@ class _WorkoutWeightDialogState extends State<WorkoutWeightDialog> {
                             color: AppTheme.textSecondary,
                           ),
                         ),
-                        onChanged: (String val) {
+                        onChanged: (val) {
                           final double? parsed = double.tryParse(val);
                           if (parsed != null && parsed >= 0) {
                             final double baseKg = settings.toBaseKg(parsed);
@@ -476,7 +476,7 @@ class _WorkoutWeightDialogState extends State<WorkoutWeightDialog> {
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
-                  children: steppers.map((double delta) {
+                  children: steppers.map((delta) {
                     final bool isPositive = delta > 0;
                     final String text = isPositive ? '+$delta' : '$delta';
                     return Padding(
@@ -484,7 +484,6 @@ class _WorkoutWeightDialogState extends State<WorkoutWeightDialog> {
                       child: ActionChip(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 4,
-                          vertical: 0,
                         ),
                         backgroundColor: AppTheme.surfaceElevated,
                         side: const BorderSide(color: AppTheme.borderColor),
@@ -513,7 +512,7 @@ class _WorkoutWeightDialogState extends State<WorkoutWeightDialog> {
                 style: GoogleFonts.outfit(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
-                  letterSpacing: 1.0,
+                  letterSpacing: 1,
                   color: AppTheme.textSecondary,
                 ),
               ),
@@ -554,7 +553,7 @@ class _WorkoutWeightDialogState extends State<WorkoutWeightDialog> {
                           border: InputBorder.none,
                           hintText: '1',
                         ),
-                        onChanged: (String val) {
+                        onChanged: (val) {
                           final int? parsed = int.tryParse(val);
                           if (parsed != null && parsed >= 1) {
                             setState(() {
@@ -594,7 +593,7 @@ class _WorkoutWeightDialogState extends State<WorkoutWeightDialog> {
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
-                  children: repPresets.map((int r) {
+                  children: repPresets.map((r) {
                     final bool isSelected = _currentReps == r;
                     return Padding(
                       padding: const EdgeInsets.only(right: 6),
@@ -602,7 +601,6 @@ class _WorkoutWeightDialogState extends State<WorkoutWeightDialog> {
                         selected: isSelected,
                         padding: const EdgeInsets.symmetric(
                           horizontal: 4,
-                          vertical: 0,
                         ),
                         backgroundColor: AppTheme.surfaceElevated,
                         selectedColor: AppTheme.secondaryCyan.withValues(alpha: 0.25),

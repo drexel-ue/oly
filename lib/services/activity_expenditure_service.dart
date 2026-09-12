@@ -5,7 +5,7 @@ import 'package:oly/models/daily_activity_entry.dart';
 import 'package:oly/models/workout_session.dart';
 
 class CompendiumActivity {
-  const CompendiumActivity({
+  const new({
     required this.id,
     required this.code,
     required this.name,
@@ -47,7 +47,7 @@ class ActivityExpenditureService {
           code: '17165',
           name: 'Rucking (20-30 lb Pack)',
           category: 'Walking / Rucking',
-          met: 6.0,
+          met: 6,
           description:
               'Walking with a weighted pack/vest or moderate hill incline.',
         ),
@@ -64,7 +64,7 @@ class ActivityExpenditureService {
           code: '02010',
           name: 'Assault Bike / AirDyne (Moderate)',
           category: 'Cardio Equipment',
-          met: 7.0,
+          met: 7,
           description: 'Moderate steady pace on fan bike or stationary cycle.',
         ),
         CompendiumActivity(
@@ -80,7 +80,7 @@ class ActivityExpenditureService {
           code: '02070',
           name: 'Concept2 Rowing (150W Moderate)',
           category: 'Cardio Equipment',
-          met: 7.0,
+          met: 7,
           description: 'Moderate ergo rowing machine pace.',
         ),
         CompendiumActivity(
@@ -105,7 +105,7 @@ class ActivityExpenditureService {
           code: '02052',
           name: 'Compound Squats & Pulls',
           category: 'Resistance Training',
-          met: 6.0,
+          met: 6,
           description: 'Heavy compound strength lifting (Back/Front Squats, Deadlifts, Pulls).',
         ),
         CompendiumActivity(
@@ -219,7 +219,7 @@ class ActivityExpenditureService {
     if (combined.contains('pull') ||
         combined.contains('deadlift') ||
         combined.contains('squat')) {
-      return 6.0; // Heavy compound squat/pull
+      return 6; // Heavy compound squat/pull
     } else if (combined.contains('snatch') ||
         combined.contains('clean') ||
         combined.contains('jerk')) {
@@ -227,7 +227,7 @@ class ActivityExpenditureService {
     } else if (combined.contains('press') ||
         combined.contains('bench') ||
         combined.contains('row')) {
-      return 5.0; // Upper body press/pull
+      return 5; // Upper body press/pull
     } else {
       return 4.5; // Accessory / core / hypertrophy
     }
@@ -241,7 +241,7 @@ class ActivityExpenditureService {
     required double fallbackWeightLb,
   }) {
     final List<CompletedSet> completedSets = exercise.sets
-        .where((CompletedSet s) => s.isCompleted)
+        .where((s) => s.isCompleted)
         .toList();
     if (completedSets.isEmpty) {
       return (0.0, 0, 0.0);
@@ -251,9 +251,9 @@ class ActivityExpenditureService {
     final double met = getMetForLift(exercise.liftId, exercise.exerciseName);
 
     // Calculate duration: If timestamps are recorded on sets, compute real span
-    double durationMins = 0.0;
+    double durationMins = 0;
     final List<DateTime> timestamps = completedSets
-        .map((CompletedSet s) => s.completedAt)
+        .map((s) => s.completedAt)
         .whereType<DateTime>()
         .toList();
     if (timestamps.length >= 2) {
@@ -300,8 +300,8 @@ class ActivityExpenditureService {
     final double weight = bodyComp?.weightLb ?? fallbackWeightLb;
 
     int totalCalories = 0;
-    double totalDuration = 0.0;
-    double totalTonnage = 0.0;
+    double totalDuration = 0;
+    double totalTonnage = 0;
     final Map<String, int> breakdown = <String, int>{};
 
     for (final ExerciseLog exercise in session.logs) {

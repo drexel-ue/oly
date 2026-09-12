@@ -2,7 +2,7 @@ import 'package:oly/models/mobility_exercise_model.dart';
 import 'package:oly/models/program_model.dart';
 
 class WarmupPhaseGroup {
-  WarmupPhaseGroup({
+  new({
     required this.phaseNumber,
     required this.title,
     required this.subtitle,
@@ -15,7 +15,7 @@ class WarmupPhaseGroup {
 }
 
 class GeneratedWarmupRoutine {
-  GeneratedWarmupRoutine({
+  new({
     required this.workoutTitle,
     required this.phaseGroups,
     required this.exercises,
@@ -69,13 +69,13 @@ class WarmupEngineService {
 
     // --- PHASE 1: CARDIO OPENER ---
     final List<MobilityExerciseModel> phase1Exercises = catalog
-        .where((MobilityExerciseModel ex) => ex.id == 'zone2_cardio_row')
+        .where((ex) => ex.id == 'zone2_cardio_row')
         .toList();
 
     // --- PHASE 2: FOAM ROLLING ---
     final List<MobilityExerciseModel> phase2Exercises = catalog
         .where(
-          (MobilityExerciseModel ex) =>
+          (ex) =>
               ex.category == MobilityCategory.foamRolling,
         )
         .toList();
@@ -83,7 +83,7 @@ class WarmupEngineService {
     // --- PHASE 3: JOINT MOBILIZATION & DROMS ---
     final List<MobilityExerciseModel> phase3Exercises = catalog
         .where(
-          (MobilityExerciseModel ex) =>
+          (ex) =>
               ex.id == 'hip_90_90_switches' ||
               ex.id == 'banded_ankle_distraction',
         )
@@ -96,7 +96,7 @@ class WarmupEngineService {
     if (hasSnatch) {
       final List<MobilityExerciseModel> snatchPrep = catalog
           .where(
-            (MobilityExerciseModel ex) =>
+            (ex) =>
                 ex.focusArea == MobilityFocusArea.barbellSnatch,
           )
           .toList();
@@ -109,7 +109,7 @@ class WarmupEngineService {
     if (hasCleanJerk) {
       final List<MobilityExerciseModel> cjPrep = catalog
           .where(
-            (MobilityExerciseModel ex) =>
+            (ex) =>
                 ex.focusArea == MobilityFocusArea.barbellCleanJerk,
           )
           .toList();
@@ -122,7 +122,7 @@ class WarmupEngineService {
     if (hasSquat && !hasSnatch && !hasCleanJerk) {
       final List<MobilityExerciseModel> squatPrep = catalog
           .where(
-            (MobilityExerciseModel ex) =>
+            (ex) =>
                 ex.focusArea == MobilityFocusArea.barbellSquat,
           )
           .toList();
@@ -160,7 +160,7 @@ class WarmupEngineService {
     ];
 
     final List<MobilityExerciseModel> allExercises = phaseGroups
-        .expand((WarmupPhaseGroup g) => g.exercises)
+        .expand((g) => g.exercises)
         .toList();
 
     return GeneratedWarmupRoutine(

@@ -79,7 +79,6 @@ void main() {
       final NutritionEntry item = NutritionEntry.create(
         name: 'Snack Bar',
         calories: 200,
-        category: MealCategory.snack,
       );
       await nutritionProvider.addFoodEntry(item);
       expect(nutritionProvider.currentDayLog.entries.length, equals(1));
@@ -98,7 +97,6 @@ void main() {
         calories: 120,
         proteinGrams: 15,
         carbsGrams: 8,
-        fatGrams: 0,
         category: MealCategory.breakfast,
       );
       await nutritionProvider.addFoodEntry(item);
@@ -176,11 +174,11 @@ void main() {
 
     test('Adds new Renpho scan and calculates scan deltas', () async {
       final BodyCompositionEntry newScan = BodyCompositionEntry.create(
-        timestamp: DateTime(2026, 8, 1),
+        timestamp: DateTime(2026, 8),
         weightLb: 262.5,
         bodyFatPct: 20.4,
         bodyFatLb: 53.55,
-        skeletalMuscleLb: 135.0,
+        skeletalMuscleLb: 135,
         fatFreeMassLb: 208.95,
       );
 

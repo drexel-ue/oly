@@ -19,9 +19,6 @@ void main() {
     test('CindyRoundDetail serializes and deserializes with tier calculation', () {
       final CindyRoundDetail rxRound = CindyRoundDetail(
         roundNumber: 1,
-        pullupVariation: 'standard',
-        pushupVariation: 'standard',
-        squatVariation: 'standard',
         splitTimeSeconds: 58,
         roundDurationSeconds: 58,
       );
@@ -33,8 +30,6 @@ void main() {
       final CindyRoundDetail chinUpRound = CindyRoundDetail(
         roundNumber: 2,
         pullupVariation: 'chin_up',
-        pushupVariation: 'standard',
-        squatVariation: 'standard',
         splitTimeSeconds: 115,
         roundDurationSeconds: 57,
       );
@@ -47,7 +42,6 @@ void main() {
         pullupVariation: 'band_assisted',
         pullupBandAssistance: 'medium',
         pushupVariation: 'knee',
-        squatVariation: 'standard',
         splitTimeSeconds: 420,
         roundDurationSeconds: 75,
       );
@@ -59,10 +53,9 @@ void main() {
       final CindyRoundDetail weightedRound = CindyRoundDetail(
         roundNumber: 1,
         pullupVariation: 'weighted',
-        pullupAddedWeightKg: 10.0,
-        pushupVariation: 'standard',
+        pullupAddedWeightKg: 10,
         squatVariation: 'goblet',
-        squatAddedWeightKg: 24.0,
+        squatAddedWeightKg: 24,
         splitTimeSeconds: 65,
         roundDurationSeconds: 65,
       );
@@ -96,7 +89,6 @@ void main() {
         completedRounds: 6,
         partialPullups: 5,
         partialPushups: 8,
-        partialSquats: 0,
         rounds: rounds,
       );
 
@@ -129,7 +121,7 @@ void main() {
         partialPushups: 3,
         rounds: List.generate(
           20,
-          (int i) => CindyRoundDetail(roundNumber: i + 1, splitTimeSeconds: (i + 1) * 58),
+          (i) => CindyRoundDetail(roundNumber: i + 1, splitTimeSeconds: (i + 1) * 58),
         ),
       );
 
@@ -142,10 +134,10 @@ void main() {
         completedRounds: 14,
         rounds: List.generate(
           14,
-          (int i) => CindyRoundDetail(
+          (i) => CindyRoundDetail(
             roundNumber: i + 1,
             pullupVariation: 'weighted',
-            pullupAddedWeightKg: 10.0,
+            pullupAddedWeightKg: 10,
             splitTimeSeconds: (i + 1) * 80,
           ),
         ),
@@ -161,12 +153,10 @@ void main() {
       final List<CindyRoundDetail> rounds = <CindyRoundDetail>[
         CindyRoundDetail(
           roundNumber: 1,
-          pullupVariation: 'standard',
           splitTimeSeconds: 52,
         ),
         CindyRoundDetail(
           roundNumber: 2,
-          pullupVariation: 'standard',
           splitTimeSeconds: 110,
         ),
         CindyRoundDetail(
@@ -222,7 +212,7 @@ void main() {
         CindyWorkoutLog(
           completedRounds: 18,
           partialPullups: 5,
-          rounds: List.generate(18, (int i) => CindyRoundDetail(roundNumber: i + 1)),
+          rounds: List.generate(18, (i) => CindyRoundDetail(roundNumber: i + 1)),
         ),
       );
       expect(session1.isPr, isTrue); // First Rx session is a PR
@@ -231,7 +221,7 @@ void main() {
       final CindyWorkoutLog session2 = await storage.logCindyWorkout(
         CindyWorkoutLog(
           completedRounds: 16,
-          rounds: List.generate(16, (int i) => CindyRoundDetail(roundNumber: i + 1)),
+          rounds: List.generate(16, (i) => CindyRoundDetail(roundNumber: i + 1)),
         ),
       );
       expect(session2.isPr, isFalse);
@@ -240,7 +230,7 @@ void main() {
       final CindyWorkoutLog session3 = await storage.logCindyWorkout(
         CindyWorkoutLog(
           completedRounds: 21,
-          rounds: List.generate(21, (int i) => CindyRoundDetail(roundNumber: i + 1)),
+          rounds: List.generate(21, (i) => CindyRoundDetail(roundNumber: i + 1)),
         ),
       );
       expect(session3.isPr, isTrue); // New Rx PR!
@@ -251,10 +241,10 @@ void main() {
           completedRounds: 12,
           rounds: List.generate(
             12,
-            (int i) => CindyRoundDetail(
+            (i) => CindyRoundDetail(
               roundNumber: i + 1,
               pullupVariation: 'weighted',
-              pullupAddedWeightKg: 10.0,
+              pullupAddedWeightKg: 10,
             ),
           ),
         ),
@@ -284,7 +274,7 @@ void main() {
           completedRounds: 19,
           partialPullups: 5,
           partialPushups: 10,
-          rounds: List.generate(19, (int i) => CindyRoundDetail(roundNumber: i + 1)),
+          rounds: List.generate(19, (i) => CindyRoundDetail(roundNumber: i + 1)),
         ),
       );
 
@@ -323,10 +313,10 @@ void main() {
     });
 
     testWidgets('Renders 20m AMRAP timer, movement checklist, and switches to manual mode',
-        (WidgetTester tester) async {
+        (tester) async {
       final MobilityExerciseModel cindy =
           MobilityExerciseModel.defaultExercises().firstWhere(
-        (MobilityExerciseModel e) => e.id == 'cindy_wod',
+        (e) => e.id == 'cindy_wod',
       );
 
       await tester.pumpWidget(
@@ -403,10 +393,10 @@ void main() {
     });
 
     testWidgets('Renders Preview Mode banner and allows switching to Live Mode',
-        (WidgetTester tester) async {
+        (tester) async {
       final MobilityExerciseModel cindy =
           MobilityExerciseModel.defaultExercises().firstWhere(
-        (MobilityExerciseModel e) => e.id == 'cindy_wod',
+        (e) => e.id == 'cindy_wod',
       );
 
       await tester.pumpWidget(
@@ -446,10 +436,10 @@ void main() {
     });
 
     testWidgets('Toggles EMOM Beep mode and renders EMOM pacer indicators',
-        (WidgetTester tester) async {
+        (tester) async {
       final MobilityExerciseModel cindy =
           MobilityExerciseModel.defaultExercises().firstWhere(
-        (MobilityExerciseModel e) => e.id == 'cindy_wod',
+        (e) => e.id == 'cindy_wod',
       );
 
       final SettingsProvider settings = SettingsProvider(storage);

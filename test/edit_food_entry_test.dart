@@ -35,7 +35,7 @@ void main() {
       child: MaterialApp(
         home: Scaffold(
           body: Builder(
-            builder: (BuildContext context) {
+            builder: (context) {
               return Center(
                 child: ElevatedButton(
                   onPressed: () {
@@ -56,7 +56,7 @@ void main() {
   }
 
   testWidgets('EditFoodEntrySheet renders initial entry values and saves edits', (
-    WidgetTester tester,
+    tester,
   ) async {
     tester.view.physicalSize = const Size(800, 1400);
     tester.view.devicePixelRatio = 1.0;
@@ -146,7 +146,7 @@ void main() {
   });
 
   testWidgets('EditFoodEntrySheet deletes item upon confirmation', (
-    WidgetTester tester,
+    tester,
   ) async {
     tester.view.physicalSize = const Size(800, 1400);
     tester.view.devicePixelRatio = 1.0;

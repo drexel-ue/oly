@@ -8,7 +8,7 @@ import 'package:oly/theme/app_theme.dart';
 import 'package:provider/provider.dart';
 
 class ActivityLogSheet extends StatefulWidget {
-  const ActivityLogSheet({super.key});
+  const new({super.key});
 
   @override
   State<ActivityLogSheet> createState() => _ActivityLogSheetState();
@@ -18,7 +18,7 @@ class _ActivityLogSheetState extends State<ActivityLogSheet> {
   String _selectedActivityType = 'walking_steps';
   String _activityName = 'Brisk Walk (3.5 mph)';
   double _metValue = 3.8;
-  double _durationMinutes = 30.0;
+  double _durationMinutes = 30;
   int _stepsCount = 6000;
   double _distanceMiles = 2.8;
   final TextEditingController _nameController = TextEditingController(
@@ -146,7 +146,7 @@ class _ActivityLogSheetState extends State<ActivityLogSheet> {
                     style: GoogleFonts.inter(
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
-                      letterSpacing: 1.0,
+                      letterSpacing: 1,
                       color: AppTheme.textSecondary,
                     ),
                   ),
@@ -154,7 +154,7 @@ class _ActivityLogSheetState extends State<ActivityLogSheet> {
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
-                    children: _presets.map((CompendiumActivity preset) {
+                    children: _presets.map((preset) {
                       final bool isSelected =
                           _selectedActivityType == preset.id;
                       return ChoiceChip(
@@ -182,7 +182,7 @@ class _ActivityLogSheetState extends State<ActivityLogSheet> {
                               ? AppTheme.primaryAmber
                               : AppTheme.borderColor,
                         ),
-                        onSelected: (bool selected) {
+                        onSelected: (selected) {
                           if (selected) {
                             _selectPreset(preset);
                           }
@@ -277,7 +277,7 @@ class _ActivityLogSheetState extends State<ActivityLogSheet> {
                       style: GoogleFonts.inter(
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
-                        letterSpacing: 1.0,
+                        letterSpacing: 1,
                         color: AppTheme.textSecondary,
                       ),
                     ),
@@ -319,7 +319,7 @@ class _ActivityLogSheetState extends State<ActivityLogSheet> {
                             divisions: 48,
                             activeColor: AppTheme.primaryAmber,
                             inactiveColor: AppTheme.borderColor,
-                            onChanged: (double val) =>
+                            onChanged: (val) =>
                                 _onStepsChanged(val.round(), lbm, weight),
                           ),
                         ],
@@ -334,7 +334,7 @@ class _ActivityLogSheetState extends State<ActivityLogSheet> {
                     style: GoogleFonts.inter(
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
-                      letterSpacing: 1.0,
+                      letterSpacing: 1,
                       color: AppTheme.textSecondary,
                     ),
                   ),
@@ -346,7 +346,7 @@ class _ActivityLogSheetState extends State<ActivityLogSheet> {
                     divisions: 35,
                     activeColor: AppTheme.secondaryCyan,
                     inactiveColor: AppTheme.borderColor,
-                    onChanged: (double val) =>
+                    onChanged: (val) =>
                         setState(() => _durationMinutes = val),
                   ),
 
@@ -358,7 +358,7 @@ class _ActivityLogSheetState extends State<ActivityLogSheet> {
                     style: GoogleFonts.inter(
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
-                      letterSpacing: 1.0,
+                      letterSpacing: 1,
                       color: AppTheme.textSecondary,
                     ),
                   ),
@@ -408,7 +408,6 @@ class _ActivityLogSheetState extends State<ActivityLogSheet> {
                                   : null,
                               metValue: _metValue,
                               caloriesBurned: calAlgorithmB,
-                              source: 'manual',
                             );
 
                         final NutritionProvider provider =

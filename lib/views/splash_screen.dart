@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:oly/theme/app_theme.dart';
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({required this.child, super.key});
+  const new({required this.child, super.key});
   final Widget child;
 
   @override
@@ -27,12 +27,12 @@ class _SplashScreenState extends State<SplashScreen>
 
     _scaleAnimation = Tween<double>(
       begin: 0.85,
-      end: 1.0,
+      end: 1,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
 
     _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
+      begin: 0,
+      end: 1,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeIn));
 
     _controller.forward();
@@ -64,7 +64,7 @@ class _SplashScreenState extends State<SplashScreen>
       body: Center(
         child: AnimatedBuilder(
           animation: _controller,
-          builder: (BuildContext context, Widget? child) {
+          builder: (context, child) {
             return FadeTransition(
               opacity: _fadeAnimation,
               child: ScaleTransition(

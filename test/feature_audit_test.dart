@@ -24,7 +24,7 @@ void main() {
               exerciseName: 'Snatch',
               liftId: 'snatch',
               sets: <CompletedSet>[
-                CompletedSet(setIndex: 1, weight: 80.0, reps: 3),
+                CompletedSet(setIndex: 1, weight: 80, reps: 3),
               ],
             ),
           ],
@@ -65,7 +65,7 @@ void main() {
 
       expect(
         routine.diagnosticReasons.any(
-          (String r) => r.contains('Shoulder strain reported'),
+          (r) => r.contains('Shoulder strain reported'),
         ),
         isTrue,
       );
@@ -103,17 +103,17 @@ void main() {
         startTime: DateTime.now().subtract(const Duration(minutes: 25)),
         exerciseSets: <String, List<CompletedSet>>{
           'Snatch': <CompletedSet>[
-            CompletedSet(setIndex: 1, weight: 80.0, reps: 3, isCompleted: true),
-            CompletedSet(setIndex: 2, weight: 80.0, reps: 3, isCompleted: true),
+            CompletedSet(setIndex: 1, weight: 80, reps: 3),
+            CompletedSet(setIndex: 2, weight: 80, reps: 3),
             CompletedSet(
               setIndex: 3,
-              weight: 80.0,
+              weight: 80,
               reps: 3,
               isCompleted: false,
             ),
             CompletedSet(
               setIndex: 4,
-              weight: 80.0,
+              weight: 80,
               reps: 3,
               isCompleted: false,
             ),
@@ -121,13 +121,13 @@ void main() {
           'Back Squat': <CompletedSet>[
             CompletedSet(
               setIndex: 1,
-              weight: 130.0,
+              weight: 130,
               reps: 5,
               isCompleted: false,
             ),
             CompletedSet(
               setIndex: 2,
-              weight: 130.0,
+              weight: 130,
               reps: 5,
               isCompleted: false,
             ),
@@ -136,7 +136,6 @@ void main() {
         exerciseWeights: <String, double>{'Snatch': 80.0, 'Back Squat': 130.0},
         swappedExerciseNames: <String, String>{'Military Press': 'Push Press'},
         notes: 'Felt snappy on snatches',
-        selectedRpe: 8,
         selectedJointStrains: <String>['Wrists'],
       );
 

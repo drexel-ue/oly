@@ -19,7 +19,7 @@ import 'package:oly/widgets/wod_setup_explainer_sheet.dart';
 import 'package:provider/provider.dart';
 
 class DtWodCard extends StatefulWidget {
-  const DtWodCard({
+  const new({
     required this.exercise,
     required this.onCompleted,
     super.key,
@@ -136,7 +136,7 @@ class _DtWodCardState extends State<DtWodCard> {
     _playBeepIfEnabled();
 
     _stopwatchTimer?.cancel();
-    _stopwatchTimer = Timer.periodic(const Duration(seconds: 1), (Timer timer) {
+    _stopwatchTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (!mounted) {
         timer.cancel();
         return;
@@ -230,7 +230,7 @@ class _DtWodCardState extends State<DtWodCard> {
 
     final bool? shouldSave = await showDialog<bool>(
       context: context,
-      builder: (BuildContext ctx) {
+      builder: (ctx) {
         return AlertDialog(
           backgroundColor: AppTheme.surfaceCard,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -264,7 +264,7 @@ class _DtWodCardState extends State<DtWodCard> {
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
                         color: AppTheme.textSecondary,
-                        letterSpacing: 1.0,
+                        letterSpacing: 1,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -721,9 +721,9 @@ class _DtWodCardState extends State<DtWodCard> {
                   DropdownMenuItem<double>(value: 61.2, child: Text('135 lb / 61.2 kg (Scaled)')),
                   DropdownMenuItem<double>(value: 52.2, child: Text('115 lb / 52.2 kg (Scaled)')),
                   DropdownMenuItem<double>(value: 43.1, child: Text('95 lb / 43.1 kg (Scaled)')),
-                  DropdownMenuItem<double>(value: 34.0, child: Text('75 lb / 34.0 kg (Light)')),
+                  DropdownMenuItem<double>(value: 34, child: Text('75 lb / 34.0 kg (Light)')),
                 ],
-                onChanged: (double? val) {
+                onChanged: (val) {
                   if (val != null) {
                     setState(() {
                       _barbellWeightKg = val;
@@ -750,9 +750,9 @@ class _DtWodCardState extends State<DtWodCard> {
                 : null,
             isActive: _activeRoundIndex == round,
             isCompleted: _activeRoundIndex > round,
-            onDeadliftAdd: (int n) => setState(() => _repsDone[round][0] = (_repsDone[round][0] + n).clamp(0, 12)),
-            onCleanAdd: (int n) => setState(() => _repsDone[round][1] = (_repsDone[round][1] + n).clamp(0, 9)),
-            onJerkAdd: (int n) => setState(() => _repsDone[round][2] = (_repsDone[round][2] + n).clamp(0, 6)),
+            onDeadliftAdd: (n) => setState(() => _repsDone[round][0] = (_repsDone[round][0] + n).clamp(0, 12)),
+            onCleanAdd: (n) => setState(() => _repsDone[round][1] = (_repsDone[round][1] + n).clamp(0, 9)),
+            onJerkAdd: (n) => setState(() => _repsDone[round][2] = (_repsDone[round][2] + n).clamp(0, 6)),
             onCompleteRound: () => _completeRound(round),
             buttonText: round == 4
                 ? 'FINISH DT! 🏁 (${_formatSeconds(_elapsedSeconds)})'
@@ -1020,7 +1020,7 @@ class _DtWodCardState extends State<DtWodCard> {
             fontSize: 12,
             fontWeight: FontWeight.bold,
             color: AppTheme.secondaryCyan,
-            letterSpacing: 1.0,
+            letterSpacing: 1,
           ),
         ),
         const SizedBox(height: 12),
@@ -1067,9 +1067,9 @@ class _DtWodCardState extends State<DtWodCard> {
             DropdownMenuItem<double>(value: 61.2, child: Text('135 lb (Scaled)')),
             DropdownMenuItem<double>(value: 52.2, child: Text('115 lb (Scaled)')),
             DropdownMenuItem<double>(value: 43.1, child: Text('95 lb (Scaled)')),
-            DropdownMenuItem<double>(value: 34.0, child: Text('75 lb (Light)')),
+            DropdownMenuItem<double>(value: 34, child: Text('75 lb (Light)')),
           ],
-          onChanged: (double? val) {
+          onChanged: (val) {
             if (val != null) {
               setState(() {
                 _barbellWeightKg = val;

@@ -4,7 +4,7 @@ import 'package:oly/models/fasting_session_model.dart';
 import 'package:oly/theme/app_theme.dart';
 
 class FastingActiveCard extends StatelessWidget {
-  const FastingActiveCard({
+  const new({
     required this.session,
     super.key,
     this.onTap,

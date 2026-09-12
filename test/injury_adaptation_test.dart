@@ -141,7 +141,7 @@ void main() {
       expect(plan.rehabWarmupSuggestions.isNotEmpty, isTrue);
       expect(
         plan.rehabWarmupSuggestions.any(
-          (MobilityExerciseModel m) =>
+          (m) =>
               m.focusArea == MobilityFocusArea.quadriceps ||
               m.focusArea == MobilityFocusArea.hipCapsule,
         ),

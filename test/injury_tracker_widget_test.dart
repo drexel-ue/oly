@@ -32,7 +32,7 @@ void main() {
 
   group('InteractiveBodyMap Widget Tests', () {
     testWidgets('Renders body map with Front view and toggles to Back view', (
-      WidgetTester tester,
+      tester,
     ) async {
       await tester.pumpWidget(
         createTestWidget(
@@ -64,7 +64,7 @@ void main() {
     });
 
     testWidgets('Triggers onRegionSelected callback on canvas tap', (
-      WidgetTester tester,
+      tester,
     ) async {
       InjuryRegion? selected;
 
@@ -72,7 +72,7 @@ void main() {
         createTestWidget(
           InteractiveBodyMap(
             injuries: const <InjuryRecord>[],
-            onRegionSelected: (InjuryRegion r) => selected = r,
+            onRegionSelected: (r) => selected = r,
           ),
         ),
       );
@@ -90,7 +90,7 @@ void main() {
 
   group('SessionInjuryAdaptationCard Widget Tests', () {
     testWidgets('Renders active injury adaptations and triggers onApplySwaps', (
-      WidgetTester tester,
+      tester,
     ) async {
       final DayTemplate day1 = ProgramCycle.getBuiltInProgram().first;
       final List<InjuryRecord> injuries = <InjuryRecord>[
@@ -127,7 +127,7 @@ void main() {
               'snatch': 100.0,
               'power_snatch': 85.0,
             },
-            onApplySwaps: (Map<String, String> swaps, Map<String, double> weights) {
+            onApplySwaps: (swaps, weights) {
               appliedSwaps = swaps;
             },
           ),
@@ -153,7 +153,7 @@ void main() {
 
   group('InjuryTrackerScreen Full View Tests', () {
     testWidgets('Renders header metrics, tabs, and empty state message', (
-      WidgetTester tester,
+      tester,
     ) async {
       SharedPreferences.setMockInitialValues(<String, Object>{});
       final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -178,7 +178,7 @@ void main() {
 
   group('PostSessionBodyCheckinDialog Widget Tests', () {
     testWidgets('Renders post-session check-in dialog and completes', (
-      WidgetTester tester,
+      tester,
     ) async {
       SharedPreferences.setMockInitialValues(<String, Object>{});
       final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -190,7 +190,7 @@ void main() {
       await tester.pumpWidget(
         createTestWidget(
           PostSessionBodyCheckinDialog(
-            onComplete: (Map<InjuryRegion, int> pain, List<String> tags) {
+            onComplete: (pain, tags) {
               isCompleted = true;
             },
           ),
@@ -210,7 +210,7 @@ void main() {
     });
 
     testWidgets('Toggles between Front and Back view in check-in dialog', (
-      WidgetTester tester,
+      tester,
     ) async {
       SharedPreferences.setMockInitialValues(<String, Object>{});
       final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -220,7 +220,7 @@ void main() {
       await tester.pumpWidget(
         createTestWidget(
           PostSessionBodyCheckinDialog(
-            onComplete: (Map<InjuryRegion, int> pain, List<String> tags) {},
+            onComplete: (pain, tags) {},
           ),
           injuryProvider: provider,
         ),
@@ -247,7 +247,7 @@ void main() {
     });
 
     testWidgets('Selects area on map tap and unselects on second tap', (
-      WidgetTester tester,
+      tester,
     ) async {
       SharedPreferences.setMockInitialValues(<String, Object>{});
       final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -259,7 +259,7 @@ void main() {
       await tester.pumpWidget(
         createTestWidget(
           PostSessionBodyCheckinDialog(
-            onComplete: (Map<InjuryRegion, int> pain, List<String> tags) {
+            onComplete: (pain, tags) {
               finalPain = pain;
             },
           ),
@@ -271,7 +271,7 @@ void main() {
 
       // Tap Head / Neck area (near top center of canvas)
       final Finder canvas = find.byWidgetPredicate(
-        (Widget w) => w is CustomPaint && w.painter is BodyMapPainter,
+        (w) => w is CustomPaint && w.painter is BodyMapPainter,
       );
       final Rect canvasRect = tester.getRect(canvas);
       final Offset neckOffset = Offset(canvasRect.center.dx, canvasRect.top + canvasRect.height * 0.11);
@@ -299,7 +299,7 @@ void main() {
     });
 
     testWidgets('Unselects area using Unselect Area button', (
-      WidgetTester tester,
+      tester,
     ) async {
       SharedPreferences.setMockInitialValues(<String, Object>{});
       final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -311,7 +311,7 @@ void main() {
       await tester.pumpWidget(
         createTestWidget(
           PostSessionBodyCheckinDialog(
-            onComplete: (Map<InjuryRegion, int> pain, List<String> tags) {
+            onComplete: (pain, tags) {
               finalPain = pain;
             },
           ),
@@ -323,7 +323,7 @@ void main() {
 
       // Tap Neck
       final Finder canvas = find.byWidgetPredicate(
-        (Widget w) => w is CustomPaint && w.painter is BodyMapPainter,
+        (w) => w is CustomPaint && w.painter is BodyMapPainter,
       );
       final Rect canvasRect = tester.getRect(canvas);
       final Offset neckOffset = Offset(canvasRect.center.dx, canvasRect.top + canvasRect.height * 0.11);
@@ -345,7 +345,7 @@ void main() {
     });
 
     testWidgets('Unselects area using status chip delete button', (
-      WidgetTester tester,
+      tester,
     ) async {
       SharedPreferences.setMockInitialValues(<String, Object>{});
       final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -368,7 +368,7 @@ void main() {
       await tester.pumpWidget(
         createTestWidget(
           PostSessionBodyCheckinDialog(
-            onComplete: (Map<InjuryRegion, int> pain, List<String> tags) {
+            onComplete: (pain, tags) {
               finalPain = pain;
             },
           ),
@@ -394,7 +394,7 @@ void main() {
     });
 
     testWidgets('Allows viewing back and checking in posterior regions like Lumbar Spine', (
-      WidgetTester tester,
+      tester,
     ) async {
       SharedPreferences.setMockInitialValues(<String, Object>{});
       final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -406,7 +406,7 @@ void main() {
       await tester.pumpWidget(
         createTestWidget(
           PostSessionBodyCheckinDialog(
-            onComplete: (Map<InjuryRegion, int> pain, List<String> tags) {
+            onComplete: (pain, tags) {
               finalPain = pain;
             },
           ),
@@ -424,7 +424,7 @@ void main() {
 
       // 2. Tap Lumbar Spine (center x: 0.5, y: 0.38 on canvas)
       final Finder canvas = find.byWidgetPredicate(
-        (Widget w) => w is CustomPaint && w.painter is BodyMapPainter,
+        (w) => w is CustomPaint && w.painter is BodyMapPainter,
       );
       final Rect canvasRect = tester.getRect(canvas);
       final Offset lumbarOffset = Offset(
@@ -449,7 +449,7 @@ void main() {
 
   group('AnatomicalSubRegionSheet Widget Tests', () {
     testWidgets('Renders sub-regions for Left Knee and selects Patellar Tendon', (
-      WidgetTester tester,
+      tester,
     ) async {
       InjurySubRegion? selected;
 
@@ -457,7 +457,7 @@ void main() {
         createTestWidget(
           AnatomicalSubRegionSheet(
             region: InjuryRegion.leftKnee,
-            onSubRegionSelected: (InjurySubRegion sub) {
+            onSubRegionSelected: (sub) {
               selected = sub;
             },
           ),
@@ -478,7 +478,7 @@ void main() {
     });
 
     testWidgets('Renders existing active injury banner in AnatomicalSubRegionSheet', (
-      WidgetTester tester,
+      tester,
     ) async {
       final InjuryRecord existing = InjuryRecord(
         id: 'k1',
@@ -509,7 +509,7 @@ void main() {
 
   group('InjuryLogBottomSheet Sub-Region Selection Tests', () {
     testWidgets('Renders sub-region choice chips and saves with subRegion', (
-      WidgetTester tester,
+      tester,
     ) async {
       SharedPreferences.setMockInitialValues(<String, Object>{});
       final SharedPreferences prefs = await SharedPreferences.getInstance();

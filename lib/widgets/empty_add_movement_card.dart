@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:oly/theme/app_theme.dart';
 
 class EmptyAddMovementCard extends StatelessWidget {
-  const EmptyAddMovementCard({
+  const new({
     required this.onAddPressed,
     super.key,
     this.onLoadRecommendedPressed,

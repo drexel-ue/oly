@@ -9,7 +9,7 @@ import 'package:oly/widgets/standard_ratios_sheet.dart';
 import 'package:provider/provider.dart';
 
 class LiftsScreen extends StatefulWidget {
-  const LiftsScreen({super.key});
+  const new({super.key});
 
   @override
   State<LiftsScreen> createState() => _LiftsScreenState();
@@ -31,11 +31,11 @@ class _LiftsScreenState extends State<LiftsScreen>
     super.dispose();
   }
 
-  void _showUpdateMaxDialog(
+  Future<void> _showUpdateMaxDialog(
     BuildContext context,
     LiftModel lift,
     SettingsProvider settings,
-  ) {
+  ) async {
     final LiftProvider provider = Provider.of<LiftProvider>(
       context,
       listen: false,
@@ -47,132 +47,143 @@ class _LiftsScreenState extends State<LiftsScreen>
     );
     final TextEditingController notesController = TextEditingController();
 
-    showDialog(
-      context: context,
-      builder: (BuildContext ctx) => AlertDialog(
-        backgroundColor: AppTheme.surfaceCard,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text(
-          'Update ${lift.name} 1RM',
-          style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            TextField(
-              controller: controller,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              style: GoogleFonts.outfit(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-              decoration: InputDecoration(
-                labelText: 'New 1RM (${settings.unitLabel.toUpperCase()})',
-                labelStyle: GoogleFonts.inter(color: AppTheme.textSecondary),
-                focusedBorder: const UnderlineInputBorder(
-                  borderSide: BorderSide(color: AppTheme.primaryAmber),
+    try {
+      await showDialog<void>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          backgroundColor: AppTheme.surfaceCard,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Text(
+            'Update ${lift.name} 1RM',
+            style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              TextField(
+                controller: controller,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                style: GoogleFonts.outfit(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+                decoration: InputDecoration(
+                  labelText: 'New 1RM (${settings.unitLabel.toUpperCase()})',
+                  labelStyle: GoogleFonts.inter(color: AppTheme.textSecondary),
+                  focusedBorder: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: AppTheme.primaryAmber),
+                  ),
                 ),
               ),
-            ),
-            if (suggestion != null) ...<Widget>[
-              const SizedBox(height: 12),
-              InkWell(
-                onTap: () {
-                  final double displayVal = settings.toDisplayWeight(
-                    suggestion.suggestedMaxKg,
-                  );
-                  controller.text = displayVal.toStringAsFixed(1);
-                },
-                borderRadius: BorderRadius.circular(12),
-                child: Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: AppTheme.secondaryCyan.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: AppTheme.secondaryCyan.withValues(alpha: 0.5),
+              if (suggestion != null) ...<Widget>[
+                const SizedBox(height: 12),
+                InkWell(
+                  onTap: () {
+                    final double displayVal = settings.toDisplayWeight(
+                      suggestion.suggestedMaxKg,
+                    );
+                    controller.text = displayVal.toStringAsFixed(1);
+                  },
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: AppTheme.secondaryCyan.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: AppTheme.secondaryCyan.withValues(alpha: 0.5),
+                      ),
+                    ),
+                    child: Row(
+                      children: <Widget>[
+                        const Icon(
+                          Icons.lightbulb_outline,
+                          color: AppTheme.secondaryCyan,
+                          size: 18,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              Text(
+                                'Suggested: ${settings.formatWeight(suggestion.suggestedMaxKg)}',
+                                style: GoogleFonts.outfit(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppTheme.secondaryCyan,
+                                ),
+                              ),
+                              Text(
+                                '${suggestion.reason} • Tap to apply',
+                                style: GoogleFonts.inter(
+                                  fontSize: 11,
+                                  color: AppTheme.textSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  child: Row(
-                    children: <Widget>[
-                      const Icon(
-                        Icons.lightbulb_outline,
-                        color: AppTheme.secondaryCyan,
-                        size: 18,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            Text(
-                              'Suggested: ${settings.formatWeight(suggestion.suggestedMaxKg)}',
-                              style: GoogleFonts.outfit(
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                                color: AppTheme.secondaryCyan,
-                              ),
-                            ),
-                            Text(
-                              '${suggestion.reason} • Tap to apply',
-                              style: GoogleFonts.inter(
-                                fontSize: 11,
-                                color: AppTheme.textSecondary,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+                ),
+              ],
+              const SizedBox(height: 12),
+              TextField(
+                controller: notesController,
+                style: GoogleFonts.inter(fontSize: 14),
+                decoration: InputDecoration(
+                  labelText: 'Notes (Optional)',
+                  hintText: 'e.g. Clean & crisp form, felt easy',
+                  labelStyle: GoogleFonts.inter(color: AppTheme.textSecondary),
+                  hintStyle: GoogleFonts.inter(
+                    color: AppTheme.textSecondary.withValues(alpha: 0.5),
+                    fontSize: 12,
                   ),
                 ),
               ),
             ],
-            const SizedBox(height: 12),
-            TextField(
-              controller: notesController,
-              decoration: InputDecoration(
-                labelText: 'Notes (Optional)',
-                labelStyle: GoogleFonts.inter(color: AppTheme.textSecondary),
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(
+                'Cancel',
+                style: GoogleFonts.inter(color: AppTheme.textSecondary),
               ),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryAmber,
+                foregroundColor: Colors.black,
+              ),
+              onPressed: () {
+                final double? parsed = double.tryParse(controller.text);
+                if (parsed != null && parsed > 0) {
+                  final double baseKg = settings.toBaseKg(parsed);
+                  Provider.of<LiftProvider>(context, listen: false).updateMax(
+                    lift.id,
+                    baseKg,
+                    notes: notesController.text.isNotEmpty
+                        ? notesController.text
+                        : 'Manual update',
+                  );
+                  Navigator.pop(ctx);
+                }
+              },
+              child: const Text('Save PR'),
             ),
           ],
         ),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text(
-              'Cancel',
-              style: TextStyle(color: AppTheme.textSecondary),
-            ),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.primaryAmber,
-              foregroundColor: Colors.black,
-            ),
-            onPressed: () {
-              final double? parsed = double.tryParse(controller.text);
-              if (parsed != null && parsed > 0) {
-                final double baseKg = settings.toBaseKg(parsed);
-                Provider.of<LiftProvider>(context, listen: false).updateMax(
-                  lift.id,
-                  baseKg,
-                  notes: notesController.text.isNotEmpty
-                      ? notesController.text
-                      : 'Manual update',
-                );
-                Navigator.pop(ctx);
-              }
-            },
-            child: const Text('Save PR'),
-          ),
-        ],
-      ),
-    );
+      );
+    } finally {
+      controller.dispose();
+      notesController.dispose();
+    }
   }
 
   @override
@@ -194,7 +205,7 @@ class _LiftsScreenState extends State<LiftsScreen>
             ),
             tooltip: 'Olympic Ratio Standards Chart',
             onPressed: () {
-              showModalBottomSheet(
+              showModalBottomSheet<void>(
                 context: context,
                 isScrollControlled: true,
                 useSafeArea: true,
@@ -223,7 +234,7 @@ class _LiftsScreenState extends State<LiftsScreen>
             ListView.builder(
               padding: const EdgeInsets.all(16),
               itemCount: lifts.lifts.length,
-              itemBuilder: (BuildContext context, int index) {
+              itemBuilder: (context, index) {
                 final LiftModel lift = lifts.lifts[index];
                 return _buildLiftCard(context, lift, lifts, settings);
               },
@@ -302,7 +313,7 @@ class _LiftsScreenState extends State<LiftsScreen>
                     style: GoogleFonts.outfit(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
-                      letterSpacing: 1.0,
+                      letterSpacing: 1,
                       color: AppTheme.textSecondary,
                     ),
                   ),
@@ -311,7 +322,7 @@ class _LiftsScreenState extends State<LiftsScreen>
                     spacing: 8,
                     runSpacing: 8,
                     children: percentages.entries.map((
-                      MapEntry<int, double> entry,
+                      entry,
                     ) {
                       final bool isHighlighted =
                           entry.key == 70 || entry.key == 75 || entry.key == 80;

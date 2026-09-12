@@ -9,7 +9,7 @@ import 'package:oly/views/breathing/wim_hof_setup_sheet.dart';
 import 'package:provider/provider.dart';
 
 class BreathingAnalyticsTab extends StatefulWidget {
-  const BreathingAnalyticsTab({super.key});
+  const new({super.key});
 
   @override
   State<BreathingAnalyticsTab> createState() => _BreathingAnalyticsTabState();
@@ -54,7 +54,7 @@ class _BreathingAnalyticsTabState extends State<BreathingAnalyticsTab> {
                 style: GoogleFonts.outfit(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
-                  letterSpacing: 1.0,
+                  letterSpacing: 1,
                   color: AppTheme.textSecondary,
                 ),
               ),
@@ -75,7 +75,7 @@ class _BreathingAnalyticsTabState extends State<BreathingAnalyticsTab> {
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: sessions.length,
-            itemBuilder: (BuildContext context, int index) {
+            itemBuilder: (context, index) {
               final BreathingSessionLog session = sessions[index];
               return _buildSessionLogCard(context, session, breathingProvider);
             },
@@ -130,7 +130,7 @@ class _BreathingAnalyticsTabState extends State<BreathingAnalyticsTab> {
             const SizedBox(height: 24),
             ElevatedButton.icon(
               onPressed: () {
-                showModalBottomSheet(
+                showModalBottomSheet<void>(
                   context: context,
                   isScrollControlled: true,
                   useSafeArea: true,
@@ -303,7 +303,7 @@ class _BreathingAnalyticsTabState extends State<BreathingAnalyticsTab> {
   Widget _buildTrendChartCard(BreathingProvider breathing) {
     final List<BreathingSessionLog> chronological =
         List<BreathingSessionLog>.from(breathing.sessions)
-          ..sort((BreathingSessionLog a, BreathingSessionLog b) =>
+          ..sort((a, b) =>
               a.date.compareTo(b.date));
 
     final List<FlSpot> spots = _showMaxTrend
@@ -400,25 +400,24 @@ class _BreathingAnalyticsTabState extends State<BreathingAnalyticsTab> {
             child: LineChart(
               LineChartData(
                 gridData: FlGridData(
-                  show: true,
                   drawVerticalLine: false,
-                  getDrawingHorizontalLine: (double value) => FlLine(
+                  getDrawingHorizontalLine: (value) => FlLine(
                     color: AppTheme.borderColor.withValues(alpha: 0.4),
                     strokeWidth: 1,
                   ),
                 ),
                 titlesData: FlTitlesData(
                   topTitles: const AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
+                    
                   ),
                   rightTitles: const AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
+                    
                   ),
                   leftTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
                       reservedSize: 42,
-                      getTitlesWidget: (double value, TitleMeta meta) {
+                      getTitlesWidget: (value, meta) {
                         final int sec = value.toInt();
                         final int m = sec ~/ 60;
                         final int s = sec % 60;
@@ -435,7 +434,7 @@ class _BreathingAnalyticsTabState extends State<BreathingAnalyticsTab> {
                   bottomTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
-                      getTitlesWidget: (double value, TitleMeta meta) {
+                      getTitlesWidget: (value, meta) {
                         final int index = value.toInt();
                         if (index >= 0 && index < chronological.length) {
                           return Text(
@@ -456,13 +455,11 @@ class _BreathingAnalyticsTabState extends State<BreathingAnalyticsTab> {
                   LineChartBarData(
                     spots: spots,
                     isCurved: true,
-                    curveSmoothness: 0.35,
                     color: _showMaxTrend
                         ? AppTheme.primaryAmber
                         : AppTheme.secondaryCyan,
                     barWidth: 3,
                     isStrokeCapRound: true,
-                    dotData: const FlDotData(show: true),
                     belowBarData: BarAreaData(
                       show: true,
                       color: (_showMaxTrend
@@ -488,7 +485,7 @@ class _BreathingAnalyticsTabState extends State<BreathingAnalyticsTab> {
 
     final List<int> sortedRounds = roundAverages.keys.toList()..sort();
     final double highestRoundAvg = roundAverages.values.isNotEmpty
-        ? roundAverages.values.reduce((double a, double b) => a > b ? a : b)
+        ? roundAverages.values.reduce((a, b) => a > b ? a : b)
         : 1.0;
 
     return Container(
@@ -521,7 +518,7 @@ class _BreathingAnalyticsTabState extends State<BreathingAnalyticsTab> {
             ],
           ),
           const SizedBox(height: 14),
-          ...sortedRounds.map((int roundNum) {
+          ...sortedRounds.map((roundNum) {
             final double avgSeconds = roundAverages[roundNum] ?? 0.0;
             final double ratio = highestRoundAvg > 0
                 ? (avgSeconds / highestRoundAvg).clamp(0.0, 1.0)
@@ -635,12 +632,12 @@ class _BreathingAnalyticsTabState extends State<BreathingAnalyticsTab> {
                   size: 20,
                 ),
                 color: AppTheme.surfaceElevated,
-                onSelected: (String val) {
+                onSelected: (val) {
                   if (val == 'delete') {
                     _confirmDelete(context, session, breathing);
                   }
                 },
-                itemBuilder: (BuildContext ctx) => <PopupMenuEntry<String>>[
+                itemBuilder: (ctx) => <PopupMenuEntry<String>>[
                   const PopupMenuItem<String>(
                     value: 'delete',
                     child: Row(
@@ -676,7 +673,7 @@ class _BreathingAnalyticsTabState extends State<BreathingAnalyticsTab> {
           Wrap(
             spacing: 8,
             runSpacing: 6,
-            children: session.rounds.map((BreathingRoundLog r) {
+            children: session.rounds.map((r) {
               final bool isMax =
                   r.retentionSeconds == session.maxHoldSeconds &&
                       session.maxHoldSeconds > 0;
@@ -728,9 +725,9 @@ class _BreathingAnalyticsTabState extends State<BreathingAnalyticsTab> {
     BreathingSessionLog session,
     BreathingProvider breathing,
   ) {
-    showDialog(
+    showDialog<void>(
       context: context,
-      builder: (BuildContext ctx) => AlertDialog(
+      builder: (ctx) => AlertDialog(
         backgroundColor: AppTheme.surfaceCard,
         title: Text(
           'Delete Breathwork Log?',

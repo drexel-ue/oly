@@ -11,7 +11,7 @@ enum GkiMetabolicZone {
 
 /// A biomarker log entry from Keto-Mojo or similar meter
 class FastingBiomarkerEntry {
-  const FastingBiomarkerEntry({
+  const new({
     required this.id,
     required this.timestamp,
     required this.glucoseMgDl,
@@ -20,7 +20,7 @@ class FastingBiomarkerEntry {
     this.notes,
   });
 
-  factory FastingBiomarkerEntry.create({
+  factory create({
     required String id,
     required double glucoseMgDl,
     required double ketoneMmolL,
@@ -38,7 +38,7 @@ class FastingBiomarkerEntry {
     );
   }
 
-  factory FastingBiomarkerEntry.fromJson(Map<String, dynamic> json) {
+  factory fromJson(Map<String, dynamic> json) {
     return FastingBiomarkerEntry(
       id: json['id'] as String,
       timestamp: DateTime.parse(json['timestamp'] as String),
@@ -63,7 +63,7 @@ class FastingBiomarkerEntry {
   /// If ketones <= 0, returns a very high number (99.0)
   double get gki {
     if (ketoneMmolL <= 0.05) {
-      return 99.0;
+      return 99;
     }
     final double glucoseMmolL = glucoseMgDl / 18.016;
     return glucoseMmolL / ketoneMmolL;

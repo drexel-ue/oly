@@ -1,5 +1,5 @@
 class AccessoryLog {
-  AccessoryLog({
+  new({
     required this.id,
     required this.exerciseId,
     required this.exerciseName,
@@ -11,7 +11,7 @@ class AccessoryLog {
     this.notes,
   });
 
-  factory AccessoryLog.fromJson(Map<String, dynamic> json) {
+  factory fromJson(Map<String, dynamic> json) {
     return AccessoryLog(
       id: json['id'] as String,
       exerciseId: json['exerciseId'] as String,

@@ -9,7 +9,7 @@ import 'package:oly/widgets/video_player_card.dart';
 import 'package:provider/provider.dart';
 
 class RecoverySessionScreen extends StatefulWidget {
-  const RecoverySessionScreen({
+  const new({
     required this.routine,
     super.key,
     this.isPreviewMode = false,
@@ -154,12 +154,12 @@ class _RecoverySessionScreenState extends State<RecoverySessionScreen> {
   }
 
   void _showCompletionDialog() {
-    showDialog(
+    showDialog<void>(
       context: context,
       barrierDismissible: false,
-      builder: (BuildContext ctx) {
+      builder: (ctx) {
         return StatefulBuilder(
-          builder: (BuildContext context, setDialogState) {
+          builder: (context, setDialogState) {
             return AlertDialog(
               backgroundColor: AppTheme.surfaceCard,
               shape: RoundedRectangleBorder(
@@ -209,7 +209,7 @@ class _RecoverySessionScreenState extends State<RecoverySessionScreen> {
                     // Readiness Rating Selector (1 to 5 Stars)
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: List.generate(5, (int index) {
+                      children: List.generate(5, (index) {
                         final int starValue = index + 1;
                         final bool isSelected = starValue == _readinessRating;
                         return GestureDetector(
@@ -375,8 +375,7 @@ class _RecoverySessionScreenState extends State<RecoverySessionScreen> {
     final double progress = (_currentIndex + 1) / exercises.length;
 
     return PopScope(
-      canPop: true,
-      onPopInvokedWithResult: (bool didPop, Object? result) {
+      onPopInvokedWithResult: (didPop, result) {
         if (didPop) {
           try {
             final ActiveSessionProvider activeSession =
@@ -516,7 +515,7 @@ class _RecoverySessionScreenState extends State<RecoverySessionScreen> {
                 scrollDirection: Axis.horizontal,
                 child: Row(
                   children: List.generate(widget.routine.phaseGroups.length, (
-                    int index,
+                    index,
                   ) {
                     final RecoveryPhaseGroup group =
                         widget.routine.phaseGroups[index];
@@ -581,7 +580,7 @@ class _RecoverySessionScreenState extends State<RecoverySessionScreen> {
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
                             color: AppTheme.accentBlue,
-                            letterSpacing: 1.0,
+                            letterSpacing: 1,
                           ),
                         ),
                       ],
@@ -612,7 +611,7 @@ class _RecoverySessionScreenState extends State<RecoverySessionScreen> {
                 originalExercise: originalEx,
                 isSwapped: isSwapped,
                 isPreviewMode: widget.isPreviewMode,
-                onSwapExercise: (MobilityExerciseModel replacement) {
+                onSwapExercise: (replacement) {
                   setState(() {
                     _swappedExercises[originalEx.id] = replacement;
                   });

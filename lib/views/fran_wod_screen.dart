@@ -6,7 +6,7 @@ import 'package:oly/theme/app_theme.dart';
 import 'package:oly/widgets/fran_wod_card.dart';
 
 class FranWodScreen extends StatefulWidget {
-  const FranWodScreen({
+  const new({
     super.key,
     this.isPreviewMode = false,
   });
@@ -30,7 +30,7 @@ class _FranWodScreenState extends State<FranWodScreen> {
   Widget build(BuildContext context) {
     final MobilityExerciseModel franExercise =
         MobilityExerciseModel.defaultExercises().firstWhere(
-      (MobilityExerciseModel e) => e.id == 'fran_wod',
+      (e) => e.id == 'fran_wod',
     );
 
     return Scaffold(

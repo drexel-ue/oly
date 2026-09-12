@@ -16,7 +16,7 @@ import 'package:oly/widgets/wod_history_sheet.dart';
 import 'package:provider/provider.dart';
 
 class AnalyticsScreen extends StatelessWidget {
-  const AnalyticsScreen({super.key});
+  const new({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -158,7 +158,7 @@ class AnalyticsScreen extends StatelessWidget {
               fontSize: 12,
               fontWeight: FontWeight.bold,
               color: AppTheme.textSecondary,
-              letterSpacing: 1.0,
+              letterSpacing: 1,
             ),
           ),
           const SizedBox(height: 12),
@@ -188,7 +188,7 @@ class AnalyticsScreen extends StatelessWidget {
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: sessions.length,
-              itemBuilder: (BuildContext context, int index) {
+              itemBuilder: (context, index) {
                 final WorkoutSession session = sessions[index];
                 final String dateStr = DateFormat('EEE, MMM d, yyyy • h:mm a')
                     .format(session.date);
@@ -251,7 +251,7 @@ class AnalyticsScreen extends StatelessWidget {
                       const SizedBox(height: 8),
                       const Divider(color: AppTheme.borderColor),
                       const SizedBox(height: 4),
-                      ...session.logs.map((ExerciseLog log) {
+                      ...session.logs.map((log) {
                         return Padding(
                           padding: const EdgeInsets.symmetric(vertical: 4),
                           child: Row(
@@ -298,11 +298,11 @@ class AnalyticsScreen extends StatelessWidget {
     final int totalEntries = recovery.accessoryLogs.length;
     final int totalSets = recovery.accessoryLogs.fold(
       0,
-      (int sum, AccessoryLog e) => sum + e.sets,
+      (sum, e) => sum + e.sets,
     );
     final int totalReps = recovery.accessoryLogs.fold(
       0,
-      (int sum, AccessoryLog e) => sum + (e.sets * e.reps),
+      (sum, e) => sum + (e.sets * e.reps),
     );
 
     return SingleChildScrollView(
@@ -388,7 +388,7 @@ class AnalyticsScreen extends StatelessWidget {
               fontSize: 12,
               fontWeight: FontWeight.bold,
               color: AppTheme.textSecondary,
-              letterSpacing: 1.0,
+              letterSpacing: 1,
             ),
           ),
           const SizedBox(height: 12),
@@ -427,14 +427,14 @@ class AnalyticsScreen extends StatelessWidget {
             )
           else
             ...groupedAccessories.entries.map((
-              MapEntry<String, List<AccessoryLog>> entry,
+              entry,
             ) {
               final String name = entry.key;
               final List<AccessoryLog> logs =
                   entry.value; // chronological order
               final double pb = logs
-                  .map((AccessoryLog l) => l.weightKg)
-                  .reduce((double a, double b) => a > b ? a : b);
+                  .map((l) => l.weightKg)
+                  .reduce((a, b) => a > b ? a : b);
               final AccessoryLog latest = logs.last;
               final AccessoryLog first = logs.first;
               final double deltaKg = latest.weightKg - first.weightKg;
@@ -476,7 +476,7 @@ class AnalyticsScreen extends StatelessWidget {
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                '${logs.length} sessions logged • ${logs.fold(0, (int sum, AccessoryLog l) => sum + l.sets)} total sets',
+                                '${logs.length} sessions logged • ${logs.fold(0, (sum, l) => sum + l.sets)} total sets',
                                 style: GoogleFonts.inter(
                                   fontSize: 11,
                                   color: AppTheme.textSecondary,
@@ -567,7 +567,7 @@ class AnalyticsScreen extends StatelessWidget {
                     SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: Row(
-                        children: logs.map((AccessoryLog log) {
+                        children: logs.map((log) {
                           final String dateStr = DateFormat('MMM d')
                               .format(log.date);
                           final double w = settings.toDisplayWeight(
@@ -648,7 +648,7 @@ class AnalyticsScreen extends StatelessWidget {
     final double heroPercent = (completedHeroCount / 248.0).clamp(0.0, 1.0);
     final Map<String, BenchmarkWodLog> allPrsMap = recovery.getAllBenchmarkPersonalRecords();
     final List<BenchmarkWodLog> prsList = allPrsMap.values.toList()
-      ..sort((BenchmarkWodLog a, BenchmarkWodLog b) => a.wodName.compareTo(b.wodName));
+      ..sort((a, b) => a.wodName.compareTo(b.wodName));
     final List<BenchmarkWodLog> recentLogs = recovery.benchmarkWodLogs.take(10).toList();
 
     return SingleChildScrollView(
@@ -785,7 +785,7 @@ class AnalyticsScreen extends StatelessWidget {
               ),
             )
           else
-            ...prsList.map((BenchmarkWodLog pr) {
+            ...prsList.map((pr) {
               return Container(
                 margin: const EdgeInsets.only(bottom: 8),
                 decoration: BoxDecoration(
@@ -893,7 +893,7 @@ class AnalyticsScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 12),
-            ...recentLogs.map((BenchmarkWodLog log) {
+            ...recentLogs.map((log) {
               return Container(
                 margin: const EdgeInsets.only(bottom: 8),
                 decoration: BoxDecoration(

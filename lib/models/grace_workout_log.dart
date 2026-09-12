@@ -2,7 +2,7 @@ import 'package:uuid/uuid.dart';
 
 /// Represents an entire completed or logged CrossFit Grace session (30 Clean & Jerks For Time).
 class GraceWorkoutLog {
-  GraceWorkoutLog({
+  new({
     required this.totalTimeSeconds,
     String? id,
     DateTime? date,
@@ -24,7 +24,7 @@ class GraceWorkoutLog {
               isRxWomen: isRxWomen,
             );
 
-  factory GraceWorkoutLog.fromJson(Map<String, dynamic> json) {
+  factory fromJson(Map<String, dynamic> json) {
     return GraceWorkoutLog(
       id: json['id'] as String? ?? const Uuid().v4(),
       date: DateTime.tryParse(json['date'] as String? ?? '') ?? DateTime.now(),

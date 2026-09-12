@@ -47,7 +47,7 @@ void main() {
       expect(result.others.isNotEmpty, isTrue);
 
       final Set<String> suggestedIds = result.suggested
-          .map((LiftModel l) => l.id)
+          .map((l) => l.id)
           .toSet();
       expect(
         suggestedIds,
@@ -77,7 +77,7 @@ void main() {
           );
 
       final Set<String> suggestedIds = result.suggested
-          .map((LiftModel l) => l.id)
+          .map((l) => l.id)
           .toSet();
       expect(
         suggestedIds,
@@ -106,7 +106,7 @@ void main() {
           );
 
       final Set<String> suggestedIds = result.suggested
-          .map((LiftModel l) => l.id)
+          .map((l) => l.id)
           .toSet();
       expect(suggestedIds, containsAll(<dynamic>['back_squat', 'front_squat']));
       expect(suggestedIds.contains('snatch'), isFalse);
@@ -120,7 +120,7 @@ void main() {
           name: 'Snatch Pull',
           liftId: 'snatch',
           setScheme: '3 Sets of 2 Reps',
-          fixedPercentage: 90.0,
+          fixedPercentage: 90,
         );
 
         final ({List<LiftModel> others, List<LiftModel> suggested}) result =
@@ -130,7 +130,7 @@ void main() {
             );
 
         final Set<String> suggestedIds = result.suggested
-            .map((LiftModel l) => l.id)
+            .map((l) => l.id)
             .toSet();
         expect(
           suggestedIds,
@@ -157,7 +157,7 @@ void main() {
             );
 
         final Set<String> suggestedIds = result.suggested
-            .map((LiftModel l) => l.id)
+            .map((l) => l.id)
             .toSet();
         expect(
           suggestedIds,
@@ -178,7 +178,7 @@ void main() {
       );
 
       final LiftModel hangSnatch = defaultLifts.firstWhere(
-        (LiftModel l) => l.id == 'hang_snatch',
+        (l) => l.id == 'hang_snatch',
       ); // max 70kg
       final Map<String, double> maxes = <String, double>{'hang_snatch': 70.0};
 
@@ -206,11 +206,11 @@ void main() {
         name: 'Snatch Pull',
         liftId: 'snatch',
         setScheme: '3 Sets of 2 Reps',
-        fixedPercentage: 90.0,
+        fixedPercentage: 90,
       );
 
       final LiftModel snatchDeadlift = defaultLifts.firstWhere(
-        (LiftModel l) => l.id == 'snatch_deadlift',
+        (l) => l.id == 'snatch_deadlift',
       ); // max 95kg
       final double weight = ExerciseSwapHelper.calculateSwappedWeight(
         newLift: snatchDeadlift,
@@ -230,7 +230,7 @@ void main() {
       );
 
       final LiftModel militaryPress = defaultLifts.firstWhere(
-        (LiftModel l) => l.id == 'military_press',
+        (l) => l.id == 'military_press',
       ); // max 55kg
       // Week 1: 55 * 0.60 = 33.0 kg
       final double weightWeek1 = ExerciseSwapHelper.calculateSwappedWeight(
@@ -254,7 +254,7 @@ void main() {
 
   group('ExerciseSwapModal Widget Tests', () {
     testWidgets('Renders Suggested Swaps and Other Movements sections', (
-      WidgetTester tester,
+      tester,
     ) async {
       tester.view.physicalSize = const Size(1080, 2400);
       tester.view.devicePixelRatio = 1.0;
@@ -280,7 +280,7 @@ void main() {
               body: ExerciseSwapModal(
                 exercise: exercise,
                 currentWeek: 1,
-                onSwapSelected: (LiftModel lift) {
+                onSwapSelected: (lift) {
                   selectedLift = lift;
                 },
               ),
@@ -307,7 +307,7 @@ void main() {
     });
 
     testWidgets('Search filters movements dynamically', (
-      WidgetTester tester,
+      tester,
     ) async {
       final ExerciseTemplate exercise = ExerciseTemplate(
         name: 'Hang Clean',
@@ -348,7 +348,7 @@ void main() {
     });
 
     testWidgets('Shows Reset button when exercise is currently swapped', (
-      WidgetTester tester,
+      tester,
     ) async {
       final ExerciseTemplate exercise = ExerciseTemplate(
         name: 'Power Snatch + Overhead Squat',

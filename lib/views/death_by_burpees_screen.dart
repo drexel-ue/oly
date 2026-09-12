@@ -6,7 +6,7 @@ import 'package:oly/theme/app_theme.dart';
 import 'package:oly/widgets/death_by_burpees_wod_card.dart';
 
 class DeathByBurpeesScreen extends StatefulWidget {
-  const DeathByBurpeesScreen({
+  const new({
     super.key,
     this.isPreviewMode = false,
   });
@@ -30,7 +30,7 @@ class _DeathByBurpeesScreenState extends State<DeathByBurpeesScreen> {
   Widget build(BuildContext context) {
     final MobilityExerciseModel burpeeExercise =
         MobilityExerciseModel.defaultExercises().firstWhere(
-      (MobilityExerciseModel e) => e.id == 'death_by_burpees_wod',
+      (e) => e.id == 'death_by_burpees_wod',
     );
 
     return Scaffold(

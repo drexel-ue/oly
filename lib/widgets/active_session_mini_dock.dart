@@ -14,7 +14,7 @@ import 'package:provider/provider.dart';
 /// the bottom navigation bar during active workout sessions, mobility flows,
 /// preview sessions, and live rest timers.
 class ActiveSessionMiniDock extends StatelessWidget {
-  const ActiveSessionMiniDock({
+  const new({
     super.key,
     this.onTapExpand,
   });
@@ -25,10 +25,10 @@ class ActiveSessionMiniDock extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer2<ActiveSessionProvider, ProgramProvider>(
       builder: (
-        BuildContext context,
-        ActiveSessionProvider session,
-        ProgramProvider program,
-        Widget? child,
+        context,
+        session,
+        program,
+        child,
       ) {
         // Render if a session is actively running or an active draft exists with a running timer
         final bool shouldShow = session.isActive ||
@@ -396,7 +396,7 @@ class ActiveSessionMiniDock extends StatelessWidget {
     final ActiveWorkoutDraft? draft = program.activeDraft;
     final DayTemplate matchingDay = draft != null
         ? program.days.firstWhere(
-            (DayTemplate d) => d.dayNumber == draft.dayNumber,
+            (d) => d.dayNumber == draft.dayNumber,
             orElse: () => program.currentDayTemplate,
           )
         : program.currentDayTemplate;
@@ -422,7 +422,7 @@ class ActiveSessionMiniDock extends StatelessWidget {
 
     showDialog<bool>(
       context: context,
-      builder: (BuildContext ctx) => AlertDialog(
+      builder: (ctx) => AlertDialog(
         backgroundColor: AppTheme.darkBackground,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),

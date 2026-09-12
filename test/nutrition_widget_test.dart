@@ -59,7 +59,7 @@ void main() {
 
   group('Nutrition & BodyComp Widget Tests', () {
     testWidgets('MacroRingCard renders remaining calories and macro bars', (
-      WidgetTester tester,
+      tester,
     ) async {
       final DailyNutritionLog log = DailyNutritionLog.create(
         date: '2026-07-21',
@@ -94,7 +94,7 @@ void main() {
     });
 
     testWidgets('BodyDonutChart renders Renpho metrics breakdown', (
-      WidgetTester tester,
+      tester,
     ) async {
       final BodyCompositionEntry entry = BodyCompositionEntry.create(
         weightLb: 264.8,
@@ -103,7 +103,7 @@ void main() {
         bodyWaterLb: 150.6,
         bodyWaterPct: 56.9,
         proteinLb: 47.6,
-        proteinPct: 18.0,
+        proteinPct: 18,
         boneMassLb: 10.4,
         boneMassPct: 3.9,
       );
@@ -124,7 +124,7 @@ void main() {
     });
 
     testWidgets('RenphoStatPill renders metric and deltas', (
-      WidgetTester tester,
+      tester,
     ) async {
       await tester.pumpWidget(
         MaterialApp(
@@ -149,7 +149,7 @@ void main() {
     });
 
     testWidgets('NutritionDashboardScreen renders full dashboard', (
-      WidgetTester tester,
+      tester,
     ) async {
       await tester.pumpWidget(
         buildTestableWidget(const NutritionDashboardScreen()),
@@ -178,7 +178,7 @@ void main() {
     });
 
     testWidgets('BodyCompAnalyticsScreen renders goal calculator and history', (
-      WidgetTester tester,
+      tester,
     ) async {
       await tester.pumpWidget(
         buildTestableWidget(const BodyCompAnalyticsScreen()),

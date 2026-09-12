@@ -3,7 +3,7 @@ import 'package:oly/models/body_composition_entry.dart';
 import 'package:oly/services/storage_service.dart';
 
 class BodyCompProvider extends ChangeNotifier {
-  BodyCompProvider(this._storage) {
+  new(this._storage) {
     _loadEntries();
   }
   final StorageService _storage;
@@ -45,10 +45,9 @@ class BodyCompProvider extends ChangeNotifier {
           boneMassLb: 10.4,
           boneMassPct: 3.9,
           proteinLb: 47.6,
-          proteinPct: 18.0,
+          proteinPct: 18,
           bmrKcal: 2394,
           metabolicAge: 35,
-          source: 'renpho_ocr',
           notes: 'Baseline Renpho Scale scan',
         ),
       ];
@@ -58,10 +57,10 @@ class BodyCompProvider extends ChangeNotifier {
   }
 
   Future<void> addEntry(BodyCompositionEntry entry) async {
-    _entries.removeWhere((BodyCompositionEntry e) => e.id == entry.id);
+    _entries.removeWhere((e) => e.id == entry.id);
     _entries.insert(0, entry);
     _entries.sort(
-      (BodyCompositionEntry a, BodyCompositionEntry b) =>
+      (a, b) =>
           b.timestamp.compareTo(a.timestamp),
     );
     await _storage.saveBodyCompEntries(_entries);
@@ -70,12 +69,12 @@ class BodyCompProvider extends ChangeNotifier {
 
   Future<void> updateEntry(BodyCompositionEntry entry) async {
     final int index = _entries.indexWhere(
-      (BodyCompositionEntry e) => e.id == entry.id,
+      (e) => e.id == entry.id,
     );
     if (index != -1) {
       _entries[index] = entry;
       _entries.sort(
-        (BodyCompositionEntry a, BodyCompositionEntry b) =>
+        (a, b) =>
             b.timestamp.compareTo(a.timestamp),
       );
       await _storage.saveBodyCompEntries(_entries);
@@ -84,7 +83,7 @@ class BodyCompProvider extends ChangeNotifier {
   }
 
   Future<void> deleteEntry(String id) async {
-    _entries.removeWhere((BodyCompositionEntry e) => e.id == id);
+    _entries.removeWhere((e) => e.id == id);
     await _storage.saveBodyCompEntries(_entries);
     notifyListeners();
   }
@@ -92,7 +91,7 @@ class BodyCompProvider extends ChangeNotifier {
   /// Calculates weight delta vs previous scan (in lbs)
   double get weightDeltaVsPrevious {
     if (latestEntry == null || previousEntry == null) {
-      return 0.0;
+      return 0;
     }
     return latestEntry!.weightLb - previousEntry!.weightLb;
   }
@@ -100,7 +99,7 @@ class BodyCompProvider extends ChangeNotifier {
   /// Calculates body fat % delta vs previous scan
   double get bodyFatPctDeltaVsPrevious {
     if (latestEntry?.bodyFatPct == null || previousEntry?.bodyFatPct == null) {
-      return 0.0;
+      return 0;
     }
     return latestEntry!.bodyFatPct! - previousEntry!.bodyFatPct!;
   }
@@ -108,7 +107,7 @@ class BodyCompProvider extends ChangeNotifier {
   /// Calculates Lean Body Mass delta vs previous scan (in lbs)
   double get leanMassDeltaVsPrevious {
     if (latestEntry == null || previousEntry == null) {
-      return 0.0;
+      return 0;
     }
     return latestEntry!.leanBodyMassLb - previousEntry!.leanBodyMassLb;
   }
@@ -116,7 +115,7 @@ class BodyCompProvider extends ChangeNotifier {
   /// Calculates Fat Mass delta vs previous scan (in lbs)
   double get fatMassDeltaVsPrevious {
     if (latestEntry == null || previousEntry == null) {
-      return 0.0;
+      return 0;
     }
     return latestEntry!.fatMassLb - previousEntry!.fatMassLb;
   }
@@ -125,7 +124,7 @@ class BodyCompProvider extends ChangeNotifier {
   double get skeletalMuscleDeltaVsPrevious {
     if (latestEntry?.skeletalMuscleLb == null ||
         previousEntry?.skeletalMuscleLb == null) {
-      return 0.0;
+      return 0;
     }
     return latestEntry!.skeletalMuscleLb! - previousEntry!.skeletalMuscleLb!;
   }
@@ -133,18 +132,18 @@ class BodyCompProvider extends ChangeNotifier {
   /// Rolling average weight for the last N days
   double getRollingAverageWeight([int days = 7]) {
     if (_entries.isEmpty) {
-      return 0.0;
+      return 0;
     }
     final DateTime cutoff = DateTime.now().subtract(Duration(days: days));
     final List<BodyCompositionEntry> relevant = _entries
-        .where((BodyCompositionEntry e) => e.timestamp.isAfter(cutoff))
+        .where((e) => e.timestamp.isAfter(cutoff))
         .toList();
     if (relevant.isEmpty) {
       return latestEntry!.weightLb;
     }
-    return relevant.fold(
-          0.0,
-          (double sum, BodyCompositionEntry e) => sum + e.weightLb,
+    return relevant.fold<double>(
+          0,
+          (sum, e) => sum + e.weightLb,
         ) /
         relevant.length;
   }
@@ -156,10 +155,10 @@ class BodyCompProvider extends ChangeNotifier {
     }
     final DateTime cutoff = DateTime.now().subtract(duration);
     final List<BodyCompositionEntry> filtered = _entries
-        .where((BodyCompositionEntry e) => e.timestamp.isAfter(cutoff))
+        .where((e) => e.timestamp.isAfter(cutoff))
         .toList();
     filtered.sort(
-      (BodyCompositionEntry a, BodyCompositionEntry b) =>
+      (a, b) =>
           a.timestamp.compareTo(b.timestamp),
     ); // ascending for charts
     return filtered;

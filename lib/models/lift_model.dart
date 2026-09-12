@@ -4,7 +4,7 @@ import 'package:oly/models/pr_entry.dart';
 enum LiftCategory { snatch, cleanAndJerk, squat, pull, overhead, accessory }
 
 class LiftModel {
-  LiftModel({
+  new({
     required this.id,
     required this.name,
     required this.category,
@@ -14,7 +14,7 @@ class LiftModel {
     List<PREntry>? history,
   }) : history = history ?? <PREntry>[];
 
-  factory LiftModel.fromDatabaseModel(
+  factory fromDatabaseModel(
     ExerciseDatabaseModel dbModel, {
     Map<String, double>? currentMaxes,
   }) {
@@ -23,8 +23,8 @@ class LiftModel {
     final String muscle = dbModel.targetMuscle.toLowerCase();
 
     String? anchor;
-    double ratio = 1.0;
-    double defaultMax = 60.0;
+    double ratio = 1;
+    double defaultMax = 60;
 
     if (lowerName.contains('snatch') &&
         !lowerName.contains('pull') &&
@@ -80,12 +80,12 @@ class LiftModel {
     );
   }
 
-  factory LiftModel.fromJson(Map<String, dynamic> json) {
+  factory fromJson(Map<String, dynamic> json) {
     return LiftModel(
       id: json['id'] as String,
       name: json['name'] as String,
       category: LiftCategory.values.firstWhere(
-        (LiftCategory e) => e.name == json['category'],
+        (e) => e.name == json['category'],
         orElse: () => LiftCategory.accessory,
       ),
       anchorLiftId: json['anchorLiftId'] as String?,
@@ -115,7 +115,7 @@ class LiftModel {
       'anchorLiftId': anchorLiftId,
       'targetRatio': targetRatio,
       'currentMax': currentMax,
-      'history': history.map((PREntry e) => e.toJson()).toList(),
+      'history': history.map((e) => e.toJson()).toList(),
     };
   }
 
@@ -126,11 +126,11 @@ class LiftModel {
         id: 'snatch',
         name: 'Snatch',
         category: LiftCategory.snatch,
-        currentMax: 80.0,
+        currentMax: 80,
         history: <PREntry>[
           PREntry(
             id: 'init_snatch',
-            weight: 80.0,
+            weight: 80,
             reps: 1,
             date: DateTime.now().subtract(const Duration(days: 30)),
             notes: 'Baseline 1RM',
@@ -141,11 +141,11 @@ class LiftModel {
         id: 'clean_and_jerk',
         name: 'Clean & Jerk',
         category: LiftCategory.cleanAndJerk,
-        currentMax: 100.0,
+        currentMax: 100,
         history: <PREntry>[
           PREntry(
             id: 'init_cj',
-            weight: 100.0,
+            weight: 100,
             reps: 1,
             date: DateTime.now().subtract(const Duration(days: 30)),
             notes: 'Baseline 1RM',
@@ -158,7 +158,7 @@ class LiftModel {
         category: LiftCategory.snatch,
         anchorLiftId: 'snatch',
         targetRatio: 0.82,
-        currentMax: 65.0,
+        currentMax: 65,
       ),
       LiftModel(
         id: 'hang_snatch',
@@ -166,7 +166,7 @@ class LiftModel {
         category: LiftCategory.snatch,
         anchorLiftId: 'snatch',
         targetRatio: 0.88,
-        currentMax: 70.0,
+        currentMax: 70,
       ),
       LiftModel(
         id: 'muscle_snatch',
@@ -174,7 +174,7 @@ class LiftModel {
         category: LiftCategory.snatch,
         anchorLiftId: 'snatch',
         targetRatio: 0.60,
-        currentMax: 50.0,
+        currentMax: 50,
       ),
       LiftModel(
         id: 'power_clean',
@@ -182,7 +182,7 @@ class LiftModel {
         category: LiftCategory.cleanAndJerk,
         anchorLiftId: 'clean_and_jerk',
         targetRatio: 0.85,
-        currentMax: 85.0,
+        currentMax: 85,
       ),
       LiftModel(
         id: 'hang_clean',
@@ -190,7 +190,7 @@ class LiftModel {
         category: LiftCategory.cleanAndJerk,
         anchorLiftId: 'clean_and_jerk',
         targetRatio: 0.88,
-        currentMax: 88.0,
+        currentMax: 88,
       ),
       LiftModel(
         id: 'block_clean',
@@ -198,7 +198,7 @@ class LiftModel {
         category: LiftCategory.cleanAndJerk,
         anchorLiftId: 'clean_and_jerk',
         targetRatio: 0.90,
-        currentMax: 90.0,
+        currentMax: 90,
       ),
       LiftModel(
         id: 'back_squat',
@@ -206,7 +206,7 @@ class LiftModel {
         category: LiftCategory.squat,
         anchorLiftId: 'clean_and_jerk',
         targetRatio: 1.35,
-        currentMax: 135.0,
+        currentMax: 135,
       ),
       LiftModel(
         id: 'front_squat',
@@ -214,7 +214,7 @@ class LiftModel {
         category: LiftCategory.squat,
         anchorLiftId: 'back_squat',
         targetRatio: 0.85,
-        currentMax: 115.0,
+        currentMax: 115,
       ),
       LiftModel(
         id: 'snatch_pull',
@@ -222,7 +222,7 @@ class LiftModel {
         category: LiftCategory.pull,
         anchorLiftId: 'snatch',
         targetRatio: 1.05,
-        currentMax: 85.0,
+        currentMax: 85,
       ),
       LiftModel(
         id: 'snatch_deadlift',
@@ -230,7 +230,7 @@ class LiftModel {
         category: LiftCategory.pull,
         anchorLiftId: 'snatch',
         targetRatio: 1.15,
-        currentMax: 95.0,
+        currentMax: 95,
       ),
       LiftModel(
         id: 'military_press',
@@ -238,7 +238,7 @@ class LiftModel {
         category: LiftCategory.overhead,
         anchorLiftId: 'clean_and_jerk',
         targetRatio: 0.55,
-        currentMax: 55.0,
+        currentMax: 55,
       ),
       LiftModel(
         id: 'push_press',
@@ -246,7 +246,7 @@ class LiftModel {
         category: LiftCategory.overhead,
         anchorLiftId: 'clean_and_jerk',
         targetRatio: 0.75,
-        currentMax: 75.0,
+        currentMax: 75,
       ),
       LiftModel(
         id: 'rdl',
@@ -254,7 +254,7 @@ class LiftModel {
         category: LiftCategory.pull,
         anchorLiftId: 'clean_and_jerk',
         targetRatio: 0.80,
-        currentMax: 80.0,
+        currentMax: 80,
       ),
     ];
   }

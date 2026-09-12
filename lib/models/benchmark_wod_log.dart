@@ -2,7 +2,7 @@ import 'package:uuid/uuid.dart';
 
 /// Represents a logged completion of any CrossFit Benchmark or Hero WOD.
 class BenchmarkWodLog {
-  const BenchmarkWodLog({
+  const new({
     required this.id,
     required this.wodId,
     required this.wodName,
@@ -23,7 +23,7 @@ class BenchmarkWodLog {
   });
 
   /// Factory constructor for quickly logging a new attempt with an auto-generated UUID.
-  factory BenchmarkWodLog.create({
+  factory create({
     required String wodId,
     required String wodName,
     required String format,
@@ -62,7 +62,7 @@ class BenchmarkWodLog {
     );
   }
 
-  factory BenchmarkWodLog.fromJson(Map<String, dynamic> json) {
+  factory fromJson(Map<String, dynamic> json) {
     return BenchmarkWodLog(
       id: json['id'] as String? ?? const Uuid().v4(),
       wodId: json['wodId'] as String? ?? '',

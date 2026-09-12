@@ -19,7 +19,7 @@ import 'package:oly/widgets/wod_setup_explainer_sheet.dart';
 import 'package:provider/provider.dart';
 
 class HelenWodCard extends StatefulWidget {
-  const HelenWodCard({
+  const new({
     required this.exercise,
     required this.onCompleted,
     super.key,
@@ -72,7 +72,7 @@ class _HelenWodCardState extends State<HelenWodCard> {
   int _pullupsR3Done = 0;
 
   // Configuration
-  double _kettlebellWeightKg = 24.0; // 53 lb standard Rx Men (16 kg / 35 lb Rx Women)
+  double _kettlebellWeightKg = 24; // 53 lb standard Rx Men (16 kg / 35 lb Rx Women)
   bool _isRxWomen = false;
   String _swingType = 'american'; // 'american', 'russian'
   String _pullupVariation = 'kipping';
@@ -158,7 +158,7 @@ class _HelenWodCardState extends State<HelenWodCard> {
     _playBeepIfEnabled();
 
     _stopwatchTimer?.cancel();
-    _stopwatchTimer = Timer.periodic(const Duration(seconds: 1), (Timer timer) {
+    _stopwatchTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (!mounted) {
         timer.cancel();
         return;
@@ -283,7 +283,7 @@ class _HelenWodCardState extends State<HelenWodCard> {
 
     final bool? shouldSave = await showDialog<bool>(
       context: context,
-      builder: (BuildContext ctx) {
+      builder: (ctx) {
         return AlertDialog(
           backgroundColor: AppTheme.surfaceCard,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -317,7 +317,7 @@ class _HelenWodCardState extends State<HelenWodCard> {
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
                         color: AppTheme.textSecondary,
-                        letterSpacing: 1.0,
+                        letterSpacing: 1,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -771,12 +771,12 @@ class _HelenWodCardState extends State<HelenWodCard> {
                       fontSize: 13,
                     ),
                     items: const <DropdownMenuItem<double>>[
-                      DropdownMenuItem<double>(value: 24.0, child: Text('53 lb / 24 kg (Rx Men)')),
-                      DropdownMenuItem<double>(value: 16.0, child: Text('35 lb / 16 kg (Rx Women)')),
-                      DropdownMenuItem<double>(value: 12.0, child: Text('26 lb / 12 kg (Scaled)')),
-                      DropdownMenuItem<double>(value: 32.0, child: Text('70 lb / 32 kg (Heavy)')),
+                      DropdownMenuItem<double>(value: 24, child: Text('53 lb / 24 kg (Rx Men)')),
+                      DropdownMenuItem<double>(value: 16, child: Text('35 lb / 16 kg (Rx Women)')),
+                      DropdownMenuItem<double>(value: 12, child: Text('26 lb / 12 kg (Scaled)')),
+                      DropdownMenuItem<double>(value: 32, child: Text('70 lb / 32 kg (Heavy)')),
                     ],
-                    onChanged: (double? val) {
+                    onChanged: (val) {
                       if (val != null) {
                         setState(() {
                           _kettlebellWeightKg = val;
@@ -807,7 +807,7 @@ class _HelenWodCardState extends State<HelenWodCard> {
                       DropdownMenuItem<String>(value: 'american', child: Text('American Overhead (Rx)')),
                       DropdownMenuItem<String>(value: 'russian', child: Text('Russian Eye-level (Scaled)')),
                     ],
-                    onChanged: (String? val) {
+                    onChanged: (val) {
                       if (val != null) {
                         setState(() => _swingType = val);
                       }
@@ -839,7 +839,7 @@ class _HelenWodCardState extends State<HelenWodCard> {
                       DropdownMenuItem<String>(value: 'ring_rows', child: Text('Ring Rows (Scaled)')),
                       DropdownMenuItem<String>(value: 'jumping', child: Text('Jumping (Scaled)')),
                     ],
-                    onChanged: (String? val) {
+                    onChanged: (val) {
                       if (val != null) {
                         setState(() => _pullupVariation = val);
                       }
@@ -863,8 +863,8 @@ class _HelenWodCardState extends State<HelenWodCard> {
           isActive: _activeRoundIndex == 0,
           isCompleted: _activeRoundIndex > 0,
           onRunToggle: () => setState(() => _runR1Done = !_runR1Done),
-          onKbAdd: (int n) => setState(() => _kbR1Done = (_kbR1Done + n).clamp(0, 21)),
-          onPullupAdd: (int n) => setState(() => _pullupsR1Done = (_pullupsR1Done + n).clamp(0, 12)),
+          onKbAdd: (n) => setState(() => _kbR1Done = (_kbR1Done + n).clamp(0, 21)),
+          onPullupAdd: (n) => setState(() => _pullupsR1Done = (_pullupsR1Done + n).clamp(0, 12)),
           onCompleteRound: _completeRound1,
           buttonText: 'COMPLETE ROUND 1 (${_formatSeconds(_elapsedSeconds)}) -> GO TO ROUND 2',
         ),
@@ -883,8 +883,8 @@ class _HelenWodCardState extends State<HelenWodCard> {
           isActive: _activeRoundIndex == 1,
           isCompleted: _activeRoundIndex > 1,
           onRunToggle: () => setState(() => _runR2Done = !_runR2Done),
-          onKbAdd: (int n) => setState(() => _kbR2Done = (_kbR2Done + n).clamp(0, 21)),
-          onPullupAdd: (int n) => setState(() => _pullupsR2Done = (_pullupsR2Done + n).clamp(0, 12)),
+          onKbAdd: (n) => setState(() => _kbR2Done = (_kbR2Done + n).clamp(0, 21)),
+          onPullupAdd: (n) => setState(() => _pullupsR2Done = (_pullupsR2Done + n).clamp(0, 12)),
           onCompleteRound: _completeRound2,
           buttonText: 'COMPLETE ROUND 2 (${_formatSeconds(_elapsedSeconds)}) -> GO TO ROUND 3',
         ),
@@ -903,8 +903,8 @@ class _HelenWodCardState extends State<HelenWodCard> {
           isActive: _activeRoundIndex == 2,
           isCompleted: _activeRoundIndex > 2,
           onRunToggle: () => setState(() => _runR3Done = !_runR3Done),
-          onKbAdd: (int n) => setState(() => _kbR3Done = (_kbR3Done + n).clamp(0, 21)),
-          onPullupAdd: (int n) => setState(() => _pullupsR3Done = (_pullupsR3Done + n).clamp(0, 12)),
+          onKbAdd: (n) => setState(() => _kbR3Done = (_kbR3Done + n).clamp(0, 21)),
+          onPullupAdd: (n) => setState(() => _pullupsR3Done = (_pullupsR3Done + n).clamp(0, 12)),
           onCompleteRound: _completeRound3AndFinish,
           buttonText: 'FINISH HELEN! 🏁 (${_formatSeconds(_elapsedSeconds)})',
           isFinalRound: true,
@@ -1218,7 +1218,7 @@ class _HelenWodCardState extends State<HelenWodCard> {
             fontSize: 12,
             fontWeight: FontWeight.bold,
             color: AppTheme.secondaryCyan,
-            letterSpacing: 1.0,
+            letterSpacing: 1,
           ),
         ),
         const SizedBox(height: 12),
@@ -1263,12 +1263,12 @@ class _HelenWodCardState extends State<HelenWodCard> {
                 ),
                 dropdownColor: AppTheme.surfaceElevated,
                 items: const <DropdownMenuItem<double>>[
-                  DropdownMenuItem<double>(value: 24.0, child: Text('53 lb (Rx Men)')),
-                  DropdownMenuItem<double>(value: 16.0, child: Text('35 lb (Rx Women)')),
-                  DropdownMenuItem<double>(value: 12.0, child: Text('26 lb (Scaled)')),
-                  DropdownMenuItem<double>(value: 32.0, child: Text('70 lb (Heavy)')),
+                  DropdownMenuItem<double>(value: 24, child: Text('53 lb (Rx Men)')),
+                  DropdownMenuItem<double>(value: 16, child: Text('35 lb (Rx Women)')),
+                  DropdownMenuItem<double>(value: 12, child: Text('26 lb (Scaled)')),
+                  DropdownMenuItem<double>(value: 32, child: Text('70 lb (Heavy)')),
                 ],
-                onChanged: (double? val) {
+                onChanged: (val) {
                   if (val != null) {
                     setState(() {
                       _kettlebellWeightKg = val;
@@ -1291,7 +1291,7 @@ class _HelenWodCardState extends State<HelenWodCard> {
                   DropdownMenuItem<String>(value: 'american', child: Text('American (Rx)')),
                   DropdownMenuItem<String>(value: 'russian', child: Text('Russian (Scaled)')),
                 ],
-                onChanged: (String? val) {
+                onChanged: (val) {
                   if (val != null) {
                     setState(() => _swingType = val);
                   }
@@ -1315,7 +1315,7 @@ class _HelenWodCardState extends State<HelenWodCard> {
             DropdownMenuItem<String>(value: 'band_assisted', child: Text('Banded (Scaled)')),
             DropdownMenuItem<String>(value: 'ring_rows', child: Text('Ring Rows (Scaled)')),
           ],
-          onChanged: (String? val) {
+          onChanged: (val) {
             if (val != null) {
               setState(() => _pullupVariation = val);
             }

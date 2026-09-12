@@ -56,7 +56,7 @@ void main() {
     });
 
     test('Serializes and deserializes InjuryRecord correctly', () {
-      final DateTime onset = DateTime(2026, 1, 15, 10, 0);
+      final DateTime onset = DateTime(2026, 1, 15, 10);
       final InjuryRecord original = InjuryRecord(
         id: 'test_id',
         name: 'Patellar Tendinopathy',
@@ -69,7 +69,6 @@ void main() {
           BiomechanicalConstraint.avoidBallisticCatchImpact,
         ],
         notes: 'Pain on deep catch',
-        isActive: true,
         safeSubstitutions: <InjurySubstitution>[
           InjurySubstitution(
             targetExercise: 'Snatch',

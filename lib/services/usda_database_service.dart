@@ -11,7 +11,7 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 /// Embedded local SQLite database service providing high-performance full-text search
 /// and offline barcode lookups across the complete USDA FoodData Central and restaurant menu catalog.
 class UsdaDatabaseService {
-  UsdaDatabaseService({Database? db, String? dbPath})
+  new({Database? db, String? dbPath})
       : _customDbPath = dbPath {
     _db = db;
   }
@@ -52,8 +52,7 @@ class UsdaDatabaseService {
       } catch (_) {}
 
       if (_customDbPath != null) {
-        _db = await openDatabase(_customDbPath);
-        return _db;
+        return _db = await openDatabase(_customDbPath);
       }
 
       // Check direct project asset path (fast-path for desktop / test runner)
@@ -64,8 +63,7 @@ class UsdaDatabaseService {
         'usda_foods.db',
       );
       if (File(directAssetPath).existsSync()) {
-        _db = await openDatabase(directAssetPath);
-        return _db;
+        return _db = await openDatabase(directAssetPath);
       }
 
       Directory appDir;
@@ -214,8 +212,8 @@ class UsdaDatabaseService {
         final List<String> tokens = clean
             .replaceAll(RegExp(r'[^\w\s]'), ' ')
             .split(RegExp(r'\s+'))
-            .where((String t) => t.isNotEmpty)
-            .map((String t) => '$t*')
+            .where((t) => t.isNotEmpty)
+            .map((t) => '$t*')
             .toList();
 
         if (tokens.isEmpty) {
@@ -266,10 +264,10 @@ class UsdaDatabaseService {
         }
       }
 
-      final List<FoodItem> results = rows.map((Map<String, dynamic> row) => _rowToFoodItem(row)).toList();
+      final List<FoodItem> results = rows.map(_rowToFoodItem).toList();
       AppLogService.instance.info(
         'USDA_DB',
-        'Search "$clean" returned ${results.length} items (Top: ${results.take(3).map((FoodItem f) => "${f.name} [${f.source}]").join(", ")})',
+        'Search "$clean" returned ${results.length} items (Top: ${results.take(3).map((f) => "${f.name} [${f.source}]").join(", ")})',
       );
       return results;
     } catch (e, st) {

@@ -7,7 +7,7 @@ import 'package:oly/models/injury_model.dart';
 import 'package:oly/theme/app_theme.dart';
 
 class InteractiveBodyMap extends StatefulWidget {
-  const InteractiveBodyMap({
+  const new({
     required this.injuries,
     super.key,
     this.selectedRegion,
@@ -170,9 +170,9 @@ class _InteractiveBodyMapState extends State<InteractiveBodyMap> {
           child: ClipRRect(
             borderRadius: BorderRadius.circular(16),
             child: LayoutBuilder(
-              builder: (BuildContext context, BoxConstraints constraints) {
+              builder: (context, constraints) {
                 return GestureDetector(
-                  onTapUp: (TapUpDetails details) => _handleTap(
+                  onTapUp: (details) => _handleTap(
                     details.localPosition,
                     constraints.maxWidth,
                     constraints.maxHeight,
@@ -372,7 +372,7 @@ class _InteractiveBodyMapState extends State<InteractiveBodyMap> {
 }
 
 class BodyMapPainter extends CustomPainter {
-  BodyMapPainter({
+  new({
     required this.isFront,
     required this.injuries,
     this.selectedRegion,
@@ -478,7 +478,7 @@ class BodyMapPainter extends CustomPainter {
 
     try {
       final InjuryRecord injury =
-          injuries.firstWhere((InjuryRecord i) => i.region == region && i.isActive);
+          injuries.firstWhere((i) => i.region == region && i.isActive);
       return _painToColor(
         injury.painScale,
         isChronic: injury.stage == InjuryStage.chronic,
@@ -491,7 +491,7 @@ class BodyMapPainter extends CustomPainter {
   bool _isRegionChronic(InjuryRegion region) {
     try {
       final InjuryRecord injury =
-          injuries.firstWhere((InjuryRecord i) => i.region == region && i.isActive);
+          injuries.firstWhere((i) => i.region == region && i.isActive);
       return injury.stage == InjuryStage.chronic;
     } catch (_) {
       return false;

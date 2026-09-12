@@ -105,10 +105,13 @@ void main() {
       expect(File(heroJsonPath).existsSync(), isTrue);
       expect(File(movementsJsonPath).existsSync(), isTrue);
 
-      final List<dynamic> heroList = jsonDecode(File(heroJsonPath).readAsStringSync());
+      final List<dynamic> heroList =
+          jsonDecode(File(heroJsonPath).readAsStringSync()) as List<dynamic>;
       expect(heroList.length, equals(248));
 
-      final List<dynamic> movementList = jsonDecode(File(movementsJsonPath).readAsStringSync());
+      final List<dynamic> movementList =
+          jsonDecode(File(movementsJsonPath).readAsStringSync())
+              as List<dynamic>;
       expect(movementList.length, equals(121));
 
       // Verify a known hero workout in dataset

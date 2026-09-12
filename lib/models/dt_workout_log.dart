@@ -2,7 +2,7 @@ import 'package:uuid/uuid.dart';
 
 /// Represents an entire completed or logged CrossFit DT session (5 Rounds For Time: 12 Deadlifts, 9 Hang Power Cleans, 6 Push Jerks).
 class DtWorkoutLog {
-  DtWorkoutLog({
+  new({
     required this.totalTimeSeconds,
     String? id,
     DateTime? date,
@@ -24,7 +24,7 @@ class DtWorkoutLog {
               isRxWomen: isRxWomen,
             );
 
-  factory DtWorkoutLog.fromJson(Map<String, dynamic> json) {
+  factory fromJson(Map<String, dynamic> json) {
     return DtWorkoutLog(
       id: json['id'] as String? ?? const Uuid().v4(),
       date: DateTime.tryParse(json['date'] as String? ?? '') ?? DateTime.now(),

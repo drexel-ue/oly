@@ -40,7 +40,7 @@ class MobilitySwapHelper {
 }
 
 class MobilityExerciseSwapModal extends StatefulWidget {
-  const MobilityExerciseSwapModal({
+  const new({
     required this.exercise,
     required this.onSwapSelected,
     super.key,
@@ -135,7 +135,7 @@ class _MobilityExerciseSwapModalState extends State<MobilityExerciseSwapModal> {
       final String name = ex.name.toLowerCase();
       final String desc = ex.description.toLowerCase();
       final bool cuesMatch = ex.cues.any(
-        (String c) =>
+        (c) =>
             c.toLowerCase().contains(q) || c.toLowerCase().contains(normQ),
       );
       return name.contains(q) ||
@@ -277,7 +277,7 @@ class _MobilityExerciseSwapModalState extends State<MobilityExerciseSwapModal> {
                           fontSize: 10,
                           fontWeight: FontWeight.bold,
                           color: AppTheme.primaryAmber,
-                          letterSpacing: 1.0,
+                          letterSpacing: 1,
                         ),
                       ),
                       Text(
@@ -565,14 +565,14 @@ class _MobilityExerciseSwapModalState extends State<MobilityExerciseSwapModal> {
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
                   color: AppTheme.accentBlue,
-                  letterSpacing: 1.0,
+                  letterSpacing: 1,
                 ),
               ),
             ],
           ),
           const SizedBox(height: 8),
           ...filteredSuggested.map(
-            (MobilityExerciseModel ex) =>
+            (ex) =>
                 _buildExerciseTile(ex, settings, isSuggested: true),
           ),
           const SizedBox(height: 16),
@@ -586,12 +586,12 @@ class _MobilityExerciseSwapModalState extends State<MobilityExerciseSwapModal> {
               fontSize: 11,
               fontWeight: FontWeight.bold,
               color: AppTheme.textSecondary,
-              letterSpacing: 1.0,
+              letterSpacing: 1,
             ),
           ),
           const SizedBox(height: 8),
           ...filteredOthers.map(
-            (MobilityExerciseModel ex) =>
+            (ex) =>
                 _buildExerciseTile(ex, settings, isSuggested: false),
           ),
         ],
@@ -659,7 +659,7 @@ class _MobilityExerciseSwapModalState extends State<MobilityExerciseSwapModal> {
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
       itemCount: _dbResults.length,
-      itemBuilder: (BuildContext context, int index) {
+      itemBuilder: (context, index) {
         final ExerciseDatabaseModel item = _dbResults[index];
         return _buildDatabaseTile(item, settings);
       },

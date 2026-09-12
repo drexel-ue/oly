@@ -6,7 +6,7 @@ import 'package:oly/services/injury_adaptation_service.dart';
 import 'package:oly/theme/app_theme.dart';
 
 class SessionInjuryAdaptationCard extends StatefulWidget {
-  const SessionInjuryAdaptationCard({
+  const new({
     required this.dayTemplate,
     required this.activeInjuries,
     required this.currentWeek,
@@ -20,7 +20,7 @@ class SessionInjuryAdaptationCard extends StatefulWidget {
   final List<InjuryRecord> activeInjuries;
   final int currentWeek;
   final Map<String, double> currentMaxes;
-  final Function(Map<String, String> swaps, Map<String, double> newWeights) onApplySwaps;
+  final void Function(Map<String, String> swaps, Map<String, double> newWeights) onApplySwaps;
   final Map<String, String> appliedSwaps;
 
   @override
@@ -150,7 +150,7 @@ class _SessionInjuryAdaptationCardState
                   Wrap(
                     spacing: 8,
                     runSpacing: 6,
-                    children: widget.activeInjuries.map((InjuryRecord injury) {
+                    children: widget.activeInjuries.map((injury) {
                       final Color stageColor = injury.stage == InjuryStage.acute
                           ? AppTheme.primaryAmber
                           : (injury.stage == InjuryStage.subacute
@@ -199,15 +199,15 @@ class _SessionInjuryAdaptationCardState
                       style: GoogleFonts.inter(
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
-                        letterSpacing: 1.0,
+                        letterSpacing: 1,
                         color: AppTheme.textSecondary,
                       ),
                     ),
                     const SizedBox(height: 8),
                     ...plan.adaptations.entries
-                        .where((MapEntry<String, ExerciseAdaptationRecommendation> e) =>
+                        .where((e) =>
                             e.value.isContraindicated)
-                        .map((MapEntry<String, ExerciseAdaptationRecommendation> e) {
+                        .map((e) {
                       final ExerciseAdaptationRecommendation rec = e.value;
                       final bool isApplied = widget.appliedSwaps[rec.originalExerciseName] ==
                           rec.replacementName;

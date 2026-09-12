@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class PlateSpec {
-  const PlateSpec({
+  const new({
     required this.weight,
     required this.label,
     required this.color,
@@ -19,7 +19,7 @@ class PlateSpec {
 }
 
 class PlateCalcResult {
-  PlateCalcResult({
+  new({
     required this.targetWeight,
     required this.actualWeight,
     required this.barWeight,
@@ -41,32 +41,28 @@ class PlateCalculator {
   // Standard IWF Color-Coded Plates in KG
   static const List<PlateSpec> kgPlates = <PlateSpec>[
     PlateSpec(
-      weight: 25.0,
+      weight: 25,
       label: '25',
       color: Color(0xFFE53935),
-      heightFactor: 1.0,
     ),
     PlateSpec(
-      weight: 20.0,
+      weight: 20,
       label: '20',
       color: Color(0xFF1E88E5),
-      heightFactor: 1.0,
     ),
     PlateSpec(
-      weight: 15.0,
+      weight: 15,
       label: '15',
       color: Color(0xFFFDD835),
       textColor: Colors.black,
-      heightFactor: 1.0,
     ),
     PlateSpec(
-      weight: 10.0,
+      weight: 10,
       label: '10',
       color: Color(0xFF43A047),
-      heightFactor: 1.0,
     ),
     PlateSpec(
-      weight: 5.0,
+      weight: 5,
       label: '5',
       color: Color(0xFFE0E0E0),
       textColor: Colors.black,
@@ -81,7 +77,7 @@ class PlateCalculator {
       isFractional: true,
     ),
     PlateSpec(
-      weight: 2.0,
+      weight: 2,
       label: '2.0',
       color: Color(0xFF42A5F5),
       heightFactor: 0.55,
@@ -96,7 +92,7 @@ class PlateCalculator {
       isFractional: true,
     ),
     PlateSpec(
-      weight: 1.0,
+      weight: 1,
       label: '1.0',
       color: Color(0xFF66BB6A),
       heightFactor: 0.45,
@@ -115,33 +111,31 @@ class PlateCalculator {
   // Standard Plates in LBS
   static const List<PlateSpec> lbsPlates = <PlateSpec>[
     PlateSpec(
-      weight: 45.0,
+      weight: 45,
       label: '45',
       color: Color(0xFFE53935),
-      heightFactor: 1.0,
     ),
     PlateSpec(
-      weight: 35.0,
+      weight: 35,
       label: '35',
       color: Color(0xFF1E88E5),
-      heightFactor: 1.0,
     ),
     PlateSpec(
-      weight: 25.0,
+      weight: 25,
       label: '25',
       color: Color(0xFFFDD835),
       textColor: Colors.black,
       heightFactor: 0.85,
     ),
     PlateSpec(
-      weight: 10.0,
+      weight: 10,
       label: '10',
       color: Color(0xFF43A047),
       heightFactor: 0.7,
       isFractional: true,
     ),
     PlateSpec(
-      weight: 5.0,
+      weight: 5,
       label: '5',
       color: Color(0xFFE0E0E0),
       textColor: Colors.black,
@@ -176,7 +170,7 @@ class PlateCalculator {
         targetWeight: targetWeight,
         actualWeight: resolvedBar,
         barWeight: resolvedBar,
-        collarWeight: 0.0,
+        collarWeight: 0,
         platesPerSide: <PlateSpec>[],
         isExact: targetWeight == resolvedBar,
         unit: unit,
@@ -192,7 +186,7 @@ class PlateCalculator {
     final double weightPerSide = weightToLoad / 2.0;
     final List<PlateSpec> resultPlates = <PlateSpec>[];
 
-    double currentWeight = 0.0;
+    double currentWeight = 0;
     for (final PlateSpec plate in availablePlates) {
       while (currentWeight + plate.weight <= weightPerSide + 0.0001) {
         resultPlates.add(plate);

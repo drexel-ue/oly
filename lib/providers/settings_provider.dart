@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:oly/services/storage_service.dart';
 
 class SettingsProvider extends ChangeNotifier {
-  SettingsProvider(this._storage) {
+  new(this._storage) {
     _isLbs = _storage.loadIsLbs();
     _barWeight = _storage.loadBarWeight();
     _collarWeight = _storage.loadCollarWeight();
@@ -13,7 +13,7 @@ class SettingsProvider extends ChangeNotifier {
   final StorageService _storage;
 
   bool _isLbs = false;
-  double _barWeight = 20.0;
+  double _barWeight = 20;
   double _collarWeight = 2.5;
   bool _soundAlertsEnabled = true;
   bool _hapticsEnabled = true;
@@ -23,12 +23,12 @@ class SettingsProvider extends ChangeNotifier {
   double get barWeight {
     if (_isLbs) {
       if (_barWeight == 20.0) {
-        return 45.0;
+        return 45;
       }
       return _barWeight;
     } else {
       if (_barWeight == 45.0) {
-        return 20.0;
+        return 20;
       }
       return _barWeight;
     }
@@ -37,7 +37,7 @@ class SettingsProvider extends ChangeNotifier {
   double get collarWeight {
     if (_isLbs) {
       if (_collarWeight == 2.5) {
-        return 0.0;
+        return 0;
       }
       return _collarWeight;
     }
@@ -88,7 +88,7 @@ class SettingsProvider extends ChangeNotifier {
         r'(\d+(?:\.\d+)?)(?:\s*-\s*(\d+(?:\.\d+)?))?\s*kg',
         caseSensitive: false,
       ),
-      (Match match) {
+      (match) {
         final double val1Kg = double.tryParse(match.group(1)!) ?? 0.0;
         final double val1Lbs = (kgToLbs(val1Kg) / 0.5).round() * 0.5;
         final String str1 = val1Lbs % 1 == 0

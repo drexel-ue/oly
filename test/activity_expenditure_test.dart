@@ -12,7 +12,7 @@ void main() {
       final int cal = ActivityExpenditureService.calculateStandardCalories(
         met: 3.8,
         weightKg: 120.1,
-        durationMinutes: 45.0,
+        durationMinutes: 45,
       );
 
       expect(cal, equals(359));
@@ -25,7 +25,7 @@ void main() {
       final int cal = ActivityExpenditureService.calculateAdjustedCalories(
         met: 3.8,
         leanBodyMassLb: 208.6,
-        durationMinutes: 45.0,
+        durationMinutes: 45,
       );
 
       expect(cal, equals(287));
@@ -35,12 +35,12 @@ void main() {
       final int calA = ActivityExpenditureService.calculateStandardCalories(
         met: 3.8,
         weightKg: 120.1,
-        durationMinutes: 45.0,
+        durationMinutes: 45,
       );
       final int calB = ActivityExpenditureService.calculateAdjustedCalories(
         met: 3.8,
         leanBodyMassLb: 208.6,
-        durationMinutes: 45.0,
+        durationMinutes: 45,
       );
 
       expect(calA, greaterThan(calB));
@@ -116,18 +116,18 @@ void main() {
             exerciseName: 'Snatch',
             liftId: 'snatch',
             sets: <CompletedSet>[
-              CompletedSet(setIndex: 0, weight: 80.0, reps: 2),
-              CompletedSet(setIndex: 1, weight: 85.0, reps: 2),
-              CompletedSet(setIndex: 2, weight: 90.0, reps: 2),
+              CompletedSet(setIndex: 0, weight: 80, reps: 2),
+              CompletedSet(setIndex: 1, weight: 85, reps: 2),
+              CompletedSet(setIndex: 2, weight: 90, reps: 2),
             ],
           ),
           ExerciseLog(
             exerciseName: 'Back Squat',
             liftId: 'back_squat',
             sets: <CompletedSet>[
-              CompletedSet(setIndex: 0, weight: 140.0, reps: 5),
-              CompletedSet(setIndex: 1, weight: 150.0, reps: 5),
-              CompletedSet(setIndex: 2, weight: 160.0, reps: 5),
+              CompletedSet(setIndex: 0, weight: 140, reps: 5),
+              CompletedSet(setIndex: 1, weight: 150, reps: 5),
+              CompletedSet(setIndex: 2, weight: 160, reps: 5),
             ],
           ),
         ],

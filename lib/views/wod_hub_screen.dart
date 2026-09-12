@@ -32,7 +32,7 @@ import 'package:oly/widgets/wod_setup_explainer_sheet.dart';
 import 'package:provider/provider.dart';
 
 class WodHubScreen extends StatefulWidget {
-  const WodHubScreen({super.key});
+  const new({super.key});
 
   @override
   State<WodHubScreen> createState() => _WodHubScreenState();
@@ -74,7 +74,8 @@ class _WodHubScreenState extends State<WodHubScreen> {
         try {
           final String jsonStr =
               await rootBundle.loadString('assets/data/crossfit_hero_wods.json');
-          final List<dynamic> decoded = jsonDecode(jsonStr);
+          final List<dynamic> decoded =
+              jsonDecode(jsonStr) as List<dynamic>;
           heroWods = decoded
               .map((dynamic e) => CrossfitHeroWod.fromJson(e as Map<String, dynamic>))
               .toList();
@@ -105,14 +106,14 @@ class _WodHubScreenState extends State<WodHubScreen> {
 
   List<WodDefinition> get _allCombinedWods {
     final Set<String> existingIds =
-        WodCatalog.allWods.map((WodDefinition w) => w.id.toLowerCase()).toSet();
+        WodCatalog.allWods.map((w) => w.id.toLowerCase()).toSet();
     return <WodDefinition>[
       ...WodCatalog.allWods,
       ..._databaseHeroWods
-          .where((CrossfitHeroWod hw) =>
+          .where((hw) =>
               !existingIds.contains(hw.id.toLowerCase()) &&
               !existingIds.contains(hw.slug.toLowerCase()))
-          .map((CrossfitHeroWod hw) => hw.toWodDefinition()),
+          .map((hw) => hw.toWodDefinition()),
     ];
   }
 
@@ -122,13 +123,13 @@ class _WodHubScreenState extends State<WodHubScreen> {
       return WodCatalog.allWods.first;
     }
     final List<WodDefinition> candidates =
-        pool.where((WodDefinition w) => w.id != excludeId).toList();
+        pool.where((w) => w.id != excludeId).toList();
     final List<WodDefinition> selectFrom = candidates.isNotEmpty ? candidates : pool;
     return selectFrom[Random().nextInt(selectFrom.length)];
   }
 
   List<WodDefinition> get _filteredWods {
-    return _allCombinedWods.where((WodDefinition wod) {
+    return _allCombinedWods.where((wod) {
       // Category filter
       if (_selectedCategory == 'Hero WODs') {
         final bool isHero = wod.category.toLowerCase().contains('hero') ||
@@ -150,7 +151,7 @@ class _WodHubScreenState extends State<WodHubScreen> {
         return false;
       }
       if (_selectedCategory == 'Bodyweight' &&
-          wod.equipment.any((String e) =>
+          wod.equipment.any((e) =>
               e.contains('Barbell') || e.contains('Kettlebell') || e.contains('Rower'))) {
         return false;
       }
@@ -161,9 +162,9 @@ class _WodHubScreenState extends State<WodHubScreen> {
         final bool nameMatch = wod.name.toLowerCase().contains(q);
         final bool descMatch = wod.subtitle.toLowerCase().contains(q);
         final bool movementMatch =
-            wod.movementsSummary.any((String m) => m.toLowerCase().contains(q));
+            wod.movementsSummary.any((m) => m.toLowerCase().contains(q));
         final bool equipMatch =
-            wod.equipment.any((String e) => e.toLowerCase().contains(q));
+            wod.equipment.any((e) => e.toLowerCase().contains(q));
         final CrossfitHeroWod? heroWod = _heroWodsByWodId[wod.id.toLowerCase()];
         final bool tributeMatch =
             heroWod != null && heroWod.tributeText.toLowerCase().contains(q);
@@ -243,9 +244,9 @@ class _WodHubScreenState extends State<WodHubScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (BuildContext ctx) {
+      builder: (ctx) {
         return StatefulBuilder(
-          builder: (BuildContext context, void Function(void Function()) setModalState) {
+          builder: (context, void Function(void Function()) setModalState) {
             return Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
@@ -359,11 +360,11 @@ class _WodHubScreenState extends State<WodHubScreen> {
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
                             color: AppTheme.primaryAmber,
-                            letterSpacing: 1.0,
+                            letterSpacing: 1,
                           ),
                         ),
                         const SizedBox(height: 6),
-                        ...picked.movementsSummary.map((String m) {
+                        ...picked.movementsSummary.map((m) {
                           return Padding(
                             padding: const EdgeInsets.only(bottom: 4),
                             child: Row(
@@ -620,7 +621,7 @@ class _WodHubScreenState extends State<WodHubScreen> {
               // Search Bar
               TextField(
                 controller: _searchController,
-                onChanged: (String val) => setState(() => _searchQuery = val.trim()),
+                onChanged: (val) => setState(() => _searchQuery = val.trim()),
                 style: GoogleFonts.inter(fontSize: 13, color: AppTheme.textPrimary),
                 decoration: InputDecoration(
                   hintText: 'Search WODs by name, movement, equipment...',
@@ -662,7 +663,7 @@ class _WodHubScreenState extends State<WodHubScreen> {
                   scrollDirection: Axis.horizontal,
                   itemCount: _filterCategories.length,
                   separatorBuilder: (_, _) => const SizedBox(width: 8),
-                  itemBuilder: (BuildContext context, int index) {
+                  itemBuilder: (context, index) {
                     final String cat = _filterCategories[index];
                     final bool isSelected = _selectedCategory == cat;
                     return InkWell(
@@ -721,7 +722,7 @@ class _WodHubScreenState extends State<WodHubScreen> {
                   : ListView.builder(
                       padding: const EdgeInsets.all(16),
                       itemCount: _filteredWods.length,
-                      itemBuilder: (BuildContext context, int index) {
+                      itemBuilder: (context, index) {
                         final WodDefinition wod = _filteredWods[index];
                         return _buildWodCard(wod, recovery);
                       },
@@ -751,16 +752,16 @@ class _WodHubScreenState extends State<WodHubScreen> {
     final Map<String, BenchmarkWodLog> allPrsMap = recovery.getAllBenchmarkPersonalRecords();
     List<BenchmarkWodLog> prsList = allPrsMap.values.toList();
     if (_leaderboardFilter == 'Hero WODs') {
-      prsList = prsList.where((BenchmarkWodLog p) {
+      prsList = prsList.where((p) {
         final String id = p.wodId.toLowerCase();
         return p.category.toLowerCase().contains('hero') ||
             id.startsWith('cf_hero_') ||
             id == 'dt';
       }).toList();
     } else if (_leaderboardFilter == 'Rx Only') {
-      prsList = prsList.where((BenchmarkWodLog p) => p.isRx).toList();
+      prsList = prsList.where((p) => p.isRx).toList();
     }
-    prsList.sort((BenchmarkWodLog a, BenchmarkWodLog b) => a.wodName.compareTo(b.wodName));
+    prsList.sort((a, b) => a.wodName.compareTo(b.wodName));
 
     final List<BenchmarkWodLog> recentLogs = recovery.benchmarkWodLogs.take(8).toList();
 
@@ -957,11 +958,11 @@ class _WodHubScreenState extends State<WodHubScreen> {
                 fontSize: 11,
                 fontWeight: FontWeight.bold,
                 color: AppTheme.primaryAmber,
-                letterSpacing: 1.0,
+                letterSpacing: 1,
               ),
             ),
             Row(
-              children: <String>['All', 'Hero WODs', 'Rx Only'].map((String f) {
+              children: <String>['All', 'Hero WODs', 'Rx Only'].map((f) {
                 final bool isSelected = _leaderboardFilter == f;
                 return Padding(
                   padding: const EdgeInsets.only(left: 6),
@@ -1040,7 +1041,7 @@ class _WodHubScreenState extends State<WodHubScreen> {
             ),
           )
         else
-          ...prsList.map((BenchmarkWodLog pr) {
+          ...prsList.map((pr) {
             return Container(
               margin: const EdgeInsets.only(bottom: 8),
               decoration: BoxDecoration(
@@ -1144,11 +1145,11 @@ class _WodHubScreenState extends State<WodHubScreen> {
               fontSize: 11,
               fontWeight: FontWeight.bold,
               color: AppTheme.primaryAmber,
-              letterSpacing: 1.0,
+              letterSpacing: 1,
             ),
           ),
           const SizedBox(height: 10),
-          ...recentLogs.map((BenchmarkWodLog log) {
+          ...recentLogs.map((log) {
             return Container(
               margin: const EdgeInsets.only(bottom: 8),
               decoration: BoxDecoration(
@@ -1294,11 +1295,11 @@ class _WodHubScreenState extends State<WodHubScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (BuildContext ctx) {
+      builder: (ctx) {
         String query = '';
         return StatefulBuilder(
-          builder: (BuildContext context, void Function(void Function()) setSheetState) {
-            final List<WodDefinition> list = _allCombinedWods.where((WodDefinition w) {
+          builder: (context, void Function(void Function()) setSheetState) {
+            final List<WodDefinition> list = _allCombinedWods.where((w) {
               if (query.isEmpty) {
                 return true;
               }
@@ -1347,7 +1348,7 @@ class _WodHubScreenState extends State<WodHubScreen> {
                   ),
                   const SizedBox(height: 10),
                   TextField(
-                    onChanged: (String val) => setSheetState(() => query = val.trim()),
+                    onChanged: (val) => setSheetState(() => query = val.trim()),
                     style: GoogleFonts.inter(fontSize: 13, color: AppTheme.textPrimary),
                     decoration: InputDecoration(
                       hintText: 'Search benchmark or Hero WOD...',
@@ -1367,7 +1368,7 @@ class _WodHubScreenState extends State<WodHubScreen> {
                     child: ListView.separated(
                       itemCount: list.length,
                       separatorBuilder: (_, _) => const Divider(height: 1, color: AppTheme.surfaceElevated),
-                      itemBuilder: (BuildContext context, int index) {
+                      itemBuilder: (context, index) {
                         final WodDefinition item = list[index];
                         final bool isHero = _heroWodsByWodId.containsKey(item.id.toLowerCase()) ||
                             item.category.toLowerCase().contains('hero');
@@ -1810,7 +1811,7 @@ class _WodHubScreenState extends State<WodHubScreen> {
             color: AppTheme.darkBackground.withValues(alpha: 0.5),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: wod.movementsSummary.map((String m) {
+              children: wod.movementsSummary.map((m) {
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 2),
                   child: Row(
@@ -1839,7 +1840,7 @@ class _WodHubScreenState extends State<WodHubScreen> {
             child: Wrap(
               spacing: 6,
               runSpacing: 4,
-              children: wod.equipment.map((String eq) {
+              children: wod.equipment.map((eq) {
                 return Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(

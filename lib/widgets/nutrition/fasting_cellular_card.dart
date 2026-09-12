@@ -6,7 +6,7 @@ import 'package:oly/theme/app_theme.dart';
 import 'package:oly/views/nutrition/fasting_science_explainer_screen.dart';
 
 class FastingCellularCard extends StatelessWidget {
-  const FastingCellularCard({
+  const new({
     required this.session,
     super.key,
   });
@@ -61,7 +61,7 @@ class FastingCellularCard extends StatelessWidget {
                       style: GoogleFonts.outfit(
                         fontSize: 10,
                         fontWeight: FontWeight.w800,
-                        letterSpacing: 1.0,
+                        letterSpacing: 1,
                         color: AppTheme.textSecondary,
                       ),
                     ),
@@ -86,7 +86,7 @@ class FastingCellularCard extends StatelessWidget {
                 onPressed: () {
                   Navigator.of(context).push(
                     MaterialPageRoute<void>(
-                      builder: (BuildContext _) =>
+                      builder: (_) =>
                           const FastingScienceExplainerScreen(),
                     ),
                   );

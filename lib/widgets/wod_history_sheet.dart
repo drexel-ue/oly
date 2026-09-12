@@ -12,7 +12,7 @@ import 'package:provider/provider.dart';
 
 /// Modal bottom sheet displaying historical completion attempts & PR for a specific WOD.
 class WodHistorySheet extends StatelessWidget {
-  const WodHistorySheet({
+  const new({
     required this.wodId,
     required this.wodName,
     this.wodFormat,
@@ -170,7 +170,7 @@ class WodHistorySheet extends StatelessWidget {
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
                               color: AppTheme.primaryAmber,
-                              letterSpacing: 1.0,
+                              letterSpacing: 1,
                             ),
                           ),
                           const SizedBox(height: 2),
@@ -227,7 +227,7 @@ class WodHistorySheet extends StatelessWidget {
                   style: GoogleFonts.outfit(
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
-                    letterSpacing: 1.0,
+                    letterSpacing: 1,
                     color: AppTheme.textSecondary,
                   ),
                 ),
@@ -269,7 +269,7 @@ class WodHistorySheet extends StatelessWidget {
                     padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
                     itemCount: history.length,
                     separatorBuilder: (_, _) => const SizedBox(height: 10),
-                    itemBuilder: (BuildContext ctx, int index) {
+                    itemBuilder: (ctx, index) {
                       final BenchmarkWodLog log = history[index];
                       return _buildAttemptCard(ctx, log, recovery);
                     },
@@ -452,7 +452,7 @@ class WodHistorySheet extends StatelessWidget {
   void _confirmDelete(BuildContext context, BenchmarkWodLog log, RecoveryProvider recovery) {
     showDialog<void>(
       context: context,
-      builder: (BuildContext ctx) {
+      builder: (ctx) {
         return AlertDialog(
           backgroundColor: AppTheme.surfaceCard,
           title: Text(
@@ -472,7 +472,7 @@ class WodHistorySheet extends StatelessWidget {
               onPressed: () async {
                 Navigator.pop(ctx);
                 await recovery.deleteBenchmarkWodLog(log.id);
-                HapticFeedback.mediumImpact();
+                await HapticFeedback.mediumImpact();
               },
               child: const Text('DELETE', style: TextStyle(color: Colors.redAccent)),
             ),

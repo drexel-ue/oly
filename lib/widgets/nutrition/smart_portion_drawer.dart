@@ -9,7 +9,7 @@ import 'package:oly/theme/app_theme.dart';
 import 'package:provider/provider.dart';
 
 class SmartPortionDrawer extends StatefulWidget {
-  const SmartPortionDrawer({
+  const new({
     required this.initialFoodItem,
     super.key,
     this.defaultCategory = MealCategory.lunch,
@@ -29,8 +29,8 @@ class _SmartPortionDrawerState extends State<SmartPortionDrawer> {
   late FoodItem _item;
   late MealCategory _selectedCategory;
   bool _isGramsMode = false;
-  double _servingMultiplier = 1.0;
-  double _customGrams = 100.0;
+  double _servingMultiplier = 1;
+  double _customGrams = 100;
   final TextEditingController _gramsController = TextEditingController();
   bool _isRefreshing = false;
 
@@ -86,7 +86,7 @@ class _SmartPortionDrawerState extends State<SmartPortionDrawer> {
       return;
     }
     setState(() => _isRefreshing = true);
-    HapticFeedback.lightImpact();
+    await HapticFeedback.lightImpact();
 
     final FoodDatabaseService service = FoodDatabaseService();
     final FoodItem? refreshed = await service.lookupBarcode(
@@ -417,18 +417,18 @@ class _SmartPortionDrawerState extends State<SmartPortionDrawer> {
                 child: Row(
                   children: () {
                     final List<double> options = _item.servingUnitName == 'wing'
-                        ? <double>[1.0, 6.0, 8.0, 10.0, 12.0, 15.0, 20.0]
+                        ? <double>[1, 6, 8, 10, 12, 15, 20]
                         : _item.servingUnitName == 'tender'
-                            ? <double>[1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
+                            ? <double>[1, 2, 3, 4, 5, 6]
                             : _item.servingUnitName == 'nugget'
-                                ? <double>[1.0, 6.0, 8.0, 10.0, 12.0, 20.0]
+                                ? <double>[1, 6, 8, 10, 12, 20]
                                 : _item.servingUnitName == 'taco' ||
                                         _item.servingUnitName == 'patty' ||
                                         _item.servingUnitName == 'slice'
-                                    ? <double>[1.0, 2.0, 3.0, 4.0]
-                                    : <double>[0.5, 1.0, 1.5, 2.0];
+                                    ? <double>[1, 2, 3, 4]
+                                    : <double>[0.5, 1, 1.5, 2];
 
-                    return options.map((double m) {
+                    return options.map((m) {
                       final bool isSel = _servingMultiplier == m;
                       final String label = _item.servingUnitName != null
                           ? '${m.round()} ${_item.servingUnitName}${m > 1 && !_item.servingUnitName!.endsWith("s") ? "s" : ""}'
@@ -552,8 +552,8 @@ class _SmartPortionDrawerState extends State<SmartPortionDrawer> {
                   ),
                   const SizedBox(height: 6),
                   Row(
-                    children: <double>[10.0, 25.0, 50.0, 100.0].map((
-                      double step,
+                    children: <double>[10, 25, 50, 100].map((
+                      step,
                     ) {
                       return Expanded(
                         child: Padding(
@@ -640,7 +640,7 @@ class _SmartPortionDrawerState extends State<SmartPortionDrawer> {
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
-                children: MealCategory.values.map((MealCategory cat) {
+                children: MealCategory.values.map((cat) {
                   final bool isSelected = _selectedCategory == cat;
                   return Padding(
                     padding: const EdgeInsets.only(right: 6),
@@ -669,7 +669,7 @@ class _SmartPortionDrawerState extends State<SmartPortionDrawer> {
                             ? AppTheme.primaryAmber
                             : AppTheme.borderColor,
                       ),
-                      onSelected: (bool selected) {
+                      onSelected: (selected) {
                         if (selected) {
                           setState(() => _selectedCategory = cat);
                         }

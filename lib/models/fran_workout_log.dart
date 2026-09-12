@@ -2,7 +2,7 @@ import 'package:uuid/uuid.dart';
 
 /// Represents an entire completed or logged CrossFit Fran session (For Time: 21-15-9 Thrusters & Pull-ups).
 class FranWorkoutLog {
-  FranWorkoutLog({
+  new({
     required this.totalTimeSeconds,
     String? id,
     DateTime? date,
@@ -26,7 +26,7 @@ class FranWorkoutLog {
               pullupBandAssistance: pullupBandAssistance,
             );
 
-  factory FranWorkoutLog.fromJson(Map<String, dynamic> json) {
+  factory fromJson(Map<String, dynamic> json) {
     return FranWorkoutLog(
       id: json['id'] as String? ?? const Uuid().v4(),
       date: DateTime.tryParse(json['date'] as String? ?? '') ?? DateTime.now(),

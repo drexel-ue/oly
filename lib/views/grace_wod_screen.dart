@@ -6,7 +6,7 @@ import 'package:oly/theme/app_theme.dart';
 import 'package:oly/widgets/grace_wod_card.dart';
 
 class GraceWodScreen extends StatefulWidget {
-  const GraceWodScreen({
+  const new({
     super.key,
     this.isPreviewMode = false,
   });
@@ -30,7 +30,7 @@ class _GraceWodScreenState extends State<GraceWodScreen> {
   Widget build(BuildContext context) {
     final MobilityExerciseModel graceExercise =
         MobilityExerciseModel.defaultExercises().firstWhere(
-      (MobilityExerciseModel e) => e.id == 'grace_wod',
+      (e) => e.id == 'grace_wod',
     );
 
     return Scaffold(

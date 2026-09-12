@@ -199,7 +199,7 @@ extension FastingBiologicalStageExtension on FastingBiologicalStage {
 
 /// An active or completed fasting session
 class FastingSession {
-  FastingSession({
+  new({
     required this.id,
     required this.protocol,
     required this.targetDurationSeconds,
@@ -215,7 +215,7 @@ class FastingSession {
     this.notes,
   }) : biomarkers = biomarkers ?? <FastingBiomarkerEntry>[];
 
-  factory FastingSession.create({
+  factory create({
     required String id,
     required FastingProtocol protocol,
     required DateTime startTime,
@@ -231,11 +231,11 @@ class FastingSession {
     );
   }
 
-  factory FastingSession.fromJson(Map<String, dynamic> json) {
+  factory fromJson(Map<String, dynamic> json) {
     return FastingSession(
       id: json['id'] as String,
       protocol: FastingProtocol.values.firstWhere(
-        (FastingProtocol p) => p.name == json['protocol'],
+        (p) => p.name == json['protocol'],
         orElse: () => FastingProtocol.intermittent16_8,
       ),
       targetDurationSeconds: json['targetDurationSeconds'] as int,
@@ -287,7 +287,7 @@ class FastingSession {
 
   double get progressRatio {
     if (targetDurationSeconds <= 0) {
-      return 1.0;
+      return 1;
     }
     return (elapsedSeconds / targetDurationSeconds).clamp(0.0, 1.0);
   }
@@ -326,7 +326,7 @@ class FastingSession {
       'sodiumLoggedMg': sodiumLoggedMg,
       'waterLoggedMl': waterLoggedMl,
       'biomarkers': biomarkers
-          .map((FastingBiomarkerEntry b) => b.toJson())
+          .map((b) => b.toJson())
           .toList(),
       if (energyRating != null) 'energyRating': energyRating,
       if (mentalClarityRating != null)
@@ -339,7 +339,7 @@ class FastingSession {
 
 /// Athlete circadian and schedule preferences for 6:00 AM lifting synchronization
 class AthleteCircadianConfig {
-  const AthleteCircadianConfig({
+  const new({
     this.wakeHour = 4,
     this.wakeMinute = 45,
     this.workoutHour = 6,
@@ -355,7 +355,7 @@ class AthleteCircadianConfig {
     this.adjustForFastingBiomarkers = true,
   });
 
-  factory AthleteCircadianConfig.fromJson(Map<String, dynamic> json) {
+  factory fromJson(Map<String, dynamic> json) {
     return AthleteCircadianConfig(
       wakeHour: json['wakeHour'] as int? ?? 4,
       wakeMinute: json['wakeMinute'] as int? ?? 45,
@@ -455,7 +455,7 @@ class AthleteCircadianConfig {
 
 /// A day in the 7-14 day forward fasting projection calendar
 class FastingScheduleDay {
-  const FastingScheduleDay({
+  const new({
     required this.date,
     required this.dayName,
     required this.protocol,

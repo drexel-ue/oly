@@ -56,14 +56,14 @@ void main() {
       expect(logger.crashAndErrorLogs.length, greaterThanOrEqualTo(2));
       expect(
         logger.logs.any(
-          (LogEntry l) => l.message.contains('MLKit model missing'),
+          (l) => l.message.contains('MLKit model missing'),
         ),
         isTrue,
       );
     });
 
     testWidgets('CrashReportScreen renders log stats, filters, and probes', (
-      WidgetTester tester,
+      tester,
     ) async {
       final AppLogService logger = AppLogService.instance;
       logger.info('AUTH', 'User login');

@@ -16,7 +16,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   testWidgets('OlyApp renders home dashboard and navigation', (
-    WidgetTester tester,
+    tester,
   ) async {
     SharedPreferences.setMockInitialValues(<String, Object>{});
     final SharedPreferences prefs = await SharedPreferences.getInstance();

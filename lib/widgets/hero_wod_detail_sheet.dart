@@ -19,7 +19,7 @@ import 'package:uuid/uuid.dart';
 /// Comprehensive modal detail sheet presenting a CrossFit Hero Memorial Workout,
 /// showcasing the fallen hero's tribute biography, RX prescription, and action buttons.
 class HeroWodDetailSheet extends StatelessWidget {
-  const HeroWodDetailSheet({
+  const new({
     required this.heroWod,
     this.onAddWod,
     super.key,
@@ -67,7 +67,7 @@ class HeroWodDetailSheet extends StatelessWidget {
       refId: heroWod.id,
       setScheme: heroWod.format.displayName,
       subtitle: heroWod.subtitle.isNotEmpty ? heroWod.subtitle : heroWod.category,
-      targetWeightKg: 0.0,
+      targetWeightKg: 0,
       data: <String, dynamic>{
         'wodId': heroWod.id,
         'format': heroWod.format.name,
@@ -82,9 +82,7 @@ class HeroWodDetailSheet extends StatelessWidget {
     HapticFeedback.heavyImpact();
     Navigator.pop(context);
 
-    if (onAddWod != null) {
-      onAddWod!(item);
-    }
+    onAddWod?.call(item);
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -147,7 +145,6 @@ class HeroWodDetailSheet extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
             child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
                 Container(
                   padding: const EdgeInsets.all(10),
@@ -234,7 +231,7 @@ class HeroWodDetailSheet extends StatelessWidget {
                 children: <Widget>[
                   // Personal Record Banner
                   Builder(
-                    builder: (BuildContext ctx) {
+                    builder: (ctx) {
                       final RecoveryProvider recovery = Provider.of<RecoveryProvider>(ctx);
                       final BenchmarkWodLog? pr = recovery.getBenchmarkWodPersonalRecord(heroWod.id) ??
                           recovery.getBenchmarkWodPersonalRecord(heroWod.slug);
@@ -292,7 +289,7 @@ class HeroWodDetailSheet extends StatelessWidget {
                                           fontSize: 10,
                                           fontWeight: FontWeight.bold,
                                           color: Colors.greenAccent,
-                                          letterSpacing: 1.0,
+                                          letterSpacing: 1,
                                         ),
                                       ),
                                       const SizedBox(height: 2),
@@ -596,14 +593,14 @@ class HeroWodDetailSheet extends StatelessWidget {
             fontSize: 11,
             fontWeight: FontWeight.bold,
             color: AppTheme.textSecondary,
-            letterSpacing: 1.0,
+            letterSpacing: 1,
           ),
         ),
         const SizedBox(height: 8),
         Wrap(
           spacing: 8,
           runSpacing: 8,
-          children: heroWod.equipment.map((String eq) {
+          children: heroWod.equipment.map((eq) {
             return Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(

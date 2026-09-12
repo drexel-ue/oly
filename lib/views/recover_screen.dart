@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:oly/models/breathing_session_model.dart';
 import 'package:oly/models/injury_model.dart';
-import 'package:oly/models/mobility_exercise_model.dart';
 import 'package:oly/providers/breathing_provider.dart';
 import 'package:oly/providers/injury_provider.dart';
 import 'package:oly/providers/lift_provider.dart';
@@ -18,7 +17,7 @@ import 'package:provider/provider.dart';
 /// The dedicated RECOVER domain view for physiological readiness,
 /// active mobility routines, Wim Hof breathwork, and joint injury tracking.
 class RecoverScreen extends StatelessWidget {
-  const RecoverScreen({super.key});
+  const new({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +43,7 @@ class RecoverScreen extends StatelessWidget {
     if (activeInjuries.isNotEmpty) {
       final int injuryDeduction = activeInjuries.fold<int>(
         0,
-        (int sum, InjuryRecord i) => sum + (i.painScale * 4),
+        (sum, i) => sum + (i.painScale * 4),
       );
       readinessScore = (readinessScore - injuryDeduction).clamp(30, 100);
     }
@@ -402,7 +401,7 @@ class RecoverScreen extends StatelessWidget {
           Wrap(
             spacing: 8,
             runSpacing: 6,
-            children: routine.exercises.take(3).map((MobilityExerciseModel item) {
+            children: routine.exercises.take(3).map((item) {
               return Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
@@ -717,7 +716,7 @@ class RecoverScreen extends StatelessWidget {
             Wrap(
               spacing: 8,
               runSpacing: 8,
-              children: activeInjuries.map((InjuryRecord inj) {
+              children: activeInjuries.map((inj) {
                 return Container(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 6),

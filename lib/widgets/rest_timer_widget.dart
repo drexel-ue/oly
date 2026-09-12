@@ -9,7 +9,7 @@ import 'package:oly/theme/app_theme.dart';
 import 'package:provider/provider.dart';
 
 class RestTimerWidget extends StatefulWidget {
-  const RestTimerWidget({
+  const new({
     super.key,
     this.title = 'Rest Timer',
     this.icon = Icons.timer_outlined,
@@ -86,9 +86,7 @@ class _RestTimerWidgetState extends State<RestTimerWidget>
           _isRunning = false;
           _timer?.cancel();
           _triggerFinishAlerts(isForeground: false);
-          if (widget.onFinished != null) {
-            widget.onFinished!();
-          }
+          widget.onFinished?.call();
         }
       });
     }
@@ -138,7 +136,7 @@ class _RestTimerWidgetState extends State<RestTimerWidget>
       body: widget.notificationBody,
     );
 
-    _timer = Timer.periodic(const Duration(seconds: 1), (Timer t) {
+    _timer = Timer.periodic(const Duration(seconds: 1), (t) {
       if (_targetEndTime == null) {
         return;
       }
@@ -154,10 +152,8 @@ class _RestTimerWidgetState extends State<RestTimerWidget>
           _secondsRemaining = 0;
           _isRunning = false;
         });
-        _triggerFinishAlerts(isForeground: true);
-        if (widget.onFinished != null) {
-          widget.onFinished!();
-        }
+        _triggerFinishAlerts();
+        widget.onFinished?.call();
       }
     });
   }
@@ -185,7 +181,6 @@ class _RestTimerWidgetState extends State<RestTimerWidget>
         SnackBar(
           content: Text('${widget.notificationTitle} Finished!'),
           backgroundColor: widget.primaryColor ?? AppTheme.primaryAmber,
-          duration: const Duration(seconds: 4),
         ),
       );
     }
@@ -365,7 +360,7 @@ class _RestTimerWidgetState extends State<RestTimerWidget>
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
                         color: _isRunning ? themeColor : AppTheme.textSecondary,
-                        letterSpacing: 1.0,
+                        letterSpacing: 1,
                       ),
                     ),
                   ],
@@ -433,7 +428,7 @@ class _RestTimerWidgetState extends State<RestTimerWidget>
               scrollDirection: Axis.horizontal,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: _presetDurations.map((int dur) {
+                children: _presetDurations.map((dur) {
                   return Padding(
                     padding: const EdgeInsets.only(right: 6),
                     child: _buildPresetChip(
@@ -451,7 +446,7 @@ class _RestTimerWidgetState extends State<RestTimerWidget>
     }
 
     return GestureDetector(
-      onVerticalDragEnd: (DragEndDetails details) {
+      onVerticalDragEnd: (details) {
         if (details.primaryVelocity != null) {
           if (details.primaryVelocity! > 200) {
             // Dragged down -> Minimize
@@ -619,7 +614,7 @@ class _RestTimerWidgetState extends State<RestTimerWidget>
           scrollDirection: Axis.horizontal,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: _presetDurations.map((int dur) {
+            children: _presetDurations.map((dur) {
               return Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 4),
                 child: _buildPresetChip(
@@ -678,7 +673,7 @@ class _RestTimerWidgetState extends State<RestTimerWidget>
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
                     color: AppTheme.textSecondary,
-                    letterSpacing: 1.0,
+                    letterSpacing: 1,
                   ),
                 ),
               ],

@@ -9,7 +9,7 @@ import 'package:oly/services/usda_database_service.dart';
 import 'package:openfoodfacts/openfoodfacts.dart';
 
 class FoodItem {
-  const FoodItem({
+  const new({
     required this.id,
     required this.name,
     required this.servingSize,
@@ -27,7 +27,7 @@ class FoodItem {
     this.servingUnitName,
   });
 
-  factory FoodItem.fromJson(
+  factory fromJson(
     Map<String, dynamic> json, {
     String defaultSource = 'offline_staple',
   }) {
@@ -150,7 +150,7 @@ class FoodItem {
 }
 
 class FoodDatabaseService {
-  FoodDatabaseService({http.Client? client})
+  new({http.Client? client})
     : _client = client ?? http.Client() {
     _initOpenFoodFactsSdk();
   }
@@ -183,7 +183,6 @@ class FoodDatabaseService {
           .map(
             (item) => FoodItem.fromJson(
               item as Map<String, dynamic>,
-              defaultSource: 'offline_staple',
             ),
           )
           .toList();
@@ -238,10 +237,10 @@ class FoodDatabaseService {
       final List<FoodItem> sqliteResults = await UsdaDatabaseService.instance
           .searchFoods(clean, limit: 60);
       if (sqliteResults.isNotEmpty) {
-        final Set<String> seenIds = sqliteResults.map((FoodItem f) => f.id).toSet();
+        final Set<String> seenIds = sqliteResults.map((f) => f.id).toSet();
         final List<FoodItem> combined = <FoodItem>[
           ...sqliteResults,
-          ...allLocal.where((FoodItem f) => !seenIds.contains(f.id)),
+          ...allLocal.where((f) => !seenIds.contains(f.id)),
         ];
         AppLogService.instance.debug(
           'FOOD_DB',
@@ -263,7 +262,7 @@ class FoodDatabaseService {
 
     final List<String> tokens = q
         .split(RegExp(r'\s+'))
-        .where((String t) => t.isNotEmpty)
+        .where((t) => t.isNotEmpty)
         .toList();
 
     final List<MapEntry<FoodItem, int>> scored = <MapEntry<FoodItem, int>>[];
@@ -310,10 +309,10 @@ class FoodDatabaseService {
     }
 
     scored.sort(
-      (MapEntry<FoodItem, int> a, MapEntry<FoodItem, int> b) =>
+      (a, b) =>
           b.value.compareTo(a.value),
     );
-    return scored.map((MapEntry<FoodItem, int> e) => e.key).toList();
+    return scored.map((e) => e.key).toList();
   }
 
   /// Searches offline staple foods by query string
@@ -324,7 +323,7 @@ class FoodDatabaseService {
     }
 
     final String q = query.toLowerCase().trim();
-    return staples.where((FoodItem item) {
+    return staples.where((item) {
       return item.name.toLowerCase().contains(q) ||
           (item.category != null && item.category!.toLowerCase().contains(q)) ||
           (item.brand != null && item.brand!.toLowerCase().contains(q));
@@ -634,7 +633,7 @@ class FoodDatabaseService {
               name: name,
               brand: brand,
               servingSize: servingSize,
-              servingWeightGrams: 100.0,
+              servingWeightGrams: 100,
               calories: cal,
               protein: double.parse(protein.toStringAsFixed(1)),
               carbs: double.parse(carbs.toStringAsFixed(1)),
@@ -703,10 +702,10 @@ class FoodDatabaseService {
           final List<dynamic> nutrients =
               food['foodNutrients'] as List<dynamic>? ?? <dynamic>[];
 
-          double cal = 0.0;
-          double protein = 0.0;
-          double carbs = 0.0;
-          double fat = 0.0;
+          double cal = 0;
+          double protein = 0;
+          double carbs = 0;
+          double fat = 0;
           double? fiber;
 
           for (final n in nutrients) {

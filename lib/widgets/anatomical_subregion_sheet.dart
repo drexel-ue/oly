@@ -4,7 +4,7 @@ import 'package:oly/models/injury_model.dart';
 import 'package:oly/theme/app_theme.dart';
 
 class AnatomicalSubRegionSheet extends StatelessWidget {
-  const AnatomicalSubRegionSheet({
+  const new({
     required this.region,
     required this.onSubRegionSelected,
     super.key,
@@ -179,7 +179,7 @@ class AnatomicalSubRegionSheet extends StatelessWidget {
                         onSubRegionSelected(
                           existingInjury!.subRegion ??
                               subRegions.firstWhere(
-                                (InjurySubRegion s) => s.isGeneral,
+                                (s) => s.isGeneral,
                                 orElse: () => subRegions.first,
                               ),
                         );
@@ -203,8 +203,8 @@ class AnatomicalSubRegionSheet extends StatelessWidget {
               shrinkWrap: true,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               itemCount: subRegions.length,
-              separatorBuilder: (BuildContext _, int _) => const SizedBox(height: 8),
-              itemBuilder: (BuildContext ctx, int index) {
+              separatorBuilder: (_, _) => const SizedBox(height: 8),
+              itemBuilder: (ctx, index) {
                 final InjurySubRegion sub = subRegions[index];
                 final bool isSelected = existingInjury?.subRegion == sub ||
                     initialSubRegion == sub;

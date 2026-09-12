@@ -7,7 +7,7 @@ import 'package:uuid/uuid.dart';
 class LiftRatioAnalysis {
   // 'Balanced', 'Underdeveloped', 'Dominant'
 
-  LiftRatioAnalysis({
+  new({
     required this.lift,
     required this.anchorLift,
     required this.actualRatio,
@@ -24,13 +24,13 @@ class LiftRatioAnalysis {
 }
 
 class LiftSuggestion {
-  LiftSuggestion({required this.suggestedMaxKg, required this.reason});
+  new({required this.suggestedMaxKg, required this.reason});
   final double suggestedMaxKg;
   final String reason;
 }
 
 class LiftProvider extends ChangeNotifier {
-  LiftProvider(this._storage) {
+  new(this._storage) {
     _lifts = _storage.loadLifts();
   }
   final StorageService _storage;
@@ -50,7 +50,7 @@ class LiftProvider extends ChangeNotifier {
 
   LiftModel? getLift(String id) {
     try {
-      return _lifts.firstWhere((LiftModel l) => l.id == id);
+      return _lifts.firstWhere((l) => l.id == id);
     } catch (_) {
       return null;
     }
@@ -69,7 +69,7 @@ class LiftProvider extends ChangeNotifier {
     int reps = 1,
     double? rpe,
   }) async {
-    final int liftIndex = _lifts.indexWhere((LiftModel l) => l.id == liftId);
+    final int liftIndex = _lifts.indexWhere((l) => l.id == liftId);
     if (liftIndex == -1) {
       return;
     }
@@ -176,7 +176,7 @@ class LiftProvider extends ChangeNotifier {
 
     // 2. Reverse anchor check (e.g., Snatch estimated from Hang Snatch)
     final List<LiftModel> dependents = _lifts
-        .where((LiftModel l) => l.anchorLiftId == liftId && l.currentMax > 0)
+        .where((l) => l.anchorLiftId == liftId && l.currentMax > 0)
         .toList();
     if (dependents.isNotEmpty) {
       final LiftModel primaryDep = dependents.first;

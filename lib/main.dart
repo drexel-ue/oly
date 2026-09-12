@@ -52,7 +52,7 @@ void main() async {
   await AppLogService.instance.init();
 
   // Global Flutter framework error hook
-  FlutterError.onError = (FlutterErrorDetails details) {
+  FlutterError.onError = (details) {
     FlutterError.presentError(details);
     AppLogService.instance.crash(
       'FLUTTER_FRAMEWORK',
@@ -62,7 +62,7 @@ void main() async {
   };
 
   // Global uncaught asynchronous errors hook
-  PlatformDispatcher.instance.onError = (Object error, StackTrace stack) {
+  PlatformDispatcher.instance.onError = (error, stack) {
     AppLogService.instance.crash(
       'UNCAUGHT_ASYNC',
       error.toString(),
@@ -83,34 +83,34 @@ void main() async {
     MultiProvider(
       providers: <SingleChildWidget>[
         ChangeNotifierProvider<SettingsProvider>(
-          create: (BuildContext _) => SettingsProvider(storageService),
+          create: (_) => SettingsProvider(storageService),
         ),
         ChangeNotifierProvider<LiftProvider>(
-          create: (BuildContext _) => LiftProvider(storageService),
+          create: (_) => LiftProvider(storageService),
         ),
         ChangeNotifierProvider<ProgramProvider>(
-          create: (BuildContext _) => ProgramProvider(storageService),
+          create: (_) => ProgramProvider(storageService),
         ),
         ChangeNotifierProvider<RecoveryProvider>(
-          create: (BuildContext _) => RecoveryProvider(storageService),
+          create: (_) => RecoveryProvider(storageService),
         ),
         ChangeNotifierProvider<BodyCompProvider>(
-          create: (BuildContext _) => BodyCompProvider(storageService),
+          create: (_) => BodyCompProvider(storageService),
         ),
         ChangeNotifierProvider<NutritionProvider>(
-          create: (BuildContext _) => NutritionProvider(storageService),
+          create: (_) => NutritionProvider(storageService),
         ),
         ChangeNotifierProvider<FastingProvider>(
-          create: (BuildContext _) => FastingProvider(storageService),
+          create: (_) => FastingProvider(storageService),
         ),
         ChangeNotifierProvider<InjuryProvider>(
-          create: (BuildContext _) => InjuryProvider(storageService),
+          create: (_) => InjuryProvider(storageService),
         ),
         ChangeNotifierProvider<BreathingProvider>(
-          create: (BuildContext _) => BreathingProvider(storageService),
+          create: (_) => BreathingProvider(storageService),
         ),
         ChangeNotifierProvider<ActiveSessionProvider>(
-          create: (BuildContext _) => ActiveSessionProvider(),
+          create: (_) => ActiveSessionProvider(),
         ),
       ],
       child: const OlyApp(),
@@ -119,7 +119,7 @@ void main() async {
 }
 
 class OlyApp extends StatelessWidget {
-  const OlyApp({super.key});
+  const new({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -127,19 +127,19 @@ class OlyApp extends StatelessWidget {
       title: 'OLY',
       theme: AppTheme.darkTheme,
       debugShowCheckedModeBanner: false,
-      builder: (BuildContext context, Widget? child) {
+      builder: (context, child) {
         return GestureDetector(
           onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
           behavior: HitTestBehavior.translucent,
           child: child,
         );
       },
-      onGenerateRoute: (RouteSettings settings) {
+      onGenerateRoute: (settings) {
         if (settings.name == '/warmup') {
           final DayTemplate? dayTemplate = settings.arguments as DayTemplate?;
           final DayTemplate defaultDay = ProgramCycle.getBuiltInProgram().first;
           return MaterialPageRoute<void>(
-            builder: (BuildContext _) =>
+            builder: (_) =>
                 WarmupSessionScreen(dayTemplate: dayTemplate ?? defaultDay),
           );
         }
@@ -164,13 +164,13 @@ class OlyApp extends StatelessWidget {
       );
     }
     return const MainNavigationContainer(
-      initialIndex: int.fromEnvironment('TAB', defaultValue: 0),
+      
     );
   }
 }
 
 class MainNavigationContainer extends StatefulWidget {
-  const MainNavigationContainer({super.key, this.initialIndex = 0});
+  const new({super.key, this.initialIndex = 0});
   final int initialIndex;
 
   @override
@@ -212,7 +212,7 @@ class _MainNavigationContainerState extends State<MainNavigationContainer> {
           const ActiveSessionMiniDock(),
           BottomNavigationBar(
             currentIndex: _currentIndex,
-            onTap: (int index) => setState(() => _currentIndex = index),
+            onTap: (index) => setState(() => _currentIndex = index),
             type: BottomNavigationBarType.fixed,
             backgroundColor: AppTheme.surfaceCard,
             selectedItemColor: AppTheme.primaryAmber,

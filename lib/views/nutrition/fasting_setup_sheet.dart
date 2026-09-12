@@ -7,7 +7,7 @@ import 'package:oly/theme/app_theme.dart';
 import 'package:provider/provider.dart';
 
 class FastingSetupSheet extends StatefulWidget {
-  const FastingSetupSheet({super.key});
+  const new({super.key});
 
   static void show(BuildContext context) {
     showModalBottomSheet<void>(
@@ -17,7 +17,7 @@ class FastingSetupSheet extends StatefulWidget {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (BuildContext _) => const FastingSetupSheet(),
+      builder: (_) => const FastingSetupSheet(),
     );
   }
 
@@ -43,7 +43,7 @@ class _FastingSetupSheetState extends State<FastingSetupSheet> {
       minChildSize: 0.5,
       maxChildSize: 0.95,
       expand: false,
-      builder: (BuildContext context, ScrollController scrollController) {
+      builder: (context, scrollController) {
         return SingleChildScrollView(
           controller: scrollController,
           padding: const EdgeInsets.all(20),
@@ -109,13 +109,13 @@ class _FastingSetupSheetState extends State<FastingSetupSheet> {
                 style: GoogleFonts.outfit(
                   fontSize: 11,
                   fontWeight: FontWeight.w800,
-                  letterSpacing: 1.0,
+                  letterSpacing: 1,
                   color: AppTheme.textSecondary,
                 ),
               ),
               const SizedBox(height: 8),
 
-              ...FastingProtocol.values.map((FastingProtocol protocol) {
+              ...FastingProtocol.values.map((protocol) {
                 final bool isSelected = _selectedProtocol == protocol;
                 return Container(
                   margin: const EdgeInsets.only(bottom: 8),
@@ -234,7 +234,7 @@ class _FastingSetupSheetState extends State<FastingSetupSheet> {
                 style: GoogleFonts.outfit(
                   fontSize: 11,
                   fontWeight: FontWeight.w800,
-                  letterSpacing: 1.0,
+                  letterSpacing: 1,
                   color: AppTheme.textSecondary,
                 ),
               ),

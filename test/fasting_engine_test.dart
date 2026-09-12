@@ -15,7 +15,7 @@ void main() {
       // (80 / 18.016) / 1.5 = 4.44 / 1.5 = ~2.96 (High Ketosis)
       final FastingBiomarkerEntry entry1 = FastingBiomarkerEntry.create(
         id: '1',
-        glucoseMgDl: 80.0,
+        glucoseMgDl: 80,
         ketoneMmolL: 1.5,
       );
       expect(entry1.gki, closeTo(2.96, 0.02));
@@ -25,8 +25,8 @@ void main() {
       // (70 / 18.016) / 4.0 = 3.885 / 4.0 = ~0.97 (Therapeutic Autophagy < 1.0)
       final FastingBiomarkerEntry entry2 = FastingBiomarkerEntry.create(
         id: '2',
-        glucoseMgDl: 70.0,
-        ketoneMmolL: 4.0,
+        glucoseMgDl: 70,
+        ketoneMmolL: 4,
       );
       expect(entry2.gki, closeTo(0.97, 0.02));
       expect(entry2.zone, equals(GkiMetabolicZone.therapeuticAutophagy));
@@ -34,7 +34,7 @@ void main() {
       // 100 mg/dL glucose, 0.2 mmol/L ketones (Fed / Baseline)
       final FastingBiomarkerEntry entry3 = FastingBiomarkerEntry.create(
         id: '3',
-        glucoseMgDl: 100.0,
+        glucoseMgDl: 100,
         ketoneMmolL: 0.2,
       );
       expect(entry3.zone, equals(GkiMetabolicZone.notInKetosis));
@@ -104,19 +104,19 @@ void main() {
   group('FastingEngineService Tests', () {
     test('Provides appropriate barbell load advice across fasting durations', () {
       expect(
-        FastingEngineService.getBarbellAdvisory(12.0),
+        FastingEngineService.getBarbellAdvisory(12),
         contains('Full Olympic Lifting & Metcons Permitted'),
       );
       expect(
-        FastingEngineService.getBarbellAdvisory(24.0),
+        FastingEngineService.getBarbellAdvisory(24),
         contains('Technique & Moderate Volume'),
       );
       expect(
-        FastingEngineService.getBarbellAdvisory(38.0),
+        FastingEngineService.getBarbellAdvisory(38),
         contains('Deload / Light Barbell'),
       );
       expect(
-        FastingEngineService.getBarbellAdvisory(65.0),
+        FastingEngineService.getBarbellAdvisory(65),
         contains('Fasting Peak — Zero Heavy Lifting'),
       );
     });
@@ -126,7 +126,6 @@ void main() {
           FastingEngineService.generateProjection(
         currentProtocol: FastingProtocol.intermittent16_8,
         config: const AthleteCircadianConfig(),
-        daysCount: 7,
       );
 
       expect(projection.length, equals(7));
@@ -166,7 +165,7 @@ void main() {
 
       // Log Keto-Mojo Reading
       await provider.addBiomarkerEntry(
-        glucoseMgDl: 78.0,
+        glucoseMgDl: 78,
         ketoneMmolL: 1.8,
         notes: 'Fasted baseline test',
       );

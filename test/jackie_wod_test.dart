@@ -22,7 +22,6 @@ void main() {
         rowTimeSeconds: 225, // 3:45
         thrusterTimeSeconds: 215, // 3:35
         pullupTimeSeconds: 102, // 1:42
-        barbellWeightKg: 20.4,
         pullupVariation: 'kipping',
       );
 
@@ -51,7 +50,7 @@ void main() {
 
       final JackieWorkoutLog scaledLightBar = JackieWorkoutLog(
         totalTimeSeconds: 600,
-        barbellWeightKg: 15.0, // 33 lb
+        barbellWeightKg: 15, // 33 lb
       );
       expect(scaledLightBar.scalingTier, equals('Scaled'));
 
@@ -63,8 +62,6 @@ void main() {
 
       final JackieWorkoutLog rxStandard = JackieWorkoutLog(
         totalTimeSeconds: 510,
-        barbellWeightKg: 20.4,
-        pullupVariation: 'standard',
       );
       expect(rxStandard.scalingTier, equals('Rx'));
     });
@@ -86,7 +83,6 @@ void main() {
       // First session: 10:00 (600s) -> should be PR
       final JackieWorkoutLog firstLog = JackieWorkoutLog(
         totalTimeSeconds: 600,
-        barbellWeightKg: 20.4,
         scalingTier: 'Rx',
       );
       final JackieWorkoutLog result1 = await recovery.logJackieWorkout(firstLog);
@@ -98,7 +94,6 @@ void main() {
       // Slower session: 10:30 (630s) -> NOT a PR
       final JackieWorkoutLog slowerLog = JackieWorkoutLog(
         totalTimeSeconds: 630,
-        barbellWeightKg: 20.4,
         scalingTier: 'Rx',
       );
       final JackieWorkoutLog result2 = await recovery.logJackieWorkout(slowerLog);
@@ -108,7 +103,6 @@ void main() {
       // Faster session: 8:45 (525s) -> NEW PR
       final JackieWorkoutLog fasterLog = JackieWorkoutLog(
         totalTimeSeconds: 525,
-        barbellWeightKg: 20.4,
         scalingTier: 'Rx',
       );
       final JackieWorkoutLog result3 = await recovery.logJackieWorkout(fasterLog);
@@ -152,10 +146,10 @@ void main() {
     }
 
     testWidgets('Renders JackieWodCard header, stopwatch, stations, and setup explainer button',
-        (WidgetTester tester) async {
+        (tester) async {
       final MobilityExerciseModel jackieExercise =
           MobilityExerciseModel.defaultExercises().firstWhere(
-        (MobilityExerciseModel e) => e.id == 'jackie_wod',
+        (e) => e.id == 'jackie_wod',
       );
 
       await tester.pumpWidget(
@@ -178,10 +172,10 @@ void main() {
     });
 
     testWidgets('Can start stopwatch and progress through Row station to Thrusters',
-        (WidgetTester tester) async {
+        (tester) async {
       final MobilityExerciseModel jackieExercise =
           MobilityExerciseModel.defaultExercises().firstWhere(
-        (MobilityExerciseModel e) => e.id == 'jackie_wod',
+        (e) => e.id == 'jackie_wod',
       );
 
       await tester.pumpWidget(
@@ -218,10 +212,10 @@ void main() {
     });
 
     testWidgets('Toggles between Live Mode and Manual Entry mode',
-        (WidgetTester tester) async {
+        (tester) async {
       final MobilityExerciseModel jackieExercise =
           MobilityExerciseModel.defaultExercises().firstWhere(
-        (MobilityExerciseModel e) => e.id == 'jackie_wod',
+        (e) => e.id == 'jackie_wod',
       );
 
       await tester.pumpWidget(

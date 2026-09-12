@@ -25,7 +25,7 @@ import 'package:oly/models/workout_session.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class StorageService {
-  StorageService(this._prefs);
+  new(this._prefs);
   static const String _keyLifts = 'oly_lifts_v1';
   static const String _keyCycle = 'oly_cycle_v1';
   static const String _keySessions = 'oly_sessions_v1';
@@ -77,7 +77,7 @@ class StorageService {
       return LiftModel.defaultLifts();
     }
     try {
-      final List<dynamic> list = jsonDecode(jsonStr);
+      final List<dynamic> list = jsonDecode(jsonStr) as List<dynamic>;
       return list
           .map((e) => LiftModel.fromJson(e as Map<String, dynamic>))
           .toList();
@@ -88,7 +88,7 @@ class StorageService {
 
   Future<void> saveLifts(List<LiftModel> lifts) async {
     final String jsonStr = jsonEncode(
-      lifts.map((LiftModel e) => e.toJson()).toList(),
+      lifts.map((e) => e.toJson()).toList(),
     );
     await _prefs.setString(_keyLifts, jsonStr);
   }
@@ -120,7 +120,7 @@ class StorageService {
       return <WorkoutSession>[];
     }
     try {
-      final List<dynamic> list = jsonDecode(jsonStr);
+      final List<dynamic> list = jsonDecode(jsonStr) as List<dynamic>;
       return list
           .map((e) => WorkoutSession.fromJson(e as Map<String, dynamic>))
           .toList();
@@ -131,7 +131,7 @@ class StorageService {
 
   Future<void> saveWorkoutSessions(List<WorkoutSession> sessions) async {
     final String jsonStr = jsonEncode(
-      sessions.map((WorkoutSession e) => e.toJson()).toList(),
+      sessions.map((e) => e.toJson()).toList(),
     );
     await _prefs.setString(_keySessions, jsonStr);
   }
@@ -162,14 +162,14 @@ class StorageService {
 
   // --- SETTINGS STORAGE ---
   bool loadIsLbs() => _prefs.getBool(_keyUnit) ?? false;
-  Future<void> saveIsLbs(bool isLbs) async => _prefs.setBool(_keyUnit, isLbs);
+  Future<void> saveIsLbs(bool isLbs) => _prefs.setBool(_keyUnit, isLbs);
 
   double loadBarWeight() => _prefs.getDouble(_keyBarWeight) ?? 20.0;
-  Future<void> saveBarWeight(double weight) async =>
+  Future<void> saveBarWeight(double weight) =>
       _prefs.setDouble(_keyBarWeight, weight);
 
   double loadCollarWeight() => _prefs.getDouble(_keyCollarWeight) ?? 2.5;
-  Future<void> saveCollarWeight(double weight) async =>
+  Future<void> saveCollarWeight(double weight) =>
       _prefs.setDouble(_keyCollarWeight, weight);
 
   // --- RECOVERY LOGS STORAGE ---
@@ -179,7 +179,7 @@ class StorageService {
       return <Map<String, dynamic>>[];
     }
     try {
-      final List<dynamic> list = jsonDecode(jsonStr);
+      final List<dynamic> list = jsonDecode(jsonStr) as List<dynamic>;
       return list.cast<Map<String, dynamic>>();
     } catch (_) {
       return <Map<String, dynamic>>[];
@@ -192,15 +192,15 @@ class StorageService {
   }
 
   bool loadSoundAlerts() => _prefs.getBool(_keySoundAlerts) ?? true;
-  Future<void> saveSoundAlerts(bool value) async =>
+  Future<void> saveSoundAlerts(bool value) =>
       _prefs.setBool(_keySoundAlerts, value);
 
   bool loadHapticsEnabled() => _prefs.getBool(_keyHapticsEnabled) ?? true;
-  Future<void> saveHapticsEnabled(bool value) async =>
+  Future<void> saveHapticsEnabled(bool value) =>
       _prefs.setBool(_keyHapticsEnabled, value);
 
   bool loadCindyEmomBeep() => _prefs.getBool(_keyCindyEmomBeep) ?? false;
-  Future<void> saveCindyEmomBeep(bool value) async =>
+  Future<void> saveCindyEmomBeep(bool value) =>
       _prefs.setBool(_keyCindyEmomBeep, value);
 
   // --- ACCESSORY LOGS STORAGE ---
@@ -210,7 +210,7 @@ class StorageService {
       return <AccessoryLog>[];
     }
     try {
-      final List<dynamic> list = jsonDecode(jsonStr);
+      final List<dynamic> list = jsonDecode(jsonStr) as List<dynamic>;
       return list
           .map((e) => AccessoryLog.fromJson(e as Map<String, dynamic>))
           .toList();
@@ -221,7 +221,7 @@ class StorageService {
 
   Future<void> saveAccessoryLogs(List<AccessoryLog> logs) async {
     final String jsonStr = jsonEncode(
-      logs.map((AccessoryLog e) => e.toJson()).toList(),
+      logs.map((e) => e.toJson()).toList(),
     );
     await _prefs.setString(_keyAccessoryLogs, jsonStr);
   }
@@ -254,12 +254,12 @@ class StorageService {
   List<AccessoryLog> getAccessoryHistory(String exerciseId) {
     return loadAccessoryLogs()
         .where(
-          (AccessoryLog l) =>
+          (l) =>
               l.exerciseId == exerciseId ||
               l.exerciseName.toLowerCase() == exerciseId.toLowerCase(),
         )
         .toList()
-      ..sort((AccessoryLog a, AccessoryLog b) => b.date.compareTo(a.date));
+      ..sort((a, b) => b.date.compareTo(a.date));
   }
 
   AccessoryLog? getLatestAccessoryLog(String exerciseId) {
@@ -270,11 +270,11 @@ class StorageService {
   double getAccessoryPersonalBest(String exerciseId) {
     final List<AccessoryLog> history = getAccessoryHistory(exerciseId);
     if (history.isEmpty) {
-      return 0.0;
+      return 0;
     }
     return history
-        .map((AccessoryLog e) => e.weightKg)
-        .reduce((double a, double b) => a > b ? a : b);
+        .map((e) => e.weightKg)
+        .reduce((a, b) => a > b ? a : b);
   }
 
   // --- KETTLEBELL MILE STORAGE ---
@@ -284,7 +284,7 @@ class StorageService {
       return <KettlebellMileLog>[];
     }
     try {
-      final List<dynamic> list = jsonDecode(jsonStr);
+      final List<dynamic> list = jsonDecode(jsonStr) as List<dynamic>;
       return list
           .map((dynamic e) => KettlebellMileLog.fromJson(e as Map<String, dynamic>))
           .toList();
@@ -295,7 +295,7 @@ class StorageService {
 
   Future<void> saveKettlebellMileLogs(List<KettlebellMileLog> logs) async {
     final String jsonStr = jsonEncode(
-      logs.map((KettlebellMileLog e) => e.toJson()).toList(),
+      logs.map((e) => e.toJson()).toList(),
     );
     await _prefs.setString(_keyKettlebellMileLogs, jsonStr);
   }
@@ -328,7 +328,7 @@ class StorageService {
 
   List<KettlebellMileLog> getKettlebellMileHistory() {
     final List<KettlebellMileLog> list = loadKettlebellMileLogs();
-    list.sort((KettlebellMileLog a, KettlebellMileLog b) => b.date.compareTo(a.date));
+    list.sort((a, b) => b.date.compareTo(a.date));
     return list;
   }
 
@@ -344,7 +344,7 @@ class StorageService {
       return <CindyWorkoutLog>[];
     }
     try {
-      final List<dynamic> list = jsonDecode(jsonStr);
+      final List<dynamic> list = jsonDecode(jsonStr) as List<dynamic>;
       return list
           .map((dynamic e) => CindyWorkoutLog.fromJson(e as Map<String, dynamic>))
           .toList();
@@ -355,7 +355,7 @@ class StorageService {
 
   Future<void> saveCindyWorkoutLogs(List<CindyWorkoutLog> logs) async {
     final String jsonStr = jsonEncode(
-      logs.map((CindyWorkoutLog e) => e.toJson()).toList(),
+      logs.map((e) => e.toJson()).toList(),
     );
     await _prefs.setString(_keyCindyWorkoutLogs, jsonStr);
   }
@@ -388,9 +388,9 @@ class StorageService {
 
   List<CindyWorkoutLog> getCindyWorkoutHistory({String? tier}) {
     final List<CindyWorkoutLog> list = loadCindyWorkoutLogs();
-    list.sort((CindyWorkoutLog a, CindyWorkoutLog b) => b.date.compareTo(a.date));
+    list.sort((a, b) => b.date.compareTo(a.date));
     if (tier != null) {
-      return list.where((CindyWorkoutLog e) => e.scalingTier == tier).toList();
+      return list.where((e) => e.scalingTier == tier).toList();
     }
     return list;
   }
@@ -406,7 +406,7 @@ class StorageService {
       return null;
     }
     return history.reduce(
-      (CindyWorkoutLog a, CindyWorkoutLog b) => a.totalReps >= b.totalReps ? a : b,
+      (a, b) => a.totalReps >= b.totalReps ? a : b,
     );
   }
 
@@ -417,7 +417,7 @@ class StorageService {
       return <JackieWorkoutLog>[];
     }
     try {
-      final List<dynamic> list = jsonDecode(jsonStr);
+      final List<dynamic> list = jsonDecode(jsonStr) as List<dynamic>;
       return list
           .map((dynamic e) => JackieWorkoutLog.fromJson(e as Map<String, dynamic>))
           .toList();
@@ -428,7 +428,7 @@ class StorageService {
 
   Future<void> saveJackieWorkoutLogs(List<JackieWorkoutLog> logs) async {
     final String jsonStr = jsonEncode(
-      logs.map((JackieWorkoutLog e) => e.toJson()).toList(),
+      logs.map((e) => e.toJson()).toList(),
     );
     await _prefs.setString(_keyJackieWorkoutLogs, jsonStr);
   }
@@ -446,9 +446,9 @@ class StorageService {
 
   List<JackieWorkoutLog> getJackieWorkoutHistory({String? tier}) {
     final List<JackieWorkoutLog> list = loadJackieWorkoutLogs();
-    list.sort((JackieWorkoutLog a, JackieWorkoutLog b) => b.date.compareTo(a.date));
+    list.sort((a, b) => b.date.compareTo(a.date));
     if (tier != null) {
-      return list.where((JackieWorkoutLog e) => e.scalingTier == tier).toList();
+      return list.where((e) => e.scalingTier == tier).toList();
     }
     return list;
   }
@@ -464,7 +464,7 @@ class StorageService {
       return null;
     }
     return history.reduce(
-      (JackieWorkoutLog a, JackieWorkoutLog b) => a.totalTimeSeconds <= b.totalTimeSeconds ? a : b,
+      (a, b) => a.totalTimeSeconds <= b.totalTimeSeconds ? a : b,
     );
   }
 
@@ -475,7 +475,7 @@ class StorageService {
       return <FranWorkoutLog>[];
     }
     try {
-      final List<dynamic> list = jsonDecode(jsonStr);
+      final List<dynamic> list = jsonDecode(jsonStr) as List<dynamic>;
       return list
           .map((dynamic e) => FranWorkoutLog.fromJson(e as Map<String, dynamic>))
           .toList();
@@ -486,7 +486,7 @@ class StorageService {
 
   Future<void> saveFranWorkoutLogs(List<FranWorkoutLog> logs) async {
     final String jsonStr = jsonEncode(
-      logs.map((FranWorkoutLog e) => e.toJson()).toList(),
+      logs.map((e) => e.toJson()).toList(),
     );
     await _prefs.setString(_keyFranWorkoutLogs, jsonStr);
   }
@@ -504,9 +504,9 @@ class StorageService {
 
   List<FranWorkoutLog> getFranWorkoutHistory({String? tier}) {
     final List<FranWorkoutLog> list = loadFranWorkoutLogs();
-    list.sort((FranWorkoutLog a, FranWorkoutLog b) => b.date.compareTo(a.date));
+    list.sort((a, b) => b.date.compareTo(a.date));
     if (tier != null) {
-      return list.where((FranWorkoutLog e) => e.scalingTier == tier).toList();
+      return list.where((e) => e.scalingTier == tier).toList();
     }
     return list;
   }
@@ -522,7 +522,7 @@ class StorageService {
       return null;
     }
     return history.reduce(
-      (FranWorkoutLog a, FranWorkoutLog b) => a.totalTimeSeconds <= b.totalTimeSeconds ? a : b,
+      (a, b) => a.totalTimeSeconds <= b.totalTimeSeconds ? a : b,
     );
   }
 
@@ -533,7 +533,7 @@ class StorageService {
       return <HelenWorkoutLog>[];
     }
     try {
-      final List<dynamic> list = jsonDecode(jsonStr);
+      final List<dynamic> list = jsonDecode(jsonStr) as List<dynamic>;
       return list
           .map((dynamic e) => HelenWorkoutLog.fromJson(e as Map<String, dynamic>))
           .toList();
@@ -544,7 +544,7 @@ class StorageService {
 
   Future<void> saveHelenWorkoutLogs(List<HelenWorkoutLog> logs) async {
     final String jsonStr = jsonEncode(
-      logs.map((HelenWorkoutLog e) => e.toJson()).toList(),
+      logs.map((e) => e.toJson()).toList(),
     );
     await _prefs.setString(_keyHelenWorkoutLogs, jsonStr);
   }
@@ -562,9 +562,9 @@ class StorageService {
 
   List<HelenWorkoutLog> getHelenWorkoutHistory({String? tier}) {
     final List<HelenWorkoutLog> list = loadHelenWorkoutLogs();
-    list.sort((HelenWorkoutLog a, HelenWorkoutLog b) => b.date.compareTo(a.date));
+    list.sort((a, b) => b.date.compareTo(a.date));
     if (tier != null) {
-      return list.where((HelenWorkoutLog e) => e.scalingTier == tier).toList();
+      return list.where((e) => e.scalingTier == tier).toList();
     }
     return list;
   }
@@ -580,7 +580,7 @@ class StorageService {
       return null;
     }
     return history.reduce(
-      (HelenWorkoutLog a, HelenWorkoutLog b) => a.totalTimeSeconds <= b.totalTimeSeconds ? a : b,
+      (a, b) => a.totalTimeSeconds <= b.totalTimeSeconds ? a : b,
     );
   }
 
@@ -591,7 +591,7 @@ class StorageService {
       return <GraceWorkoutLog>[];
     }
     try {
-      final List<dynamic> list = jsonDecode(jsonStr);
+      final List<dynamic> list = jsonDecode(jsonStr) as List<dynamic>;
       return list
           .map((dynamic e) => GraceWorkoutLog.fromJson(e as Map<String, dynamic>))
           .toList();
@@ -602,7 +602,7 @@ class StorageService {
 
   Future<void> saveGraceWorkoutLogs(List<GraceWorkoutLog> logs) async {
     final String jsonStr = jsonEncode(
-      logs.map((GraceWorkoutLog e) => e.toJson()).toList(),
+      logs.map((e) => e.toJson()).toList(),
     );
     await _prefs.setString(_keyGraceWorkoutLogs, jsonStr);
   }
@@ -620,9 +620,9 @@ class StorageService {
 
   List<GraceWorkoutLog> getGraceWorkoutHistory({String? tier}) {
     final List<GraceWorkoutLog> list = loadGraceWorkoutLogs();
-    list.sort((GraceWorkoutLog a, GraceWorkoutLog b) => b.date.compareTo(a.date));
+    list.sort((a, b) => b.date.compareTo(a.date));
     if (tier != null) {
-      return list.where((GraceWorkoutLog e) => e.scalingTier == tier).toList();
+      return list.where((e) => e.scalingTier == tier).toList();
     }
     return list;
   }
@@ -638,7 +638,7 @@ class StorageService {
       return null;
     }
     return history.reduce(
-      (GraceWorkoutLog a, GraceWorkoutLog b) => a.totalTimeSeconds <= b.totalTimeSeconds ? a : b,
+      (a, b) => a.totalTimeSeconds <= b.totalTimeSeconds ? a : b,
     );
   }
 
@@ -649,7 +649,7 @@ class StorageService {
       return <DtWorkoutLog>[];
     }
     try {
-      final List<dynamic> list = jsonDecode(jsonStr);
+      final List<dynamic> list = jsonDecode(jsonStr) as List<dynamic>;
       return list
           .map((dynamic e) => DtWorkoutLog.fromJson(e as Map<String, dynamic>))
           .toList();
@@ -660,7 +660,7 @@ class StorageService {
 
   Future<void> saveDtWorkoutLogs(List<DtWorkoutLog> logs) async {
     final String jsonStr = jsonEncode(
-      logs.map((DtWorkoutLog e) => e.toJson()).toList(),
+      logs.map((e) => e.toJson()).toList(),
     );
     await _prefs.setString(_keyDtWorkoutLogs, jsonStr);
   }
@@ -678,9 +678,9 @@ class StorageService {
 
   List<DtWorkoutLog> getDtWorkoutHistory({String? tier}) {
     final List<DtWorkoutLog> list = loadDtWorkoutLogs();
-    list.sort((DtWorkoutLog a, DtWorkoutLog b) => b.date.compareTo(a.date));
+    list.sort((a, b) => b.date.compareTo(a.date));
     if (tier != null) {
-      return list.where((DtWorkoutLog e) => e.scalingTier == tier).toList();
+      return list.where((e) => e.scalingTier == tier).toList();
     }
     return list;
   }
@@ -696,7 +696,7 @@ class StorageService {
       return null;
     }
     return history.reduce(
-      (DtWorkoutLog a, DtWorkoutLog b) => a.totalTimeSeconds <= b.totalTimeSeconds ? a : b,
+      (a, b) => a.totalTimeSeconds <= b.totalTimeSeconds ? a : b,
     );
   }
 
@@ -707,7 +707,7 @@ class StorageService {
       return <DeathByBurpeesLog>[];
     }
     try {
-      final List<dynamic> list = jsonDecode(jsonStr);
+      final List<dynamic> list = jsonDecode(jsonStr) as List<dynamic>;
       return list
           .map((dynamic e) => DeathByBurpeesLog.fromJson(e as Map<String, dynamic>))
           .toList();
@@ -718,7 +718,7 @@ class StorageService {
 
   Future<void> saveDeathByBurpeesLogs(List<DeathByBurpeesLog> logs) async {
     final String jsonStr = jsonEncode(
-      logs.map((DeathByBurpeesLog e) => e.toJson()).toList(),
+      logs.map((e) => e.toJson()).toList(),
     );
     await _prefs.setString(_keyDeathByBurpeesLogs, jsonStr);
   }
@@ -737,9 +737,9 @@ class StorageService {
 
   List<DeathByBurpeesLog> getDeathByBurpeesHistory({String? tier}) {
     final List<DeathByBurpeesLog> list = loadDeathByBurpeesLogs();
-    list.sort((DeathByBurpeesLog a, DeathByBurpeesLog b) => b.date.compareTo(a.date));
+    list.sort((a, b) => b.date.compareTo(a.date));
     if (tier != null) {
-      return list.where((DeathByBurpeesLog e) => e.scalingTier == tier).toList();
+      return list.where((e) => e.scalingTier == tier).toList();
     }
     return list;
   }
@@ -755,7 +755,7 @@ class StorageService {
       return null;
     }
     return history.reduce(
-      (DeathByBurpeesLog a, DeathByBurpeesLog b) => a.totalReps >= b.totalReps ? a : b,
+      (a, b) => a.totalReps >= b.totalReps ? a : b,
     );
   }
 
@@ -766,7 +766,7 @@ class StorageService {
       return <BenchmarkWodLog>[];
     }
     try {
-      final List<dynamic> list = jsonDecode(jsonStr);
+      final List<dynamic> list = jsonDecode(jsonStr) as List<dynamic>;
       return list
           .map((dynamic e) => BenchmarkWodLog.fromJson(e as Map<String, dynamic>))
           .toList();
@@ -777,7 +777,7 @@ class StorageService {
 
   Future<void> saveBenchmarkWodLogs(List<BenchmarkWodLog> logs) async {
     final String jsonStr = jsonEncode(
-      logs.map((BenchmarkWodLog e) => e.toJson()).toList(),
+      logs.map((e) => e.toJson()).toList(),
     );
     await _prefs.setString(_keyBenchmarkWodLogs, jsonStr);
   }
@@ -797,14 +797,14 @@ class StorageService {
 
   Future<void> deleteBenchmarkWodLog(String id) async {
     final List<BenchmarkWodLog> currentLogs = loadBenchmarkWodLogs();
-    currentLogs.removeWhere((BenchmarkWodLog log) => log.id == id);
+    currentLogs.removeWhere((log) => log.id == id);
     _recalculateBenchmarkPrs(currentLogs);
     await saveBenchmarkWodLogs(currentLogs);
   }
 
   void _recalculateBenchmarkPrs(List<BenchmarkWodLog> logs) {
     final List<BenchmarkWodLog> chronological = List<BenchmarkWodLog>.from(logs)
-      ..sort((BenchmarkWodLog a, BenchmarkWodLog b) => a.date.compareTo(b.date));
+      ..sort((a, b) => a.date.compareTo(b.date));
     final Map<String, BenchmarkWodLog> bestPerWodTier = <String, BenchmarkWodLog>{};
     for (int i = 0; i < chronological.length; i++) {
       final BenchmarkWodLog item = chronological[i];
@@ -826,11 +826,11 @@ class StorageService {
 
   List<BenchmarkWodLog> getBenchmarkWodHistory(String wodId, {bool? isRx}) {
     final List<BenchmarkWodLog> list = loadBenchmarkWodLogs()
-        .where((BenchmarkWodLog e) => e.wodId.toLowerCase() == wodId.toLowerCase())
+        .where((e) => e.wodId.toLowerCase() == wodId.toLowerCase())
         .toList();
-    list.sort((BenchmarkWodLog a, BenchmarkWodLog b) => b.date.compareTo(a.date));
+    list.sort((a, b) => b.date.compareTo(a.date));
     if (isRx != null) {
-      return list.where((BenchmarkWodLog e) => e.isRx == isRx).toList();
+      return list.where((e) => e.isRx == isRx).toList();
     }
     return list;
   }
@@ -841,7 +841,7 @@ class StorageService {
       return null;
     }
     return history.reduce(
-      (BenchmarkWodLog a, BenchmarkWodLog b) => a.isBetterScoreThan(b) ? a : b,
+      (a, b) => a.isBetterScoreThan(b) ? a : b,
     );
   }
 
@@ -860,7 +860,7 @@ class StorageService {
 
   Set<String> getCompletedWodIds() {
     final List<BenchmarkWodLog> all = loadBenchmarkWodLogs();
-    return all.map((BenchmarkWodLog e) => e.wodId.toLowerCase()).toSet();
+    return all.map((e) => e.wodId.toLowerCase()).toSet();
   }
 
   // --- EXPORT & IMPORT UTILITIES ---
@@ -1018,7 +1018,7 @@ class StorageService {
     try {
       final List<String> lines = csvStr
           .split(RegExp(r'\r?\n'))
-          .where((String l) => l.trim().isNotEmpty)
+          .where((l) => l.trim().isNotEmpty)
           .toList();
       if (lines.isEmpty) {
         return false;
@@ -1034,7 +1034,7 @@ class StorageService {
       for (int i = startIndex; i < lines.length; i++) {
         final List<String> parts = lines[i]
             .split(',')
-            .map((String p) => p.trim())
+            .map((p) => p.trim())
             .toList();
         if (parts.length < 3) {
           continue;
@@ -1045,7 +1045,7 @@ class StorageService {
 
         if (maxKg != null && maxKg > 0) {
           final int liftIndex = lifts.indexWhere(
-            (LiftModel l) => l.name.toLowerCase() == liftName.toLowerCase(),
+            (l) => l.name.toLowerCase() == liftName.toLowerCase(),
           );
           if (liftIndex != -1) {
             lifts[liftIndex].currentMax = maxKg;
@@ -1070,12 +1070,12 @@ class StorageService {
       return <BodyCompositionEntry>[];
     }
     try {
-      final List<dynamic> list = jsonDecode(jsonStr);
+      final List<dynamic> list = jsonDecode(jsonStr) as List<dynamic>;
       final List<BodyCompositionEntry> entries = list
           .map((e) => BodyCompositionEntry.fromJson(e as Map<String, dynamic>))
           .toList();
       entries.sort(
-        (BodyCompositionEntry a, BodyCompositionEntry b) =>
+        (a, b) =>
             b.timestamp.compareTo(a.timestamp),
       );
       return entries;
@@ -1086,7 +1086,7 @@ class StorageService {
 
   Future<void> saveBodyCompEntries(List<BodyCompositionEntry> entries) async {
     final String jsonStr = jsonEncode(
-      entries.map((BodyCompositionEntry e) => e.toJson()).toList(),
+      entries.map((e) => e.toJson()).toList(),
     );
     await _prefs.setString(_keyBodyCompEntries, jsonStr);
   }
@@ -1098,9 +1098,10 @@ class StorageService {
       return <String, DailyNutritionLog>{};
     }
     try {
-      final Map<String, dynamic> map = jsonDecode(jsonStr);
+      final Map<String, dynamic> map =
+          jsonDecode(jsonStr) as Map<String, dynamic>;
       return map.map(
-        (String k, v) =>
+        (k, v) =>
             MapEntry(k, DailyNutritionLog.fromJson(v as Map<String, dynamic>)),
       );
     } catch (_) {
@@ -1112,7 +1113,7 @@ class StorageService {
     Map<String, DailyNutritionLog> logs,
   ) async {
     final Map<String, Map<String, dynamic>> map = logs.map(
-      (String k, DailyNutritionLog v) => MapEntry(k, v.toJson()),
+      (k, v) => MapEntry(k, v.toJson()),
     );
     final String jsonStr = jsonEncode(map);
     await _prefs.setString(_keyNutritionLogs, jsonStr);
@@ -1145,7 +1146,7 @@ class StorageService {
       return <NutritionEntry>[];
     }
     try {
-      final List<dynamic> list = jsonDecode(jsonStr);
+      final List<dynamic> list = jsonDecode(jsonStr) as List<dynamic>;
       return list
           .map((e) => NutritionEntry.fromJson(e as Map<String, dynamic>))
           .toList();
@@ -1156,7 +1157,7 @@ class StorageService {
 
   Future<void> saveMealTemplates(List<NutritionEntry> templates) async {
     final String jsonStr = jsonEncode(
-      templates.map((NutritionEntry e) => e.toJson()).toList(),
+      templates.map((e) => e.toJson()).toList(),
     );
     await _prefs.setString(_keyMealTemplates, jsonStr);
   }
@@ -1168,9 +1169,10 @@ class StorageService {
       return <String, Map<String, dynamic>>{};
     }
     try {
-      final Map<String, dynamic> decoded = jsonDecode(jsonStr);
+      final Map<String, dynamic> decoded =
+          jsonDecode(jsonStr) as Map<String, dynamic>;
       return decoded.map(
-        (String k, v) => MapEntry(k, Map<String, dynamic>.from(v as Map)),
+        (k, v) => MapEntry(k, Map<String, dynamic>.from(v as Map)),
       );
     } catch (_) {
       return <String, Map<String, dynamic>>{};
@@ -1202,7 +1204,7 @@ class StorageService {
 
   Future<void> addRecentScannedBarcode(String barcode) async {
     final List<String> list = loadRecentScannedBarcodes();
-    list.removeWhere((String b) => b == barcode);
+    list.removeWhere((b) => b == barcode);
     list.insert(0, barcode);
     if (list.length > 20) {
       list.removeRange(20, list.length);
@@ -1221,7 +1223,7 @@ class StorageService {
       return <InjuryRecord>[];
     }
     try {
-      final List<dynamic> list = jsonDecode(jsonStr);
+      final List<dynamic> list = jsonDecode(jsonStr) as List<dynamic>;
       return list
           .map((dynamic e) => InjuryRecord.fromJson(e as Map<String, dynamic>))
           .toList();
@@ -1232,7 +1234,7 @@ class StorageService {
 
   Future<void> saveInjuries(List<InjuryRecord> injuries) async {
     final String jsonStr = jsonEncode(
-      injuries.map((InjuryRecord e) => e.toJson()).toList(),
+      injuries.map((e) => e.toJson()).toList(),
     );
     await _prefs.setString(_keyInjuries, jsonStr);
   }
@@ -1244,12 +1246,12 @@ class StorageService {
       return <BreathingSessionLog>[];
     }
     try {
-      final List<dynamic> list = jsonDecode(jsonStr);
+      final List<dynamic> list = jsonDecode(jsonStr) as List<dynamic>;
       final List<BreathingSessionLog> logs = list
           .map((dynamic e) =>
               BreathingSessionLog.fromJson(e as Map<String, dynamic>))
           .toList();
-      logs.sort((BreathingSessionLog a, BreathingSessionLog b) =>
+      logs.sort((a, b) =>
           b.date.compareTo(a.date));
       return logs;
     } catch (_) {
@@ -1259,7 +1261,7 @@ class StorageService {
 
   Future<void> saveBreathingLogs(List<BreathingSessionLog> logs) async {
     final String jsonStr = jsonEncode(
-      logs.map((BreathingSessionLog e) => e.toJson()).toList(),
+      logs.map((e) => e.toJson()).toList(),
     );
     await _prefs.setString(_keyBreathingLogs, jsonStr);
   }
@@ -1313,11 +1315,11 @@ class StorageService {
       return <FastingSession>[];
     }
     try {
-      final List<dynamic> list = jsonDecode(jsonStr);
+      final List<dynamic> list = jsonDecode(jsonStr) as List<dynamic>;
       final List<FastingSession> history = list
           .map((dynamic e) => FastingSession.fromJson(e as Map<String, dynamic>))
           .toList();
-      history.sort((FastingSession a, FastingSession b) =>
+      history.sort((a, b) =>
           b.startTime.compareTo(a.startTime));
       return history;
     } catch (_) {
@@ -1327,7 +1329,7 @@ class StorageService {
 
   Future<void> saveFastingHistory(List<FastingSession> history) async {
     final String jsonStr = jsonEncode(
-      history.map((FastingSession s) => s.toJson()).toList(),
+      history.map((s) => s.toJson()).toList(),
     );
     await _prefs.setString(_keyFastingHistory, jsonStr);
   }
@@ -1357,7 +1359,7 @@ class StorageService {
       return <FastingGroceryItem>[];
     }
     try {
-      final List<dynamic> list = jsonDecode(jsonStr);
+      final List<dynamic> list = jsonDecode(jsonStr) as List<dynamic>;
       return list
           .map((dynamic e) =>
               FastingGroceryItem.fromJson(e as Map<String, dynamic>))
@@ -1369,7 +1371,7 @@ class StorageService {
 
   Future<void> saveFastingPantryItems(List<FastingGroceryItem> items) async {
     final String jsonStr = jsonEncode(
-      items.map((FastingGroceryItem i) => i.toJson()).toList(),
+      items.map((i) => i.toJson()).toList(),
     );
     await _prefs.setString(_keyFastingPantryItems, jsonStr);
   }
@@ -1380,7 +1382,7 @@ class StorageService {
       return <FastingBiomarkerEntry>[];
     }
     try {
-      final List<dynamic> list = jsonDecode(jsonStr);
+      final List<dynamic> list = jsonDecode(jsonStr) as List<dynamic>;
       return list
           .map((dynamic e) =>
               FastingBiomarkerEntry.fromJson(e as Map<String, dynamic>))
@@ -1392,7 +1394,7 @@ class StorageService {
 
   Future<void> saveFastingBiomarkers(List<FastingBiomarkerEntry> entries) async {
     final String jsonStr = jsonEncode(
-      entries.map((FastingBiomarkerEntry e) => e.toJson()).toList(),
+      entries.map((e) => e.toJson()).toList(),
     );
     await _prefs.setString(_keyFastingBiomarkers, jsonStr);
   }

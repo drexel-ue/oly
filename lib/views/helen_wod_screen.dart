@@ -6,7 +6,7 @@ import 'package:oly/theme/app_theme.dart';
 import 'package:oly/widgets/helen_wod_card.dart';
 
 class HelenWodScreen extends StatefulWidget {
-  const HelenWodScreen({
+  const new({
     super.key,
     this.isPreviewMode = false,
   });
@@ -30,7 +30,7 @@ class _HelenWodScreenState extends State<HelenWodScreen> {
   Widget build(BuildContext context) {
     final MobilityExerciseModel helenExercise =
         MobilityExerciseModel.defaultExercises().firstWhere(
-      (MobilityExerciseModel e) => e.id == 'helen_wod',
+      (e) => e.id == 'helen_wod',
     );
 
     return Scaffold(

@@ -7,7 +7,7 @@ enum FastingGroceryCategory {
 }
 
 class FastingGroceryItem {
-  const FastingGroceryItem({
+  const new({
     required this.id,
     required this.name,
     required this.category,
@@ -16,12 +16,12 @@ class FastingGroceryItem {
     this.isCustom = false,
   });
 
-  factory FastingGroceryItem.fromJson(Map<String, dynamic> json) {
+  factory fromJson(Map<String, dynamic> json) {
     return FastingGroceryItem(
       id: json['id'] as String,
       name: json['name'] as String,
       category: FastingGroceryCategory.values.firstWhere(
-        (FastingGroceryCategory c) => c.name == json['category'],
+        (c) => c.name == json['category'],
         orElse: () => FastingGroceryCategory.fastingEssentials,
       ),
       description: json['description'] as String? ?? '',

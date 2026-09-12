@@ -21,10 +21,6 @@ void main() {
         totalTimeSeconds: 165, // 2:45
         splitAt10Seconds: 45, // 0:45
         splitAt20Seconds: 105, // 1:45
-        barbellWeightKg: 61.2,
-        repPacingScheme: 'quick_singles',
-        cleanTechnique: 'power_clean',
-        jerkTechnique: 'push_jerk',
       );
 
       expect(rxLog.scalingTier, equals('Rx'));
@@ -55,7 +51,6 @@ void main() {
       final GraceWorkoutLog scaledLight = GraceWorkoutLog(
         totalTimeSeconds: 220,
         barbellWeightKg: 52.2, // 115 lb for men
-        isRxWomen: false,
       );
       expect(scaledLight.scalingTier, equals('Scaled'));
 
@@ -83,7 +78,6 @@ void main() {
       // First session: 3:30 (210s) -> should be PR
       final GraceWorkoutLog firstLog = GraceWorkoutLog(
         totalTimeSeconds: 210,
-        barbellWeightKg: 61.2,
         scalingTier: 'Rx',
       );
       final GraceWorkoutLog result1 = await recovery.logGraceWorkout(firstLog);
@@ -95,7 +89,6 @@ void main() {
       // Slower session: 3:50 (230s) -> NOT a PR
       final GraceWorkoutLog slowerLog = GraceWorkoutLog(
         totalTimeSeconds: 230,
-        barbellWeightKg: 61.2,
         scalingTier: 'Rx',
       );
       final GraceWorkoutLog result2 = await recovery.logGraceWorkout(slowerLog);
@@ -105,7 +98,6 @@ void main() {
       // Faster session: 2:20 (140s) -> NEW PR
       final GraceWorkoutLog fasterLog = GraceWorkoutLog(
         totalTimeSeconds: 140,
-        barbellWeightKg: 61.2,
         scalingTier: 'Rx',
       );
       final GraceWorkoutLog result3 = await recovery.logGraceWorkout(fasterLog);
@@ -149,10 +141,10 @@ void main() {
     }
 
     testWidgets('Renders GraceWodCard header, stopwatch, rep counter, and setup explainer button',
-        (WidgetTester tester) async {
+        (tester) async {
       final MobilityExerciseModel graceExercise =
           MobilityExerciseModel.defaultExercises().firstWhere(
-        (MobilityExerciseModel e) => e.id == 'grace_wod',
+        (e) => e.id == 'grace_wod',
       );
 
       await tester.pumpWidget(
@@ -174,14 +166,14 @@ void main() {
     });
 
     testWidgets('Starts stopwatch on rep tap and records reps towards 30',
-        (WidgetTester tester) async {
+        (tester) async {
       tester.view.physicalSize = const Size(1080, 2400);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() => tester.view.resetPhysicalSize());
 
       final MobilityExerciseModel graceExercise =
           MobilityExerciseModel.defaultExercises().firstWhere(
-        (MobilityExerciseModel e) => e.id == 'grace_wod',
+        (e) => e.id == 'grace_wod',
       );
 
       await tester.pumpWidget(
@@ -209,10 +201,10 @@ void main() {
     });
 
     testWidgets('Toggles between Live Mode and Manual Entry mode',
-        (WidgetTester tester) async {
+        (tester) async {
       final MobilityExerciseModel graceExercise =
           MobilityExerciseModel.defaultExercises().firstWhere(
-        (MobilityExerciseModel e) => e.id == 'grace_wod',
+        (e) => e.id == 'grace_wod',
       );
 
       await tester.pumpWidget(

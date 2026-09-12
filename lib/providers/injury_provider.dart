@@ -6,7 +6,7 @@ import 'package:oly/services/storage_service.dart';
 import 'package:uuid/uuid.dart';
 
 class InjuryProvider extends ChangeNotifier {
-  InjuryProvider(this._storage) {
+  new(this._storage) {
     _injuries = _storage.loadInjuries();
     InjuryDatabaseService.instance.loadCatalog();
   }
@@ -18,32 +18,32 @@ class InjuryProvider extends ChangeNotifier {
 
   List<InjuryRecord> get allInjuries => List.unmodifiable(_injuries);
   List<InjuryRecord> get activeInjuries =>
-      _injuries.where((InjuryRecord i) => i.isActive).toList();
+      _injuries.where((i) => i.isActive).toList();
   List<InjuryRecord> get chronicInjuries =>
-      activeInjuries.where((InjuryRecord i) => i.stage == InjuryStage.chronic).toList();
+      activeInjuries.where((i) => i.stage == InjuryStage.chronic).toList();
   List<InjuryRecord> get subacuteInjuries =>
-      activeInjuries.where((InjuryRecord i) => i.stage == InjuryStage.subacute).toList();
+      activeInjuries.where((i) => i.stage == InjuryStage.subacute).toList();
   List<InjuryRecord> get acuteInjuries =>
-      activeInjuries.where((InjuryRecord i) => i.stage == InjuryStage.acute).toList();
+      activeInjuries.where((i) => i.stage == InjuryStage.acute).toList();
   List<InjuryRecord> get resolvedInjuries =>
-      _injuries.where((InjuryRecord i) => !i.isActive).toList();
+      _injuries.where((i) => !i.isActive).toList();
 
   int get totalActiveCount => activeInjuries.length;
 
   double get averagePainScore {
     if (activeInjuries.isEmpty) {
-      return 0.0;
+      return 0;
     }
     final int sum = activeInjuries.fold(
       0,
-      (int acc, InjuryRecord i) => acc + i.painScale,
+      (acc, i) => acc + i.painScale,
     );
     return sum / activeInjuries.length;
   }
 
   InjuryRecord? getActiveInjuryForRegion(InjuryRegion region) {
     try {
-      return activeInjuries.firstWhere((InjuryRecord i) => i.region == region);
+      return activeInjuries.firstWhere((i) => i.region == region);
     } catch (_) {
       return null;
     }
@@ -55,10 +55,10 @@ class InjuryProvider extends ChangeNotifier {
   }
 
   Future<void> addInjury(InjuryRecord record) async {
-    _injuries.removeWhere((InjuryRecord i) => i.id == record.id);
+    _injuries.removeWhere((i) => i.id == record.id);
     // If there is already an active injury for this region, update or replace it
     _injuries.removeWhere(
-      (InjuryRecord i) => i.region == record.region && i.isActive && i.id != record.id,
+      (i) => i.region == record.region && i.isActive && i.id != record.id,
     );
 
     _injuries.insert(0, record);
@@ -71,7 +71,7 @@ class InjuryProvider extends ChangeNotifier {
   }
 
   Future<void> updateInjury(InjuryRecord record) async {
-    final int index = _injuries.indexWhere((InjuryRecord i) => i.id == record.id);
+    final int index = _injuries.indexWhere((i) => i.id == record.id);
     if (index != -1) {
       _injuries[index] = record;
       await _storage.saveInjuries(_injuries);
@@ -82,7 +82,7 @@ class InjuryProvider extends ChangeNotifier {
   }
 
   Future<void> resolveInjury(String id) async {
-    final int index = _injuries.indexWhere((InjuryRecord i) => i.id == id);
+    final int index = _injuries.indexWhere((i) => i.id == id);
     if (index != -1) {
       final InjuryRecord existing = _injuries[index];
       _injuries[index] = existing.copyWith(
@@ -100,7 +100,7 @@ class InjuryProvider extends ChangeNotifier {
   }
 
   Future<void> deleteInjury(String id) async {
-    _injuries.removeWhere((InjuryRecord i) => i.id == id);
+    _injuries.removeWhere((i) => i.id == id);
     await _storage.saveInjuries(_injuries);
     notifyListeners();
   }

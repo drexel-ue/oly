@@ -23,7 +23,7 @@ extension WodFormatExtension on WodFormat {
 }
 
 class WodMovementStandard {
-  const WodMovementStandard({
+  const new({
     required this.movementName,
     required this.repsOrDistance,
     required this.standards,
@@ -37,7 +37,7 @@ class WodMovementStandard {
 }
 
 class WodSetupExplainer {
-  const WodSetupExplainer({
+  const new({
     required this.floorPlanAdvice,
     required this.equipmentChecklist,
     required this.movementStandards,
@@ -66,7 +66,7 @@ class WodSetupExplainer {
 }
 
 class WodDefinition {
-  const WodDefinition({
+  const new({
     required this.id,
     required this.name,
     required this.subtitle,
@@ -94,7 +94,7 @@ class WodDefinition {
 }
 
 class WodCatalog {
-  WodCatalog._();
+  new _();
 
   static const WodDefinition cindy = WodDefinition(
     id: 'cindy',
@@ -373,7 +373,6 @@ class WodCatalog {
     category: 'The Girls Benchmark',
     targetTimeOrCap: 'For Time (Target: 6–10 min)',
     targetCapSeconds: 900,
-    hasInteractiveTracker: false,
     equipment: <String>[
       'Speed Jump Rope',
       'AbMat or Yoga Mat',
@@ -432,7 +431,6 @@ class WodCatalog {
     category: 'Hero Benchmark',
     targetTimeOrCap: 'For Time (Target: 35–60 min)',
     targetCapSeconds: 4200,
-    hasInteractiveTracker: false,
     equipment: <String>[
       '20 lb / 14 lb Weighted Vest (Rx)',
       'Pull-up Bar',
@@ -703,7 +701,7 @@ class WodCatalog {
   /// Find WOD by ID
   static WodDefinition? getById(String id) {
     try {
-      return allWods.firstWhere((WodDefinition w) => w.id == id);
+      return allWods.firstWhere((w) => w.id == id);
     } catch (_) {
       return null;
     }
@@ -714,7 +712,7 @@ class WodCatalog {
     final Random random = Random();
     List<WodDefinition> candidates = allWods;
     if (excludeId != null && candidates.length > 1) {
-      candidates = candidates.where((WodDefinition w) => w.id != excludeId).toList();
+      candidates = candidates.where((w) => w.id != excludeId).toList();
     }
     return candidates[random.nextInt(candidates.length)];
   }

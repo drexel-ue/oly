@@ -1,5 +1,5 @@
 class ExerciseTemplate {
-  ExerciseTemplate({
+  new({
     required this.name,
     required this.liftId,
     required this.setScheme,
@@ -10,13 +10,13 @@ class ExerciseTemplate {
     this.notes,
   });
 
-  factory ExerciseTemplate.fromJson(Map<String, dynamic> json) {
+  factory fromJson(Map<String, dynamic> json) {
     return ExerciseTemplate(
       name: json['name'] as String,
       liftId: json['liftId'] as String,
       setScheme: json['setScheme'] as String,
       weekPercentages: (json['weekPercentages'] as Map<String, dynamic>?)?.map(
-        (String k, dynamic v) => MapEntry<int, double>(int.parse(k), (v as num).toDouble()),
+        (k, dynamic v) => MapEntry<int, double>(int.parse(k), (v as num).toDouble()),
       ),
       anchorLiftId: json['anchorLiftId'] as String?,
       fixedPercentage: (json['fixedPercentage'] as num?)?.toDouble(),
@@ -68,7 +68,7 @@ class ExerciseTemplate {
       'liftId': liftId,
       'setScheme': setScheme,
       'weekPercentages': weekPercentages?.map(
-        (int k, double v) => MapEntry<String, double>(k.toString(), v),
+        (k, v) => MapEntry<String, double>(k.toString(), v),
       ),
       'anchorLiftId': anchorLiftId,
       'fixedPercentage': fixedPercentage,
@@ -79,9 +79,9 @@ class ExerciseTemplate {
 }
 
 class PhaseTemplate {
-  PhaseTemplate({required this.name, required this.exercises});
+  new({required this.name, required this.exercises});
 
-  factory PhaseTemplate.fromJson(Map<String, dynamic> json) {
+  factory fromJson(Map<String, dynamic> json) {
     return PhaseTemplate(
       name: json['name'] as String,
       exercises: (json['exercises'] as List<dynamic>)
@@ -95,13 +95,13 @@ class PhaseTemplate {
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
       'name': name,
-      'exercises': exercises.map((ExerciseTemplate e) => e.toJson()).toList(),
+      'exercises': exercises.map((e) => e.toJson()).toList(),
     };
   }
 }
 
 class DayTemplate {
-  DayTemplate({
+  new({
     required this.dayNumber,
     required this.title,
     required this.subtitle,
@@ -110,7 +110,7 @@ class DayTemplate {
     this.isFreeform = false,
   });
 
-  factory DayTemplate.fromJson(Map<String, dynamic> json) {
+  factory fromJson(Map<String, dynamic> json) {
     return DayTemplate(
       dayNumber: json['dayNumber'] as int,
       title: json['title'] as String,
@@ -134,7 +134,7 @@ class DayTemplate {
       'dayNumber': dayNumber,
       'title': title,
       'subtitle': subtitle,
-      'phases': phases.map((PhaseTemplate e) => e.toJson()).toList(),
+      'phases': phases.map((e) => e.toJson()).toList(),
       'isActiveRecovery': isActiveRecovery,
       'isFreeform': isFreeform,
     };
@@ -206,14 +206,14 @@ class DayTemplate {
 }
 
 class ProgramCycle {
-  ProgramCycle({
+  new({
     this.currentCycle = 1,
     this.currentWeek = 1,
     this.currentDay = 1,
     List<String>? completedSessionIds,
   }) : completedSessionIds = completedSessionIds ?? <String>[];
 
-  factory ProgramCycle.fromJson(Map<String, dynamic> json) {
+  factory fromJson(Map<String, dynamic> json) {
     return ProgramCycle(
       currentCycle: json['currentCycle'] as int? ?? 1,
       currentWeek: json['currentWeek'] as int? ?? 1,
@@ -247,7 +247,6 @@ class ProgramCycle {
         title: 'Day $dayNum: Conditioning & Accessories',
         subtitle:
             'Free-Form Canvas: Pick a WOD, Kettlebell Mile, or Accessories',
-        isActiveRecovery: false,
         isFreeform: true,
         phases: <PhaseTemplate>[],
       );
@@ -270,7 +269,7 @@ class ProgramCycle {
                   liftId: 'snatch',
                   setScheme:
                       '5 Sets: 1x3 @ 60%, 1x2 @ 75%, 1x1 @ 85%, 1x1 @ 95%, 1x1 @ New PR Target',
-                  fixedPercentage: 100.0,
+                  fixedPercentage: 100,
                   notes:
                       'Ramp progressively through warmups to establish new 1RM baseline.',
                 ),
@@ -283,7 +282,7 @@ class ProgramCycle {
                   name: 'Back Squat',
                   liftId: 'back_squat',
                   setScheme: '3 Sets of 3 Reps',
-                  fixedPercentage: 70.0,
+                  fixedPercentage: 70,
                   notes: '@ 70% dynamic speed effort; keep legs fresh and explosive.',
                 ),
               ],
@@ -309,7 +308,7 @@ class ProgramCycle {
                   liftId: 'clean_and_jerk',
                   setScheme:
                       '5 Sets: 1x3 @ 60%, 1x2 @ 75%, 1x1 @ 85%, 1x1 @ 95%, 1x1 @ New PR Target',
-                  fixedPercentage: 100.0,
+                  fixedPercentage: 100,
                   notes:
                       'Ramp progressively through warmups to establish new 1RM baseline.',
                 ),
@@ -323,7 +322,7 @@ class ProgramCycle {
                   liftId: 'clean_and_jerk',
                   anchorLiftId: 'clean_and_jerk',
                   setScheme: '3 Sets of 2 Reps',
-                  fixedPercentage: 70.0,
+                  fixedPercentage: 70,
                   notes: '@ 70% speed effort; maintain sharp upright posture.',
                 ),
               ],
@@ -348,7 +347,7 @@ class ProgramCycle {
                   liftId: 'back_squat',
                   setScheme:
                       '5 Sets: 1x3 @ 60%, 1x2 @ 75%, 1x1 @ 85%, 1x1 @ 95%, 1x1 @ New PR Target',
-                  fixedPercentage: 100.0,
+                  fixedPercentage: 100,
                   notes:
                       'Test true squat baseline to anchor next cycle percentages.',
                 ),
@@ -444,7 +443,7 @@ class ProgramCycle {
                   liftId: 'clean_and_jerk',
                   anchorLiftId: 'clean_and_jerk',
                   setScheme: '4 Sets of 3 Reps',
-                  fixedPercentage: 75.0,
+                  fixedPercentage: 75,
                   notes: '@ 75% of Clean and Jerk Max',
                 ),
               ],
@@ -484,7 +483,7 @@ class ProgramCycle {
                   name: 'Snatch Pull',
                   liftId: 'snatch',
                   setScheme: '3 Sets of 2 Reps',
-                  fixedPercentage: 90.0,
+                  fixedPercentage: 90,
                   notes: '@ 90% for all weeks',
                 ),
               ],
@@ -528,7 +527,7 @@ class ProgramCycle {
                   liftId: 'clean_and_jerk',
                   anchorLiftId: 'clean_and_jerk',
                   setScheme: '4 Sets of 3 Reps',
-                  fixedPercentage: 75.0,
+                  fixedPercentage: 75,
                   notes: '@ 75% of Clean and Jerk Max',
                 ),
               ],
@@ -613,7 +612,7 @@ class ProgramCycle {
                   liftId: 'clean_and_jerk',
                   anchorLiftId: 'clean_and_jerk',
                   setScheme: '3 Sets of 2 Reps',
-                  fixedPercentage: 95.0,
+                  fixedPercentage: 95,
                   notes: '@ 95% of Clean and Jerk Max',
                 ),
               ],

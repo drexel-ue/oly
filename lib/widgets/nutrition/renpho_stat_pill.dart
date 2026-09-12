@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:oly/theme/app_theme.dart';
 
 class RenphoStatPill extends StatelessWidget {
-  const RenphoStatPill({
+  const new({
     required this.icon,
     required this.label,
     required this.value,

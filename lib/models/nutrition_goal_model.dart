@@ -37,7 +37,7 @@ enum GoalType {
 class NutritionGoalModel {
   // Custom water goal override if user sets one
 
-  const NutritionGoalModel({
+  const new({
     this.goalType = GoalType.recomposition,
     this.targetBodyFatPct = 15.0,
     this.targetWeightLb,
@@ -50,10 +50,10 @@ class NutritionGoalModel {
     this.customDailyWaterGoalOz,
   });
 
-  factory NutritionGoalModel.fromJson(Map<String, dynamic> json) {
+  factory fromJson(Map<String, dynamic> json) {
     return NutritionGoalModel(
       goalType: GoalType.values.firstWhere(
-        (GoalType g) => g.name == (json['goalType'] as String?),
+        (g) => g.name == (json['goalType'] as String?),
         orElse: () => GoalType.recomposition,
       ),
       targetBodyFatPct: (json['targetBodyFatPct'] as num?)?.toDouble() ?? 15.0,

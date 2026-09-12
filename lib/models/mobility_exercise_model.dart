@@ -26,7 +26,7 @@ enum MobilityCategory {
 }
 
 class MobilityExerciseModel {
-  MobilityExerciseModel({
+  new({
     required this.id,
     required this.name,
     required this.focusArea,
@@ -41,7 +41,7 @@ class MobilityExerciseModel {
     this.thumbnailUrl,
   });
 
-  factory MobilityExerciseModel.fromDatabaseModel(ExerciseDatabaseModel dbModel) {
+  factory fromDatabaseModel(ExerciseDatabaseModel dbModel) {
     MobilityFocusArea focus = MobilityFocusArea.hipCapsule;
     final String muscle = dbModel.targetMuscle.toLowerCase();
     final String bodyPart = dbModel.bodyPart.toLowerCase();
@@ -84,8 +84,8 @@ class MobilityExerciseModel {
     if (dbModel.instructions != null && dbModel.instructions!.isNotEmpty) {
       cues = dbModel.instructions!
           .split('\n')
-          .map((String s) => s.trim())
-          .where((String s) => s.isNotEmpty)
+          .map((s) => s.trim())
+          .where((s) => s.isNotEmpty)
           .toList();
     }
     if (dbModel.tips != null && dbModel.tips!.isNotEmpty) {
@@ -112,21 +112,20 @@ class MobilityExerciseModel {
           : '${dbModel.name} (${dbModel.displayEquipment}, targeting ${dbModel.displayTargetMuscle})',
       cues: cues.isNotEmpty ? cues : <String>['Perform with controlled tempo and strict form.'],
       videoUrl: videoUrl,
-      isYoutube: true,
       thumbnailUrl: dbModel.gifUrl,
     );
   }
 
-  factory MobilityExerciseModel.fromJson(Map<String, dynamic> json) {
+  factory fromJson(Map<String, dynamic> json) {
     return MobilityExerciseModel(
       id: json['id'] as String,
       name: json['name'] as String,
       focusArea: MobilityFocusArea.values.firstWhere(
-        (MobilityFocusArea e) => e.name == json['focusArea'],
+        (e) => e.name == json['focusArea'],
         orElse: () => MobilityFocusArea.hipCapsule,
       ),
       category: MobilityCategory.values.firstWhere(
-        (MobilityCategory e) => e.name == json['category'],
+        (e) => e.name == json['category'],
         orElse: () => MobilityCategory.mobilityDrill,
       ),
       description: json['description'] as String,
@@ -195,7 +194,6 @@ class MobilityExerciseModel {
         defaultSets: 1,
         defaultReps: 1,
         videoUrl: _youtubeSearchUrl('Kettlebell Mile Loaded Carry'),
-        isYoutube: true,
       ),
       MobilityExerciseModel(
         id: 'zone2_cardio_row',
@@ -210,7 +208,6 @@ class MobilityExerciseModel {
         ],
         durationSeconds: 180,
         videoUrl: _youtubeSearchUrl('Concept2 Ergometer Rowing Technique'),
-        isYoutube: true,
       ),
       MobilityExerciseModel(
         id: 'farmers_walk_mile',
@@ -226,7 +223,6 @@ class MobilityExerciseModel {
         defaultSets: 1,
         defaultReps: 1,
         videoUrl: _youtubeSearchUrl('Farmers Walk Mile'),
-        isYoutube: true,
       ),
       MobilityExerciseModel(
         id: 'cindy_wod',
@@ -245,7 +241,6 @@ class MobilityExerciseModel {
         defaultSets: 1,
         defaultReps: 1,
         videoUrl: _youtubeSearchUrl('Crossfit Cindy Workout Strategy'),
-        isYoutube: true,
       ),
       MobilityExerciseModel(
         id: 'jackie_wod',
@@ -263,7 +258,6 @@ class MobilityExerciseModel {
         defaultSets: 1,
         defaultReps: 1,
         videoUrl: _youtubeSearchUrl('Crossfit Jackie Strategy and Pacing'),
-        isYoutube: true,
       ),
       MobilityExerciseModel(
         id: 'fran_wod',
@@ -281,7 +275,6 @@ class MobilityExerciseModel {
         defaultSets: 1,
         defaultReps: 1,
         videoUrl: _youtubeSearchUrl('Crossfit Fran Workout Strategy'),
-        isYoutube: true,
       ),
       MobilityExerciseModel(
         id: 'helen_wod',
@@ -299,7 +292,6 @@ class MobilityExerciseModel {
         defaultSets: 1,
         defaultReps: 1,
         videoUrl: _youtubeSearchUrl('Crossfit Helen Workout Strategy'),
-        isYoutube: true,
       ),
       MobilityExerciseModel(
         id: 'grace_wod',
@@ -317,7 +309,6 @@ class MobilityExerciseModel {
         defaultSets: 1,
         defaultReps: 1,
         videoUrl: _youtubeSearchUrl('Crossfit Grace Workout Strategy'),
-        isYoutube: true,
       ),
       MobilityExerciseModel(
         id: 'dt_wod',
@@ -335,7 +326,6 @@ class MobilityExerciseModel {
         defaultSets: 1,
         defaultReps: 1,
         videoUrl: _youtubeSearchUrl('Crossfit DT Workout Strategy'),
-        isYoutube: true,
       ),
       MobilityExerciseModel(
         id: 'death_by_burpees_wod',
@@ -353,7 +343,6 @@ class MobilityExerciseModel {
         defaultSets: 1,
         defaultReps: 1,
         videoUrl: _youtubeSearchUrl('Crossfit Death By Burpees Strategy'),
-        isYoutube: true,
       ),
 
       // FOAM ROLLING
@@ -370,7 +359,6 @@ class MobilityExerciseModel {
         ],
         durationSeconds: 90,
         videoUrl: _youtubeSearchUrl('Thoracic Spine Extension Foam Roller'),
-        isYoutube: true,
       ),
       MobilityExerciseModel(
         id: 'quads_lats_foam_roll',
@@ -384,7 +372,6 @@ class MobilityExerciseModel {
         ],
         durationSeconds: 90,
         videoUrl: _youtubeSearchUrl('Foam Rolling Quads and Lats'),
-        isYoutube: true,
       ),
 
       // JOINT MOBILIZATION & DROMS
@@ -401,7 +388,6 @@ class MobilityExerciseModel {
         ],
         durationSeconds: 90,
         videoUrl: _youtubeSearchUrl('90 90 Hip Mobility Switches'),
-        isYoutube: true,
       ),
       MobilityExerciseModel(
         id: 'banded_ankle_distraction',
@@ -416,7 +402,6 @@ class MobilityExerciseModel {
         ],
         durationSeconds: 90,
         videoUrl: _youtubeSearchUrl('Banded Ankle Dorsiflexion Mobilization'),
-        isYoutube: true,
       ),
 
       // BARBELL PREP: SNATCH SPECIFIC
@@ -435,7 +420,6 @@ class MobilityExerciseModel {
         defaultSets: 1,
         defaultReps: 5,
         videoUrl: _youtubeSearchUrl('Burgener Snatch Warm Up'),
-        isYoutube: true,
       ),
       MobilityExerciseModel(
         id: 'sotts_press',
@@ -451,7 +435,6 @@ class MobilityExerciseModel {
         defaultSets: 2,
         defaultReps: 5,
         videoUrl: _youtubeSearchUrl('Press in Snatch Bottom Sotts Press'),
-        isYoutube: true,
       ),
 
       // BARBELL PREP: CLEAN & JERK SPECIFIC
@@ -470,7 +453,6 @@ class MobilityExerciseModel {
         defaultSets: 1,
         defaultReps: 5,
         videoUrl: _youtubeSearchUrl('Clean and Jerk Warmup Complex'),
-        isYoutube: true,
       ),
 
       // BARBELL PREP: SQUAT SPECIFIC
@@ -488,7 +470,6 @@ class MobilityExerciseModel {
         defaultSets: 2,
         defaultReps: 5,
         videoUrl: _youtubeSearchUrl('Paused Squat Warmup'),
-        isYoutube: true,
       ),
 
       // ACCESSORIES & HYPERTROPHY
@@ -503,10 +484,8 @@ class MobilityExerciseModel {
           'Raise arms outward and overhead until plates touch at top.',
           'Lower smoothly under control for a 3-second eccentric.',
         ],
-        defaultSets: 3,
         defaultReps: 12,
         videoUrl: _youtubeSearchUrl('Lu Raises Lu Xiaojun'),
-        isYoutube: true,
       ),
       MobilityExerciseModel(
         id: 'cossack_squat',
@@ -519,10 +498,8 @@ class MobilityExerciseModel {
           'Keep working heel glued to floor and opposite toe pointing up.',
           'Drive through working heel to return to center.',
         ],
-        defaultSets: 3,
         defaultReps: 8,
         videoUrl: _youtubeSearchUrl('Bodyweight Cossack Squat'),
-        isYoutube: true,
       ),
       MobilityExerciseModel(
         id: 'jefferson_curl',
@@ -535,10 +512,8 @@ class MobilityExerciseModel {
           'Tuck chin and roll down spine segment by segment.',
           'Reach down past toes smoothly, then roll up sequentially.',
         ],
-        defaultSets: 3,
         defaultReps: 6,
         videoUrl: _youtubeSearchUrl('Jefferson Curl'),
-        isYoutube: true,
       ),
       MobilityExerciseModel(
         id: 'couch_stretch',
@@ -553,7 +528,6 @@ class MobilityExerciseModel {
         ],
         durationSeconds: 90,
         videoUrl: _youtubeSearchUrl('Couch Stretch Quad Hip Flexor'),
-        isYoutube: true,
       ),
 
       // CORE: CABLE CRUNCHES & DRAGON FLAGS
@@ -568,10 +542,8 @@ class MobilityExerciseModel {
           'Flex spine and crunch ribcage down toward pelvis, contracting abs intensely at bottom.',
           'Resist cable stack on eccentric ascent without letting hips rock backward.',
         ],
-        defaultSets: 3,
         defaultReps: 8,
         videoUrl: _youtubeSearchUrl('Kneeling Cable Crunches Rope Form'),
-        isYoutube: true,
       ),
       MobilityExerciseModel(
         id: 'dragon_flags',
@@ -584,10 +556,8 @@ class MobilityExerciseModel {
           'Raise entire body in straight line from shoulders to toes.',
           'Lower body slowly under control without breaking at the hips.',
         ],
-        defaultSets: 3,
         defaultReps: 5,
         videoUrl: _youtubeSearchUrl('Dragon Flag Progression Form'),
-        isYoutube: true,
       ),
       MobilityExerciseModel(
         id: 'ghd_back_extensions',
@@ -602,11 +572,8 @@ class MobilityExerciseModel {
           'Contract glutes, hamstrings, and spinal erectors to raise torso until parallel with legs.',
           'Avoid excessive hyperextension at top; pause 1-2 seconds with active glute squeeze.',
         ],
-        defaultSets: 3,
         defaultReps: 12,
-        durationSeconds: 60,
         videoUrl: _youtubeSearchUrl('GHD Machine Back Extension Form'),
-        isYoutube: true,
       ),
       MobilityExerciseModel(
         id: 'ghd_situp',
@@ -622,11 +589,8 @@ class MobilityExerciseModel {
           'Violently extend knees to fire quadriceps and hip flexors while pulling torso forward.',
           'Finish with hands touching the footpad upright or toe anchor at top.',
         ],
-        defaultSets: 3,
         defaultReps: 15,
-        durationSeconds: 60,
         videoUrl: _youtubeSearchUrl('GHD Sit Up CrossFit Technique'),
-        isYoutube: true,
       ),
       MobilityExerciseModel(
         id: 'hanging_leg_raises',
@@ -639,10 +603,8 @@ class MobilityExerciseModel {
           'Raise legs up to parallel (or toes to bar) without swinging body.',
           'Lower legs under control to prevent momentum.',
         ],
-        defaultSets: 3,
         defaultReps: 12,
         videoUrl: _youtubeSearchUrl('Hanging Leg Raises'),
-        isYoutube: true,
       ),
       MobilityExerciseModel(
         id: 'ab_wheel_rollout',
@@ -655,11 +617,7 @@ class MobilityExerciseModel {
           'Squeeze abs hard at full extension before pulling back to knees.',
           'Alternatively hold a forearm plank for 60 seconds.',
         ],
-        durationSeconds: 60,
-        defaultSets: 3,
-        defaultReps: 10,
         videoUrl: _youtubeSearchUrl('Ab Wheel Rollout'),
-        isYoutube: true,
       ),
 
       // ARMS & HYPERTROPHY (BICEPS & TRICEPS)
@@ -674,10 +632,7 @@ class MobilityExerciseModel {
           'Curl weights up keeping elbows pinned to your ribs.',
           'Squeeze biceps hard at top contraction, then lower with a 2-second tempo.',
         ],
-        defaultSets: 3,
-        defaultReps: 10,
         videoUrl: _youtubeSearchUrl('Dumbbell Bicep Curls'),
-        isYoutube: true,
       ),
       MobilityExerciseModel(
         id: 'hammer_curls',
@@ -690,10 +645,7 @@ class MobilityExerciseModel {
           'Curl upward keeping wrists rigid and elbows pinned.',
           'Lower smoothly for 2 seconds.',
         ],
-        defaultSets: 3,
-        defaultReps: 10,
         videoUrl: _youtubeSearchUrl('Dumbbell Hammer Curls'),
-        isYoutube: true,
       ),
       MobilityExerciseModel(
         id: 'bayesian_cable_curl',
@@ -708,10 +660,8 @@ class MobilityExerciseModel {
           'Curl handle forward into peak flexion without letting elbow swing forward.',
           'Control eccentric descent for 3 seconds into full stretch.',
         ],
-        defaultSets: 3,
         defaultReps: 12,
         videoUrl: _youtubeSearchUrl('Bayesian Cable Curl Tutorial'),
-        isYoutube: true,
       ),
       MobilityExerciseModel(
         id: 'barbell_bicep_curls',
@@ -724,10 +674,7 @@ class MobilityExerciseModel {
           'Drive elbows slightly forward at contraction peak.',
           'Control eccentric descent.',
         ],
-        defaultSets: 3,
-        defaultReps: 10,
         videoUrl: _youtubeSearchUrl('Barbell Bicep Curls Form'),
-        isYoutube: true,
       ),
       MobilityExerciseModel(
         id: 'overhead_tricep_ext',
@@ -740,10 +687,7 @@ class MobilityExerciseModel {
           'Lower weight behind head keeping elbows pointed straight forward.',
           'Extend arms fully overhead to lockout without flaring elbows.',
         ],
-        defaultSets: 3,
-        defaultReps: 10,
         videoUrl: _youtubeSearchUrl('Overhead Dumbbell Tricep Extension'),
-        isYoutube: true,
       ),
       MobilityExerciseModel(
         id: 'skull_crushers',
@@ -756,10 +700,7 @@ class MobilityExerciseModel {
           'Hinge at elbows to lower weight toward forehead/crown.',
           'Press back to lockout keeping upper arms stationary.',
         ],
-        defaultSets: 3,
-        defaultReps: 10,
         videoUrl: _youtubeSearchUrl('Lying Tricep Extensions Skull Crushers'),
-        isYoutube: true,
       ),
       MobilityExerciseModel(
         id: 'tricep_pushdown',
@@ -772,10 +713,8 @@ class MobilityExerciseModel {
           'Push downward until arms are fully locked out at sides.',
           'Return slowly to 90-degree elbow angle.',
         ],
-        defaultSets: 3,
         defaultReps: 12,
         videoUrl: _youtubeSearchUrl('Cable Tricep Pushdown Form'),
-        isYoutube: true,
       ),
       MobilityExerciseModel(
         id: 'seated_leg_extensions',
@@ -789,11 +728,8 @@ class MobilityExerciseModel {
           'Extend legs smoothly to full extension, pausing for 1-2 seconds at peak contraction.',
           'Lower weight with a controlled 3-second eccentric tempo without letting stack crash.',
         ],
-        defaultSets: 3,
         defaultReps: 12,
-        durationSeconds: 60,
         videoUrl: _youtubeSearchUrl('Seated Machine Leg Extension Form'),
-        isYoutube: true,
       ),
 
       // GRIP STRENGTH
@@ -809,10 +745,8 @@ class MobilityExerciseModel {
           'Do not let weights bounce against your legs.',
         ],
         durationSeconds: 45,
-        defaultSets: 3,
         defaultReps: 1,
         videoUrl: _youtubeSearchUrl('Farmer Carry Exercise'),
-        isYoutube: true,
       ),
       MobilityExerciseModel(
         id: 'barbell_dead_hang',
@@ -826,10 +760,8 @@ class MobilityExerciseModel {
           'Hold grip firmly for 45-60 seconds per set.',
         ],
         durationSeconds: 45,
-        defaultSets: 3,
         defaultReps: 1,
         videoUrl: _youtubeSearchUrl('Dead Hang Exercise'),
-        isYoutube: true,
       ),
     ];
   }

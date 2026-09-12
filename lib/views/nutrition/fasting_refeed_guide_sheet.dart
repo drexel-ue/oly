@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:oly/theme/app_theme.dart';
 
 class FastingRefeedGuideSheet extends StatefulWidget {
-  const FastingRefeedGuideSheet({super.key, this.elapsedHours = 24.0});
+  const new({super.key, this.elapsedHours = 24.0});
 
   final double elapsedHours;
 
@@ -15,7 +15,7 @@ class FastingRefeedGuideSheet extends StatefulWidget {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (BuildContext _) =>
+      builder: (_) =>
           FastingRefeedGuideSheet(elapsedHours: elapsedHours),
     );
   }
@@ -35,7 +35,7 @@ class _FastingRefeedGuideSheetState extends State<FastingRefeedGuideSheet> {
       minChildSize: 0.5,
       maxChildSize: 0.95,
       expand: false,
-      builder: (BuildContext context, ScrollController scrollController) {
+      builder: (context, scrollController) {
         return SingleChildScrollView(
           controller: scrollController,
           padding: const EdgeInsets.all(20),

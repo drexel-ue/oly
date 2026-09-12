@@ -20,15 +20,15 @@ void main() {
         servingSize: '100g',
         servingWeightGrams: 100,
         calories: 165,
-        protein: 31.0,
-        carbs: 0.0,
+        protein: 31,
+        carbs: 0,
         fat: 3.6,
         source: 'offline_staple',
       );
 
       final NutritionEntry entry = item.toNutritionEntry(
         mealCategory: MealCategory.lunch,
-        servingMultiplier: 2.0, // 200g
+        servingMultiplier: 2, // 200g
       );
 
       expect(entry.name, equals('Chicken Breast'));
@@ -40,7 +40,7 @@ void main() {
     });
 
     test('Parses Open Food Facts Barcode API responses accurately', () async {
-      final MockClient mockClient = MockClient((http.Request request) async {
+      final MockClient mockClient = MockClient((request) async {
         if (request.url.path.contains('999999000001')) {
           final Map<String, Object> body = <String, Object>{
             'status': 1,
@@ -88,9 +88,9 @@ void main() {
         servingSize: '30g scoop',
         servingWeightGrams: 30,
         calories: 120,
-        protein: 25.0,
-        carbs: 1.0,
-        fat: 1.0,
+        protein: 25,
+        carbs: 1,
+        fat: 1,
         source: 'offline_staple',
       );
 
@@ -114,7 +114,7 @@ void main() {
         );
         expect(chickenMatches.isNotEmpty, isTrue);
         expect(
-          chickenMatches.any((FoodItem f) => f.name.contains('Breast')),
+          chickenMatches.any((f) => f.name.contains('Breast')),
           isTrue,
         );
 
@@ -135,22 +135,22 @@ void main() {
       final List<FoodItem> restaurantFoods = await service.getRestaurantFoods();
 
       expect(restaurantFoods.isNotEmpty, isTrue);
-      expect(restaurantFoods.any((FoodItem f) => f.brand == 'Wingstop'), isTrue);
+      expect(restaurantFoods.any((f) => f.brand == 'Wingstop'), isTrue);
 
       // Search for "wingstop"
       final List<FoodItem> wingstopMatches = await service.searchLocalFoods('wingstop');
       expect(wingstopMatches.length, greaterThanOrEqualTo(10));
-      expect(wingstopMatches.any((FoodItem f) => f.name.contains('Lemon Pepper')), isTrue);
-      expect(wingstopMatches.any((FoodItem f) => f.name.contains('Garlic Parmesan')), isTrue);
-      expect(wingstopMatches.any((FoodItem f) => f.name.contains('Ranch')), isTrue);
+      expect(wingstopMatches.any((f) => f.name.contains('Lemon Pepper')), isTrue);
+      expect(wingstopMatches.any((f) => f.name.contains('Garlic Parmesan')), isTrue);
+      expect(wingstopMatches.any((f) => f.name.contains('Ranch')), isTrue);
 
       // Verify piece-based scaling for 10 wings
       final FoodItem lemonPepperWing = wingstopMatches.firstWhere(
-        (FoodItem f) => f.name.contains('Lemon Pepper') && f.servingUnitName == 'wing',
+        (f) => f.name.contains('Lemon Pepper') && f.servingUnitName == 'wing',
       );
       final NutritionEntry tenWings = lemonPepperWing.toNutritionEntry(
         mealCategory: MealCategory.dinner,
-        servingMultiplier: 10.0,
+        servingMultiplier: 10,
       );
 
       expect(tenWings.name, contains('Wingstop'));
@@ -161,11 +161,11 @@ void main() {
       // Search for "chipotle"
       final List<FoodItem> chipotleMatches = await service.searchLocalFoods('chipotle');
       expect(chipotleMatches.isNotEmpty, isTrue);
-      expect(chipotleMatches.any((FoodItem f) => f.name.contains('Chicken')), isTrue);
+      expect(chipotleMatches.any((f) => f.name.contains('Chicken')), isTrue);
     });
 
     test('Parses USDA FoodData Central API search responses accurately', () async {
-      final MockClient mockClient = MockClient((http.Request request) async {
+      final MockClient mockClient = MockClient((request) async {
         if (request.url.host.contains('nal.usda.gov')) {
           final Map<String, Object> body = <String, Object>{
             'foods': <Map<String, Object>>[

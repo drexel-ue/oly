@@ -19,12 +19,12 @@ enum FoodSourceFilter {
   staples('Staples & Whole Foods'),
   online('USDA & Online');
 
-  const FoodSourceFilter(this.label);
+  new(this.label);
   final String label;
 }
 
 class FoodSearchSheet extends StatefulWidget {
-  const FoodSearchSheet({
+  const new({
     super.key,
     this.defaultCategory = MealCategory.lunch,
     this.foodDatabaseService,
@@ -122,7 +122,7 @@ class _FoodSearchSheetState extends State<FoodSearchSheet> {
       final List<FoodItem> local = await _foodService.searchLocalFoods(clean);
       AppLogService.instance.info(
         'FOOD_SEARCH',
-        'Local SQLite search for "$clean": ${local.length} results (Top: ${local.take(3).map((FoodItem f) => "${f.name} [${f.source}]").join(", ")})',
+        'Local SQLite search for "$clean": ${local.length} results (Top: ${local.take(3).map((f) => "${f.name} [${f.source}]").join(", ")})',
       );
       if (mounted && _searchController.text.trim() == clean) {
         setState(() {
@@ -159,7 +159,7 @@ class _FoodSearchSheetState extends State<FoodSearchSheet> {
     HapticFeedback.selectionClick();
     Navigator.of(context)
         .push(
-          MaterialPageRoute(
+          MaterialPageRoute<void>(
             builder: (_) =>
                 LiveBarcodeScannerSheet(defaultCategory: _selectedCategory),
           ),
@@ -173,12 +173,12 @@ class _FoodSearchSheetState extends State<FoodSearchSheet> {
         return _results;
       case FoodSourceFilter.restaurants:
         return _results
-            .where((FoodItem i) => i.source == 'offline_restaurant')
+            .where((i) => i.source == 'offline_restaurant')
             .toList();
       case FoodSourceFilter.staples:
         return _results
             .where(
-              (FoodItem i) =>
+              (i) =>
                   i.source == 'offline_staple' ||
                   i.source == 'usda_foundation' ||
                   i.source == 'usda_sr_legacy',
@@ -187,7 +187,7 @@ class _FoodSearchSheetState extends State<FoodSearchSheet> {
       case FoodSourceFilter.online:
         return _results
             .where(
-              (FoodItem i) =>
+              (i) =>
                   i.source.startsWith('usda_') ||
                   i.source == 'usda_fooddata' ||
                   i.source == 'open_food_facts',
@@ -346,16 +346,16 @@ class _FoodSearchSheetState extends State<FoodSearchSheet> {
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 itemCount: _recentScans.length,
                 separatorBuilder: (_, _) => const SizedBox(width: 8),
-                itemBuilder: (BuildContext ctx, int idx) {
+                itemBuilder: (ctx, idx) {
                   final FoodItem item = _recentScans[idx];
                   return InkWell(
                     onTap: () {
                       HapticFeedback.selectionClick();
-                      showModalBottomSheet(
+                      showModalBottomSheet<void>(
                         context: context,
                         isScrollControlled: true,
                         backgroundColor: Colors.transparent,
-                        builder: (BuildContext modalContext) =>
+                        builder: (modalContext) =>
                             SmartPortionDrawer(
                               key: Key(item.id),
                               initialFoodItem: item,
@@ -416,7 +416,7 @@ class _FoodSearchSheetState extends State<FoodSearchSheet> {
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Row(
-              children: FoodSourceFilter.values.map((FoodSourceFilter f) {
+              children: FoodSourceFilter.values.map((f) {
                 final bool isSelected = _selectedFilter == f;
                 return Padding(
                   padding: const EdgeInsets.only(right: 6),
@@ -443,7 +443,7 @@ class _FoodSearchSheetState extends State<FoodSearchSheet> {
                           ? AppTheme.primaryAmber
                           : AppTheme.borderColor,
                     ),
-                    onSelected: (bool sel) {
+                    onSelected: (sel) {
                       setState(() => _selectedFilter = f);
                       AppLogService.instance.info(
                         'FOOD_SEARCH',
@@ -463,7 +463,7 @@ class _FoodSearchSheetState extends State<FoodSearchSheet> {
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Row(
-              children: MealCategory.values.map((MealCategory cat) {
+              children: MealCategory.values.map((cat) {
                 final bool isSelected = _selectedCategory == cat;
                 return Padding(
                   padding: const EdgeInsets.only(right: 6),
@@ -490,7 +490,7 @@ class _FoodSearchSheetState extends State<FoodSearchSheet> {
                           ? AppTheme.primaryAmber
                           : AppTheme.borderColor,
                     ),
-                    onSelected: (bool selected) {
+                    onSelected: (selected) {
                       if (selected) {
                         setState(() => _selectedCategory = cat);
                       }
@@ -552,7 +552,7 @@ class _FoodSearchSheetState extends State<FoodSearchSheet> {
                         ),
                         itemCount: displayList.length,
                         separatorBuilder: (_, _) => const SizedBox(height: 8),
-                        itemBuilder: (BuildContext ctx, int idx) {
+                        itemBuilder: (ctx, idx) {
                           final FoodItem item = displayList[idx];
                           final bool isSelected = _selectedItem?.id == item.id;
                           return _buildFoodItemTile(item, isSelected);
@@ -617,11 +617,11 @@ class _FoodSearchSheetState extends State<FoodSearchSheet> {
           borderRadius: BorderRadius.circular(14),
           onTap: () {
             HapticFeedback.selectionClick();
-            showModalBottomSheet(
+            showModalBottomSheet<void>(
               context: context,
               isScrollControlled: true,
               backgroundColor: Colors.transparent,
-              builder: (BuildContext modalContext) => SmartPortionDrawer(
+              builder: (modalContext) => SmartPortionDrawer(
                 key: Key(item.id),
                 initialFoodItem: item,
                 defaultCategory: _selectedCategory,

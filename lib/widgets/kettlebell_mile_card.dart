@@ -13,7 +13,7 @@ import 'package:oly/theme/app_theme.dart';
 import 'package:provider/provider.dart';
 
 class KettlebellMileCard extends StatefulWidget {
-  const KettlebellMileCard({
+  const new({
     required this.exercise,
     required this.onCompleted,
     required this.onSkip,
@@ -33,10 +33,10 @@ class KettlebellMileCard extends StatefulWidget {
 }
 
 class _KettlebellMileCardState extends State<KettlebellMileCard> {
-  double _kettlebellWeightKg = 10.0;
-  double _kettlebellPctBw = 10.0;
+  double _kettlebellWeightKg = 10;
+  double _kettlebellPctBw = 10;
   double _speedMph = 3.5;
-  double _inclinePct = 1.0;
+  double _inclinePct = 1;
 
   // Timer / Stopwatch state
   Timer? _stopwatchTimer;
@@ -99,7 +99,7 @@ class _KettlebellMileCardState extends State<KettlebellMileCard> {
       setState(() => _isTimerRunning = false);
     } else {
       setState(() => _isTimerRunning = true);
-      _stopwatchTimer = Timer.periodic(const Duration(seconds: 1), (Timer timer) {
+      _stopwatchTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
         setState(() {
           _elapsedSeconds++;
           _minutesController.text = (_elapsedSeconds ~/ 60).toString();
@@ -189,7 +189,7 @@ class _KettlebellMileCardState extends State<KettlebellMileCard> {
     final TextEditingController controller = TextEditingController(text: initialValue);
     await showDialog<void>(
       context: context,
-      builder: (BuildContext ctx) {
+      builder: (ctx) {
         return AlertDialog(
           backgroundColor: AppTheme.surfaceCard,
           shape: RoundedRectangleBorder(
@@ -271,13 +271,13 @@ class _KettlebellMileCardState extends State<KettlebellMileCard> {
     final List<KettlebellMileLog> history = recovery.getKettlebellMileHistory();
     final String unit = settings.unitLabel.toUpperCase();
 
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       backgroundColor: AppTheme.surfaceCard,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (BuildContext ctx) {
+      builder: (ctx) {
         return SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(20),
@@ -358,7 +358,7 @@ class _KettlebellMileCardState extends State<KettlebellMileCard> {
                     child: ListView.builder(
                       shrinkWrap: true,
                       itemCount: history.length,
-                      itemBuilder: (BuildContext ctx, int idx) {
+                      itemBuilder: (ctx, idx) {
                         final KettlebellMileLog item = history[idx];
                         final String dateStr = DateFormat('MMM d, yyyy • h:mm a').format(item.date);
                         final double dispWeight = settings.toDisplayWeight(item.weightKg);
@@ -513,7 +513,7 @@ class _KettlebellMileCardState extends State<KettlebellMileCard> {
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
                         color: Colors.tealAccent,
-                        letterSpacing: 1.0,
+                        letterSpacing: 1,
                       ),
                     ),
                   ),
@@ -684,7 +684,7 @@ class _KettlebellMileCardState extends State<KettlebellMileCard> {
                             fontSize: 11,
                             fontWeight: FontWeight.bold,
                             color: AppTheme.secondaryCyan,
-                            letterSpacing: 1.0,
+                            letterSpacing: 1,
                           ),
                         ),
                       ],
@@ -759,7 +759,7 @@ class _KettlebellMileCardState extends State<KettlebellMileCard> {
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
                         color: AppTheme.textSecondary,
-                        letterSpacing: 1.0,
+                        letterSpacing: 1,
                       ),
                     ),
                     Container(
@@ -795,7 +795,7 @@ class _KettlebellMileCardState extends State<KettlebellMileCard> {
                     const SizedBox(width: 6),
                     _buildStepperBtn('+2.5', () => _adjustWeight(2.5)),
                     const SizedBox(width: 6),
-                    _buildStepperBtn('+5.0', () => _adjustWeight(5.0)),
+                    _buildStepperBtn('+5.0', () => _adjustWeight(5)),
                   ],
                 ),
                 const SizedBox(height: 10),
@@ -803,7 +803,7 @@ class _KettlebellMileCardState extends State<KettlebellMileCard> {
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
-                    children: <double>[10.0, 15.0, 20.0, 25.0, 30.0].map((double pct) {
+                    children: <double>[10, 15, 20, 25, 30].map((pct) {
                       final bool isSel = (_kettlebellPctBw - pct).abs() < 0.1;
                       return Padding(
                         padding: const EdgeInsets.only(right: 6),
@@ -927,7 +927,7 @@ class _KettlebellMileCardState extends State<KettlebellMileCard> {
                       SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
                         child: Row(
-                          children: <double>[2.5, 3.0, 3.5, 4.0, 4.5].map((double spd) {
+                          children: <double>[2.5, 3, 3.5, 4, 4.5].map((spd) {
                             final bool isSel = (_speedMph - spd).abs() < 0.05;
                             return Padding(
                               padding: const EdgeInsets.only(right: 4),
@@ -1078,7 +1078,7 @@ class _KettlebellMileCardState extends State<KettlebellMileCard> {
                       SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
                         child: Row(
-                          children: <double>[0.0, 1.0, 2.0, 3.0, 5.0].map((double inc) {
+                          children: <double>[0, 1, 2, 3, 5].map((inc) {
                             final bool isSel = (_inclinePct - inc).abs() < 0.05;
                             return Padding(
                               padding: const EdgeInsets.only(right: 4),
@@ -1176,7 +1176,7 @@ class _KettlebellMileCardState extends State<KettlebellMileCard> {
                             fontSize: 11,
                             fontWeight: FontWeight.bold,
                             color: _isUnder20Minutes ? Colors.greenAccent : AppTheme.primaryAmber,
-                            letterSpacing: 1.0,
+                            letterSpacing: 1,
                           ),
                         ),
                       ],

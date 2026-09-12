@@ -4,7 +4,7 @@ import 'package:oly/models/fasting_session_model.dart';
 import 'package:oly/theme/app_theme.dart';
 
 class FastingProjectionCard extends StatelessWidget {
-  const FastingProjectionCard({
+  const new({
     required this.scheduleDays,
     super.key,
   });
@@ -40,7 +40,7 @@ class FastingProjectionCard extends StatelessWidget {
                     style: GoogleFonts.outfit(
                       fontSize: 11,
                       fontWeight: FontWeight.w800,
-                      letterSpacing: 1.0,
+                      letterSpacing: 1,
                       color: AppTheme.textSecondary,
                     ),
                   ),
@@ -71,9 +71,9 @@ class FastingProjectionCard extends StatelessWidget {
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               itemCount: scheduleDays.length,
-              separatorBuilder: (BuildContext _, int _) =>
+              separatorBuilder: (_, _) =>
                   const SizedBox(width: 10),
-              itemBuilder: (BuildContext context, int index) {
+              itemBuilder: (context, index) {
                 final FastingScheduleDay day = scheduleDays[index];
                 final bool isToday = index == 0;
 

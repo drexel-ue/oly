@@ -9,7 +9,7 @@ import 'package:oly/widgets/video_player_card.dart';
 import 'package:provider/provider.dart';
 
 class WarmupSessionScreen extends StatefulWidget {
-  const WarmupSessionScreen({super.key, this.dayTemplate});
+  const new({super.key, this.dayTemplate});
   final DayTemplate? dayTemplate;
 
   @override
@@ -176,7 +176,7 @@ class _WarmupSessionScreenState extends State<WarmupSessionScreen> {
                             fontSize: 11,
                             fontWeight: FontWeight.bold,
                             color: AppTheme.primaryAmber,
-                            letterSpacing: 1.0,
+                            letterSpacing: 1,
                           ),
                         ),
                       ],
@@ -193,7 +193,7 @@ class _WarmupSessionScreenState extends State<WarmupSessionScreen> {
                         .diagnosticReasons
                         .isNotEmpty) ...<Widget>[
                       const SizedBox(height: 6),
-                      ..._warmupRoutine.diagnosticReasons.map((String reason) {
+                      ..._warmupRoutine.diagnosticReasons.map((reason) {
                         return Text(
                           '• ${settings.formatTextUnits(reason)}',
                           style: GoogleFonts.inter(
@@ -213,7 +213,7 @@ class _WarmupSessionScreenState extends State<WarmupSessionScreen> {
                 scrollDirection: Axis.horizontal,
                 child: Row(
                   children: List.generate(_warmupRoutine.phaseGroups.length, (
-                    int index,
+                    index,
                   ) {
                     final WarmupPhaseGroup group =
                         _warmupRoutine.phaseGroups[index];
@@ -274,7 +274,7 @@ class _WarmupSessionScreenState extends State<WarmupSessionScreen> {
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
                       color: AppTheme.primaryAmber,
-                      letterSpacing: 1.0,
+                      letterSpacing: 1,
                     ),
                   ),
                   Row(
@@ -301,7 +301,7 @@ class _WarmupSessionScreenState extends State<WarmupSessionScreen> {
                 exercise: activeEx,
                 originalExercise: originalEx,
                 isSwapped: isSwapped,
-                onSwapExercise: (MobilityExerciseModel replacement) {
+                onSwapExercise: (replacement) {
                   setState(() {
                     _swappedExercises[originalEx.id] = replacement;
                   });

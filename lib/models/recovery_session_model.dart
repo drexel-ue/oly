@@ -1,5 +1,5 @@
 class RecoverySessionLog {
-  RecoverySessionLog({
+  new({
     required this.id,
     required this.date,
     required this.durationMinutes,
@@ -8,7 +8,7 @@ class RecoverySessionLog {
     required this.diagnosticReasons,
   });
 
-  factory RecoverySessionLog.fromJson(Map<String, dynamic> json) {
+  factory fromJson(Map<String, dynamic> json) {
     return RecoverySessionLog(
       id: json['id'] as String,
       date: DateTime.parse(json['date'] as String),

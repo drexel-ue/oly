@@ -6,7 +6,7 @@ import 'package:oly/theme/app_theme.dart';
 import 'package:oly/widgets/cindy_wod_card.dart';
 
 class CindyWodScreen extends StatefulWidget {
-  const CindyWodScreen({
+  const new({
     super.key,
     this.isPreviewMode = false,
   });
@@ -30,7 +30,7 @@ class _CindyWodScreenState extends State<CindyWodScreen> {
   Widget build(BuildContext context) {
     final MobilityExerciseModel cindyExercise =
         MobilityExerciseModel.defaultExercises().firstWhere(
-      (MobilityExerciseModel e) => e.id == 'cindy_wod',
+      (e) => e.id == 'cindy_wod',
     );
 
     return Scaffold(

@@ -885,7 +885,7 @@ extension BiomechanicalConstraintExtension on BiomechanicalConstraint {
 }
 
 class InjurySubstitution {
-  InjurySubstitution({
+  new({
     required this.targetExercise,
     required this.replacementName,
     required this.replacementLiftId,
@@ -893,7 +893,7 @@ class InjurySubstitution {
     required this.rationale,
   });
 
-  factory InjurySubstitution.fromJson(Map<String, dynamic> json) {
+  factory fromJson(Map<String, dynamic> json) {
     return InjurySubstitution(
       targetExercise: json['targetExercise'] as String? ?? '',
       replacementName: json['replacementName'] as String? ?? '',
@@ -921,7 +921,7 @@ class InjurySubstitution {
 }
 
 class CatalogInjury {
-  CatalogInjury({
+  new({
     required this.id,
     required this.osiicsCode,
     required this.name,
@@ -938,25 +938,25 @@ class CatalogInjury {
     this.subRegion,
   });
 
-  factory CatalogInjury.fromJson(Map<String, dynamic> json) {
+  factory fromJson(Map<String, dynamic> json) {
     return CatalogInjury(
       id: json['id'] as String,
       osiicsCode: json['osiicsCode'] as String? ?? '',
       name: json['name'] as String,
       region: InjuryRegion.values.firstWhere(
-        (InjuryRegion r) => r.name == json['region'],
+        (r) => r.name == json['region'],
         orElse: () => InjuryRegion.leftKnee,
       ),
       subRegion: json['subRegion'] != null
           ? InjurySubRegion.values.firstWhere(
-              (InjurySubRegion s) => s.name == json['subRegion'],
+              (s) => s.name == json['subRegion'],
               orElse: () => InjurySubRegion.generalKnee,
             )
           : null,
       supportedRegions: (json['supportedRegions'] as List<dynamic>?)
               ?.map(
                 (dynamic e) => InjuryRegion.values.firstWhere(
-                  (InjuryRegion r) => r.name == e,
+                  (r) => r.name == e,
                   orElse: () => InjuryRegion.leftKnee,
                 ),
               )
@@ -968,7 +968,7 @@ class CatalogInjury {
       aggravatingVectors: (json['aggravatingVectors'] as List<dynamic>?)
               ?.map(
                 (dynamic e) => BiomechanicalConstraint.values.firstWhere(
-                  (BiomechanicalConstraint c) => c.name == e,
+                  (c) => c.name == e,
                   orElse: () => BiomechanicalConstraint.avoidDeepKneeFlexion,
                 ),
               )
@@ -985,7 +985,7 @@ class CatalogInjury {
       rehabFocusAreas: (json['rehabFocusAreas'] as List<dynamic>?)
               ?.map(
                 (dynamic e) => MobilityFocusArea.values.firstWhere(
-                  (MobilityFocusArea f) => f.name == e,
+                  (f) => f.name == e,
                   orElse: () => MobilityFocusArea.hipCapsule,
                 ),
               )
@@ -1020,28 +1020,28 @@ class CatalogInjury {
       'name': name,
       'region': region.name,
       if (subRegion != null) 'subRegion': subRegion!.name,
-      'supportedRegions': supportedRegions.map((InjuryRegion r) => r.name).toList(),
+      'supportedRegions': supportedRegions.map((r) => r.name).toList(),
       'description': description,
       'acuteDurationDays': acuteDurationDays,
       'chronicThresholdDays': chronicThresholdDays,
-      'aggravatingVectors': aggravatingVectors.map((BiomechanicalConstraint c) => c.name).toList(),
+      'aggravatingVectors': aggravatingVectors.map((c) => c.name).toList(),
       'contraindicatedLifts': contraindicatedLifts,
-      'safeSubstitutions': safeSubstitutions.map((InjurySubstitution s) => s.toJson()).toList(),
-      'rehabFocusAreas': rehabFocusAreas.map((MobilityFocusArea f) => f.name).toList(),
+      'safeSubstitutions': safeSubstitutions.map((s) => s.toJson()).toList(),
+      'rehabFocusAreas': rehabFocusAreas.map((f) => f.name).toList(),
       'rehabCues': rehabCues,
     };
   }
 }
 
 class InjuryHistoryEntry {
-  InjuryHistoryEntry({
+  new({
     required this.date,
     required this.painScale,
     this.notes = '',
     this.sessionRpe,
   });
 
-  factory InjuryHistoryEntry.fromJson(Map<String, dynamic> json) {
+  factory fromJson(Map<String, dynamic> json) {
     return InjuryHistoryEntry(
       date: DateTime.parse(json['date'] as String),
       painScale: json['painScale'] as int? ?? 1,
@@ -1066,7 +1066,7 @@ class InjuryHistoryEntry {
 }
 
 class InjuryRecord {
-  InjuryRecord({
+  new({
     required this.id,
     required this.name,
     required this.region,
@@ -1084,18 +1084,18 @@ class InjuryRecord {
     this.rehabCues = const <String>[],
   }) : history = history ?? <InjuryHistoryEntry>[];
 
-  factory InjuryRecord.fromJson(Map<String, dynamic> json) {
+  factory fromJson(Map<String, dynamic> json) {
     return InjuryRecord(
       id: json['id'] as String,
       name: json['name'] as String,
       osiicsCode: json['osiicsCode'] as String? ?? '',
       region: InjuryRegion.values.firstWhere(
-        (InjuryRegion r) => r.name == json['region'],
+        (r) => r.name == json['region'],
         orElse: () => InjuryRegion.leftKnee,
       ),
       subRegion: json['subRegion'] != null
           ? InjurySubRegion.values.firstWhere(
-              (InjurySubRegion s) => s.name == json['subRegion'],
+              (s) => s.name == json['subRegion'],
               orElse: () => InjurySubRegion.generalKnee,
             )
           : null,
@@ -1104,7 +1104,7 @@ class InjuryRecord {
       constraints: (json['constraints'] as List<dynamic>?)
               ?.map(
                 (dynamic e) => BiomechanicalConstraint.values.firstWhere(
-                  (BiomechanicalConstraint c) => c.name == e,
+                  (c) => c.name == e,
                   orElse: () => BiomechanicalConstraint.avoidDeepKneeFlexion,
                 ),
               )
@@ -1126,7 +1126,7 @@ class InjuryRecord {
       rehabFocusAreas: (json['rehabFocusAreas'] as List<dynamic>?)
               ?.map(
                 (dynamic e) => MobilityFocusArea.values.firstWhere(
-                  (MobilityFocusArea f) => f.name == e,
+                  (f) => f.name == e,
                   orElse: () => MobilityFocusArea.hipCapsule,
                 ),
               )
@@ -1244,20 +1244,20 @@ class InjuryRecord {
       if (subRegion != null) 'subRegion': subRegion!.name,
       'onsetDate': onsetDate.toIso8601String(),
       'painScale': painScale,
-      'constraints': constraints.map((BiomechanicalConstraint c) => c.name).toList(),
+      'constraints': constraints.map((c) => c.name).toList(),
       'notes': notes,
       'isActive': isActive,
       'resolvedAt': resolvedAt?.toIso8601String(),
-      'history': history.map((InjuryHistoryEntry h) => h.toJson()).toList(),
-      'safeSubstitutions': safeSubstitutions.map((InjurySubstitution s) => s.toJson()).toList(),
-      'rehabFocusAreas': rehabFocusAreas.map((MobilityFocusArea f) => f.name).toList(),
+      'history': history.map((h) => h.toJson()).toList(),
+      'safeSubstitutions': safeSubstitutions.map((s) => s.toJson()).toList(),
+      'rehabFocusAreas': rehabFocusAreas.map((f) => f.name).toList(),
       'rehabCues': rehabCues,
     };
   }
 }
 
 class InjuryCheckinDiff {
-  InjuryCheckinDiff({
+  new({
     required this.region,
     required this.initialPain,
     required this.postPain,

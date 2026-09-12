@@ -18,7 +18,7 @@ import 'package:oly/widgets/wod_setup_explainer_sheet.dart';
 import 'package:provider/provider.dart';
 
 class DeathByBurpeesWodCard extends StatefulWidget {
-  const DeathByBurpeesWodCard({
+  const new({
     required this.exercise,
     required this.onCompleted,
     super.key,
@@ -135,7 +135,7 @@ class _DeathByBurpeesWodCardState extends State<DeathByBurpeesWodCard> {
     _playBeepIfEnabled();
 
     _emomTimer?.cancel();
-    _emomTimer = Timer.periodic(const Duration(seconds: 1), (Timer timer) {
+    _emomTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (!mounted) {
         timer.cancel();
         return;
@@ -246,7 +246,7 @@ class _DeathByBurpeesWodCardState extends State<DeathByBurpeesWodCard> {
 
     showDialog<void>(
       context: context,
-      builder: (BuildContext ctx) => AlertDialog(
+      builder: (ctx) => AlertDialog(
         backgroundColor: AppTheme.surfaceCard,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
         title: Text(
@@ -327,9 +327,9 @@ class _DeathByBurpeesWodCardState extends State<DeathByBurpeesWodCard> {
     showDialog<void>(
       context: context,
       barrierDismissible: false,
-      builder: (BuildContext ctx) {
+      builder: (ctx) {
         return StatefulBuilder(
-          builder: (BuildContext context, void Function(void Function()) setDialogState) {
+          builder: (context, void Function(void Function()) setDialogState) {
             return AlertDialog(
               backgroundColor: AppTheme.surfaceCard,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
@@ -528,7 +528,7 @@ class _DeathByBurpeesWodCardState extends State<DeathByBurpeesWodCard> {
                           activityType: 'workout_wod',
                           name: 'CrossFit: Death By Burpees ($_scalingTier)',
                           durationMinutes: durationSeconds / 60.0,
-                          metValue: 11.0,
+                          metValue: 11,
                           caloriesBurned: caloriesBurned,
                           source: 'wod_auto_sync',
                           notes: logToSave.scoreDisplay,
@@ -626,7 +626,7 @@ class _DeathByBurpeesWodCardState extends State<DeathByBurpeesWodCard> {
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                             color: AppTheme.textPrimary,
-                            letterSpacing: 1.0,
+                            letterSpacing: 1,
                           ),
                         ),
                         const SizedBox(width: 6),
@@ -813,7 +813,7 @@ class _DeathByBurpeesWodCardState extends State<DeathByBurpeesWodCard> {
                           child: Text('Elevated Hands on Box (Scaled)'),
                         ),
                       ],
-                      onChanged: (String? val) {
+                      onChanged: (val) {
                         if (val != null) {
                           setState(() => _burpeeVariation = val);
                         }
@@ -880,7 +880,7 @@ class _DeathByBurpeesWodCardState extends State<DeathByBurpeesWodCard> {
                         fontSize: 14,
                         fontWeight: FontWeight.w900,
                         color: AppTheme.primaryAmber,
-                        letterSpacing: 1.0,
+                        letterSpacing: 1,
                       ),
                     ),
                   ),
@@ -905,7 +905,7 @@ class _DeathByBurpeesWodCardState extends State<DeathByBurpeesWodCard> {
                   color: _secondsRemainingInMinute <= 10
                       ? Colors.redAccent
                       : AppTheme.textPrimary,
-                  height: 1.0,
+                  height: 1,
                 ),
               ),
               Text(
@@ -960,7 +960,7 @@ class _DeathByBurpeesWodCardState extends State<DeathByBurpeesWodCard> {
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
                       color: AppTheme.textSecondary,
-                      letterSpacing: 1.0,
+                      letterSpacing: 1,
                     ),
                   ),
                   Container(
@@ -1219,7 +1219,7 @@ class _DeathByBurpeesWodCardState extends State<DeathByBurpeesWodCard> {
               fontSize: 11,
               fontWeight: FontWeight.bold,
               color: AppTheme.textSecondary,
-              letterSpacing: 1.0,
+              letterSpacing: 1,
             ),
           ),
           const SizedBox(height: 14),
@@ -1294,7 +1294,7 @@ class _DeathByBurpeesWodCardState extends State<DeathByBurpeesWodCard> {
 
           // Total Burpees Preview
           Builder(
-            builder: (BuildContext context) {
+            builder: (context) {
               final int mins = int.tryParse(_manualMinutesController.text) ?? 0;
               final int partial = int.tryParse(_manualPartialRepsController.text) ?? 0;
               final int fullReps = mins > 0 ? (mins * (mins + 1)) ~/ 2 : 0;

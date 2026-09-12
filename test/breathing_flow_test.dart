@@ -57,19 +57,16 @@ void main() {
             roundNumber: 1,
             breathsCount: 30,
             retentionSeconds: 60,
-            recoverySeconds: 15,
           ),
           BreathingRoundLog(
             roundNumber: 2,
             breathsCount: 30,
             retentionSeconds: 90,
-            recoverySeconds: 15,
           ),
           BreathingRoundLog(
             roundNumber: 3,
             breathsCount: 30,
             retentionSeconds: 120,
-            recoverySeconds: 15,
           ),
         ],
       );
@@ -85,7 +82,7 @@ void main() {
     test('BreathingSessionLog JSON encode and decode preserves all fields', () {
       final BreathingSessionLog original = BreathingSessionLog(
         id: 'json_test_sess',
-        date: DateTime(2026, 8, 29, 21, 0, 0),
+        date: DateTime(2026, 8, 29, 21),
         totalRounds: 2,
         readinessRating: 5,
         notes: 'Great flow!',
@@ -94,13 +91,11 @@ void main() {
             roundNumber: 1,
             breathsCount: 30,
             retentionSeconds: 85,
-            recoverySeconds: 15,
           ),
           BreathingRoundLog(
             roundNumber: 2,
             breathsCount: 30,
             retentionSeconds: 115,
-            recoverySeconds: 15,
           ),
         ],
       );
@@ -124,7 +119,7 @@ void main() {
       expect(relaxed.inhaleDurationSeconds, 2.7);
       expect(relaxed.exhaleDurationSeconds, 1.8);
 
-      const WimHofConfig normal = WimHofConfig(pace: BreathingPace.normal);
+      const WimHofConfig normal = WimHofConfig();
       expect(normal.cycleDurationSeconds, 3.5);
 
       const WimHofConfig fast = WimHofConfig(pace: BreathingPace.fast);
@@ -155,7 +150,6 @@ void main() {
             roundNumber: 1,
             breathsCount: 30,
             retentionSeconds: 200, // New PR: 3m 20s
-            recoverySeconds: 15,
           ),
         ],
       );
@@ -169,7 +163,7 @@ void main() {
 
   group('Wim Hof Setup Sheet Widget Tests', () {
     testWidgets('Renders setup sheet with round stepper, breath count, and pace selectors', (
-      WidgetTester tester,
+      tester,
     ) async {
       tester.view.physicalSize = const Size(1170, 2532);
       tester.view.devicePixelRatio = 2.0;
@@ -178,10 +172,10 @@ void main() {
       await tester.pumpWidget(
         buildTestWidget(
           Builder(
-            builder: (BuildContext context) {
+            builder: (context) {
               return ElevatedButton(
                 onPressed: () {
-                  showModalBottomSheet(
+                  showModalBottomSheet<void>(
                     context: context,
                     builder: (_) => const WimHofSetupSheet(),
                   );
@@ -221,7 +215,7 @@ void main() {
 
   group('Wim Hof Live Session Screen Widget Tests', () {
     testWidgets('Renders prep stage and advances to hyperventilation stage', (
-      WidgetTester tester,
+      tester,
     ) async {
       tester.view.physicalSize = const Size(1170, 2532);
       tester.view.devicePixelRatio = 2.0;
@@ -280,7 +274,7 @@ void main() {
 
   group('Wim Hof Summary Screen Widget Tests', () {
     testWidgets('Renders summary screen with round bars, stats, and star rating', (
-      WidgetTester tester,
+      tester,
     ) async {
       tester.view.physicalSize = const Size(1170, 2532);
       tester.view.devicePixelRatio = 2.0;
@@ -291,13 +285,11 @@ void main() {
           roundNumber: 1,
           breathsCount: 30,
           retentionSeconds: 80,
-          recoverySeconds: 15,
         ),
         BreathingRoundLog(
           roundNumber: 2,
           breathsCount: 30,
           retentionSeconds: 125,
-          recoverySeconds: 15,
         ),
       ];
 
@@ -335,7 +327,7 @@ void main() {
 
   group('Breathing Analytics Tab Widget Tests', () {
     testWidgets('Renders KPI overview cards, retention trend chart, and session history', (
-      WidgetTester tester,
+      tester,
     ) async {
       tester.view.physicalSize = const Size(1170, 2532);
       tester.view.devicePixelRatio = 2.0;

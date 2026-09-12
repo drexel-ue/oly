@@ -5,7 +5,7 @@ import 'package:oly/models/fasting_session_model.dart';
 import 'package:oly/theme/app_theme.dart';
 
 class FastingRadialGauge extends StatelessWidget {
-  const FastingRadialGauge({
+  const new({
     required this.session,
     super.key,
     this.size = 240.0,
@@ -69,7 +69,6 @@ class FastingRadialGauge extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
                       color: stage.color.withValues(alpha: 0.5),
-                      width: 1,
                     ),
                   ),
                   child: Row(
@@ -105,7 +104,7 @@ class FastingRadialGauge extends StatelessWidget {
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
-                    letterSpacing: 1.0,
+                    letterSpacing: 1,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -149,7 +148,7 @@ class FastingRadialGauge extends StatelessWidget {
 }
 
 class _FastingGaugePainter extends CustomPainter {
-  _FastingGaugePainter({
+  new({
     required this.progress,
     required this.targetHours,
     required this.elapsedHours,
@@ -165,7 +164,7 @@ class _FastingGaugePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final Offset center = Offset(size.width / 2, size.height / 2);
     final double radius = (size.width / 2) - 14;
-    const double strokeWidth = 12.0;
+    const double strokeWidth = 12;
 
     // Background track paint
     final Paint bgPaint = Paint()
@@ -197,7 +196,7 @@ class _FastingGaugePainter extends CustomPainter {
         AppTheme.primaryAmber, // Gold (Deep Autophagy)
         Color(0xFF00E676), // Green (Stem Cell Reset)
       ],
-      stops: <double>[0.0, 0.25, 0.5, 0.75, 1.0],
+      stops: <double>[0, 0.25, 0.5, 0.75, 1],
     );
 
     progressPaint.shader = gradient.createShader(rect);

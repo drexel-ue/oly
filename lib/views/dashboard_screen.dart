@@ -26,8 +26,8 @@ import 'package:oly/widgets/settings_modal.dart';
 import 'package:provider/provider.dart';
 
 class DashboardScreen extends StatelessWidget {
-  const DashboardScreen({super.key, this.onNavigateTab});
-  final Function(int)? onNavigateTab;
+  const new({super.key, this.onNavigateTab});
+  final void Function(int)? onNavigateTab;
 
   @override
   Widget build(BuildContext context) {
@@ -75,12 +75,12 @@ class DashboardScreen extends StatelessWidget {
             ),
             tooltip: 'Plate Calculator',
             onPressed: () {
-              showModalBottomSheet(
+              showModalBottomSheet<void>(
                 context: context,
                 isScrollControlled: true,
                 useSafeArea: true,
                 backgroundColor: Colors.transparent,
-                builder: (_) => const PlateModal(initialWeightKg: 100.0),
+                builder: (_) => const PlateModal(initialWeightKg: 100),
               );
             },
           ),
@@ -90,7 +90,7 @@ class DashboardScreen extends StatelessWidget {
               color: AppTheme.primaryAmber,
             ),
             tooltip: 'Toggle KG / LBS',
-            onPressed: () => settings.toggleUnit(),
+            onPressed: settings.toggleUnit,
           ),
           IconButton(
             icon: const Icon(
@@ -99,7 +99,7 @@ class DashboardScreen extends StatelessWidget {
             ),
             tooltip: 'Settings & Data Backup',
             onPressed: () {
-              showModalBottomSheet(
+              showModalBottomSheet<void>(
                 context: context,
                 isScrollControlled: true,
                 useSafeArea: true,
@@ -170,7 +170,7 @@ class DashboardScreen extends StatelessWidget {
                       onTap: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(
+                          MaterialPageRoute<void>(
                             builder: (_) =>
                                 WarmupSessionScreen(dayTemplate: currentDay),
                           ),
@@ -187,13 +187,13 @@ class DashboardScreen extends StatelessWidget {
                       icon: Icons.pie_chart,
                       accentColor: AppTheme.primaryAmber,
                       onTap: () {
-                        showModalBottomSheet(
+                        showModalBottomSheet<void>(
                           context: context,
                           isScrollControlled: true,
                           useSafeArea: true,
                           backgroundColor: Colors.transparent,
                           builder: (_) =>
-                              const PlateModal(initialWeightKg: 100.0),
+                              const PlateModal(initialWeightKg: 100),
                         );
                       },
                     ),
@@ -215,7 +215,7 @@ class DashboardScreen extends StatelessWidget {
                       onTap: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(
+                          MaterialPageRoute<void>(
                             builder: (_) => const NutritionDashboardScreen(),
                           ),
                         );
@@ -231,7 +231,7 @@ class DashboardScreen extends StatelessWidget {
                       icon: Icons.document_scanner,
                       accentColor: AppTheme.successGreen,
                       onTap: () {
-                        showModalBottomSheet(
+                        showModalBottomSheet<void>(
                           context: context,
                           isScrollControlled: true,
                           useSafeArea: true,
@@ -256,7 +256,7 @@ class DashboardScreen extends StatelessWidget {
                       icon: Icons.air,
                       accentColor: AppTheme.secondaryCyan,
                       onTap: () {
-                        showModalBottomSheet(
+                        showModalBottomSheet<void>(
                           context: context,
                           isScrollControlled: true,
                           useSafeArea: true,
@@ -280,7 +280,7 @@ class DashboardScreen extends StatelessWidget {
                         } else {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(
+                            MaterialPageRoute<void>(
                               builder: (_) => const AnalyticsScreen(),
                             ),
                           );
@@ -305,7 +305,7 @@ class DashboardScreen extends StatelessWidget {
                       onTap: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(
+                          MaterialPageRoute<void>(
                             builder: (_) => const WodHubScreen(),
                           ),
                         );
@@ -425,7 +425,7 @@ class DashboardScreen extends StatelessWidget {
           // Week selection pills (Week 1..4 + Week 5 Retest)
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: List.generate(5, (int index) {
+            children: List.generate(5, (index) {
               final int w = index + 1;
               final bool isSelected = program.currentWeek == w;
               final String label = w == 5 ? 'Retest' : 'W$w';
@@ -505,7 +505,7 @@ class DashboardScreen extends StatelessWidget {
   ) {
     final ActiveWorkoutDraft draft = program.activeDraft!;
     final DayTemplate matchingDay = program.days.firstWhere(
-      (DayTemplate d) => d.dayNumber == draft.dayNumber,
+      (d) => d.dayNumber == draft.dayNumber,
       orElse: () => program.currentDayTemplate,
     );
 
@@ -614,7 +614,7 @@ class DashboardScreen extends StatelessWidget {
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
+                      MaterialPageRoute<void>(
                         builder: (_) => WorkoutSessionScreen(
                           dayTemplate: matchingDay,
                           initialDraft: draft,
@@ -638,7 +638,7 @@ class DashboardScreen extends StatelessWidget {
                 child: OutlinedButton(
                   style: OutlinedButton.styleFrom(
                     foregroundColor: Colors.redAccent,
-                    side: const BorderSide(color: Colors.redAccent, width: 1),
+                    side: const BorderSide(color: Colors.redAccent),
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
@@ -664,9 +664,9 @@ class DashboardScreen extends StatelessWidget {
   }
 
   void _confirmDiscardDraft(BuildContext context, ProgramProvider program) {
-    showDialog(
+    showDialog<void>(
       context: context,
-      builder: (BuildContext ctx) => AlertDialog(
+      builder: (ctx) => AlertDialog(
         backgroundColor: AppTheme.darkBackground,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
@@ -741,7 +741,7 @@ class DashboardScreen extends StatelessWidget {
                 style: GoogleFonts.outfit(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
-                  letterSpacing: 1.0,
+                  letterSpacing: 1,
                   color: AppTheme.textSecondary,
                 ),
               ),
@@ -769,7 +769,7 @@ class DashboardScreen extends StatelessWidget {
           const SizedBox(height: 12),
           // Day Selector Override Pills
           Row(
-            children: program.days.map((DayTemplate d) {
+            children: program.days.map((d) {
               final bool isSelected = program.currentDay == d.dayNumber;
               String label;
               if (d.dayNumber == 1) {
@@ -860,7 +860,7 @@ class DashboardScreen extends StatelessWidget {
                       );
                       Navigator.push(
                         context,
-                        MaterialPageRoute(
+                        MaterialPageRoute<void>(
                           builder: (_) => RecoverySessionScreen(
                             routine: routine,
                             isPreviewMode: true,
@@ -870,7 +870,7 @@ class DashboardScreen extends StatelessWidget {
                     } else {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(
+                        MaterialPageRoute<void>(
                           builder: (_) => WorkoutSessionScreen(
                             dayTemplate: day,
                             isPreviewMode: true,
@@ -920,7 +920,7 @@ class DashboardScreen extends StatelessWidget {
                       );
                       Navigator.push(
                         context,
-                        MaterialPageRoute(
+                        MaterialPageRoute<void>(
                           builder: (_) =>
                               RecoverySessionScreen(routine: routine),
                         ),
@@ -928,7 +928,7 @@ class DashboardScreen extends StatelessWidget {
                     } else {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(
+                        MaterialPageRoute<void>(
                           builder: (_) =>
                               WorkoutSessionScreen(dayTemplate: day),
                         ),
@@ -1016,7 +1016,7 @@ class DashboardScreen extends StatelessWidget {
                     style: GoogleFonts.outfit(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
-                      letterSpacing: 1.0,
+                      letterSpacing: 1,
                       color: AppTheme.textSecondary,
                     ),
                   ),
@@ -1063,7 +1063,7 @@ class DashboardScreen extends StatelessWidget {
             Wrap(
               spacing: 8,
               runSpacing: 6,
-              children: activeInjuries.map((InjuryRecord injury) {
+              children: activeInjuries.map((injury) {
                 final Color stageColor = injury.stage == InjuryStage.acute
                     ? AppTheme.primaryAmber
                     : (injury.stage == InjuryStage.subacute
@@ -1142,7 +1142,7 @@ class DashboardScreen extends StatelessWidget {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const InjuryTrackerScreen()),
+                  MaterialPageRoute<void>(builder: (_) => const InjuryTrackerScreen()),
                 );
               },
             ),
@@ -1179,7 +1179,7 @@ class DashboardScreen extends StatelessWidget {
                 style: GoogleFonts.outfit(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
-                  letterSpacing: 1.0,
+                  letterSpacing: 1,
                   color: AppTheme.textSecondary,
                 ),
               ),
@@ -1364,7 +1364,7 @@ class DashboardScreen extends StatelessWidget {
                 style: GoogleFonts.outfit(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
-                  letterSpacing: 1.0,
+                  letterSpacing: 1,
                   color: AppTheme.textSecondary,
                 ),
               ),
@@ -1382,7 +1382,7 @@ class DashboardScreen extends StatelessWidget {
               style: GoogleFonts.inter(color: AppTheme.textSecondary),
             )
           else
-            ...ratios.take(2).map((LiftRatioAnalysis r) {
+            ...ratios.take(2).map((r) {
               return Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: Row(
@@ -1421,18 +1421,18 @@ class DashboardScreen extends StatelessWidget {
     int selectedWeek = program.currentWeek;
     int selectedDayNum = program.currentDay;
 
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
       backgroundColor: Colors.transparent,
-      builder: (BuildContext ctx) {
+      builder: (ctx) {
         return StatefulBuilder(
-          builder: (BuildContext context, setStateModal) {
+          builder: (context, setStateModal) {
             final List<DayTemplate> previewDays =
                 ProgramCycle.getBuiltInProgram(week: selectedWeek);
             final DayTemplate day = previewDays.firstWhere(
-              (DayTemplate d) => d.dayNumber == selectedDayNum,
+              (d) => d.dayNumber == selectedDayNum,
               orElse: () => previewDays.first,
             );
 
@@ -1500,7 +1500,7 @@ class DashboardScreen extends StatelessWidget {
                       const SizedBox(height: 8),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: List.generate(5, (int i) {
+                        children: List.generate(5, (i) {
                           final int w = i + 1;
                           final bool isSel = selectedWeek == w;
                           return InkWell(
@@ -1547,7 +1547,7 @@ class DashboardScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
                       Row(
-                        children: previewDays.map((DayTemplate d) {
+                        children: previewDays.map((d) {
                           final bool isSel = selectedDayNum == d.dayNumber;
                           String label;
                           if (d.dayNumber == 1) {
@@ -1664,7 +1664,7 @@ class DashboardScreen extends StatelessWidget {
                                       );
                                   Navigator.push(
                                     context,
-                                    MaterialPageRoute(
+                                    MaterialPageRoute<void>(
                                       builder: (_) => RecoverySessionScreen(
                                         routine: routine,
                                         isPreviewMode: true,
@@ -1674,7 +1674,7 @@ class DashboardScreen extends StatelessWidget {
                                 } else {
                                   Navigator.push(
                                     context,
-                                    MaterialPageRoute(
+                                    MaterialPageRoute<void>(
                                       builder: (_) => WorkoutSessionScreen(
                                         dayTemplate: day,
                                         isPreviewMode: true,
@@ -1731,7 +1731,7 @@ class DashboardScreen extends StatelessWidget {
                                       );
                                   Navigator.push(
                                     context,
-                                    MaterialPageRoute(
+                                    MaterialPageRoute<void>(
                                       builder: (_) => RecoverySessionScreen(
                                         routine: routine,
                                       ),
@@ -1740,10 +1740,9 @@ class DashboardScreen extends StatelessWidget {
                                 } else {
                                   Navigator.push(
                                     context,
-                                    MaterialPageRoute(
+                                    MaterialPageRoute<void>(
                                       builder: (_) => WorkoutSessionScreen(
                                         dayTemplate: day,
-                                        isPreviewMode: false,
                                       ),
                                     ),
                                   );

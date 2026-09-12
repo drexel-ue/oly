@@ -19,7 +19,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets('FastingRadialGauge displays time, stage pill, and progress badge',
-      (WidgetTester tester) async {
+      (tester) async {
     final DateTime now = DateTime.now();
     final FastingSession session = FastingSession(
       id: 'test_gauge',
@@ -42,7 +42,7 @@ void main() {
   });
 
   testWidgets('FastingCellularCard displays biological breakdown and barbell advisory',
-      (WidgetTester tester) async {
+      (tester) async {
     final DateTime now = DateTime.now();
     final FastingSession session = FastingSession(
       id: 'test_cellular',
@@ -66,12 +66,11 @@ void main() {
   });
 
   testWidgets('FastingProjectionCard displays 7-day forward schedule',
-      (WidgetTester tester) async {
+      (tester) async {
     final List<FastingScheduleDay> projection =
         FastingEngineService.generateProjection(
       currentProtocol: FastingProtocol.intermittent16_8,
       config: const AthleteCircadianConfig(),
-      daysCount: 7,
     );
 
     await tester.pumpWidget(
@@ -88,7 +87,7 @@ void main() {
   });
 
   testWidgets('NutritionDashboardScreen includes Fasting tab and switches views',
-      (WidgetTester tester) async {
+      (tester) async {
     SharedPreferences.setMockInitialValues(<String, Object>{});
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final StorageService storage = StorageService(prefs);
@@ -133,7 +132,7 @@ void main() {
   });
 
   testWidgets('FastingBiomarkerHistorySheet displays logged entries and GKI',
-      (WidgetTester tester) async {
+      (tester) async {
     SharedPreferences.setMockInitialValues(<String, Object>{});
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final StorageService storage = StorageService(prefs);
@@ -141,12 +140,12 @@ void main() {
 
     // Log two biomarker entries
     await fastingProvider.addBiomarkerEntry(
-      glucoseMgDl: 85.0,
+      glucoseMgDl: 85,
       ketoneMmolL: 1.2,
       notes: 'Morning baseline',
     );
     await fastingProvider.addBiomarkerEntry(
-      glucoseMgDl: 75.0,
+      glucoseMgDl: 75,
       ketoneMmolL: 2.5,
       notes: 'Post-lift fast',
     );
@@ -179,7 +178,7 @@ void main() {
   });
 
   testWidgets('FastingCircadianSheet renders switches, schedule timelines, and updates config',
-      (WidgetTester tester) async {
+      (tester) async {
     SharedPreferences.setMockInitialValues(<String, Object>{});
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final StorageService storage = StorageService(prefs);
@@ -207,8 +206,8 @@ void main() {
     expect(find.text('ATHLETE CIRCADIAN ANCHORS'), findsOneWidget);
 
     // Verify Hydration Schedule Entries
-    expect(find.text('DAILY WATER TARGET'), findsOneWidget);
-    expect(find.text('3000 mL'), findsOneWidget);
+    expect(find.text('CALCULATED DAILY TARGET'), findsOneWidget);
+    expect(find.text('Auto (Fuel Plan)'), findsOneWidget);
     expect(find.textContaining('Morning Primer'), findsOneWidget);
     expect(find.textContaining('Post-Lift Rehydration'), findsOneWidget);
 
@@ -218,21 +217,26 @@ void main() {
     expect(find.text('Caffeine Curfew (HRV Shield)'), findsOneWidget);
 
     // Tap 3500 mL ChoiceChip
+    await tester.ensureVisible(find.text('3500 mL'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('3500 mL'));
     await tester.pumpAndSettle();
     expect(fastingProvider.circadianConfig.dailyWaterTargetMl, equals(3500));
 
     // Toggle Water Switch OFF
     final Finder waterSwitch = find.byType(Switch).first;
+    await tester.ensureVisible(waterSwitch);
+    await tester.pumpAndSettle();
     await tester.tap(waterSwitch);
     await tester.pumpAndSettle();
     expect(fastingProvider.circadianConfig.waterRemindersEnabled, isFalse);
 
     // Toggle Coffee Switch OFF
     final Finder coffeeSwitch = find.byType(Switch).last;
+    await tester.ensureVisible(coffeeSwitch);
+    await tester.pumpAndSettle();
     await tester.tap(coffeeSwitch);
     await tester.pumpAndSettle();
     expect(fastingProvider.circadianConfig.coffeeRemindersEnabled, isFalse);
   });
 }
-

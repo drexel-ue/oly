@@ -12,10 +12,10 @@ void main() {
       final KettlebellMileLog log = KettlebellMileLog(
         id: 'kb_test_1',
         date: DateTime.now(),
-        weightKg: 12.0,
-        bodyweightPercentage: 10.0,
+        weightKg: 12,
+        bodyweightPercentage: 10,
         speedMph: 3.8,
-        inclinePct: 2.0,
+        inclinePct: 2,
         durationSeconds: 1120, // 18m 40s (< 20 mins)
         completedUnder20Min: true,
         notes: 'Felt strong, solid carry',
@@ -43,10 +43,10 @@ void main() {
       expect(storage.loadKettlebellMileLogs(), isEmpty);
 
       await storage.logKettlebellMileSet(
-        weightKg: 10.0,
-        bodyweightPercentage: 10.0,
+        weightKg: 10,
+        bodyweightPercentage: 10,
         speedMph: 3.5,
-        inclinePct: 1.0,
+        inclinePct: 1,
         durationSeconds: 1140, // 19m (< 20m)
         completedUnder20Min: true,
       );
@@ -68,13 +68,13 @@ void main() {
 
       // For 100kg athlete -> 10kg
       expect(
-        recovery.calculateSuggestedKettlebellWeightKg(athleteWeightKg: 100.0),
+        recovery.calculateSuggestedKettlebellWeightKg(athleteWeightKg: 100),
         equals(10.0),
       );
 
       // For 80kg athlete -> 8kg
       expect(
-        recovery.calculateSuggestedKettlebellWeightKg(athleteWeightKg: 80.0),
+        recovery.calculateSuggestedKettlebellWeightKg(athleteWeightKg: 80),
         equals(8.0),
       );
     });
@@ -87,8 +87,8 @@ void main() {
 
       // Log a successful sub-20 minute mile (e.g. 18:30 = 1110s)
       await recovery.logKettlebellMile(
-        weightKg: 10.0,
-        bodyweightPercentage: 10.0,
+        weightKg: 10,
+        bodyweightPercentage: 10,
         speedMph: 3.6,
         inclinePct: 1.5,
         durationSeconds: 1110,
@@ -98,7 +98,7 @@ void main() {
       // Next target percentage should progress from 10% to 12.5%
       expect(recovery.getCurrentKettlebellTargetPercentage(), equals(12.5));
       expect(
-        recovery.calculateSuggestedKettlebellWeightKg(athleteWeightKg: 100.0),
+        recovery.calculateSuggestedKettlebellWeightKg(athleteWeightKg: 100),
         equals(12.5),
       );
 
@@ -124,10 +124,10 @@ void main() {
 
       // Log a session taking 22 minutes (1320s >= 1200s)
       await recovery.logKettlebellMile(
-        weightKg: 10.0,
-        bodyweightPercentage: 10.0,
-        speedMph: 3.0,
-        inclinePct: 1.0,
+        weightKg: 10,
+        bodyweightPercentage: 10,
+        speedMph: 3,
+        inclinePct: 1,
         durationSeconds: 1320,
         completedUnder20Min: false,
       );
@@ -144,10 +144,10 @@ void main() {
 
       // Log a session at 30% completed under 20 mins
       await recovery.logKettlebellMile(
-        weightKg: 30.0,
-        bodyweightPercentage: 30.0,
-        speedMph: 4.0,
-        inclinePct: 2.0,
+        weightKg: 30,
+        bodyweightPercentage: 30,
+        speedMph: 4,
+        inclinePct: 2,
         durationSeconds: 1100,
         completedUnder20Min: true,
       );

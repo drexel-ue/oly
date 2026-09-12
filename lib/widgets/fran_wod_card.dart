@@ -19,7 +19,7 @@ import 'package:oly/widgets/wod_setup_explainer_sheet.dart';
 import 'package:provider/provider.dart';
 
 class FranWodCard extends StatefulWidget {
-  const FranWodCard({
+  const new({
     required this.exercise,
     required this.onCompleted,
     super.key,
@@ -145,7 +145,7 @@ class _FranWodCardState extends State<FranWodCard> {
     _playBeepIfEnabled();
 
     _stopwatchTimer?.cancel();
-    _stopwatchTimer = Timer.periodic(const Duration(seconds: 1), (Timer timer) {
+    _stopwatchTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (!mounted) {
         timer.cancel();
         return;
@@ -258,7 +258,7 @@ class _FranWodCardState extends State<FranWodCard> {
 
     final bool? shouldSave = await showDialog<bool>(
       context: context,
-      builder: (BuildContext ctx) {
+      builder: (ctx) {
         return AlertDialog(
           backgroundColor: AppTheme.surfaceCard,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -292,7 +292,7 @@ class _FranWodCardState extends State<FranWodCard> {
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
                         color: AppTheme.textSecondary,
-                        letterSpacing: 1.0,
+                        letterSpacing: 1,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -748,12 +748,12 @@ class _FranWodCardState extends State<FranWodCard> {
                     items: const <DropdownMenuItem<double>>[
                       DropdownMenuItem<double>(value: 43.1, child: Text('95 lb / 43 kg (Rx Men)')),
                       DropdownMenuItem<double>(value: 29.5, child: Text('65 lb / 29.5 kg (Rx Women)')),
-                      DropdownMenuItem<double>(value: 34.0, child: Text('75 lb / 34 kg (Scaled)')),
+                      DropdownMenuItem<double>(value: 34, child: Text('75 lb / 34 kg (Scaled)')),
                       DropdownMenuItem<double>(value: 20.4, child: Text('45 lb / 20.4 kg (Scaled)')),
                       DropdownMenuItem<double>(value: 52.2, child: Text('115 lb / 52 kg (Heavy)')),
                       DropdownMenuItem<double>(value: 61.2, child: Text('135 lb / 61 kg (Elite)'))
                     ],
-                    onChanged: (double? val) {
+                    onChanged: (val) {
                       if (val != null) {
                         setState(() {
                           _barbellWeightKg = val;
@@ -788,7 +788,7 @@ class _FranWodCardState extends State<FranWodCard> {
                       DropdownMenuItem<String>(value: 'ring_rows', child: Text('Ring Rows (Scaled)')),
                       DropdownMenuItem<String>(value: 'jumping', child: Text('Jumping (Scaled)')),
                     ],
-                    onChanged: (String? val) {
+                    onChanged: (val) {
                       if (val != null) {
                         setState(() => _pullupVariation = val);
                       }
@@ -811,8 +811,8 @@ class _FranWodCardState extends State<FranWodCard> {
           splitSeconds: _round1SplitSeconds,
           isActive: _activeRoundIndex == 0,
           isCompleted: _activeRoundIndex > 0,
-          onThrusterAdd: (int n) => setState(() => _thrustersR1Done = (_thrustersR1Done + n).clamp(0, 21)),
-          onPullupAdd: (int n) => setState(() => _pullupsR1Done = (_pullupsR1Done + n).clamp(0, 21)),
+          onThrusterAdd: (n) => setState(() => _thrustersR1Done = (_thrustersR1Done + n).clamp(0, 21)),
+          onPullupAdd: (n) => setState(() => _pullupsR1Done = (_pullupsR1Done + n).clamp(0, 21)),
           onCompleteRound: _completeRound1,
           buttonText: 'COMPLETE 21s (${_formatSeconds(_elapsedSeconds)}) -> GO TO 15s',
         ),
@@ -830,8 +830,8 @@ class _FranWodCardState extends State<FranWodCard> {
               : null,
           isActive: _activeRoundIndex == 1,
           isCompleted: _activeRoundIndex > 1,
-          onThrusterAdd: (int n) => setState(() => _thrustersR2Done = (_thrustersR2Done + n).clamp(0, 15)),
-          onPullupAdd: (int n) => setState(() => _pullupsR2Done = (_pullupsR2Done + n).clamp(0, 15)),
+          onThrusterAdd: (n) => setState(() => _thrustersR2Done = (_thrustersR2Done + n).clamp(0, 15)),
+          onPullupAdd: (n) => setState(() => _pullupsR2Done = (_pullupsR2Done + n).clamp(0, 15)),
           onCompleteRound: _completeRound2,
           buttonText: 'COMPLETE 15s (${_formatSeconds(_elapsedSeconds)}) -> GO TO 9s',
         ),
@@ -849,8 +849,8 @@ class _FranWodCardState extends State<FranWodCard> {
               : null,
           isActive: _activeRoundIndex == 2,
           isCompleted: _activeRoundIndex > 2,
-          onThrusterAdd: (int n) => setState(() => _thrustersR3Done = (_thrustersR3Done + n).clamp(0, 9)),
-          onPullupAdd: (int n) => setState(() => _pullupsR3Done = (_pullupsR3Done + n).clamp(0, 9)),
+          onThrusterAdd: (n) => setState(() => _thrustersR3Done = (_thrustersR3Done + n).clamp(0, 9)),
+          onPullupAdd: (n) => setState(() => _pullupsR3Done = (_pullupsR3Done + n).clamp(0, 9)),
           onCompleteRound: _completeRound3AndFinish,
           buttonText: 'FINISH FRAN! 🏁 (${_formatSeconds(_elapsedSeconds)})',
           isFinalRound: true,
@@ -1093,7 +1093,7 @@ class _FranWodCardState extends State<FranWodCard> {
             fontSize: 12,
             fontWeight: FontWeight.bold,
             color: AppTheme.secondaryCyan,
-            letterSpacing: 1.0,
+            letterSpacing: 1,
           ),
         ),
         const SizedBox(height: 12),
@@ -1140,10 +1140,10 @@ class _FranWodCardState extends State<FranWodCard> {
                 items: const <DropdownMenuItem<double>>[
                   DropdownMenuItem<double>(value: 43.1, child: Text('95 lb (Rx Men)')),
                   DropdownMenuItem<double>(value: 29.5, child: Text('65 lb (Rx Women)')),
-                  DropdownMenuItem<double>(value: 34.0, child: Text('75 lb (Scaled)')),
+                  DropdownMenuItem<double>(value: 34, child: Text('75 lb (Scaled)')),
                   DropdownMenuItem<double>(value: 20.4, child: Text('45 lb (Scaled)')),
                 ],
-                onChanged: (double? val) {
+                onChanged: (val) {
                   if (val != null) {
                     setState(() {
                       _barbellWeightKg = val;
@@ -1168,7 +1168,7 @@ class _FranWodCardState extends State<FranWodCard> {
                   DropdownMenuItem<String>(value: 'standard', child: Text('Strict (Rx)')),
                   DropdownMenuItem<String>(value: 'band_assisted', child: Text('Banded (Scaled)')),
                 ],
-                onChanged: (String? val) {
+                onChanged: (val) {
                   if (val != null) {
                     setState(() => _pullupVariation = val);
                   }

@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:oly/theme/app_theme.dart';
 
 class FastingScienceExplainerScreen extends StatelessWidget {
-  const FastingScienceExplainerScreen({super.key});
+  const new({super.key});
 
   @override
   Widget build(BuildContext context) {

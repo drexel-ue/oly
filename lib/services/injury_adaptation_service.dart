@@ -3,7 +3,7 @@ import 'package:oly/models/mobility_exercise_model.dart';
 import 'package:oly/models/program_model.dart';
 
 class ExerciseAdaptationRecommendation {
-  ExerciseAdaptationRecommendation({
+  new({
     required this.originalExerciseName,
     required this.isContraindicated,
     this.replacementName,
@@ -31,7 +31,7 @@ class ExerciseAdaptationRecommendation {
 }
 
 class SessionAdaptationPlan {
-  SessionAdaptationPlan({
+  new({
     required this.dayTemplate,
     required this.adaptations,
     required this.activeInjuries,
@@ -44,11 +44,11 @@ class SessionAdaptationPlan {
   final List<MobilityExerciseModel> rehabWarmupSuggestions;
 
   bool get hasAdaptations => adaptations.values.any(
-        (ExerciseAdaptationRecommendation a) => a.isContraindicated,
+        (a) => a.isContraindicated,
       );
 
   int get adaptedCount => adaptations.values
-      .where((ExerciseAdaptationRecommendation a) => a.isContraindicated)
+      .where((a) => a.isContraindicated)
       .length;
 }
 
@@ -66,7 +66,7 @@ class InjuryAdaptationService {
     );
 
     final List<InjuryRecord> validInjuries =
-        activeInjuries.where((InjuryRecord i) => i.isActive).toList();
+        activeInjuries.where((i) => i.isActive).toList();
 
     if (validInjuries.isEmpty) {
       return ExerciseAdaptationRecommendation(
@@ -261,7 +261,6 @@ class InjuryAdaptationService {
               isContraindicated: true,
               replacementName: 'Clean Pull with Straps',
               replacementLiftId: 'clean_and_jerk',
-              weightMultiplier: 1.0,
               suggestedWeightKg: standardTarget,
               rationale: 'Pull with straps allows full pulling triple extension without wrist extension impact.',
               triggeringInjuryName: injury.name,
@@ -309,13 +308,13 @@ class InjuryAdaptationService {
     final List<MobilityExerciseModel> suggestedRehab = <MobilityExerciseModel>[];
 
     final Set<MobilityFocusArea> activeFocusAreas = <MobilityFocusArea>{};
-    for (final InjuryRecord injury in activeInjuries.where((InjuryRecord i) => i.isActive)) {
+    for (final InjuryRecord injury in activeInjuries.where((i) => i.isActive)) {
       activeFocusAreas.addAll(injury.rehabFocusAreas);
     }
 
     for (final MobilityExerciseModel drill in allCatalogDrills) {
       if (activeFocusAreas.contains(drill.focusArea)) {
-        if (!suggestedRehab.any((MobilityExerciseModel d) => d.id == drill.id)) {
+        if (!suggestedRehab.any((d) => d.id == drill.id)) {
           suggestedRehab.add(drill);
         }
       }

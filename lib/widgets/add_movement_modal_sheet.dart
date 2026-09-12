@@ -17,7 +17,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:uuid/uuid.dart';
 
 class AddMovementModalSheet extends StatefulWidget {
-  const AddMovementModalSheet({
+  const new({
     required this.onAddMovement,
     super.key,
   });
@@ -88,7 +88,8 @@ class _AddMovementModalSheetState extends State<AddMovementModalSheet> {
         try {
           final String jsonStr =
               await rootBundle.loadString('assets/data/crossfit_hero_wods.json');
-          final List<dynamic> decoded = jsonDecode(jsonStr);
+          final List<dynamic> decoded =
+              jsonDecode(jsonStr) as List<dynamic>;
           list = decoded
               .map((dynamic e) => CrossfitHeroWod.fromJson(e as Map<String, dynamic>))
               .toList();
@@ -143,7 +144,6 @@ class _AddMovementModalSheetState extends State<AddMovementModalSheet> {
           await ExerciseDatabaseService.instance.search(
         query,
         equipment: equipment,
-        limit: 50,
       );
 
       if (mounted) {
@@ -171,7 +171,7 @@ class _AddMovementModalSheetState extends State<AddMovementModalSheet> {
       refId: exercise.id,
       setScheme: '$sets Sets of $reps Reps',
       subtitle: '${exercise.displayCategory} • ${exercise.displayTargetMuscle} • ${exercise.displayEquipment}',
-      targetWeightKg: 0.0,
+      targetWeightKg: 0,
       data: <String, dynamic>{
         'category': exercise.category,
         'bodyPart': exercise.bodyPart,
@@ -215,14 +215,14 @@ class _AddMovementModalSheetState extends State<AddMovementModalSheet> {
     HapticFeedback.heavyImpact();
     final Random rand = Random();
     final Set<String> existingIds =
-        WodCatalog.allWods.map((WodDefinition w) => w.id.toLowerCase()).toSet();
+        WodCatalog.allWods.map((w) => w.id.toLowerCase()).toSet();
     final List<WodDefinition> allAvailable = <WodDefinition>[
       ...WodCatalog.allWods,
       ..._heroWods
-          .where((CrossfitHeroWod hw) =>
+          .where((hw) =>
               !existingIds.contains(hw.id.toLowerCase()) &&
               !existingIds.contains(hw.slug.toLowerCase()))
-          .map((CrossfitHeroWod hw) => hw.toWodDefinition()),
+          .map((hw) => hw.toWodDefinition()),
     ];
     final WodDefinition picked =
         allAvailable[rand.nextInt(allAvailable.length)];
@@ -325,7 +325,7 @@ class _AddMovementModalSheetState extends State<AddMovementModalSheet> {
                   child: SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Row(
-                      children: _categories.map((String cat) {
+                      children: _categories.map((cat) {
                         final bool isSelected = _selectedCategory == cat;
                         final bool isDatabaseCat = cat == 'Exercise Library';
                         final Color activeColor = isDatabaseCat ? AppTheme.secondaryCyan : AppTheme.primaryAmber;
@@ -409,7 +409,7 @@ class _AddMovementModalSheetState extends State<AddMovementModalSheet> {
               fontSize: 12,
               fontWeight: FontWeight.bold,
               color: AppTheme.primaryAmber,
-              letterSpacing: 1.0,
+              letterSpacing: 1,
             ),
           ),
           const SizedBox(height: 14),
@@ -616,14 +616,14 @@ class _AddMovementModalSheetState extends State<AddMovementModalSheet> {
     // 2. CrossFit Benchmark WODs & Hero Memorial Workouts
     if (showWods) {
       final Set<String> catalogIds =
-          WodCatalog.allWods.map((WodDefinition w) => w.id.toLowerCase()).toSet();
+          WodCatalog.allWods.map((w) => w.id.toLowerCase()).toSet();
 
       for (final WodDefinition wod in WodCatalog.allWods) {
         if (_searchQuery.isNotEmpty) {
           final String q = _searchQuery.toLowerCase();
           final bool match = wod.name.toLowerCase().contains(q) ||
               wod.subtitle.toLowerCase().contains(q) ||
-              wod.movementsSummary.any((String m) => m.toLowerCase().contains(q));
+              wod.movementsSummary.any((m) => m.toLowerCase().contains(q));
           if (!match) {
             continue;
           }
@@ -682,8 +682,8 @@ class _AddMovementModalSheetState extends State<AddMovementModalSheet> {
           final bool match = heroWod.name.toLowerCase().contains(q) ||
               heroWod.subtitle.toLowerCase().contains(q) ||
               heroWod.tributeText.toLowerCase().contains(q) ||
-              heroWod.movementsSummary.any((String m) => m.toLowerCase().contains(q)) ||
-              heroWod.equipment.any((String e) => e.toLowerCase().contains(q));
+              heroWod.movementsSummary.any((m) => m.toLowerCase().contains(q)) ||
+              heroWod.equipment.any((e) => e.toLowerCase().contains(q));
           if (!match) {
             continue;
           }
@@ -705,7 +705,7 @@ class _AddMovementModalSheetState extends State<AddMovementModalSheet> {
                   refId: heroWod.id,
                   setScheme: heroWod.format.displayName,
                   subtitle: heroWod.subtitle.isNotEmpty ? heroWod.subtitle : heroWod.category,
-                  targetWeightKg: 0.0,
+                  targetWeightKg: 0,
                   data: <String, dynamic>{
                     'wodId': heroWod.id,
                     'format': heroWod.format.name,
@@ -929,7 +929,7 @@ class _AddMovementModalSheetState extends State<AddMovementModalSheet> {
                   fontSize: 11,
                   fontWeight: FontWeight.w900,
                   color: AppTheme.secondaryCyan,
-                  letterSpacing: 1.0,
+                  letterSpacing: 1,
                 ),
               ),
             ],
@@ -974,7 +974,7 @@ class _AddMovementModalSheetState extends State<AddMovementModalSheet> {
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       itemCount: items.length,
-      itemBuilder: (_, int i) => items[i],
+      itemBuilder: (_, i) => items[i],
     );
   }
 
@@ -984,7 +984,7 @@ class _AddMovementModalSheetState extends State<AddMovementModalSheet> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (BuildContext ctx) => Container(
+      builder: (ctx) => Container(
         height: MediaQuery.of(context).size.height * 0.75,
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
@@ -1081,7 +1081,7 @@ class _AddMovementModalSheetState extends State<AddMovementModalSheet> {
                       name: 'Kettlebell Mile (Loaded Carry)',
                       refId: 'kettlebell_mile',
                       subtitle: '1.0 Mile @ 10%–30% Bodyweight • Speed & Incline Tracking',
-                      targetWeightKg: 32.0,
+                      targetWeightKg: 32,
                     ),
                   );
                 },
@@ -1117,7 +1117,7 @@ class _AddMovementModalSheetState extends State<AddMovementModalSheet> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (BuildContext ctx) => Container(
+      builder: (ctx) => Container(
         height: MediaQuery.of(context).size.height * 0.65,
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
@@ -1404,8 +1404,8 @@ class _AddMovementModalSheetState extends State<AddMovementModalSheet> {
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: _equipmentFilters.length,
-            separatorBuilder: (BuildContext _, int _) => const SizedBox(width: 6),
-            itemBuilder: (BuildContext context, int index) {
+            separatorBuilder: (_, _) => const SizedBox(width: 6),
+            itemBuilder: (context, index) {
               final String eq = _equipmentFilters[index];
               final bool isSelected = _selectedEquipmentFilter == eq;
               return InkWell(
@@ -1488,7 +1488,7 @@ class _AddMovementModalSheetState extends State<AddMovementModalSheet> {
                   : ListView.builder(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       itemCount: _dbResults.length,
-                      itemBuilder: (BuildContext _, int i) =>
+                      itemBuilder: (_, i) =>
                           _buildDatabaseItemTile(_dbResults[i]),
                     ),
         ),
@@ -1630,8 +1630,8 @@ class _AddMovementModalSheetState extends State<AddMovementModalSheet> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (BuildContext ctx) => StatefulBuilder(
-        builder: (BuildContext sheetContext, StateSetter setSheetState) {
+      builder: (ctx) => StatefulBuilder(
+        builder: (sheetContext, setSheetState) {
           return Container(
             height: MediaQuery.of(context).size.height * 0.82,
             padding: const EdgeInsets.all(20),
@@ -1923,7 +1923,6 @@ class _AddMovementModalSheetState extends State<AddMovementModalSheet> {
                             title: 'Step-by-Step Instructions',
                             desc: exercise.instructions!.trim(),
                             icon: Icons.format_list_numbered_rounded,
-                            accentColor: AppTheme.secondaryCyan,
                           ),
                         ],
 
@@ -1957,7 +1956,7 @@ class _AddMovementModalSheetState extends State<AddMovementModalSheet> {
                                 Wrap(
                                   spacing: 6,
                                   runSpacing: 4,
-                                  children: exercise.secondaryMuscles.map((String m) {
+                                  children: exercise.secondaryMuscles.map((m) {
                                     return Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                       decoration: BoxDecoration(

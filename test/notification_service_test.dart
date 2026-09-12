@@ -9,7 +9,7 @@ void main() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
       const MethodChannel('plugins.flutter.io/flutter_timezone'),
-      (MethodCall methodCall) async {
+      (methodCall) async {
         if (methodCall.method == 'getLocalTimezone') {
           return 'America/New_York';
         }
@@ -20,7 +20,7 @@ void main() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
       const MethodChannel('dexterous.com/flutter/local_notifications'),
-      (MethodCall methodCall) async {
+      (methodCall) async {
         return true;
       },
     );
@@ -28,7 +28,7 @@ void main() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
       const MethodChannel('xyz.luan/audioplayers'),
-      (MethodCall methodCall) async {
+      (methodCall) async {
         return 1;
       },
     );
@@ -36,7 +36,7 @@ void main() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
       const MethodChannel('xyz.luan/audioplayers.global'),
-      (MethodCall methodCall) async {
+      (methodCall) async {
         return 1;
       },
     );
@@ -44,7 +44,7 @@ void main() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
       const MethodChannel('com.ryanheise.audio_session'),
-      (MethodCall methodCall) async {
+      (methodCall) async {
         return null;
       },
     );

@@ -12,7 +12,7 @@ import 'package:provider/provider.dart';
 enum SessionPhase { prep, hyperventilation, retention, recovery }
 
 class WimHofSessionScreen extends StatefulWidget {
-  const WimHofSessionScreen({required this.config, super.key});
+  const new({required this.config, super.key});
   final WimHofConfig config;
 
   @override
@@ -65,7 +65,7 @@ class _WimHofSessionScreenState extends State<WimHofSessionScreen>
       curve: Curves.easeInOutSine,
     );
 
-    _breathController.addStatusListener((AnimationStatus status) {
+    _breathController.addStatusListener((status) {
       if (!mounted || _isPaused || _phase != SessionPhase.hyperventilation) {
         return;
       }
@@ -113,7 +113,7 @@ class _WimHofSessionScreenState extends State<WimHofSessionScreen>
     });
 
     _prepTimer?.cancel();
-    _prepTimer = Timer.periodic(const Duration(seconds: 1), (Timer timer) {
+    _prepTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (!mounted || _isPaused) {
         return;
       }
@@ -163,7 +163,7 @@ class _WimHofSessionScreenState extends State<WimHofSessionScreen>
     }
 
     _retentionTimer?.cancel();
-    _retentionTimer = Timer.periodic(const Duration(seconds: 1), (Timer timer) {
+    _retentionTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (!mounted || _isPaused) {
         return;
       }
@@ -188,7 +188,7 @@ class _WimHofSessionScreenState extends State<WimHofSessionScreen>
     }
 
     _recoveryTimer?.cancel();
-    _recoveryTimer = Timer.periodic(const Duration(seconds: 1), (Timer timer) {
+    _recoveryTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (!mounted || _isPaused) {
         return;
       }
@@ -210,7 +210,6 @@ class _WimHofSessionScreenState extends State<WimHofSessionScreen>
       roundNumber: _currentRound,
       breathsCount: widget.config.breathsPerRound,
       retentionSeconds: retentionDuration,
-      recoverySeconds: 15,
     );
 
     _completedRounds.add(roundLog);
@@ -268,9 +267,9 @@ class _WimHofSessionScreenState extends State<WimHofSessionScreen>
       _togglePause();
     }
 
-    showDialog(
+    showDialog<void>(
       context: context,
-      builder: (BuildContext ctx) => AlertDialog(
+      builder: (ctx) => AlertDialog(
         backgroundColor: AppTheme.surfaceCard,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
@@ -351,7 +350,6 @@ class _WimHofSessionScreenState extends State<WimHofSessionScreen>
         ),
         title: Column(
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
             Text(
               'ROUND $_currentRound OF ${widget.config.defaultRounds}',
@@ -401,7 +399,6 @@ class _WimHofSessionScreenState extends State<WimHofSessionScreen>
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: <Widget>[
                     const Spacer(),
                     Center(child: _buildStageContent()),
@@ -421,7 +418,6 @@ class _WimHofSessionScreenState extends State<WimHofSessionScreen>
                   alignment: Alignment.center,
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: <Widget>[
                       const Icon(
                         Icons.pause_circle_outline,
@@ -471,7 +467,7 @@ class _WimHofSessionScreenState extends State<WimHofSessionScreen>
   double _phaseProgressFraction() {
     switch (_phase) {
       case SessionPhase.prep:
-        return 0.0;
+        return 0;
       case SessionPhase.hyperventilation:
         return (_currentBreath / widget.config.breathsPerRound) * 0.5;
       case SessionPhase.retention:
@@ -513,7 +509,6 @@ class _WimHofSessionScreenState extends State<WimHofSessionScreen>
       width: double.infinity,
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
           Text(
             'Round $_currentRound',
@@ -570,7 +565,7 @@ class _WimHofSessionScreenState extends State<WimHofSessionScreen>
       width: double.infinity,
       child: AnimatedBuilder(
         animation: _breathAnimation,
-        builder: (BuildContext context, Widget? child) {
+        builder: (context, child) {
           final double scale = 0.75 + (_breathAnimation.value * 0.5); // 0.75 -> 1.25
           final Color orbColor = _isInhaling
               ? AppTheme.secondaryCyan
@@ -578,7 +573,6 @@ class _WimHofSessionScreenState extends State<WimHofSessionScreen>
 
           return Column(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
               // Breath Counter Indicator
               Text(
@@ -598,7 +592,7 @@ class _WimHofSessionScreenState extends State<WimHofSessionScreen>
                   fontSize: 26,
                   fontWeight: FontWeight.bold,
                   color: orbColor,
-                  letterSpacing: 1.0,
+                  letterSpacing: 1,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -623,7 +617,7 @@ class _WimHofSessionScreenState extends State<WimHofSessionScreen>
                               orbColor.withValues(alpha: 0.35),
                               Colors.transparent,
                             ],
-                            stops: const <double>[0.3, 0.7, 1.0],
+                            stops: const <double>[0.3, 0.7, 1],
                           ),
                           boxShadow: <BoxShadow>[
                             BoxShadow(
@@ -680,7 +674,6 @@ class _WimHofSessionScreenState extends State<WimHofSessionScreen>
       width: double.infinity,
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
           Center(
             child: Container(
@@ -752,7 +745,6 @@ class _WimHofSessionScreenState extends State<WimHofSessionScreen>
               alignment: Alignment.center,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.center,
                 children: <Widget>[
                   Text(
                     'RETENTION TIME',
@@ -771,7 +763,7 @@ class _WimHofSessionScreenState extends State<WimHofSessionScreen>
                       fontSize: 54,
                       fontWeight: FontWeight.bold,
                       color: AppTheme.textPrimary,
-                      letterSpacing: 2.0,
+                      letterSpacing: 2,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -805,7 +797,6 @@ class _WimHofSessionScreenState extends State<WimHofSessionScreen>
       width: double.infinity,
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
           Text(
             'RECOVERY BREATH',
@@ -846,7 +837,6 @@ class _WimHofSessionScreenState extends State<WimHofSessionScreen>
                   ),
                   Column(
                     mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: <Widget>[
                       Text(
                         '$_recoverySecondsRemaining',
@@ -863,7 +853,7 @@ class _WimHofSessionScreenState extends State<WimHofSessionScreen>
                           fontSize: 11,
                           fontWeight: FontWeight.bold,
                           color: AppTheme.successGreen,
-                          letterSpacing: 1.0,
+                          letterSpacing: 1,
                         ),
                         textAlign: TextAlign.center,
                       ),

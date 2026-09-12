@@ -2,7 +2,7 @@ import 'package:uuid/uuid.dart';
 
 /// Represents an entire completed or logged CrossFit Helen session (3 Rounds For Time: 400m Run, 21 KB Swings, 12 Pull-ups).
 class HelenWorkoutLog {
-  HelenWorkoutLog({
+  new({
     required this.totalTimeSeconds,
     String? id,
     DateTime? date,
@@ -30,7 +30,7 @@ class HelenWorkoutLog {
               runDistanceMeters: runDistanceMeters,
             );
 
-  factory HelenWorkoutLog.fromJson(Map<String, dynamic> json) {
+  factory fromJson(Map<String, dynamic> json) {
     return HelenWorkoutLog(
       id: json['id'] as String? ?? const Uuid().v4(),
       date: DateTime.tryParse(json['date'] as String? ?? '') ?? DateTime.now(),

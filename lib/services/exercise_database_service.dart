@@ -14,7 +14,7 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 /// Embedded local SQLite database service providing high-performance full-text search (FTS5)
 /// and filtering across 3,000+ exercises from Free Exercise DB, wger, Exercises-Dataset, and Oly curated catalogs.
 class ExerciseDatabaseService {
-  ExerciseDatabaseService({Database? db, String? dbPath})
+  new({Database? db, String? dbPath})
       : _customDbPath = dbPath {
     _db = db;
   }
@@ -39,7 +39,7 @@ class ExerciseDatabaseService {
     }
 
     if (_initCompleter != null) {
-      return _initCompleter!.future;
+      return await _initCompleter!.future;
     }
 
     final Completer<Database?> completer = Completer<Database?>();
@@ -168,12 +168,12 @@ class ExerciseDatabaseService {
 
     final List<String> tokens = clean
         .split(RegExp(r'\s+'))
-        .where((String t) => t.isNotEmpty)
+        .where((t) => t.isNotEmpty)
         .toList();
     if (tokens.isEmpty) {
       return '';
     }
-    return tokens.map((String t) => '$t*').join(' ');
+    return tokens.map((t) => '$t*').join(' ');
   }
 
   /// Searches exercises using FTS5 full-text match with optional filters and pagination.
@@ -270,7 +270,7 @@ class ExerciseDatabaseService {
       rows = await db.rawQuery(fallbackSql, fallbackArgs);
     }
 
-    return rows.map((Map<String, dynamic> r) => ExerciseDatabaseModel.fromSqlite(r)).toList();
+    return rows.map(ExerciseDatabaseModel.fromSqlite).toList();
   }
 
   /// Looks up a single exercise by ID.
@@ -313,7 +313,7 @@ class ExerciseDatabaseService {
     final List<Map<String, dynamic>> rows = await db.rawQuery(
       'SELECT DISTINCT category FROM exercises ORDER BY category ASC',
     );
-    return rows.map((Map<String, dynamic> r) => r['category'] as String).toList();
+    return rows.map((r) => r['category'] as String).toList();
   }
 
   /// Gets distinct list of body parts.
@@ -325,7 +325,7 @@ class ExerciseDatabaseService {
     final List<Map<String, dynamic>> rows = await db.rawQuery(
       'SELECT DISTINCT body_part FROM exercises ORDER BY body_part ASC',
     );
-    return rows.map((Map<String, dynamic> r) => r['body_part'] as String).toList();
+    return rows.map((r) => r['body_part'] as String).toList();
   }
 
   /// Gets distinct list of target muscles.
@@ -337,7 +337,7 @@ class ExerciseDatabaseService {
     final List<Map<String, dynamic>> rows = await db.rawQuery(
       'SELECT DISTINCT target_muscle FROM exercises ORDER BY target_muscle ASC',
     );
-    return rows.map((Map<String, dynamic> r) => r['target_muscle'] as String).toList();
+    return rows.map((r) => r['target_muscle'] as String).toList();
   }
 
   /// Gets distinct list of equipment.
@@ -349,7 +349,7 @@ class ExerciseDatabaseService {
     final List<Map<String, dynamic>> rows = await db.rawQuery(
       'SELECT DISTINCT equipment FROM exercises ORDER BY equipment ASC',
     );
-    return rows.map((Map<String, dynamic> r) => r['equipment'] as String).toList();
+    return rows.map((r) => r['equipment'] as String).toList();
   }
 
   /// Ensures the hero_wods table, indexes, and FTS5 virtual table exist.
@@ -437,7 +437,7 @@ class ExerciseDatabaseService {
             jsonStr = await rootBundle.loadString('assets/data/crossfit_hero_wods.json');
           }
           if (jsonStr.isNotEmpty && jsonStr.trim() != '[]') {
-            final List<dynamic> list = jsonDecode(jsonStr);
+            final List<dynamic> list = jsonDecode(jsonStr) as List<dynamic>;
             await db.transaction((txn) async {
               final batch = txn.batch();
               for (final item in list) {
@@ -527,7 +527,7 @@ class ExerciseDatabaseService {
       rows = await db.rawQuery(fallbackSql, fallbackArgs);
     }
 
-    return rows.map((r) => CrossfitHeroWod.fromSqlite(r)).toList();
+    return rows.map(CrossfitHeroWod.fromSqlite).toList();
   }
 
   /// Gets a single Hero WOD by ID.

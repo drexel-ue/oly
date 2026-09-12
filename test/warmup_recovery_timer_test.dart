@@ -46,7 +46,7 @@ void main() {
   group('Warmup & Recovery Flow Timer & Weight Tests', () {
     testWidgets(
       'Cardio Opener renders Cardio Interval Timer with live session controls',
-      (WidgetTester tester) async {
+      (tester) async {
         tester.view.physicalSize = const Size(1170, 2532);
         tester.view.devicePixelRatio = 2.0;
         addTearDown(() => tester.view.resetPhysicalSize());
@@ -97,7 +97,7 @@ void main() {
     );
 
     testWidgets('Mobility & Foam Roll drills render unified drill timers', (
-      WidgetTester tester,
+      tester,
     ) async {
       tester.view.physicalSize = const Size(1170, 2532);
       tester.view.devicePixelRatio = 2.0;
@@ -125,7 +125,7 @@ void main() {
 
     testWidgets(
       'Accessory exercises render workout-matched sets, weight steppers, and rest toggle',
-      (WidgetTester tester) async {
+      (tester) async {
         tester.view.physicalSize = const Size(1170, 2532);
         tester.view.devicePixelRatio = 2.0;
         addTearDown(() => tester.view.resetPhysicalSize());
@@ -137,7 +137,6 @@ void main() {
           category: MobilityCategory.hypertrophyCore,
           description: 'Upper body pulling hypertrophy.',
           cues: <String>['Keep elbows tucked.', 'Squeeze biceps.'],
-          defaultSets: 3,
           defaultReps: 12,
           videoUrl: 'https://youtube.com',
         );

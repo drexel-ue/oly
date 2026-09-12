@@ -3,7 +3,7 @@ import 'package:oly/models/daily_nutrition_log.dart';
 import 'package:oly/models/nutrition_goal_model.dart';
 
 class MacroTargets {
-  const MacroTargets({
+  const new({
     required this.calories,
     required this.proteinGrams,
     required this.carbsGrams,
@@ -94,7 +94,7 @@ class TdeeCalculatorService {
 
     final int totalLoggedCalories = recentLogs.fold(
       0,
-      (int sum, DailyNutritionLog log) => sum + log.totalCalories,
+      (sum, log) => sum + log.totalCalories,
     );
     final int daysCount = recentLogs.length.clamp(1, 365);
     final double avgDailyIntake = totalLoggedCalories / daysCount;
@@ -141,18 +141,14 @@ class TdeeCalculatorService {
         targetCalories -= (goal.dailyCalorieAdjustment != 0
             ? goal.dailyCalorieAdjustment.abs()
             : 450);
-        break;
       case GoalType.leanBulking:
         targetCalories += (goal.dailyCalorieAdjustment != 0
             ? goal.dailyCalorieAdjustment.abs()
             : 250);
-        break;
       case GoalType.recomposition:
         targetCalories += goal.dailyCalorieAdjustment; // usually close to 0
-        break;
       case GoalType.maintenance:
         targetCalories += goal.dailyCalorieAdjustment;
-        break;
     }
 
     // Apply training day carb cycling bonus

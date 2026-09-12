@@ -94,7 +94,7 @@ void main() {
   group('Accessory Progression Widget Tests', () {
     testWidgets(
       'VideoPlayerCard initializes with previous weight and displays PB & History',
-      (WidgetTester tester) async {
+      (tester) async {
         tester.view.physicalSize = const Size(1170, 2532);
         tester.view.devicePixelRatio = 2.0;
         addTearDown(() => tester.view.resetPhysicalSize());
@@ -106,7 +106,6 @@ void main() {
           category: MobilityCategory.hypertrophyCore,
           description: 'Upper body pulling hypertrophy.',
           cues: <String>['Keep elbows tucked.'],
-          defaultSets: 3,
           defaultReps: 12,
           videoUrl: 'https://youtube.com',
         );
@@ -141,7 +140,7 @@ void main() {
 
     testWidgets(
       'AnalyticsScreen renders Accessories tab with progress cards and deltas',
-      (WidgetTester tester) async {
+      (tester) async {
         tester.view.physicalSize = const Size(1170, 2532);
         tester.view.devicePixelRatio = 2.0;
         addTearDown(() => tester.view.resetPhysicalSize());
@@ -171,7 +170,7 @@ void main() {
 
     testWidgets(
       'VideoPlayerCard adjusts target reps and allows individual set editing via long press',
-      (WidgetTester tester) async {
+      (tester) async {
         tester.view.physicalSize = const Size(1170, 2532);
         tester.view.devicePixelRatio = 2.0;
         addTearDown(() => tester.view.resetPhysicalSize());
@@ -183,7 +182,6 @@ void main() {
           category: MobilityCategory.liftingAccessory,
           description: 'Shoulder mobility and hypertrophy.',
           cues: <String>['Controlled tempo.'],
-          defaultSets: 3,
           defaultReps: 12,
           videoUrl: 'https://youtube.com',
         );

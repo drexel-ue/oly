@@ -22,7 +22,7 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class VideoPlayerCard extends StatefulWidget {
-  const VideoPlayerCard({
+  const new({
     required this.exercise,
     required this.onCompleted,
     super.key,
@@ -52,7 +52,7 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
   late List<int> _setReps;
   late int _targetReps;
   late TextEditingController _weightController;
-  double _accessoryWeight = 0.0;
+  double _accessoryWeight = 0;
   bool _showAccessoryRestTimer = false;
   bool _initializedWeight = false;
 
@@ -189,20 +189,20 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
       isCompleted: _setsCompleted[index],
     );
 
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (BuildContext ctx) {
+      builder: (ctx) {
         return WorkoutSetEditDialog(
           exerciseName: ex.name,
           currentSet: currentSet,
           totalSets: ex.defaultSets,
           onSaveSet: ({
-            required double newWeightKg,
-            required int newReps,
-            required bool isCompleted,
-            bool applyToSubsequentSets = false,
+            required newWeightKg,
+            required newReps,
+            required isCompleted,
+            applyToSubsequentSets = false,
           }) async {
             setState(() {
               _setWeights[index] = newWeightKg;
@@ -223,7 +223,7 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
                   : '0';
             });
 
-            if (_setsCompleted.every((bool e) => e)) {
+            if (_setsCompleted.every((e) => e)) {
               final double loggedWeight = _setWeights.isNotEmpty
                   ? _setWeights.last
                   : _accessoryWeight;
@@ -301,13 +301,13 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
     final double pb = recovery.getAccessoryPersonalBest(widget.exercise.id);
     final String unit = settings.unitLabel.toUpperCase();
 
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       backgroundColor: AppTheme.surfaceCard,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (BuildContext ctx) {
+      builder: (ctx) {
         return SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(20),
@@ -394,7 +394,7 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
                     child: ListView.builder(
                       shrinkWrap: true,
                       itemCount: history.length,
-                      itemBuilder: (BuildContext ctx, int idx) {
+                      itemBuilder: (ctx, idx) {
                         final AccessoryLog item = history[idx];
                         final String dateStr = DateFormat(
                           'MMM d, yyyy • h:mm a',
@@ -492,17 +492,15 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
   }
 
   void _openSwapModal(BuildContext context) {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (BuildContext ctx) => MobilityExerciseSwapModal(
+      builder: (ctx) => MobilityExerciseSwapModal(
         exercise: widget.exercise,
         originalExercise: widget.originalExercise,
-        onSwapSelected: (MobilityExerciseModel replacement) {
-          if (widget.onSwapExercise != null) {
-            widget.onSwapExercise!(replacement);
-          }
+        onSwapSelected: (replacement) {
+          widget.onSwapExercise?.call(replacement);
         },
         onResetToOriginal: widget.onResetExercise,
       ),
@@ -662,7 +660,7 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
                             : isMobility
                             ? AppTheme.accentBlue
                             : AppTheme.primaryAmber,
-                        letterSpacing: 1.0,
+                        letterSpacing: 1,
                       ),
                     ),
                   ),
@@ -892,11 +890,11 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
               fontSize: 11,
               fontWeight: FontWeight.bold,
               color: AppTheme.primaryAmber,
-              letterSpacing: 1.0,
+              letterSpacing: 1,
             ),
           ),
           const SizedBox(height: 8),
-          ...ex.cues.map((String cue) {
+          ...ex.cues.map((cue) {
             return Padding(
               padding: const EdgeInsets.only(bottom: 6),
               child: Row(
@@ -1012,7 +1010,7 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
                   color: AppTheme.primaryAmber,
-                  letterSpacing: 1.0,
+                  letterSpacing: 1,
                 ),
               ),
               Row(
@@ -1162,7 +1160,7 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
                     const SizedBox(width: 4),
                     _buildWeightStepButton('+2.5', 2.5),
                     const SizedBox(width: 4),
-                    _buildWeightStepButton('+5.0', 5.0),
+                    _buildWeightStepButton('+5.0', 5),
                   ],
                 ),
                 const Padding(
@@ -1265,7 +1263,7 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: List.generate(ex.defaultSets, (int index) {
+            children: List.generate(ex.defaultSets, (index) {
               final bool isDone = _setsCompleted[index];
               final double setWeight = _setWeights[index];
               final int setReps = _setReps[index];
@@ -1280,7 +1278,7 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
                 child: InkWell(
                   onTap: () async {
                     setState(() => _setsCompleted[index] = !isDone);
-                    if (_setsCompleted.every((bool e) => e)) {
+                    if (_setsCompleted.every((e) => e)) {
                       // Log accessory progression into history
                       final double loggedWeight = _setWeights.isNotEmpty
                           ? _setWeights.last
@@ -1376,7 +1374,6 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
             RestTimerWidget(
               key: ValueKey('${ex.id}_rest_timer'),
               title: 'Accessory Rest Timer',
-              icon: Icons.timer_outlined,
               initialSeconds: 60,
               presetSeconds: const <int>[30, 45, 60, 90, 120],
               primaryColor: AppTheme.primaryAmber,

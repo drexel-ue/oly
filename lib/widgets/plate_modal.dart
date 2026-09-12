@@ -6,7 +6,7 @@ import 'package:oly/theme/app_theme.dart';
 import 'package:provider/provider.dart';
 
 class PlateModal extends StatefulWidget {
-  const PlateModal({required this.initialWeightKg, super.key});
+  const new({required this.initialWeightKg, super.key});
   final double initialWeightKg;
 
   @override
@@ -135,7 +135,7 @@ class _PlateModalState extends State<PlateModal> {
                               decoration: const InputDecoration(
                                 border: InputBorder.none,
                               ),
-                              onChanged: (String val) {
+                              onChanged: (val) {
                                 final double? parsed = double.tryParse(val);
                                 if (parsed != null) {
                                   setState(() {
@@ -227,37 +227,37 @@ class _PlateModalState extends State<PlateModal> {
                           items: isLbs
                               ? const <DropdownMenuItem<double>>[
                                   DropdownMenuItem(
-                                    value: 45.0,
+                                    value: 45,
                                     child: Text('45 lbs (Std)'),
                                   ),
                                   DropdownMenuItem(
-                                    value: 35.0,
+                                    value: 35,
                                     child: Text('35 lbs (Women)'),
                                   ),
                                   DropdownMenuItem(
-                                    value: 15.0,
+                                    value: 15,
                                     child: Text('15 lbs (Tech)'),
                                   ),
                                 ]
                               : const <DropdownMenuItem<double>>[
                                   DropdownMenuItem(
-                                    value: 20.0,
+                                    value: 20,
                                     child: Text('20 kg (Men)'),
                                   ),
                                   DropdownMenuItem(
-                                    value: 15.0,
+                                    value: 15,
                                     child: Text('15 kg (Women)'),
                                   ),
                                   DropdownMenuItem(
-                                    value: 10.0,
+                                    value: 10,
                                     child: Text('10 kg (Tech)'),
                                   ),
                                   DropdownMenuItem(
-                                    value: 45.0,
+                                    value: 45,
                                     child: Text('45 lbs'),
                                   ),
                                 ],
-                          onChanged: (double? val) =>
+                          onChanged: (val) =>
                               val != null ? settings.setBarWeight(val) : null,
                         ),
                       ],
@@ -285,7 +285,7 @@ class _PlateModalState extends State<PlateModal> {
                           items: isLbs
                               ? const <DropdownMenuItem<double>>[
                                   DropdownMenuItem(
-                                    value: 5.0,
+                                    value: 5,
                                     child: Text('5 lbs'),
                                   ),
                                   DropdownMenuItem(
@@ -293,7 +293,7 @@ class _PlateModalState extends State<PlateModal> {
                                     child: Text('2.5 lbs'),
                                   ),
                                   DropdownMenuItem(
-                                    value: 0.0,
+                                    value: 0,
                                     child: Text('None (0)'),
                                   ),
                                 ]
@@ -307,11 +307,11 @@ class _PlateModalState extends State<PlateModal> {
                                     child: Text('0.5 kg'),
                                   ),
                                   DropdownMenuItem(
-                                    value: 0.0,
+                                    value: 0,
                                     child: Text('None'),
                                   ),
                                 ],
-                          onChanged: (double? val) => val != null
+                          onChanged: (val) => val != null
                               ? settings.setCollarWeight(val)
                               : null,
                         ),
@@ -375,7 +375,6 @@ class _PlateModalState extends State<PlateModal> {
                       child: SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
                         child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: <Widget>[
                             // Collar plate
                             if (result.collarWeight > 0)
@@ -389,7 +388,7 @@ class _PlateModalState extends State<PlateModal> {
                                 ),
                               ),
                             // Plates rendered per side
-                            ...result.platesPerSide.map((PlateSpec plate) {
+                            ...result.platesPerSide.map((plate) {
                               final double plateHeight =
                                   110.0 * plate.heightFactor;
                               final double plateWidth = plate.isFractional
@@ -490,7 +489,7 @@ class _PlateModalState extends State<PlateModal> {
                         spacing: 8,
                         runSpacing: 6,
                         children: _groupPlates(result.platesPerSide).map((
-                          MapEntry<PlateSpec, int> item,
+                          item,
                         ) {
                           return Container(
                             padding: const EdgeInsets.symmetric(

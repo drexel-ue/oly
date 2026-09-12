@@ -8,7 +8,7 @@ import 'package:oly/theme/app_theme.dart';
 import 'package:provider/provider.dart';
 
 class FastingCircadianSheet extends StatefulWidget {
-  const FastingCircadianSheet({super.key});
+  const new({super.key});
 
   static void show(BuildContext context) {
     showModalBottomSheet<void>(
@@ -18,7 +18,7 @@ class FastingCircadianSheet extends StatefulWidget {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (BuildContext _) => const FastingCircadianSheet(),
+      builder: (_) => const FastingCircadianSheet(),
     );
   }
 
@@ -32,29 +32,38 @@ class _FastingCircadianSheetState extends State<FastingCircadianSheet> {
   @override
   Widget build(BuildContext context) {
     final FastingProvider fasting = Provider.of<FastingProvider>(context);
-    final NutritionProvider nutrition = Provider.of<NutritionProvider>(context);
+    final NutritionProvider? nutrition =
+        Provider.of<NutritionProvider?>(context);
     final AthleteCircadianConfig config = fasting.circadianConfig;
 
-    // Keep fuel context in sync with the active daily nutrition log
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      fasting.syncFuelContext(
-        fuelWaterOz: nutrition.currentDayLog.targetWaterOz,
-        isTrainingDay: nutrition.currentDayLog.isTrainingDay,
-      );
-    });
+    if (nutrition != null) {
+      final double targetWaterOz = nutrition.currentDayLog.targetWaterOz;
+      final bool isTraining = nutrition.currentDayLog.isTrainingDay;
+      if (fasting.cachedFuelWaterOz != targetWaterOz ||
+          fasting.cachedIsTrainingDay != isTraining) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          fasting.syncFuelContext(
+            fuelWaterOz: targetWaterOz,
+            isTrainingDay: isTraining,
+          );
+        });
+      }
+    }
 
     final int effectiveTargetMl = fasting.effectiveDailyWaterTargetMl;
     final int portionMl = (effectiveTargetMl / 6).round();
     final FastingHydrationAdjustment adjustment = fasting.currentHydrationAdjustment;
-    final double fuelWaterOz = fasting.cachedFuelWaterOz ?? nutrition.currentDayLog.targetWaterOz;
-    final bool isTrainingDay = fasting.cachedIsTrainingDay || nutrition.currentDayLog.isTrainingDay;
+    final double fuelWaterOz = fasting.cachedFuelWaterOz ??
+        (nutrition?.currentDayLog.targetWaterOz ?? 100.0);
+    final bool isTrainingDay = fasting.cachedIsTrainingDay ||
+        (nutrition?.currentDayLog.isTrainingDay ?? false);
 
     return DraggableScrollableSheet(
       initialChildSize: 0.88,
       minChildSize: 0.5,
       maxChildSize: 0.95,
       expand: false,
-      builder: (BuildContext context, ScrollController scrollController) {
+      builder: (context, scrollController) {
         return SingleChildScrollView(
           controller: scrollController,
           padding: const EdgeInsets.all(20),
@@ -176,9 +185,7 @@ class _FastingCircadianSheetState extends State<FastingCircadianSheet> {
                           activeThumbColor: Colors.cyanAccent,
                           activeTrackColor:
                               Colors.cyanAccent.withValues(alpha: 0.4),
-                          onChanged: (bool enabled) {
-                            fasting.toggleWaterReminders(enabled);
-                          },
+                          onChanged: fasting.toggleWaterReminders,
                         ),
                       ],
                     ),
@@ -239,7 +246,7 @@ class _FastingCircadianSheetState extends State<FastingCircadianSheet> {
                               activeThumbColor: Colors.cyanAccent,
                               activeTrackColor:
                                   Colors.cyanAccent.withValues(alpha: 0.4),
-                              onChanged: (bool val) {
+                              onChanged: (val) {
                                 fasting.updateCircadianConfig(
                                   config.copyWith(syncWithFuelWaterTarget: val),
                                 );
@@ -295,7 +302,7 @@ class _FastingCircadianSheetState extends State<FastingCircadianSheet> {
                               activeThumbColor: const Color(0xFFFFB74D),
                               activeTrackColor: const Color(0xFFFFB74D)
                                   .withValues(alpha: 0.4),
-                              onChanged: (bool val) {
+                              onChanged: (val) {
                                 fasting.updateCircadianConfig(
                                   config.copyWith(
                                       adjustForFastingBiomarkers: val),
@@ -427,7 +434,7 @@ class _FastingCircadianSheetState extends State<FastingCircadianSheet> {
                                   ? Colors.cyanAccent
                                   : Colors.white12,
                             ),
-                            onSelected: (bool selected) {
+                            onSelected: (selected) {
                               if (selected) {
                                 fasting.updateCircadianConfig(
                                   config.copyWith(syncWithFuelWaterTarget: true),
@@ -435,7 +442,7 @@ class _FastingCircadianSheetState extends State<FastingCircadianSheet> {
                               }
                             },
                           ),
-                          ..._waterTargets.map((int target) {
+                          ..._waterTargets.map((target) {
                             final bool isSelected =
                                 !config.syncWithFuelWaterTarget &&
                                     config.dailyWaterTargetMl == target;
@@ -459,7 +466,7 @@ class _FastingCircadianSheetState extends State<FastingCircadianSheet> {
                                     ? Colors.cyanAccent
                                     : Colors.white12,
                               ),
-                              onSelected: (bool selected) {
+                              onSelected: (selected) {
                                 if (selected) {
                                   fasting.updateCircadianConfig(
                                     config.copyWith(
@@ -596,9 +603,7 @@ class _FastingCircadianSheetState extends State<FastingCircadianSheet> {
                           activeThumbColor: const Color(0xFFFFB74D),
                           activeTrackColor: const Color(0xFFFFB74D)
                               .withValues(alpha: 0.4),
-                          onChanged: (bool enabled) {
-                            fasting.toggleCoffeeReminders(enabled);
-                          },
+                          onChanged: fasting.toggleCoffeeReminders,
                         ),
                       ],
                     ),

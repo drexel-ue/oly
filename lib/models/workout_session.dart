@@ -1,7 +1,7 @@
 import 'package:uuid/uuid.dart';
 
 class CompletedSet {
-  CompletedSet({
+  new({
     required this.setIndex,
     required this.weight,
     required this.reps,
@@ -10,7 +10,7 @@ class CompletedSet {
     this.completedAt,
   });
 
-  factory CompletedSet.fromJson(Map<String, dynamic> json) {
+  factory fromJson(Map<String, dynamic> json) {
     return CompletedSet(
       setIndex: json['setIndex'] as int,
       weight: (json['weight'] as num).toDouble(),
@@ -44,13 +44,13 @@ class CompletedSet {
 }
 
 class ExerciseLog {
-  ExerciseLog({
+  new({
     required this.exerciseName,
     required this.liftId,
     required this.sets,
   });
 
-  factory ExerciseLog.fromJson(Map<String, dynamic> json) {
+  factory fromJson(Map<String, dynamic> json) {
     return ExerciseLog(
       exerciseName: json['exerciseName'] as String,
       liftId: json['liftId'] as String,
@@ -64,24 +64,24 @@ class ExerciseLog {
   final List<CompletedSet> sets;
 
   double get totalVolumeKg =>
-      sets.fold(0.0, (double sum, CompletedSet s) => sum + s.totalVolumeKg);
+      sets.fold(0, (sum, s) => sum + s.totalVolumeKg);
   int get totalReps => sets.fold(
     0,
-    (int sum, CompletedSet s) => sum + (s.isCompleted ? s.reps : 0),
+    (sum, s) => sum + (s.isCompleted ? s.reps : 0),
   );
-  int get totalSets => sets.where((CompletedSet s) => s.isCompleted).length;
+  int get totalSets => sets.where((s) => s.isCompleted).length;
 
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
       'exerciseName': exerciseName,
       'liftId': liftId,
-      'sets': sets.map((CompletedSet e) => e.toJson()).toList(),
+      'sets': sets.map((e) => e.toJson()).toList(),
     };
   }
 }
 
 class WorkoutSession {
-  WorkoutSession({
+  new({
     required this.id,
     required this.date,
     required this.dayNumber,
@@ -94,7 +94,7 @@ class WorkoutSession {
     this.jointStrainTags,
   });
 
-  factory WorkoutSession.fromJson(Map<String, dynamic> json) {
+  factory fromJson(Map<String, dynamic> json) {
     return WorkoutSession(
       id: json['id'] as String,
       date: DateTime.parse(json['date'] as String),
@@ -124,13 +124,13 @@ class WorkoutSession {
   final List<ExerciseLog> logs;
 
   double get totalVolumeKg =>
-      logs.fold(0.0, (double sum, ExerciseLog l) => sum + l.totalVolumeKg);
+      logs.fold(0, (sum, l) => sum + l.totalVolumeKg);
   double get totalTonsMetric => totalVolumeKg / 1000.0;
   double get totalTonsUs => (totalVolumeKg * 2.20462) / 2000.0;
   int get totalSets =>
-      logs.fold(0, (int sum, ExerciseLog l) => sum + l.totalSets);
+      logs.fold(0, (sum, l) => sum + l.totalSets);
   int get totalReps =>
-      logs.fold(0, (int sum, ExerciseLog l) => sum + l.totalReps);
+      logs.fold(0, (sum, l) => sum + l.totalReps);
 
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
@@ -143,7 +143,7 @@ class WorkoutSession {
       'notes': notes,
       'sessionRpe': sessionRpe,
       'jointStrainTags': jointStrainTags,
-      'logs': logs.map((ExerciseLog e) => e.toJson()).toList(),
+      'logs': logs.map((e) => e.toJson()).toList(),
     };
   }
 }
@@ -156,7 +156,7 @@ enum DynamicItemType {
 }
 
 class DynamicWorkoutItem {
-  DynamicWorkoutItem({
+  new({
     required this.id,
     required this.type,
     required this.name,
@@ -169,7 +169,7 @@ class DynamicWorkoutItem {
     this.data = const <String, dynamic>{},
   });
 
-  factory DynamicWorkoutItem.fromJson(Map<String, dynamic> json) {
+  factory fromJson(Map<String, dynamic> json) {
     return DynamicWorkoutItem(
       id: json['id'] as String? ?? const Uuid().v4(),
       type: _typeFromString(json['type'] as String?),
@@ -253,7 +253,7 @@ class DynamicWorkoutItem {
 }
 
 class ActiveWorkoutDraft {
-  ActiveWorkoutDraft({
+  new({
     required this.dayNumber,
     required this.weekNumber,
     required this.cycleNumber,
@@ -269,12 +269,12 @@ class ActiveWorkoutDraft {
     this.dynamicItems = const <DynamicWorkoutItem>[],
   });
 
-  factory ActiveWorkoutDraft.fromJson(Map<String, dynamic> json) {
+  factory fromJson(Map<String, dynamic> json) {
     final Map<String, dynamic> rawSets =
         json['exerciseSets'] as Map<String, dynamic>? ?? <String, dynamic>{};
     final Map<String, List<CompletedSet>> setsMap =
         <String, List<CompletedSet>>{};
-    rawSets.forEach((String k, dynamic v) {
+    rawSets.forEach((k, dynamic v) {
       if (v is List) {
         setsMap[k] = v
             .map((dynamic s) => CompletedSet.fromJson(s as Map<String, dynamic>))
@@ -285,7 +285,7 @@ class ActiveWorkoutDraft {
     final Map<String, dynamic> rawWeights =
         json['exerciseWeights'] as Map<String, dynamic>? ?? <String, dynamic>{};
     final Map<String, double> weightsMap = <String, double>{};
-    rawWeights.forEach((String k, dynamic v) {
+    rawWeights.forEach((k, dynamic v) {
       if (v is num) {
         weightsMap[k] = v.toDouble();
       }
@@ -295,7 +295,7 @@ class ActiveWorkoutDraft {
         json['swappedExerciseNames'] as Map<String, dynamic>? ??
         <String, dynamic>{};
     final Map<String, String> swapsMap = <String, String>{};
-    rawSwaps.forEach((String k, dynamic v) {
+    rawSwaps.forEach((k, dynamic v) {
       if (v is String) {
         swapsMap[k] = v;
       }
@@ -346,24 +346,24 @@ class ActiveWorkoutDraft {
 
   int get totalSetsCount => exerciseSets.values.fold(
     0,
-    (int sum, List<CompletedSet> sets) => sum + sets.length,
+    (sum, sets) => sum + sets.length,
   );
 
   int get totalCompletedSets => exerciseSets.values.fold(
     0,
-    (int sum, List<CompletedSet> sets) =>
-        sum + sets.where((CompletedSet s) => s.isCompleted).length,
+    (sum, sets) =>
+        sum + sets.where((s) => s.isCompleted).length,
   );
 
   int get totalDynamicCount => dynamicItems.length;
 
   int get totalCompletedDynamic =>
-      dynamicItems.where((DynamicWorkoutItem i) => i.isCompleted).length;
+      dynamicItems.where((i) => i.isCompleted).length;
 
   double get completionPercentage {
     final int total = totalSetsCount + totalDynamicCount;
     if (total == 0) {
-      return 0.0;
+      return 0;
     }
     return (totalCompletedSets + totalCompletedDynamic) / total;
   }
@@ -376,8 +376,8 @@ class ActiveWorkoutDraft {
       'dayTitle': dayTitle,
       'startTime': startTime.toIso8601String(),
       'exerciseSets': exerciseSets.map(
-        (String key, List<CompletedSet> value) =>
-            MapEntry(key, value.map((CompletedSet s) => s.toJson()).toList()),
+        (key, value) =>
+            MapEntry(key, value.map((s) => s.toJson()).toList()),
       ),
       'exerciseWeights': exerciseWeights,
       'swappedExerciseNames': swappedExerciseNames,
@@ -385,7 +385,7 @@ class ActiveWorkoutDraft {
       'selectedRpe': selectedRpe,
       'selectedJointStrains': selectedJointStrains,
       'isPreviewMode': isPreviewMode,
-      'dynamicItems': dynamicItems.map((DynamicWorkoutItem e) => e.toJson()).toList(),
+      'dynamicItems': dynamicItems.map((e) => e.toJson()).toList(),
     };
   }
 }

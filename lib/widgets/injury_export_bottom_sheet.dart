@@ -9,7 +9,7 @@ import 'package:oly/theme/app_theme.dart';
 import 'package:provider/provider.dart';
 
 class InjuryExportBottomSheet extends StatefulWidget {
-  const InjuryExportBottomSheet({
+  const new({
     required this.injuries,
     super.key,
   });
@@ -128,9 +128,9 @@ class _InjuryExportBottomSheetState extends State<InjuryExportBottomSheet> {
   Widget build(BuildContext context) {
     final InjuryProvider? provider = Provider.of<InjuryProvider?>(context);
     final List<InjuryRecord> active =
-        widget.injuries.where((InjuryRecord i) => i.isActive).toList();
+        widget.injuries.where((i) => i.isActive).toList();
     final List<InjuryRecord> resolved =
-        widget.injuries.where((InjuryRecord i) => !i.isActive).toList();
+        widget.injuries.where((i) => !i.isActive).toList();
 
     return Container(
       decoration: const BoxDecoration(

@@ -40,7 +40,7 @@ void main() {
         // In Week 2 (70%), if lifter moves 70.0 kg, implied 1RM is 70 / 0.70 = 100.0 kg
         final double implied1RMWeek2 =
             WorkoutWeightHelper.calculateImplied1RMPeriodization(
-              workingWeightKg: 70.0,
+              workingWeightKg: 70,
               exerciseTemplate: exercise,
               currentWeek: 2,
             );
@@ -49,7 +49,7 @@ void main() {
         // In Week 3 (75%), if lifter moves 60.0 kg, implied 1RM is 60 / 0.75 = 80.0 kg
         final double implied1RMWeek3 =
             WorkoutWeightHelper.calculateImplied1RMPeriodization(
-              workingWeightKg: 60.0,
+              workingWeightKg: 60,
               exerciseTemplate: exercise,
               currentWeek: 3,
             );
@@ -64,13 +64,13 @@ void main() {
           name: 'Snatch Pull',
           liftId: 'snatch',
           setScheme: '3 Sets of 2 Reps',
-          fixedPercentage: 90.0,
+          fixedPercentage: 90,
         );
 
         // If lifter pulls 90.0 kg at 90% fixed, implied 1RM is 90 / 0.90 = 100.0 kg
         final double implied1RM =
             WorkoutWeightHelper.calculateImplied1RMPeriodization(
-              workingWeightKg: 90.0,
+              workingWeightKg: 90,
               exerciseTemplate: exercise,
               currentWeek: 1,
             );
@@ -89,7 +89,7 @@ void main() {
       // In Week 1: 60kg working weight -> 60 / 0.60 = 100.0 kg
       final double implied1RMWeek1 =
           WorkoutWeightHelper.calculateImplied1RMPeriodization(
-            workingWeightKg: 60.0,
+            workingWeightKg: 60,
             exerciseTemplate: exercise,
             currentWeek: 1,
           );
@@ -99,7 +99,7 @@ void main() {
       // If working weight is 65.0 kg -> (65 - 5) / 0.60 = 100.0 kg
       final double implied1RMWeek3 =
           WorkoutWeightHelper.calculateImplied1RMPeriodization(
-            workingWeightKg: 65.0,
+            workingWeightKg: 65,
             exerciseTemplate: exercise,
             currentWeek: 3,
           );
@@ -109,14 +109,14 @@ void main() {
     test('Calculates Epley 1RM correctly for multi-rep sets', () {
       // 100kg for 3 reps: 100 * (1 + 3/30) = 110.0 kg
       final double epley3Reps = WorkoutWeightHelper.calculateImplied1RMEpley(
-        workingWeightKg: 100.0,
+        workingWeightKg: 100,
         reps: 3,
       );
       expect(epley3Reps, closeTo(110.0, 0.01));
 
       // 100kg for 1 rep: 100.0 kg
       final double epley1Rep = WorkoutWeightHelper.calculateImplied1RMEpley(
-        workingWeightKg: 100.0,
+        workingWeightKg: 100,
         reps: 1,
       );
       expect(epley1Rep, closeTo(100.0, 0.01));
@@ -145,7 +145,7 @@ void main() {
   group('WorkoutWeightDialog Widget Tests', () {
     testWidgets(
       'Renders working weight input, steppers, and calculates live 1RM preview',
-      (WidgetTester tester) async {
+      (tester) async {
         tester.view.physicalSize = const Size(1080, 2400);
         tester.view.devicePixelRatio = 1.0;
         addTearDown(() => tester.view.resetPhysicalSize());
@@ -172,14 +172,14 @@ void main() {
                 body: WorkoutWeightDialog(
                   exercise: exercise,
                   displayName: 'Power Snatch + Overhead Squat',
-                  initialWeightKg: 56.0, // 70% of baseline 80kg snatch
+                  initialWeightKg: 56, // 70% of baseline 80kg snatch
                   currentWeek: 2,
                   onWeightUpdated:
                       ({
-                        required double newWeightKg,
-                        required bool update1RM,
-                        int? newReps,
-                        double? new1RMKg,
+                        required newWeightKg,
+                        required update1RM,
+                        newReps,
+                        new1RMKg,
                       }) {
                         updatedWeight = newWeightKg;
                         updated1RMFlag = update1RM;
@@ -219,7 +219,7 @@ void main() {
 
     testWidgets(
       'Updates weight & reps without recalculating catalog 1RM when Weight & Reps Only is tapped',
-      (WidgetTester tester) async {
+      (tester) async {
         tester.view.physicalSize = const Size(1080, 2400);
         tester.view.devicePixelRatio = 1.0;
         addTearDown(() => tester.view.resetPhysicalSize());
@@ -246,15 +246,15 @@ void main() {
                 body: WorkoutWeightDialog(
                   exercise: exercise,
                   displayName: 'Back Squat',
-                  initialWeightKg: 100.0,
+                  initialWeightKg: 100,
                   initialReps: 6,
                   currentWeek: 2,
                   onWeightUpdated:
                       ({
-                        required double newWeightKg,
-                        required bool update1RM,
-                        int? newReps,
-                        double? new1RMKg,
+                        required newWeightKg,
+                        required update1RM,
+                        newReps,
+                        new1RMKg,
                       }) {
                         updatedWeight = newWeightKg;
                         updatedReps = newReps;
@@ -285,7 +285,7 @@ void main() {
 
     testWidgets(
       'Live Epley 1RM recalculation updates dynamically when reps change',
-      (WidgetTester tester) async {
+      (tester) async {
         tester.view.physicalSize = const Size(1080, 2400);
         tester.view.devicePixelRatio = 1.0;
         addTearDown(() => tester.view.resetPhysicalSize());
@@ -307,15 +307,15 @@ void main() {
                 body: WorkoutWeightDialog(
                   exercise: exercise,
                   displayName: 'Clean and Jerk',
-                  initialWeightKg: 100.0,
+                  initialWeightKg: 100,
                   initialReps: 1,
                   currentWeek: 1,
                   onWeightUpdated:
                       ({
-                        required double newWeightKg,
-                        required bool update1RM,
-                        int? newReps,
-                        double? new1RMKg,
+                        required newWeightKg,
+                        required update1RM,
+                        newReps,
+                        new1RMKg,
                       }) {},
                 ),
               ),
@@ -348,14 +348,14 @@ void main() {
   group('WorkoutSetEditDialog Widget Tests', () {
     testWidgets(
       'Renders set weight, reps, steppers, and saves updated individual set parameters',
-      (WidgetTester tester) async {
+      (tester) async {
         tester.view.physicalSize = const Size(1080, 2400);
         tester.view.devicePixelRatio = 1.0;
         addTearDown(() => tester.view.resetPhysicalSize());
 
         final CompletedSet originalSet = CompletedSet(
           setIndex: 2,
-          weight: 80.0,
+          weight: 80,
           reps: 3,
           isCompleted: false,
         );
@@ -377,10 +377,10 @@ void main() {
                   currentSet: originalSet,
                   totalSets: 4,
                   onSaveSet: ({
-                    required double newWeightKg,
-                    required int newReps,
-                    required bool isCompleted,
-                    bool applyToSubsequentSets = false,
+                    required newWeightKg,
+                    required newReps,
+                    required isCompleted,
+                    applyToSubsequentSets = false,
                   }) {
                     savedWeight = newWeightKg;
                     savedReps = newReps;
@@ -429,4 +429,3 @@ void main() {
     );
   });
 }
-

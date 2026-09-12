@@ -6,7 +6,7 @@ import 'package:oly/theme/app_theme.dart';
 import 'package:provider/provider.dart';
 
 class FastingGrocerySheet extends StatelessWidget {
-  const FastingGrocerySheet({super.key});
+  const new({super.key});
 
   static void show(BuildContext context) {
     showModalBottomSheet<void>(
@@ -16,7 +16,7 @@ class FastingGrocerySheet extends StatelessWidget {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (BuildContext _) => const FastingGrocerySheet(),
+      builder: (_) => const FastingGrocerySheet(),
     );
   }
 
@@ -30,18 +30,18 @@ class FastingGrocerySheet extends StatelessWidget {
         <FastingGroceryCategory, List<FastingGroceryItem>>{};
     for (final FastingGroceryCategory cat in FastingGroceryCategory.values) {
       grouped[cat] =
-          items.where((FastingGroceryItem i) => i.category == cat).toList();
+          items.where((i) => i.category == cat).toList();
     }
 
     final int checkedCount =
-        items.where((FastingGroceryItem i) => i.isChecked).length;
+        items.where((i) => i.isChecked).length;
 
     return DraggableScrollableSheet(
       initialChildSize: 0.85,
       minChildSize: 0.5,
       maxChildSize: 0.95,
       expand: false,
-      builder: (BuildContext context, ScrollController scrollController) {
+      builder: (context, scrollController) {
         return Column(
           children: <Widget>[
             // Grab handle
@@ -114,7 +114,7 @@ class FastingGrocerySheet extends StatelessWidget {
                 controller: scrollController,
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                children: FastingGroceryCategory.values.map((FastingGroceryCategory cat) {
+                children: FastingGroceryCategory.values.map((cat) {
                   final List<FastingGroceryItem> catItems = grouped[cat] ?? <FastingGroceryItem>[];
                   if (catItems.isEmpty) {
                     return const SizedBox.shrink();
@@ -129,27 +129,22 @@ class FastingGrocerySheet extends StatelessWidget {
                       title = 'FASTING WINDOW ESSENTIALS';
                       icon = Icons.water_drop_outlined;
                       iconColor = Colors.cyanAccent;
-                      break;
                     case FastingGroceryCategory.preWorkoutPrimer:
                       title = '5:15 AM PLATFORM PRIMER';
                       icon = Icons.bolt;
                       iconColor = AppTheme.primaryAmber;
-                      break;
                     case FastingGroceryCategory.refeedingBroth:
                       title = 'REFEEDING: PHASE 1 (BROTH & ENZYMES)';
                       icon = Icons.soup_kitchen_outlined;
                       iconColor = Colors.tealAccent;
-                      break;
                     case FastingGroceryCategory.refeedingGentle:
                       title = 'REFEEDING: PHASE 2 (GENTLE WHOLE FOODS)';
                       icon = Icons.egg_alt_outlined;
                       iconColor = Colors.amberAccent;
-                      break;
                     case FastingGroceryCategory.refeedingRecovery:
                       title = 'REFEEDING: PHASE 3 (GLYCOGEN & PROTEIN)';
                       icon = Icons.restaurant;
                       iconColor = Colors.greenAccent;
-                      break;
                   }
 
                   return Column(
@@ -173,7 +168,7 @@ class FastingGrocerySheet extends StatelessWidget {
                           ],
                         ),
                       ),
-                      ...catItems.map((FastingGroceryItem item) {
+                      ...catItems.map((item) {
                         return Container(
                           margin: const EdgeInsets.only(bottom: 6),
                           decoration: BoxDecoration(
@@ -231,128 +226,133 @@ class FastingGrocerySheet extends StatelessWidget {
     );
   }
 
-  void _showAddItemDialog(BuildContext context, FastingProvider fasting) {
+  Future<void> _showAddItemDialog(BuildContext context, FastingProvider fasting) async {
     final TextEditingController nameCtrl = TextEditingController();
     final TextEditingController descCtrl = TextEditingController();
     FastingGroceryCategory selectedCategory =
         FastingGroceryCategory.fastingEssentials;
 
-    showDialog<void>(
-      context: context,
-      builder: (BuildContext ctx) {
-        return StatefulBuilder(
-          builder: (BuildContext _, StateSetter setDialogState) {
-            return AlertDialog(
-              backgroundColor: AppTheme.surfaceCard,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16)),
-              title: Text(
-                'Add Grocery Item',
-                style: GoogleFonts.outfit(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+    try {
+      await showDialog<void>(
+        context: context,
+        builder: (ctx) {
+          return StatefulBuilder(
+            builder: (_, setDialogState) {
+              return AlertDialog(
+                backgroundColor: AppTheme.surfaceCard,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16)),
+                title: Text(
+                  'Add Grocery Item',
+                  style: GoogleFonts.outfit(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
-              ),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  TextField(
-                    controller: nameCtrl,
-                    style: const TextStyle(color: Colors.white),
-                    decoration: InputDecoration(
-                      labelText: 'Item Name',
-                      labelStyle:
-                          const TextStyle(color: AppTheme.textSecondary),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: const BorderSide(color: Colors.white24),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide:
-                            const BorderSide(color: AppTheme.primaryAmber),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: descCtrl,
-                    style: const TextStyle(color: Colors.white),
-                    decoration: InputDecoration(
-                      labelText: 'Purpose / Description (Optional)',
-                      labelStyle:
-                          const TextStyle(color: AppTheme.textSecondary),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: const BorderSide(color: Colors.white24),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide:
-                            const BorderSide(color: AppTheme.primaryAmber),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  DropdownButtonFormField<FastingGroceryCategory>(
-                    initialValue: selectedCategory,
-                    dropdownColor: AppTheme.surfaceCard,
-                    decoration: InputDecoration(
-                      labelText: 'Category',
-                      labelStyle:
-                          const TextStyle(color: AppTheme.textSecondary),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: const BorderSide(color: Colors.white24),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    items: FastingGroceryCategory.values
-                        .map((FastingGroceryCategory c) {
-                      return DropdownMenuItem<FastingGroceryCategory>(
-                        value: c,
-                        child: Text(
-                          c.name,
-                          style: const TextStyle(color: Colors.white, fontSize: 13),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    TextField(
+                      controller: nameCtrl,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: InputDecoration(
+                        labelText: 'Item Name',
+                        labelStyle:
+                            const TextStyle(color: AppTheme.textSecondary),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(color: Colors.white24),
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                      );
-                    }).toList(),
-                    onChanged: (FastingGroceryCategory? val) {
-                      if (val != null) {
-                        setDialogState(() => selectedCategory = val);
+                        focusedBorder: OutlineInputBorder(
+                          borderSide:
+                              const BorderSide(color: AppTheme.primaryAmber),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: descCtrl,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: InputDecoration(
+                        labelText: 'Purpose / Description (Optional)',
+                        labelStyle:
+                            const TextStyle(color: AppTheme.textSecondary),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(color: Colors.white24),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide:
+                              const BorderSide(color: AppTheme.primaryAmber),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<FastingGroceryCategory>(
+                      initialValue: selectedCategory,
+                      dropdownColor: AppTheme.surfaceCard,
+                      decoration: InputDecoration(
+                        labelText: 'Category',
+                        labelStyle:
+                            const TextStyle(color: AppTheme.textSecondary),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(color: Colors.white24),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      items: FastingGroceryCategory.values
+                          .map((c) {
+                        return DropdownMenuItem<FastingGroceryCategory>(
+                          value: c,
+                          child: Text(
+                            c.name,
+                            style: const TextStyle(color: Colors.white, fontSize: 13),
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (val) {
+                        if (val != null) {
+                          setDialogState(() => selectedCategory = val);
+                        }
+                      },
+                    ),
+                  ],
+                ),
+                actions: <Widget>[
+                  TextButton(
+                    onPressed: () => Navigator.of(ctx).pop(),
+                    child: const Text('Cancel',
+                        style: TextStyle(color: AppTheme.textSecondary)),
+                  ),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primaryAmber,
+                      foregroundColor: Colors.black,
+                    ),
+                    onPressed: () {
+                      if (nameCtrl.text.trim().isNotEmpty) {
+                        fasting.addCustomPantryItem(
+                          name: nameCtrl.text.trim(),
+                          category: selectedCategory,
+                          description: descCtrl.text.trim(),
+                        );
+                        Navigator.of(ctx).pop();
                       }
                     },
+                    child: const Text('Add'),
                   ),
                 ],
-              ),
-              actions: <Widget>[
-                TextButton(
-                  onPressed: () => Navigator.of(ctx).pop(),
-                  child: const Text('Cancel',
-                      style: TextStyle(color: AppTheme.textSecondary)),
-                ),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primaryAmber,
-                    foregroundColor: Colors.black,
-                  ),
-                  onPressed: () {
-                    if (nameCtrl.text.trim().isNotEmpty) {
-                      fasting.addCustomPantryItem(
-                        name: nameCtrl.text.trim(),
-                        category: selectedCategory,
-                        description: descCtrl.text.trim(),
-                      );
-                      Navigator.of(ctx).pop();
-                    }
-                  },
-                  child: const Text('Add'),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
+              );
+            },
+          );
+        },
+      );
+    } finally {
+      nameCtrl.dispose();
+      descCtrl.dispose();
+    }
   }
 }

@@ -8,7 +8,7 @@ import 'package:oly/theme/app_theme.dart';
 import 'package:oly/views/nutrition/metabolic_science_explainer_screen.dart';
 
 class EnergyBalanceCard extends StatefulWidget {
-  const EnergyBalanceCard({
+  const new({
     required this.log,
     required this.goal,
     super.key,
@@ -55,14 +55,14 @@ class _EnergyBalanceCardState extends State<EnergyBalanceCard> {
         : '+$netBalance kcal SURPLUS';
 
     final DailyActivityEntry? wodActivity = widget.log.activities
-        .where((DailyActivityEntry a) => a.activityType == 'workout_wod')
+        .where((a) => a.activityType == 'workout_wod')
         .firstOrNull;
     final List<DailyActivityEntry> nonWodActivities = widget.log.activities
-        .where((DailyActivityEntry a) => a.activityType != 'workout_wod')
+        .where((a) => a.activityType != 'workout_wod')
         .toList();
     final int nonWodBurn = nonWodActivities.fold(
       0,
-      (int sum, DailyActivityEntry a) => sum + a.caloriesBurned,
+      (sum, a) => sum + a.caloriesBurned,
     );
 
     return Container(
@@ -116,7 +116,7 @@ class _EnergyBalanceCardState extends State<EnergyBalanceCard> {
                 InkWell(
                   onTap: () {
                     Navigator.of(context).push(
-                      MaterialPageRoute(
+                      MaterialPageRoute<void>(
                         builder: (_) => const MetabolicScienceExplainerScreen(),
                       ),
                     );

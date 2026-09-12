@@ -1,5 +1,5 @@
 class KettlebellMileLog {
-  KettlebellMileLog({
+  new({
     required this.id,
     required this.date,
     required this.weightKg,
@@ -11,7 +11,7 @@ class KettlebellMileLog {
     this.notes,
   });
 
-  factory KettlebellMileLog.fromJson(Map<String, dynamic> json) {
+  factory fromJson(Map<String, dynamic> json) {
     final int duration = json['durationSeconds'] as int? ?? 0;
     return KettlebellMileLog(
       id: json['id'] as String,

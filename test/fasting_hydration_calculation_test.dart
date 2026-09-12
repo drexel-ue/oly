@@ -27,7 +27,7 @@ void main() {
       // 14 hours (ketosis onset)
       final FastingHydrationAdjustment adj14 =
           FastingEngineService.calculateFastingHydrationAdjustment(
-        elapsedHours: 14.0,
+        elapsedHours: 14,
       );
       expect(adj14.bonusOz, equals(6.0));
       expect(adj14.bonusMl, equals(177));
@@ -36,7 +36,7 @@ void main() {
       // 18 hours (natriuresis active)
       final FastingHydrationAdjustment adj18 =
           FastingEngineService.calculateFastingHydrationAdjustment(
-        elapsedHours: 18.0,
+        elapsedHours: 18,
       );
       expect(adj18.bonusOz, equals(12.0));
       expect(adj18.bonusMl, equals(355));
@@ -45,7 +45,7 @@ void main() {
       // 26 hours (extended fast / deep autophagy)
       final FastingHydrationAdjustment adj26 =
           FastingEngineService.calculateFastingHydrationAdjustment(
-        elapsedHours: 26.0,
+        elapsedHours: 26,
       );
       expect(adj26.bonusOz, equals(18.0));
       expect(adj26.bonusMl, equals(532));
@@ -56,13 +56,13 @@ void main() {
     test('Keto-Mojo reading with deep ketosis (GKI < 3.0, BOHB >= 1.5) triggers natriuresis surcharge', () {
       final FastingBiomarkerEntry deepKetosisEntry = FastingBiomarkerEntry.create(
         id: 'test_entry_1',
-        glucoseMgDl: 72.0,
+        glucoseMgDl: 72,
         ketoneMmolL: 2.2,
       );
 
       final FastingHydrationAdjustment adj =
           FastingEngineService.calculateFastingHydrationAdjustment(
-        elapsedHours: 16.0,
+        elapsedHours: 16,
         latestBiomarker: deepKetosisEntry,
       );
 
@@ -76,13 +76,13 @@ void main() {
     test('Hemoconcentration detection (elevated glucose >110 with elevated ketones) triggers rehydration surge', () {
       final FastingBiomarkerEntry hemoEntry = FastingBiomarkerEntry.create(
         id: 'test_hemo',
-        glucoseMgDl: 125.0,
+        glucoseMgDl: 125,
         ketoneMmolL: 1.4,
       );
 
       final FastingHydrationAdjustment adj =
           FastingEngineService.calculateFastingHydrationAdjustment(
-        elapsedHours: 17.0,
+        elapsedHours: 17,
         latestBiomarker: hemoEntry,
       );
 
@@ -131,18 +131,18 @@ void main() {
       final FastingProvider provider = FastingProvider(storage);
 
       // Sync rest day Fuel target of 100 oz (~2,957 mL)
-      provider.syncFuelContext(fuelWaterOz: 100.0, isTrainingDay: false);
+      provider.syncFuelContext(fuelWaterOz: 100, isTrainingDay: false);
       expect(provider.effectiveDailyWaterTargetMl, equals(2957));
 
       // Sync training day Fuel target with +24 oz lifting surcharge (124 oz ~ 3,667 mL)
-      provider.syncFuelContext(fuelWaterOz: 124.0, isTrainingDay: true);
+      provider.syncFuelContext(fuelWaterOz: 124, isTrainingDay: true);
       expect(provider.effectiveDailyWaterTargetMl, equals(3667));
     });
 
     test('Combines Fuel target with deep ketosis biomarker bonus when active', () async {
       final FastingProvider provider = FastingProvider(storage);
 
-      provider.syncFuelContext(fuelWaterOz: 100.0, isTrainingDay: false);
+      provider.syncFuelContext(fuelWaterOz: 100, isTrainingDay: false);
 
       // Start an active fast so elapsed hours > 0
       await provider.startFast(
@@ -152,8 +152,8 @@ void main() {
 
       // Log a deep ketosis biomarker
       await provider.addBiomarkerEntry(
-        glucoseMgDl: 70.0,
-        ketoneMmolL: 2.0,
+        glucoseMgDl: 70,
+        ketoneMmolL: 2,
       );
 
       // 100 oz (2957 mL) + 16 oz ketosis bonus (473 mL) = 3430 mL
@@ -163,7 +163,7 @@ void main() {
     test('Falls back to manual circadian target when syncWithFuelWaterTarget is disabled', () async {
       final FastingProvider provider = FastingProvider(storage);
 
-      provider.syncFuelContext(fuelWaterOz: 124.0, isTrainingDay: true);
+      provider.syncFuelContext(fuelWaterOz: 124, isTrainingDay: true);
 
       await provider.updateCircadianConfig(
         provider.circadianConfig.copyWith(
@@ -180,8 +180,8 @@ void main() {
       final FastingProvider provider = FastingProvider(storage);
       await provider.startFast(protocol: FastingProtocol.intermittent16_8);
 
-      double loggedFuelOz = 0.0;
-      await provider.logWater(500, onLogToFuel: (double oz) {
+      double loggedFuelOz = 0;
+      await provider.logWater(500, onLogToFuel: (oz) {
         loggedFuelOz += oz;
       });
 

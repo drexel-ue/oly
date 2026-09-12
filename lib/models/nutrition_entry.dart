@@ -44,7 +44,7 @@ enum MealCategory {
 }
 
 class NutritionEntry {
-  const NutritionEntry({
+  const new({
     required this.id,
     required this.name,
     required this.calories,
@@ -56,7 +56,7 @@ class NutritionEntry {
     this.portion,
   });
 
-  factory NutritionEntry.create({
+  factory create({
     required String name,
     required int calories,
     String? id,
@@ -80,7 +80,7 @@ class NutritionEntry {
     );
   }
 
-  factory NutritionEntry.fromJson(Map<String, dynamic> json) {
+  factory fromJson(Map<String, dynamic> json) {
     return NutritionEntry(
       id: json['id'] as String,
       name: json['name'] as String,
@@ -89,7 +89,7 @@ class NutritionEntry {
       carbsGrams: (json['carbsGrams'] as num).toDouble(),
       fatGrams: (json['fatGrams'] as num).toDouble(),
       category: MealCategory.values.firstWhere(
-        (MealCategory c) => c.name == (json['category'] as String),
+        (c) => c.name == (json['category'] as String),
         orElse: () => MealCategory.snack,
       ),
       timestamp: DateTime.parse(json['timestamp'] as String),

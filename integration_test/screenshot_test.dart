@@ -44,7 +44,7 @@ void main() {
 
   testWidgets(
     'Capture high-res and scrolling screenshots of all Oly screens with mock data',
-    (WidgetTester tester) async {
+    (tester) async {
       final StorageService storage = await MockDataHelper.setupMockStorage();
       final SettingsProvider settingsProvider = SettingsProvider(storage);
       final LiftProvider liftProvider = LiftProvider(storage);
@@ -97,7 +97,7 @@ void main() {
       await tester.pumpWidget(buildAppWrapper(const DashboardScreen()));
       await takeScrollingScreenshots(
         '01_dashboard_screen',
-        dragDistance: 500.0,
+        dragDistance: 500,
       );
 
       // 02 LIFTS MATRIX SCREEN
@@ -134,7 +134,7 @@ void main() {
       await tester.pumpWidget(buildAppWrapper(const AnalyticsScreen()));
       await takeScrollingScreenshots(
         '07_analytics_screen',
-        dragDistance: 500.0,
+        dragDistance: 500,
       );
 
       // 07b ACCESSORY PROGRESSIONS TAB
@@ -158,7 +158,6 @@ void main() {
       );
       await takeScrollingScreenshots(
         '09_workout_session_screen',
-        dragDistance: 600.0,
       );
 
       // 10 WORKOUT SWAP MODAL
@@ -200,13 +199,13 @@ void main() {
                 child: WorkoutWeightDialog(
                   exercise: exercise,
                   displayName: 'Power Snatch + Overhead Squat',
-                  initialWeightKg: 70.0,
+                  initialWeightKg: 70,
                   currentWeek: 2,
                   onWeightUpdated: ({
-                    required double newWeightKg,
-                    required bool update1RM,
-                    int? newReps,
-                    double? new1RMKg,
+                    required newWeightKg,
+                    required update1RM,
+                    newReps,
+                    new1RMKg,
                   }) {},
                 ),
               ),
@@ -238,7 +237,6 @@ void main() {
         category: MobilityCategory.hypertrophyCore,
         description: 'Builds elbow flexor strength and bicep tendon resilience for heavy clean catches.',
         cues: <String>['Keep elbows tucked.', 'Squeeze biceps.'],
-        defaultSets: 3,
         defaultReps: 12,
         videoUrl: 'https://youtube.com',
       );
@@ -267,7 +265,7 @@ void main() {
       );
       await takeScrollingScreenshots(
         '14_nutrition_dashboard_screen',
-        dragDistance: 500.0,
+        dragDistance: 500,
       );
 
       // 15 METABOLIC SCIENCE EXPLAINER SCREEN (Top & Scrolled)
@@ -276,7 +274,6 @@ void main() {
       );
       await takeScrollingScreenshots(
         '15_metabolic_science_explainer_screen',
-        dragDistance: 600.0,
       );
 
       // 16 FOOD SEARCH & RECENT PANTRY ITEMS SHEET
@@ -291,9 +288,9 @@ void main() {
         servingSize: '1 scoop (31g)',
         servingWeightGrams: 31,
         calories: 120,
-        protein: 25.0,
-        carbs: 1.0,
-        fat: 1.0,
+        protein: 25,
+        carbs: 1,
+        fat: 1,
         barcode: '748927028669',
         source: 'open_food_facts',
       );

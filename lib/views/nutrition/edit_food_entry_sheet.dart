@@ -8,7 +8,7 @@ import 'package:oly/theme/app_theme.dart';
 import 'package:provider/provider.dart';
 
 class EditFoodEntrySheet extends StatefulWidget {
-  const EditFoodEntrySheet({
+  const new({
     required this.entry,
     super.key,
   });
@@ -131,7 +131,7 @@ class _EditFoodEntrySheetState extends State<EditFoodEntrySheet> {
     HapticFeedback.heavyImpact();
     showDialog<void>(
       context: context,
-      builder: (BuildContext ctx) {
+      builder: (ctx) {
         return AlertDialog(
           backgroundColor: AppTheme.surfaceCard,
           shape: RoundedRectangleBorder(
@@ -215,7 +215,6 @@ class _EditFoodEntrySheetState extends State<EditFoodEntrySheet> {
           style: GoogleFonts.inter(color: Colors.white),
         ),
         backgroundColor: AppTheme.surfaceElevated,
-        duration: const Duration(seconds: 4),
         action: SnackBarAction(
           label: 'UNDO',
           textColor: AppTheme.primaryAmber,
@@ -369,7 +368,7 @@ class _EditFoodEntrySheetState extends State<EditFoodEntrySheet> {
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
-                children: MealCategory.values.map((MealCategory cat) {
+                children: MealCategory.values.map((cat) {
                   final bool isSelected = _selectedCategory == cat;
                   return Padding(
                     padding: const EdgeInsets.only(right: 8),
@@ -395,7 +394,7 @@ class _EditFoodEntrySheetState extends State<EditFoodEntrySheet> {
                             ? AppTheme.primaryAmber
                             : AppTheme.borderColor,
                       ),
-                      onSelected: (bool selected) {
+                      onSelected: (selected) {
                         if (selected) {
                           HapticFeedback.selectionClick();
                           setState(() {

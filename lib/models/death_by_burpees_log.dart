@@ -3,7 +3,7 @@ import 'package:uuid/uuid.dart';
 /// Represents an entire completed or logged CrossFit "Death By Burpees" EMOM session.
 /// (Minute 1 = 1 burpee, Minute 2 = 2 burpees, ..., until failure to complete within the minute).
 class DeathByBurpeesLog {
-  DeathByBurpeesLog({
+  new({
     required this.completedMinutes,
     this.partialReps = 0,
     int? totalReps,
@@ -20,7 +20,7 @@ class DeathByBurpeesLog {
         totalDurationSeconds = totalDurationSeconds ?? (completedMinutes * 60),
         scalingTier = scalingTier ?? (burpeeVariation == 'standard' ? 'Rx' : 'Scaled');
 
-  factory DeathByBurpeesLog.fromJson(Map<String, dynamic> json) {
+  factory fromJson(Map<String, dynamic> json) {
     final int minutes = json['completedMinutes'] as int? ?? 0;
     final int partial = json['partialReps'] as int? ?? 0;
     return DeathByBurpeesLog(

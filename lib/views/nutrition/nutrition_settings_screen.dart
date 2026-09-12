@@ -9,7 +9,7 @@ import 'package:oly/views/nutrition/fasting_circadian_sheet.dart';
 import 'package:provider/provider.dart';
 
 class NutritionSettingsScreen extends StatefulWidget {
-  const NutritionSettingsScreen({super.key});
+  const new({super.key});
 
   @override
   State<NutritionSettingsScreen> createState() =>
@@ -87,13 +87,13 @@ class _NutritionSettingsScreenState extends State<NutritionSettingsScreen> {
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
                   color: AppTheme.textSecondary,
-                  letterSpacing: 1.0,
+                  letterSpacing: 1,
                 ),
               ),
               const SizedBox(height: 10),
 
               // Goal Type Selection Cards
-              ...GoalType.values.map((GoalType type) {
+              ...GoalType.values.map((type) {
                 final bool isSelected = _goalType == type;
                 return GestureDetector(
                   onTap: () {
@@ -217,7 +217,7 @@ class _NutritionSettingsScreenState extends State<NutritionSettingsScreen> {
                       divisions: 12,
                       activeColor: AppTheme.secondaryCyan,
                       inactiveColor: Colors.white10,
-                      onChanged: (double val) =>
+                      onChanged: (val) =>
                           setState(() => _proteinMultiplier = val),
                     ),
                   ],
@@ -266,7 +266,7 @@ class _NutritionSettingsScreenState extends State<NutritionSettingsScreen> {
                         Switch.adaptive(
                           value: _carbCyclingEnabled,
                           activeTrackColor: AppTheme.primaryAmber,
-                          onChanged: (bool val) =>
+                          onChanged: (val) =>
                               setState(() => _carbCyclingEnabled = val),
                         ),
                       ],
@@ -369,7 +369,7 @@ class _NutritionSettingsScreenState extends State<NutritionSettingsScreen> {
 
               // Circadian Notifications & Reminders
               Consumer<FastingProvider>(
-                builder: (BuildContext context, FastingProvider fasting, _) {
+                builder: (context, fasting, _) {
                   final config = fasting.circadianConfig;
                   return Container(
                     padding: const EdgeInsets.all(16),
@@ -475,7 +475,7 @@ class _NutritionSettingsScreenState extends State<NutritionSettingsScreen> {
                               activeThumbColor: Colors.cyanAccent,
                               activeTrackColor:
                                   Colors.cyanAccent.withValues(alpha: 0.4),
-                              onChanged: (bool enabled) =>
+                              onChanged: (enabled) =>
                                   fasting.toggleWaterReminders(enabled),
                             ),
                           ],
@@ -515,7 +515,7 @@ class _NutritionSettingsScreenState extends State<NutritionSettingsScreen> {
                               activeThumbColor: const Color(0xFFFFB74D),
                               activeTrackColor: const Color(0xFFFFB74D)
                                   .withValues(alpha: 0.4),
-                              onChanged: (bool enabled) =>
+                              onChanged: (enabled) =>
                                   fasting.toggleCoffeeReminders(enabled),
                             ),
                           ],

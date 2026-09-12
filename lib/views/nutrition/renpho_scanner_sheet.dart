@@ -9,7 +9,7 @@ import 'package:oly/widgets/nutrition/body_donut_chart.dart';
 import 'package:provider/provider.dart';
 
 class RenphoScannerSheet extends StatefulWidget {
-  const RenphoScannerSheet({super.key});
+  const new({super.key});
 
   @override
   State<RenphoScannerSheet> createState() => _RenphoScannerSheetState();
@@ -183,9 +183,9 @@ Metabolic Age 35
   }
 
   void _showRawTextDialog() {
-    showDialog(
+    showDialog<void>(
       context: context,
-      builder: (BuildContext ctx) => AlertDialog(
+      builder: (ctx) => AlertDialog(
         backgroundColor: AppTheme.surfaceCard,
         title: Text(
           'Raw OCR Extracted Text',
@@ -239,7 +239,6 @@ Metabolic Age 35
       visceralFat: int.tryParse(_visceralController.text),
       subcutaneousFatPct: double.tryParse(_subcutaneousController.text),
       metabolicAge: int.tryParse(_metabolicAgeController.text),
-      source: 'renpho_ocr',
     );
 
     final BodyCompProvider provider = Provider.of<BodyCompProvider>(
@@ -416,7 +415,7 @@ Metabolic Age 35
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
                       color: AppTheme.textSecondary,
-                      letterSpacing: 1.0,
+                      letterSpacing: 1,
                     ),
                   ),
                   const SizedBox(height: 12),

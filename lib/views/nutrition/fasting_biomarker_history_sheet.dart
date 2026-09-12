@@ -8,7 +8,7 @@ import 'package:oly/views/nutrition/fasting_biomarker_sheet.dart';
 import 'package:provider/provider.dart';
 
 class FastingBiomarkerHistorySheet extends StatelessWidget {
-  const FastingBiomarkerHistorySheet({super.key});
+  const new({super.key});
 
   static void show(BuildContext context) {
     showModalBottomSheet<void>(
@@ -18,7 +18,7 @@ class FastingBiomarkerHistorySheet extends StatelessWidget {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (BuildContext _) => const FastingBiomarkerHistorySheet(),
+      builder: (_) => const FastingBiomarkerHistorySheet(),
     );
   }
 
@@ -180,9 +180,9 @@ class FastingBiomarkerHistorySheet extends StatelessWidget {
             Expanded(
               child: ListView.separated(
                 itemCount: entries.length,
-                separatorBuilder: (BuildContext _, int _) =>
+                separatorBuilder: (_, _) =>
                     const SizedBox(height: 10),
-                itemBuilder: (BuildContext context, int index) {
+                itemBuilder: (context, index) {
                   final FastingBiomarkerEntry entry = entries[index];
                   final Color zoneCol = _zoneColor(entry.zone);
 
@@ -329,7 +329,7 @@ class FastingBiomarkerHistorySheet extends StatelessWidget {
                               onPressed: () async {
                                 final bool? confirm = await showDialog<bool>(
                                   context: context,
-                                  builder: (BuildContext ctx) => AlertDialog(
+                                  builder: (ctx) => AlertDialog(
                                     backgroundColor: AppTheme.surfaceCard,
                                     title: Text(
                                       'Delete Reading?',

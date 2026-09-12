@@ -6,7 +6,7 @@ import 'package:oly/models/wod_definition.dart';
 /// Contains official workout rep schemes, RX loads, and memorial tribute text
 /// honoring fallen military, law enforcement, and first responder personnel.
 class CrossfitHeroWod {
-  const CrossfitHeroWod({
+  const new({
     required this.id,
     required this.slug,
     required this.name,
@@ -26,7 +26,7 @@ class CrossfitHeroWod {
   });
 
   /// Deserializes from SQLite row map
-  factory CrossfitHeroWod.fromSqlite(Map<String, dynamic> map) {
+  factory fromSqlite(Map<String, dynamic> map) {
     List<String> decodeList(dynamic val) {
       if (val == null) {
         return <String>[];
@@ -66,7 +66,7 @@ class CrossfitHeroWod {
   }
 
   /// Deserializes from JSON map
-  factory CrossfitHeroWod.fromJson(Map<String, dynamic> json) {
+  factory fromJson(Map<String, dynamic> json) {
     List<String> parseStringList(dynamic list) {
       if (list is List) {
         return list.map((dynamic e) => e.toString()).toList();
@@ -147,7 +147,7 @@ class CrossfitHeroWod {
             ? tributeText
             : 'Prepare your workout bay with all required gear before starting the clock.',
         equipmentChecklist: equipment.isNotEmpty ? equipment : <String>['Open Gym Space'],
-        movementStandards: movementsSummary.map((String m) {
+        movementStandards: movementsSummary.map((m) {
           return WodMovementStandard(
             movementName: m,
             repsOrDistance: '',

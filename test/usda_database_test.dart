@@ -36,7 +36,7 @@ void main() {
       expect(results.isNotEmpty, isTrue);
 
       final FoodItem first = results.firstWhere(
-        (FoodItem f) => f.name.contains('Lemon Pepper'),
+        (f) => f.name.contains('Lemon Pepper'),
       );
       expect(first.brand, equals('Wingstop'));
       expect(first.servingUnitName, equals('wing'));
@@ -48,10 +48,10 @@ void main() {
       final List<FoodItem> results = await usdaService.searchFoods('mcdonald');
       expect(results.length, greaterThanOrEqualTo(30));
 
-      final bool hasBigMac = results.any((FoodItem f) => f.name.contains('Big Mac'));
-      final bool hasNuggets = results.any((FoodItem f) => f.name.contains('McNuggets'));
-      final bool hasMcMuffin = results.any((FoodItem f) => f.name.contains('McMuffin'));
-      final bool hasFries = results.any((FoodItem f) => f.name.contains('Fries'));
+      final bool hasBigMac = results.any((f) => f.name.contains('Big Mac'));
+      final bool hasNuggets = results.any((f) => f.name.contains('McNuggets'));
+      final bool hasMcMuffin = results.any((f) => f.name.contains('McMuffin'));
+      final bool hasFries = results.any((f) => f.name.contains('Fries'));
 
       expect(hasBigMac, isTrue);
       expect(hasNuggets, isTrue);
@@ -62,11 +62,11 @@ void main() {
     test('Searches staple whole foods (chicken breast, oats, salmon)', () async {
       final List<FoodItem> chicken = await usdaService.searchFoods('chicken breast');
       expect(chicken.isNotEmpty, isTrue);
-      expect(chicken.any((FoodItem f) => f.protein >= 20.0), isTrue);
+      expect(chicken.any((f) => f.protein >= 20.0), isTrue);
 
       final List<FoodItem> oats = await usdaService.searchFoods('oats');
       expect(oats.isNotEmpty, isTrue);
-      expect(oats.any((FoodItem f) => f.name.toLowerCase().contains('oats')), isTrue);
+      expect(oats.any((f) => f.name.toLowerCase().contains('oats')), isTrue);
     });
 
     test('Looks up foods directly by UPC barcode in SQLite index', () async {
@@ -82,7 +82,7 @@ void main() {
       final FoodDatabaseService foodService = FoodDatabaseService();
       final List<FoodItem> results = await foodService.searchLocalFoods('cane');
       expect(results.isNotEmpty, isTrue);
-      expect(results.any((FoodItem f) => (f.brand ?? '').contains('Cane')), isTrue);
+      expect(results.any((f) => (f.brand ?? '').contains('Cane')), isTrue);
     });
   });
 }

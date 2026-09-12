@@ -11,7 +11,7 @@ import 'package:oly/widgets/interactive_body_map.dart';
 import 'package:provider/provider.dart';
 
 class InjuryTrackerScreen extends StatefulWidget {
-  const InjuryTrackerScreen({super.key});
+  const new({super.key});
 
   @override
   State<InjuryTrackerScreen> createState() => _InjuryTrackerScreenState();
@@ -43,14 +43,14 @@ class _InjuryTrackerScreenState extends State<InjuryTrackerScreen>
     );
     final InjuryRecord? existing = provider.getActiveInjuryForRegion(region);
 
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (BuildContext _) => AnatomicalSubRegionSheet(
+      builder: (_) => AnatomicalSubRegionSheet(
         region: region,
         existingInjury: existing,
-        onSubRegionSelected: (InjurySubRegion subRegion) {
+        onSubRegionSelected: (subRegion) {
           _openLogSheet(
             region: region,
             subRegion: subRegion,
@@ -66,11 +66,11 @@ class _InjuryTrackerScreenState extends State<InjuryTrackerScreen>
     InjurySubRegion? subRegion,
     InjuryRecord? existing,
   }) {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (BuildContext _) => InjuryLogBottomSheet(
+      builder: (_) => InjuryLogBottomSheet(
         initialRegion: region,
         initialSubRegion: subRegion,
         existingInjury: existing,
@@ -79,20 +79,20 @@ class _InjuryTrackerScreenState extends State<InjuryTrackerScreen>
   }
 
   void _showExportSheet(List<InjuryRecord> allInjuries) {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (BuildContext _) => InjuryExportBottomSheet(
+      builder: (_) => InjuryExportBottomSheet(
         injuries: allInjuries,
       ),
     );
   }
 
   void _showInfoDialog() {
-    showDialog(
+    showDialog<void>(
       context: context,
-      builder: (BuildContext ctx) {
+      builder: (ctx) {
         return AlertDialog(
           backgroundColor: AppTheme.surfaceCard,
           shape: RoundedRectangleBorder(
@@ -244,7 +244,7 @@ class _InjuryTrackerScreenState extends State<InjuryTrackerScreen>
                 style: GoogleFonts.inter(
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
-                  letterSpacing: 1.0,
+                  letterSpacing: 1,
                   color: AppTheme.textSecondary,
                 ),
               ),
@@ -432,7 +432,7 @@ class _InjuryTrackerScreenState extends State<InjuryTrackerScreen>
 
     return ListView.builder(
       itemCount: injuries.length,
-      itemBuilder: (BuildContext context, int index) {
+      itemBuilder: (context, index) {
         final InjuryRecord injury = injuries[index];
         final Color stageColor = injury.stage == InjuryStage.acute
             ? AppTheme.primaryAmber
@@ -568,7 +568,7 @@ class _InjuryTrackerScreenState extends State<InjuryTrackerScreen>
     }
 
     final List<MobilityExerciseModel> targetDrills = allDrills
-        .where((MobilityExerciseModel d) => activeFocus.contains(d.focusArea))
+        .where((d) => activeFocus.contains(d.focusArea))
         .toList();
 
     if (targetDrills.isEmpty) {
@@ -582,7 +582,7 @@ class _InjuryTrackerScreenState extends State<InjuryTrackerScreen>
 
     return ListView.builder(
       itemCount: targetDrills.length,
-      itemBuilder: (BuildContext context, int index) {
+      itemBuilder: (context, index) {
         final MobilityExerciseModel drill = targetDrills[index];
         return Card(
           margin: const EdgeInsets.only(bottom: 10),
@@ -669,7 +669,7 @@ class _InjuryTrackerScreenState extends State<InjuryTrackerScreen>
                 )
               : ListView.builder(
                   itemCount: resolved.length,
-                  itemBuilder: (BuildContext context, int index) {
+                  itemBuilder: (context, index) {
                     final InjuryRecord record = resolved[index];
                     return Card(
                       margin: const EdgeInsets.only(bottom: 10),

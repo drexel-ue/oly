@@ -2,7 +2,7 @@ import 'package:oly/models/daily_activity_entry.dart';
 import 'package:oly/models/nutrition_entry.dart';
 
 class DailyNutritionLog {
-  const DailyNutritionLog({
+  const new({
     required this.date,
     required this.entries,
     required this.targetCalories,
@@ -16,7 +16,7 @@ class DailyNutritionLog {
     this.notes,
   });
 
-  factory DailyNutritionLog.create({
+  factory create({
     required String date,
     List<NutritionEntry>? entries,
     List<DailyActivityEntry>? activities,
@@ -44,7 +44,7 @@ class DailyNutritionLog {
     );
   }
 
-  factory DailyNutritionLog.fromJson(Map<String, dynamic> json) {
+  factory fromJson(Map<String, dynamic> json) {
     return DailyNutritionLog(
       date: json['date'] as String,
       entries:
@@ -83,23 +83,23 @@ class DailyNutritionLog {
   final String? notes;
 
   int get totalCalories =>
-      entries.fold(0, (int sum, NutritionEntry item) => sum + item.calories);
+      entries.fold(0, (sum, item) => sum + item.calories);
   double get totalProtein => entries.fold(
-    0.0,
-    (double sum, NutritionEntry item) => sum + item.proteinGrams,
+    0,
+    (sum, item) => sum + item.proteinGrams,
   );
   double get totalCarbs => entries.fold(
-    0.0,
-    (double sum, NutritionEntry item) => sum + item.carbsGrams,
+    0,
+    (sum, item) => sum + item.carbsGrams,
   );
   double get totalFat => entries.fold(
-    0.0,
-    (double sum, NutritionEntry item) => sum + item.fatGrams,
+    0,
+    (sum, item) => sum + item.fatGrams,
   );
 
   int get totalActivityCalories => activities.fold(
     0,
-    (int sum, DailyActivityEntry item) => sum + item.caloriesBurned,
+    (sum, item) => sum + item.caloriesBurned,
   );
 
   int totalCaloriesBurned([int baselineBmr = 2394]) =>
@@ -109,7 +109,7 @@ class DailyNutritionLog {
       totalCalories - totalCaloriesBurned(baselineBmr);
 
   bool get hasWodActivity =>
-      activities.any((DailyActivityEntry a) => a.activityType == 'workout_wod');
+      activities.any((a) => a.activityType == 'workout_wod');
 
   int get remainingCalories => targetCalories - totalCalories;
   double get remainingProtein => targetProteinGrams - totalProtein;
@@ -133,21 +133,21 @@ class DailyNutritionLog {
 
   List<NutritionEntry> getEntriesForCategory(MealCategory category) {
     return entries
-        .where((NutritionEntry entry) => entry.category == category)
+        .where((entry) => entry.category == category)
         .toList();
   }
 
   int getCaloriesForCategory(MealCategory category) {
     return getEntriesForCategory(category)
-        .fold(0, (int sum, NutritionEntry item) => sum + item.calories);
+        .fold(0, (sum, item) => sum + item.calories);
   }
 
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
       'date': date,
-      'entries': entries.map((NutritionEntry e) => e.toJson()).toList(),
+      'entries': entries.map((e) => e.toJson()).toList(),
       'activities': activities
-          .map((DailyActivityEntry e) => e.toJson())
+          .map((e) => e.toJson())
           .toList(),
       'targetCalories': targetCalories,
       'targetProteinGrams': targetProteinGrams,

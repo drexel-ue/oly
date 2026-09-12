@@ -70,7 +70,6 @@ void main() {
         category: MobilityCategory.hypertrophyCore,
         description: 'Biceps hypertrophy',
         cues: <String>['Tuck elbows'],
-        defaultSets: 3,
         defaultReps: 12,
         videoUrl: 'https://youtube.com',
       );
@@ -88,23 +87,23 @@ void main() {
 
       expect(
         seg.suggested.any(
-          (MobilityExerciseModel e) => e.name.contains('Tricep'),
+          (e) => e.name.contains('Tricep'),
         ),
         isTrue,
       );
       expect(
-        seg.suggested.any((MobilityExerciseModel e) => e.id == 'bicep_curls'),
+        seg.suggested.any((e) => e.id == 'bicep_curls'),
         isFalse,
       );
       expect(
-        seg.others.any((MobilityExerciseModel e) => e.id == 'bicep_curls'),
+        seg.others.any((e) => e.id == 'bicep_curls'),
         isFalse,
       );
     });
 
     testWidgets(
       'MobilityExerciseSwapModal displays suggested alternatives and performs swap callback',
-      (WidgetTester tester) async {
+      (tester) async {
         tester.view.physicalSize = const Size(1170, 2532);
         tester.view.devicePixelRatio = 2.0;
         addTearDown(() => tester.view.resetPhysicalSize());
@@ -116,7 +115,6 @@ void main() {
           category: MobilityCategory.hypertrophyCore,
           description: 'Biceps hypertrophy',
           cues: <String>['Tuck elbows'],
-          defaultSets: 3,
           defaultReps: 12,
           videoUrl: 'https://youtube.com',
         );
@@ -127,7 +125,7 @@ void main() {
           buildTestApp(
             MobilityExerciseSwapModal(
               exercise: current,
-              onSwapSelected: (MobilityExerciseModel replacement) {
+              onSwapSelected: (replacement) {
                 selectedReplacement = replacement;
               },
             ),
@@ -151,7 +149,7 @@ void main() {
     );
 
     testWidgets('VideoPlayerCard renders Swap button and triggers swap modal', (
-      WidgetTester tester,
+      tester,
     ) async {
       tester.view.physicalSize = const Size(1170, 2532);
       tester.view.devicePixelRatio = 2.0;
@@ -173,7 +171,7 @@ void main() {
           SingleChildScrollView(
             child: VideoPlayerCard(
               exercise: current,
-              onSwapExercise: (MobilityExerciseModel replacement) {},
+              onSwapExercise: (replacement) {},
               onCompleted: () {},
             ),
           ),
@@ -192,7 +190,7 @@ void main() {
 
     testWidgets(
       'WarmupSessionScreen allows swapping exercises and displays SWAPPED status',
-      (WidgetTester tester) async {
+      (tester) async {
         tester.view.physicalSize = const Size(1170, 2532);
         tester.view.devicePixelRatio = 2.0;
         addTearDown(() => tester.view.resetPhysicalSize());
@@ -221,7 +219,7 @@ void main() {
 
     testWidgets(
       'RecoverySessionScreen allows swapping exercises and resets back',
-      (WidgetTester tester) async {
+      (tester) async {
         tester.view.physicalSize = const Size(1170, 2532);
         tester.view.devicePixelRatio = 2.0;
         addTearDown(() => tester.view.resetPhysicalSize());
@@ -270,7 +268,7 @@ void main() {
 
     testWidgets(
       'RecoverySessionScreen allows skipping exercises and advances to next exercise',
-      (WidgetTester tester) async {
+      (tester) async {
         tester.view.physicalSize = const Size(1170, 2532);
         tester.view.devicePixelRatio = 2.0;
         addTearDown(() => tester.view.resetPhysicalSize());

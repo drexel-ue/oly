@@ -163,7 +163,7 @@ void main() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
       const MethodChannel('plugins.flutter.io/flutter_timezone'),
-      (MethodCall methodCall) async {
+      (methodCall) async {
         if (methodCall.method == 'getLocalTimezone') {
           return 'America/New_York';
         }
@@ -174,7 +174,7 @@ void main() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
       const MethodChannel('dexterous.com/flutter/local_notifications'),
-      (MethodCall methodCall) async {
+      (methodCall) async {
         return true;
       },
     );
@@ -182,7 +182,7 @@ void main() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
       const MethodChannel('xyz.luan/audioplayers'),
-      (MethodCall methodCall) async {
+      (methodCall) async {
         return 1;
       },
     );
@@ -190,7 +190,7 @@ void main() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
       const MethodChannel('xyz.luan/audioplayers.global'),
-      (MethodCall methodCall) async {
+      (methodCall) async {
         return 1;
       },
     );
@@ -198,7 +198,7 @@ void main() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
       const MethodChannel('com.ryanheise.audio_session'),
-      (MethodCall methodCall) async {
+      (methodCall) async {
         return null;
       },
     );
@@ -251,7 +251,7 @@ void main() {
           boundaryKey.currentContext?.findRenderObject()
               as RenderRepaintBoundary?;
       if (boundary != null) {
-        final ui.Image image = await boundary.toImage(pixelRatio: 2.0);
+        final ui.Image image = await boundary.toImage(pixelRatio: 2);
         final ByteData? byteData = await image.toByteData(
           format: ui.ImageByteFormat.png,
         );
@@ -270,7 +270,7 @@ void main() {
 
   group('Mock Data & Screen Rendering Verification Suite', () {
     testWidgets('01 Renders Dashboard Screen with mock data', (
-      WidgetTester tester,
+      tester,
     ) async {
       tester.view.physicalSize = const Size(1170, 2532);
       tester.view.devicePixelRatio = 2.0;
@@ -292,7 +292,7 @@ void main() {
 
     testWidgets(
       '02 Renders Lifts Matrix Screen with expanded percentage matrix',
-      (WidgetTester tester) async {
+      (tester) async {
         tester.view.physicalSize = const Size(1170, 2532);
         tester.view.devicePixelRatio = 2.0;
         addTearDown(() => tester.view.resetPhysicalSize());
@@ -311,7 +311,7 @@ void main() {
     );
 
     testWidgets('03 Renders Lift Ratios Screen with balance statuses', (
-      WidgetTester tester,
+      tester,
     ) async {
       tester.view.physicalSize = const Size(1170, 2532);
       tester.view.devicePixelRatio = 2.0;
@@ -333,7 +333,7 @@ void main() {
     });
 
     testWidgets('04 Renders Standard Ratios Sheet', (
-      WidgetTester tester,
+      tester,
     ) async {
       tester.view.physicalSize = const Size(1170, 2532);
       tester.view.devicePixelRatio = 2.0;
@@ -345,7 +345,7 @@ void main() {
     });
 
     testWidgets('05 Renders Plate Calculator Screen', (
-      WidgetTester tester,
+      tester,
     ) async {
       tester.view.physicalSize = const Size(1170, 2532);
       tester.view.devicePixelRatio = 2.0;
@@ -357,7 +357,7 @@ void main() {
     });
 
     testWidgets('06 Renders Max Test Calculator Screen', (
-      WidgetTester tester,
+      tester,
     ) async {
       tester.view.physicalSize = const Size(1170, 2532);
       tester.view.devicePixelRatio = 2.0;
@@ -369,7 +369,7 @@ void main() {
     });
 
     testWidgets('07 Renders Analytics Screen with volume progression', (
-      WidgetTester tester,
+      tester,
     ) async {
       tester.view.physicalSize = const Size(1170, 2532);
       tester.view.devicePixelRatio = 2.0;
@@ -390,7 +390,7 @@ void main() {
 
     testWidgets(
       '07b Renders Accessory Progressions Screen with movement delta chips',
-      (WidgetTester tester) async {
+      (tester) async {
         tester.view.physicalSize = const Size(1170, 2532);
         tester.view.devicePixelRatio = 2.0;
         addTearDown(() => tester.view.resetPhysicalSize());
@@ -409,7 +409,7 @@ void main() {
     );
 
     testWidgets('08 Renders Warmup Session Screen', (
-      WidgetTester tester,
+      tester,
     ) async {
       tester.view.physicalSize = const Size(1170, 2532);
       tester.view.devicePixelRatio = 2.0;
@@ -424,7 +424,7 @@ void main() {
     });
 
     testWidgets('09 Renders Workout Session Screen with periodized sets', (
-      WidgetTester tester,
+      tester,
     ) async {
       tester.view.physicalSize = const Size(1170, 2532);
       tester.view.devicePixelRatio = 2.0;
@@ -453,7 +453,7 @@ void main() {
     });
 
     testWidgets('10 Renders Workout Swap Modal with Suggested Swaps', (
-      WidgetTester tester,
+      tester,
     ) async {
       tester.view.physicalSize = const Size(1170, 2532);
       tester.view.devicePixelRatio = 2.0;
@@ -490,7 +490,7 @@ void main() {
     });
 
     testWidgets('11 Renders Workout Weight Dialog with 1RM estimate', (
-      WidgetTester tester,
+      tester,
     ) async {
       tester.view.physicalSize = const Size(1170, 2532);
       tester.view.devicePixelRatio = 2.0;
@@ -508,13 +508,13 @@ void main() {
           WorkoutWeightDialog(
             exercise: exercise,
             displayName: 'Power Snatch + Overhead Squat',
-            initialWeightKg: 70.0,
+            initialWeightKg: 70,
             currentWeek: 2,
             onWeightUpdated: ({
-              required double newWeightKg,
-              required bool update1RM,
-              int? newReps,
-              double? new1RMKg,
+              required newWeightKg,
+              required update1RM,
+              newReps,
+              new1RMKg,
             }) {},
           ),
         ),
@@ -524,7 +524,7 @@ void main() {
     });
 
     testWidgets('12 Renders Active Recovery Session Screen', (
-      WidgetTester tester,
+      tester,
     ) async {
       tester.view.physicalSize = const Size(1170, 2532);
       tester.view.devicePixelRatio = 2.0;
@@ -555,7 +555,7 @@ void main() {
 
     testWidgets(
       '13 Renders Mobility Exercise Swap Modal with Suggested Alternatives',
-      (WidgetTester tester) async {
+      (tester) async {
         tester.view.physicalSize = const Size(1170, 2532);
         tester.view.devicePixelRatio = 2.0;
         addTearDown(() => tester.view.resetPhysicalSize());
@@ -567,7 +567,6 @@ void main() {
           category: MobilityCategory.hypertrophyCore,
           description: 'Builds elbow flexor strength and bicep tendon resilience for heavy clean catches.',
           cues: <String>['Keep elbows tucked.', 'Squeeze biceps.'],
-          defaultSets: 3,
           defaultReps: 12,
           videoUrl: 'https://youtube.com',
         );
@@ -586,7 +585,7 @@ void main() {
     );
 
     testWidgets('14 Renders Nutrition & Energy Balance Dashboard Screen', (
-      WidgetTester tester,
+      tester,
     ) async {
       tester.view.physicalSize = const Size(1170, 2532);
       tester.view.devicePixelRatio = 2.0;
@@ -611,7 +610,7 @@ void main() {
 
     testWidgets(
       '15 Renders Metabolic Science Explainer Screen with interactive tabs',
-      (WidgetTester tester) async {
+      (tester) async {
         tester.view.physicalSize = const Size(1170, 2532);
         tester.view.devicePixelRatio = 2.0;
         addTearDown(() => tester.view.resetPhysicalSize());
@@ -637,7 +636,7 @@ void main() {
     );
 
     testWidgets('16 Renders Food Search & Recent Pantry Items Sheet', (
-      WidgetTester tester,
+      tester,
     ) async {
       tester.view.physicalSize = const Size(1170, 2532);
       tester.view.devicePixelRatio = 2.0;
@@ -650,7 +649,7 @@ void main() {
 
     testWidgets(
       '17 Renders Athlete Smart Portion Drawer with Protein Density metric',
-      (WidgetTester tester) async {
+      (tester) async {
         tester.view.physicalSize = const Size(1170, 2532);
         tester.view.devicePixelRatio = 2.0;
         addTearDown(() => tester.view.resetPhysicalSize());
@@ -662,9 +661,9 @@ void main() {
           servingSize: '1 scoop (31g)',
           servingWeightGrams: 31,
           calories: 120,
-          protein: 25.0,
-          carbs: 1.0,
-          fat: 1.0,
+          protein: 25,
+          carbs: 1,
+          fat: 1,
           barcode: '748927028669',
           source: 'open_food_facts',
         );
@@ -688,7 +687,7 @@ void main() {
 
     testWidgets(
       '17b Renders Edit Food Entry Modal Sheet with Category Switcher & Macro Controls',
-      (WidgetTester tester) async {
+      (tester) async {
         tester.view.physicalSize = const Size(1170, 2532);
         tester.view.devicePixelRatio = 2.0;
         addTearDown(() => tester.view.resetPhysicalSize());
@@ -717,7 +716,7 @@ void main() {
     );
 
     testWidgets('18 Renders Live Continuous Barcode Scanner Sheet', (
-      WidgetTester tester,
+      tester,
     ) async {
       tester.view.physicalSize = const Size(1170, 2532);
       tester.view.devicePixelRatio = 2.0;
@@ -732,7 +731,7 @@ void main() {
 
     testWidgets(
       '19 Renders Renpho Scale OCR Scanner & Body Composition Donut Chart',
-      (WidgetTester tester) async {
+      (tester) async {
         tester.view.physicalSize = const Size(1170, 2532);
         tester.view.devicePixelRatio = 2.0;
         addTearDown(() => tester.view.resetPhysicalSize());
@@ -744,7 +743,7 @@ void main() {
     );
 
     testWidgets('20 Renders System Diagnostics & Crash Report Screen', (
-      WidgetTester tester,
+      tester,
     ) async {
       tester.view.physicalSize = const Size(1170, 2532);
       tester.view.devicePixelRatio = 2.0;
@@ -775,7 +774,7 @@ void main() {
     });
 
     testWidgets('21 Renders Body Map & Injury Tracker Screen with Active Strains', (
-      WidgetTester tester,
+      tester,
     ) async {
       tester.view.physicalSize = const Size(1170, 2532);
       tester.view.devicePixelRatio = 2.0;
@@ -810,7 +809,7 @@ void main() {
     });
 
     testWidgets('22 Renders Post-Session Body Check-In Modal', (
-      WidgetTester tester,
+      tester,
     ) async {
       tester.view.physicalSize = const Size(1170, 2532);
       tester.view.devicePixelRatio = 2.0;
@@ -820,14 +819,14 @@ void main() {
         buildTestScreen(
           PostSessionBodyCheckinDialog(
             initialJointStrains: const <String>['Knees', 'Shoulders'],
-            onComplete: (Map<InjuryRegion, int> pain, List<String> tags) {},
+            onComplete: (pain, tags) {},
           ),
         ),
       );
 
       // Focus an anatomical region to showcase the adjuster card and unselect controls
       final Finder canvas = find.byWidgetPredicate(
-        (Widget w) => w is CustomPaint && w.painter is BodyMapPainter,
+        (w) => w is CustomPaint && w.painter is BodyMapPainter,
       );
       final Rect canvasRect = tester.getRect(canvas);
       await tester.tapAt(Offset(canvasRect.center.dx, canvasRect.top + canvasRect.height * 0.11));
@@ -840,7 +839,7 @@ void main() {
     });
 
     testWidgets('22b Renders Post-Session Body Check-In Modal Back View', (
-      WidgetTester tester,
+      tester,
     ) async {
       tester.view.physicalSize = const Size(1170, 2532);
       tester.view.devicePixelRatio = 2.0;
@@ -850,7 +849,7 @@ void main() {
         buildTestScreen(
           PostSessionBodyCheckinDialog(
             initialJointStrains: const <String>['Lower Back'],
-            onComplete: (Map<InjuryRegion, int> pain, List<String> tags) {},
+            onComplete: (pain, tags) {},
           ),
         ),
       );
@@ -861,7 +860,7 @@ void main() {
 
       // Tap Lumbar Spine
       final Finder canvas = find.byWidgetPredicate(
-        (Widget w) => w is CustomPaint && w.painter is BodyMapPainter,
+        (w) => w is CustomPaint && w.painter is BodyMapPainter,
       );
       final Rect canvasRect = tester.getRect(canvas);
       await tester.tapAt(Offset(canvasRect.left + canvasRect.width * 0.50, canvasRect.top + canvasRect.height * 0.38));
@@ -873,7 +872,7 @@ void main() {
     });
 
     testWidgets('23 Renders Injury Export Bottom Sheet (PDF & JSON)', (
-      WidgetTester tester,
+      tester,
     ) async {
       tester.view.physicalSize = const Size(1170, 2532);
       tester.view.devicePixelRatio = 2.0;
@@ -893,7 +892,7 @@ void main() {
     });
 
     testWidgets('24 Renders Wim Hof Setup Sheet with Round Steppers & PR Badge', (
-      WidgetTester tester,
+      tester,
     ) async {
       tester.view.physicalSize = const Size(1170, 2532);
       tester.view.devicePixelRatio = 2.0;
@@ -906,15 +905,13 @@ void main() {
     });
 
     testWidgets('25 Renders Guided Wim Hof Live Breathing Session with Pulsing Orb', (
-      WidgetTester tester,
+      tester,
     ) async {
       tester.view.physicalSize = const Size(1170, 2532);
       tester.view.devicePixelRatio = 2.0;
       addTearDown(() => tester.view.resetPhysicalSize());
 
       const WimHofConfig config = WimHofConfig(
-        defaultRounds: 3,
-        breathsPerRound: 30,
         soundEnabled: false,
         hapticsEnabled: false,
       );
@@ -930,15 +927,13 @@ void main() {
     });
 
     testWidgets('26 Renders Breath Retention Stopwatch and PR Milestone', (
-      WidgetTester tester,
+      tester,
     ) async {
       tester.view.physicalSize = const Size(1170, 2532);
       tester.view.devicePixelRatio = 2.0;
       addTearDown(() => tester.view.resetPhysicalSize());
 
       const WimHofConfig config = WimHofConfig(
-        defaultRounds: 3,
-        breathsPerRound: 30,
         soundEnabled: false,
         hapticsEnabled: false,
       );
@@ -959,7 +954,7 @@ void main() {
     });
 
     testWidgets('27 Renders Post-Breathwork Completion Summary & Round Bars', (
-      WidgetTester tester,
+      tester,
     ) async {
       tester.view.physicalSize = const Size(1170, 2532);
       tester.view.devicePixelRatio = 2.0;
@@ -986,7 +981,7 @@ void main() {
     });
 
     testWidgets('28 Renders Breathwork Retention Analytics Tab with Progression Line Chart', (
-      WidgetTester tester,
+      tester,
     ) async {
       tester.view.physicalSize = const Size(1170, 2532);
       tester.view.devicePixelRatio = 2.0;
@@ -1000,7 +995,7 @@ void main() {
     });
 
     testWidgets('29 Renders CrossFit Benchmark Death By Burpees Screen with EMOM Card', (
-      WidgetTester tester,
+      tester,
     ) async {
       tester.view.physicalSize = const Size(1170, 2532);
       tester.view.devicePixelRatio = 2.0;
@@ -1013,7 +1008,7 @@ void main() {
     });
 
     testWidgets('30 Renders Free-Form Workout Canvas (Day 2) with Blank Hero Card', (
-      WidgetTester tester,
+      tester,
     ) async {
       tester.view.physicalSize = const Size(1170, 2532);
       tester.view.devicePixelRatio = 2.0;
@@ -1040,7 +1035,7 @@ void main() {
     });
 
     testWidgets('31 Renders Add Movement Bottom Sheet with Benchmark WODs and Categories', (
-      WidgetTester tester,
+      tester,
     ) async {
       tester.view.physicalSize = const Size(1170, 2532);
       tester.view.devicePixelRatio = 2.0;
@@ -1060,7 +1055,7 @@ void main() {
     });
 
     testWidgets('32 Renders Dynamic Free-Form Workout with Live WOD and Kettlebell Mile Cards', (
-      WidgetTester tester,
+      tester,
     ) async {
       tester.view.physicalSize = const Size(1170, 2532);
       tester.view.devicePixelRatio = 2.0;
@@ -1082,8 +1077,8 @@ void main() {
         startTime: DateTime.now(),
         exerciseSets: <String, List<CompletedSet>>{
           'Cable Crunches': <CompletedSet>[
-            CompletedSet(setIndex: 1, weight: 35.0, reps: 8, isCompleted: true),
-            CompletedSet(setIndex: 2, weight: 35.0, reps: 8, isCompleted: false),
+            CompletedSet(setIndex: 1, weight: 35, reps: 8),
+            CompletedSet(setIndex: 2, weight: 35, reps: 8, isCompleted: false),
           ],
         },
         exerciseWeights: <String, double>{'Cable Crunches': 35.0},
@@ -1095,7 +1090,6 @@ void main() {
             refId: 'dt',
             subtitle: '5 Rounds: 12 DL, 9 HPC, 6 PJ',
             setScheme: '5 Rounds For Time',
-            isCompleted: false,
           ),
           DynamicWorkoutItem(
             id: 'kb_mile',
@@ -1113,7 +1107,7 @@ void main() {
             refId: 'cable_crunches',
             subtitle: 'Core Stability & Anti-Extension',
             setScheme: '3 Sets of 8 Reps',
-            targetWeightKg: 35.0,
+            targetWeightKg: 35,
           ),
         ],
       );
@@ -1132,7 +1126,7 @@ void main() {
     });
 
     testWidgets('33 Renders Free-Form Workout in Preview Mode with Cyan Mode Pill and Standards', (
-      WidgetTester tester,
+      tester,
     ) async {
       tester.view.physicalSize = const Size(1170, 2532);
       tester.view.devicePixelRatio = 2.0;
@@ -1155,8 +1149,8 @@ void main() {
         isPreviewMode: true,
         exerciseSets: <String, List<CompletedSet>>{
           'Cable Crunches': <CompletedSet>[
-            CompletedSet(setIndex: 1, weight: 35.0, reps: 8, isCompleted: false),
-            CompletedSet(setIndex: 2, weight: 35.0, reps: 8, isCompleted: false),
+            CompletedSet(setIndex: 1, weight: 35, reps: 8, isCompleted: false),
+            CompletedSet(setIndex: 2, weight: 35, reps: 8, isCompleted: false),
           ],
         },
         exerciseWeights: <String, double>{'Cable Crunches': 35.0},
@@ -1168,7 +1162,6 @@ void main() {
             refId: 'dt',
             subtitle: '5 Rounds: 12 DL, 9 HPC, 6 PJ',
             setScheme: '5 Rounds For Time',
-            isCompleted: false,
           ),
           DynamicWorkoutItem(
             id: 'kb_mile',
@@ -1176,7 +1169,6 @@ void main() {
             name: 'Kettlebell Mile Carry',
             refId: 'kettlebell_mile',
             subtitle: '1 Mile • 32kg/24kg',
-            isCompleted: false,
           ),
           DynamicWorkoutItem(
             id: 'ex_cable',
@@ -1185,7 +1177,7 @@ void main() {
             refId: 'cable_crunches',
             subtitle: 'Core Stability & Anti-Extension',
             setScheme: '3 Sets of 8 Reps',
-            targetWeightKg: 35.0,
+            targetWeightKg: 35,
           ),
         ],
       );
@@ -1206,7 +1198,7 @@ void main() {
     });
 
     testWidgets('34 Renders WOD Setup Explainer Preview Sheet with ADD TO WORKOUT Action', (
-      WidgetTester tester,
+      tester,
     ) async {
       tester.view.physicalSize = const Size(1170, 2532);
       tester.view.devicePixelRatio = 2.0;
@@ -1228,7 +1220,7 @@ void main() {
 
     testWidgets(
       '35 Renders Guided Fasting Dashboard in Fuel Domain with Active Fast',
-      (WidgetTester tester) async {
+      (tester) async {
         tester.view.physicalSize = const Size(1170, 2532);
         tester.view.devicePixelRatio = 2.0;
         addTearDown(() => tester.view.resetPhysicalSize());
@@ -1241,7 +1233,7 @@ void main() {
         await fastingProvider.logSodium(500);
         await fastingProvider.logWater(1000);
         await fastingProvider.addBiomarkerEntry(
-          glucoseMgDl: 78.0,
+          glucoseMgDl: 78,
           ketoneMmolL: 1.8,
           notes: 'Fasted baseline before 6:00 AM snatch session',
         );
@@ -1274,7 +1266,7 @@ void main() {
 
     testWidgets(
       '36 Renders Keto-Mojo Biomarker Logging Sheet with Live GKI Meter',
-      (WidgetTester tester) async {
+      (tester) async {
         tester.view.physicalSize = const Size(1170, 2532);
         tester.view.devicePixelRatio = 2.0;
         addTearDown(() => tester.view.resetPhysicalSize());
@@ -1294,18 +1286,18 @@ void main() {
 
     testWidgets(
       '37 Renders Fasting Biomarker History & GKI Tracking Sheet',
-      (WidgetTester tester) async {
+      (tester) async {
         tester.view.physicalSize = const Size(1170, 2532);
         tester.view.devicePixelRatio = 2.0;
         addTearDown(() => tester.view.resetPhysicalSize());
 
         await fastingProvider.addBiomarkerEntry(
-          glucoseMgDl: 85.0,
+          glucoseMgDl: 85,
           ketoneMmolL: 1.2,
           notes: 'Fasted baseline test',
         );
         await fastingProvider.addBiomarkerEntry(
-          glucoseMgDl: 74.0,
+          glucoseMgDl: 74,
           ketoneMmolL: 2.4,
           notes: 'Post-lift deep ketosis',
         );
@@ -1324,7 +1316,7 @@ void main() {
 
     testWidgets(
       '38 Renders Fasting Pantry & Refeeding Grocery Prep Checklist',
-      (WidgetTester tester) async {
+      (tester) async {
         tester.view.physicalSize = const Size(1170, 2532);
         tester.view.devicePixelRatio = 2.0;
         addTearDown(() => tester.view.resetPhysicalSize());
@@ -1343,7 +1335,7 @@ void main() {
 
     testWidgets(
       '39 Renders Fasting Science & Cellular Longevity Explainer Screen',
-      (WidgetTester tester) async {
+      (tester) async {
         tester.view.physicalSize = const Size(1170, 2532);
         tester.view.devicePixelRatio = 2.0;
         addTearDown(() => tester.view.resetPhysicalSize());
@@ -1360,7 +1352,7 @@ void main() {
 
     testWidgets(
       '40 Renders 3-Phase Gentle Refeeding Protocol Guide Sheet',
-      (WidgetTester tester) async {
+      (tester) async {
         tester.view.physicalSize = const Size(1170, 2532);
         tester.view.devicePixelRatio = 2.0;
         addTearDown(() => tester.view.resetPhysicalSize());
@@ -1368,7 +1360,7 @@ void main() {
         await tester.pumpWidget(
           buildTestScreen(
             const Scaffold(
-              body: FastingRefeedGuideSheet(elapsedHours: 24.0),
+              body: FastingRefeedGuideSheet(),
             ),
           ),
         );

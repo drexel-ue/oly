@@ -121,7 +121,7 @@ void main() {
 
   group('InjuryExportBottomSheet Widget Tests', () {
     testWidgets('Renders export options, summary metrics, and copies JSON', (
-      WidgetTester tester,
+      tester,
     ) async {
       SharedPreferences.setMockInitialValues(<String, Object>{});
       final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -140,7 +140,7 @@ void main() {
 
       tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
         SystemChannels.platform,
-        (MethodCall methodCall) async {
+        (methodCall) async {
           return null;
         },
       );

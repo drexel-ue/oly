@@ -12,7 +12,7 @@ import 'package:oly/widgets/nutrition/renpho_stat_pill.dart';
 import 'package:provider/provider.dart';
 
 class BodyCompAnalyticsScreen extends StatefulWidget {
-  const BodyCompAnalyticsScreen({super.key});
+  const new({super.key});
 
   @override
   State<BodyCompAnalyticsScreen> createState() =>
@@ -20,7 +20,7 @@ class BodyCompAnalyticsScreen extends StatefulWidget {
 }
 
 class _BodyCompAnalyticsScreenState extends State<BodyCompAnalyticsScreen> {
-  double _targetBfPct = 15.0;
+  double _targetBfPct = 15;
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +44,7 @@ class _BodyCompAnalyticsScreenState extends State<BodyCompAnalyticsScreen> {
             ),
             tooltip: 'Scan New Scale Report',
             onPressed: () {
-              showModalBottomSheet(
+              showModalBottomSheet<void>(
                 context: context,
                 isScrollControlled: true,
                 backgroundColor: Colors.transparent,
@@ -82,7 +82,7 @@ class _BodyCompAnalyticsScreenState extends State<BodyCompAnalyticsScreen> {
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
                     color: AppTheme.textSecondary,
-                    letterSpacing: 1.0,
+                    letterSpacing: 1,
                   ),
                 ),
                 const SizedBox(height: 10),
@@ -97,7 +97,7 @@ class _BodyCompAnalyticsScreenState extends State<BodyCompAnalyticsScreen> {
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
                   color: AppTheme.textSecondary,
-                  letterSpacing: 1.0,
+                  letterSpacing: 1,
                 ),
               ),
               const SizedBox(height: 10),
@@ -194,12 +194,12 @@ class _BodyCompAnalyticsScreenState extends State<BodyCompAnalyticsScreen> {
 
           Slider(
             value: _targetBfPct,
-            min: 8.0,
-            max: 30.0,
+            min: 8,
+            max: 30,
             divisions: 44,
             activeColor: AppTheme.primaryAmber,
             inactiveColor: Colors.white10,
-            onChanged: (double val) => setState(() => _targetBfPct = val),
+            onChanged: (val) => setState(() => _targetBfPct = val),
           ),
 
           Container(
@@ -325,7 +325,6 @@ class _BodyCompAnalyticsScreenState extends State<BodyCompAnalyticsScreen> {
           subtitle: 'Katch-McArdle Foundation',
           status: 'Average',
           delta: bodyComp.leanMassDeltaVsPrevious,
-          isDeltaPositiveGood: true,
         ),
         const SizedBox(height: 8),
         RenphoStatPill(
@@ -340,7 +339,6 @@ class _BodyCompAnalyticsScreenState extends State<BodyCompAnalyticsScreen> {
               : null,
           status: 'Average',
           delta: bodyComp.skeletalMuscleDeltaVsPrevious,
-          isDeltaPositiveGood: true,
         ),
         const SizedBox(height: 8),
         RenphoStatPill(
@@ -436,7 +434,7 @@ class _BodyCompAnalyticsScreenState extends State<BodyCompAnalyticsScreen> {
       physics: const NeverScrollableScrollPhysics(),
       itemCount: entries.length,
       separatorBuilder: (_, _) => const SizedBox(height: 8),
-      itemBuilder: (BuildContext context, int index) {
+      itemBuilder: (context, index) {
         final BodyCompositionEntry item = entries[index];
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),

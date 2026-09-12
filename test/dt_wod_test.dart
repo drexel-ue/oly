@@ -24,7 +24,6 @@ void main() {
         round3TimeSeconds: 90, // 1:30
         round4TimeSeconds: 90, // 1:30
         round5TimeSeconds: 90, // 1:30
-        barbellWeightKg: 70.3,
       );
 
       expect(rxLog.scalingTier, equals('Rx'));
@@ -52,7 +51,6 @@ void main() {
       final DtWorkoutLog scaledLight = DtWorkoutLog(
         totalTimeSeconds: 520,
         barbellWeightKg: 61.2, // 135 lb for men
-        isRxWomen: false,
       );
       expect(scaledLight.scalingTier, equals('Scaled'));
 
@@ -80,7 +78,6 @@ void main() {
       // First session: 8:00 (480s) -> should be PR
       final DtWorkoutLog firstLog = DtWorkoutLog(
         totalTimeSeconds: 480,
-        barbellWeightKg: 70.3,
         scalingTier: 'Rx',
       );
       final DtWorkoutLog result1 = await recovery.logDtWorkout(firstLog);
@@ -92,7 +89,6 @@ void main() {
       // Slower session: 8:30 (510s) -> NOT a PR
       final DtWorkoutLog slowerLog = DtWorkoutLog(
         totalTimeSeconds: 510,
-        barbellWeightKg: 70.3,
         scalingTier: 'Rx',
       );
       final DtWorkoutLog result2 = await recovery.logDtWorkout(slowerLog);
@@ -102,7 +98,6 @@ void main() {
       // Faster session: 6:45 (405s) -> NEW PR
       final DtWorkoutLog fasterLog = DtWorkoutLog(
         totalTimeSeconds: 405,
-        barbellWeightKg: 70.3,
         scalingTier: 'Rx',
       );
       final DtWorkoutLog result3 = await recovery.logDtWorkout(fasterLog);
@@ -146,10 +141,10 @@ void main() {
     }
 
     testWidgets('Renders DtWodCard header, stopwatch, 5 rounds, and setup explainer button',
-        (WidgetTester tester) async {
+        (tester) async {
       final MobilityExerciseModel dtExercise =
           MobilityExerciseModel.defaultExercises().firstWhere(
-        (MobilityExerciseModel e) => e.id == 'dt_wod',
+        (e) => e.id == 'dt_wod',
       );
 
       await tester.pumpWidget(
@@ -174,14 +169,14 @@ void main() {
     });
 
     testWidgets('Starts stopwatch and completes Round 1 into Round 2',
-        (WidgetTester tester) async {
+        (tester) async {
       tester.view.physicalSize = const Size(1080, 2400);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() => tester.view.resetPhysicalSize());
 
       final MobilityExerciseModel dtExercise =
           MobilityExerciseModel.defaultExercises().firstWhere(
-        (MobilityExerciseModel e) => e.id == 'dt_wod',
+        (e) => e.id == 'dt_wod',
       );
 
       await tester.pumpWidget(
@@ -216,10 +211,10 @@ void main() {
     });
 
     testWidgets('Toggles between Live Mode and Manual Entry mode',
-        (WidgetTester tester) async {
+        (tester) async {
       final MobilityExerciseModel dtExercise =
           MobilityExerciseModel.defaultExercises().firstWhere(
-        (MobilityExerciseModel e) => e.id == 'dt_wod',
+        (e) => e.id == 'dt_wod',
       );
 
       await tester.pumpWidget(

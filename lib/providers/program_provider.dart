@@ -4,7 +4,7 @@ import 'package:oly/models/workout_session.dart';
 import 'package:oly/services/storage_service.dart';
 
 class ProgramProvider extends ChangeNotifier {
-  ProgramProvider(this._storage) {
+  new(this._storage) {
     _cycle = _storage.loadProgramCycle();
     _days = ProgramCycle.getBuiltInProgram(week: _cycle.currentWeek);
     _sessions = _storage.loadWorkoutSessions();
@@ -30,15 +30,15 @@ class ProgramProvider extends ChangeNotifier {
   bool get isRetestWeek => _cycle.currentWeek == 5;
 
   double get totalVolumeKg => _sessions.fold(
-    0.0,
-    (double sum, WorkoutSession s) => sum + s.totalVolumeKg,
+    0,
+    (sum, s) => sum + s.totalVolumeKg,
   );
   double get totalTonsMetric => totalVolumeKg / 1000.0;
   double get totalTonsUs => (totalVolumeKg * 2.20462) / 2000.0;
   int get totalCompletedSets =>
-      _sessions.fold(0, (int sum, WorkoutSession s) => sum + s.totalSets);
+      _sessions.fold(0, (sum, s) => sum + s.totalSets);
   int get totalCompletedReps =>
-      _sessions.fold(0, (int sum, WorkoutSession s) => sum + s.totalReps);
+      _sessions.fold(0, (sum, s) => sum + s.totalReps);
 
   String formatTotalTons({required bool isLbs}) {
     if (isLbs) {
@@ -60,7 +60,7 @@ class ProgramProvider extends ChangeNotifier {
   DayTemplate get currentDayTemplate {
     final List<DayTemplate> currentDays = days;
     return currentDays.firstWhere(
-      (DayTemplate d) => d.dayNumber == _cycle.currentDay,
+      (d) => d.dayNumber == _cycle.currentDay,
       orElse: () => currentDays.first,
     );
   }

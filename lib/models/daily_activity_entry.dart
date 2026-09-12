@@ -1,7 +1,7 @@
 import 'package:uuid/uuid.dart';
 
 class DailyActivityEntry {
-  const DailyActivityEntry({
+  const new({
     required this.id,
     required this.timestamp,
     required this.date,
@@ -18,7 +18,7 @@ class DailyActivityEntry {
     this.metadata,
   });
 
-  factory DailyActivityEntry.create({
+  factory create({
     required String activityType,
     required String name,
     required double durationMinutes,
@@ -56,7 +56,7 @@ class DailyActivityEntry {
     );
   }
 
-  factory DailyActivityEntry.fromJson(Map<String, dynamic> json) {
+  factory fromJson(Map<String, dynamic> json) {
     return DailyActivityEntry(
       id: json['id'] as String,
       timestamp: DateTime.parse(json['timestamp'] as String),

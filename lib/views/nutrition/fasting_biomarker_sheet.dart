@@ -6,7 +6,7 @@ import 'package:oly/theme/app_theme.dart';
 import 'package:provider/provider.dart';
 
 class FastingBiomarkerSheet extends StatefulWidget {
-  const FastingBiomarkerSheet({super.key});
+  const new({super.key});
 
   static void show(BuildContext context) {
     showModalBottomSheet<void>(
@@ -16,7 +16,7 @@ class FastingBiomarkerSheet extends StatefulWidget {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (BuildContext _) => const FastingBiomarkerSheet(),
+      builder: (_) => const FastingBiomarkerSheet(),
     );
   }
 
@@ -36,7 +36,7 @@ class _FastingBiomarkerSheetState extends State<FastingBiomarkerSheet> {
 
   double get _calculatedGki {
     if (_ketone <= 0.05) {
-      return 99.0;
+      return 99;
     }
     final double glucoseMmolL = _glucose / 18.016;
     return glucoseMmolL / _ketone;

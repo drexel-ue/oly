@@ -140,7 +140,7 @@ class ExerciseSwapHelper {
 }
 
 class ExerciseSwapModal extends StatefulWidget {
-  const ExerciseSwapModal({
+  const new({
     required this.exercise,
     required this.currentWeek,
     required this.onSwapSelected,
@@ -692,7 +692,7 @@ class _ExerciseSwapModalState extends State<ExerciseSwapModal> {
             subtitle: 'Direct variations matching movement pattern',
           ),
           const SizedBox(height: 8),
-          ...filteredSuggested.map((LiftModel lift) {
+          ...filteredSuggested.map((lift) {
             final bool isCurrent = lift.name == activeDisplayName;
             return _buildLiftTile(
               context: context,
@@ -716,7 +716,7 @@ class _ExerciseSwapModalState extends State<ExerciseSwapModal> {
             subtitle: 'All catalog Olympic lifts and strength movements',
           ),
           const SizedBox(height: 8),
-          ...filteredOthers.map((LiftModel lift) {
+          ...filteredOthers.map((lift) {
             final bool isCurrent = lift.name == activeDisplayName;
             return _buildLiftTile(
               context: context,
@@ -798,7 +798,7 @@ class _ExerciseSwapModalState extends State<ExerciseSwapModal> {
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
       itemCount: _dbResults.length,
-      itemBuilder: (BuildContext context, int index) {
+      itemBuilder: (context, index) {
         final ExerciseDatabaseModel item = _dbResults[index];
         final LiftModel lift = LiftModel.fromDatabaseModel(
           item,
@@ -962,7 +962,7 @@ class _ExerciseSwapModalState extends State<ExerciseSwapModal> {
               style: GoogleFonts.outfit(
                 fontSize: 13,
                 fontWeight: FontWeight.bold,
-                letterSpacing: 1.0,
+                letterSpacing: 1,
                 color: iconColor == AppTheme.primaryAmber
                     ? AppTheme.primaryAmber
                     : AppTheme.textSecondary,

@@ -17,14 +17,14 @@ import 'package:provider/provider.dart';
 /// prominently at the top of the TRAIN domain view, unifying physiological
 /// readiness, today's workout prescription, and the multi-pillar micro-HUD.
 class AthleteSummaryOverviewCard extends StatelessWidget {
-  const AthleteSummaryOverviewCard({
+  const new({
     required this.dayTemplate,
     super.key,
     this.onNavigateTab,
   });
 
   final DayTemplate dayTemplate;
-  final Function(int)? onNavigateTab;
+  final void Function(int)? onNavigateTab;
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +40,7 @@ class AthleteSummaryOverviewCard extends StatelessWidget {
     if (activeInjuries.isNotEmpty) {
       final int deduction = activeInjuries.fold<int>(
         0,
-        (int sum, InjuryRecord i) => sum + (i.painScale * 4),
+        (sum, i) => sum + (i.painScale * 4),
       );
       readinessScore = (readinessScore - deduction).clamp(35, 100);
     }
@@ -56,14 +56,14 @@ class AthleteSummaryOverviewCard extends StatelessWidget {
     final ActiveWorkoutDraft? draft = program.activeDraft;
     final DayTemplate activeDay = hasDraft
         ? program.days.firstWhere(
-            (DayTemplate d) => d.dayNumber == draft!.dayNumber,
+            (d) => d.dayNumber == draft!.dayNumber,
             orElse: () => dayTemplate,
           )
         : dayTemplate;
 
     final int movementCount = activeDay.phases.fold<int>(
       0,
-      (int sum, PhaseTemplate p) => sum + p.exercises.length,
+      (sum, p) => sum + p.exercises.length,
     );
 
     return Container(
@@ -114,7 +114,7 @@ class AthleteSummaryOverviewCard extends StatelessWidget {
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
                         color: AppTheme.textSecondary,
-                        letterSpacing: 1.0,
+                        letterSpacing: 1,
                       ),
                     ),
                   ],
@@ -247,7 +247,7 @@ class AthleteSummaryOverviewCard extends StatelessWidget {
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            'Active joint strains: ${activeInjuries.map((InjuryRecord e) => e.name).join(', ')}. Scale accordingly.',
+                            'Active joint strains: ${activeInjuries.map((e) => e.name).join(', ')}. Scale accordingly.',
                             style: GoogleFonts.outfit(
                               fontSize: 12,
                               color: AppTheme.textPrimary,

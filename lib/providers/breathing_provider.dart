@@ -4,7 +4,7 @@ import 'package:oly/models/breathing_session_model.dart';
 import 'package:oly/services/storage_service.dart';
 
 class BreathingProvider extends ChangeNotifier {
-  BreathingProvider(this._storage) {
+  new(this._storage) {
     _loadData();
   }
 
@@ -25,7 +25,7 @@ class BreathingProvider extends ChangeNotifier {
   int get totalRoundsCompleted {
     return _sessions.fold(
       0,
-      (int sum, BreathingSessionLog s) => sum + s.rounds.length,
+      (sum, s) => sum + s.rounds.length,
     );
   }
 
@@ -33,12 +33,12 @@ class BreathingProvider extends ChangeNotifier {
     final DateTime now = DateTime.now();
     return _sessions
         .where(
-          (BreathingSessionLog s) =>
+          (s) =>
               s.date.year == now.year &&
               s.date.month == now.month &&
               s.date.day == now.day,
         )
-        .fold(0, (int sum, BreathingSessionLog s) => sum + s.rounds.length);
+        .fold(0, (sum, s) => sum + s.rounds.length);
   }
 
   int get personalBestRetentionSeconds => allTimeMaxHoldSeconds;
@@ -66,7 +66,7 @@ class BreathingProvider extends ChangeNotifier {
   int get allTimeTotalRetentionSeconds {
     return _sessions.fold(
       0,
-      (int sum, BreathingSessionLog s) => sum + s.totalHoldSeconds,
+      (sum, s) => sum + s.totalHoldSeconds,
     );
   }
 
@@ -124,7 +124,7 @@ class BreathingProvider extends ChangeNotifier {
     final Map<int, double> averages = <int, double>{};
     for (final MapEntry<int, List<int>> entry in roundHolds.entries) {
       final double avg =
-          entry.value.reduce((int a, int b) => a + b) / entry.value.length;
+          entry.value.reduce((a, b) => a + b) / entry.value.length;
       averages[entry.key] = avg;
     }
     return averages;
@@ -134,11 +134,11 @@ class BreathingProvider extends ChangeNotifier {
   List<FlSpot> get maxHoldTrendSpots {
     final List<BreathingSessionLog> chronological =
         List<BreathingSessionLog>.from(_sessions)
-          ..sort((BreathingSessionLog a, BreathingSessionLog b) =>
+          ..sort((a, b) =>
               a.date.compareTo(b.date));
 
     return chronological.asMap().entries.map((
-      MapEntry<int, BreathingSessionLog> entry,
+      entry,
     ) {
       return FlSpot(
         entry.key.toDouble(),
@@ -151,11 +151,11 @@ class BreathingProvider extends ChangeNotifier {
   List<FlSpot> get avgHoldTrendSpots {
     final List<BreathingSessionLog> chronological =
         List<BreathingSessionLog>.from(_sessions)
-          ..sort((BreathingSessionLog a, BreathingSessionLog b) =>
+          ..sort((a, b) =>
               a.date.compareTo(b.date));
 
     return chronological.asMap().entries.map((
-      MapEntry<int, BreathingSessionLog> entry,
+      entry,
     ) {
       return FlSpot(
         entry.key.toDouble(),
@@ -171,7 +171,7 @@ class BreathingProvider extends ChangeNotifier {
   }
 
   Future<void> deleteSession(String sessionId) async {
-    _sessions.removeWhere((BreathingSessionLog s) => s.id == sessionId);
+    _sessions.removeWhere((s) => s.id == sessionId);
     await _storage.saveBreathingLogs(_sessions);
     notifyListeners();
   }

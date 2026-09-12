@@ -31,12 +31,12 @@ void main() {
 
         expect(warmup.phaseGroups.length, equals(4));
         expect(
-          warmup.diagnosticReasons.any((String r) => r.contains('Snatch')),
+          warmup.diagnosticReasons.any((r) => r.contains('Snatch')),
           isTrue,
         );
         expect(
           warmup.exercises.any(
-            (MobilityExerciseModel e) =>
+            (e) =>
                 e.focusArea == MobilityFocusArea.barbellSnatch,
           ),
           isTrue,
@@ -69,12 +69,12 @@ void main() {
 
       expect(warmup.phaseGroups.length, equals(4));
       expect(
-        warmup.diagnosticReasons.any((String r) => r.contains('Clean & Jerk')),
+        warmup.diagnosticReasons.any((r) => r.contains('Clean & Jerk')),
         isTrue,
       );
       expect(
         warmup.exercises.any(
-          (MobilityExerciseModel e) =>
+          (e) =>
               e.focusArea == MobilityFocusArea.barbellCleanJerk,
         ),
         isTrue,

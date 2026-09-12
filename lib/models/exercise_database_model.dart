@@ -2,7 +2,7 @@ import 'dart:convert';
 
 /// Representation of an exercise entry from the unified offline exercise database.
 class ExerciseDatabaseModel {
-  const ExerciseDatabaseModel({
+  const new({
     required this.id,
     required this.name,
     required this.category,
@@ -21,7 +21,7 @@ class ExerciseDatabaseModel {
     this.videoUrl,
   });
 
-  factory ExerciseDatabaseModel.fromSqlite(Map<String, dynamic> map) {
+  factory fromSqlite(Map<String, dynamic> map) {
     List<String> secondary = <String>[];
     if (map['secondary_muscles'] != null && map['secondary_muscles'] is String) {
       try {
@@ -52,7 +52,7 @@ class ExerciseDatabaseModel {
     );
   }
 
-  factory ExerciseDatabaseModel.fromJson(Map<String, dynamic> json) {
+  factory fromJson(Map<String, dynamic> json) {
     List<String> secondary = <String>[];
     if (json['secondaryMuscles'] != null && json['secondaryMuscles'] is List) {
       secondary = (json['secondaryMuscles'] as List<dynamic>)
@@ -209,7 +209,7 @@ extension _StringExtension on String {
       return this;
     }
     return split(' ')
-        .map((String word) => word.isNotEmpty
+        .map((word) => word.isNotEmpty
             ? '${word[0].toUpperCase()}${word.substring(1).toLowerCase()}'
             : '')
         .join(' ');

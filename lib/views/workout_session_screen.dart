@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -7,7 +9,6 @@ import 'package:oly/models/dt_workout_log.dart';
 import 'package:oly/models/fran_workout_log.dart';
 import 'package:oly/models/grace_workout_log.dart';
 import 'package:oly/models/helen_workout_log.dart';
-import 'package:oly/models/injury_model.dart';
 import 'package:oly/models/jackie_workout_log.dart';
 import 'package:oly/models/lift_model.dart';
 import 'package:oly/models/program_model.dart';
@@ -45,7 +46,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:uuid/uuid.dart';
 
 class WorkoutSessionScreen extends StatefulWidget {
-  const WorkoutSessionScreen({
+  const new({
     required this.dayTemplate,
     super.key,
     this.isPreviewMode = false,
@@ -109,11 +110,11 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
       _swappedExerciseNames.addAll(draft.swappedExerciseNames);
       _dynamicItems.addAll(draft.dynamicItems);
 
-      draft.exerciseSets.forEach((String name, List<CompletedSet> sets) {
+      draft.exerciseSets.forEach((name, sets) {
         _exerciseSets[name] = List.from(sets);
       });
 
-      draft.exerciseWeights.forEach((String name, double weight) {
+      draft.exerciseWeights.forEach((name, weight) {
         _weightControllers[name] = TextEditingController(
           text: weight.toStringAsFixed(1),
         );
@@ -145,7 +146,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
           }
           _exerciseSets[item.name] = List.generate(
             setNum,
-            (int i) => CompletedSet(
+            (i) => CompletedSet(
               setIndex: i + 1,
               weight: targetKg,
               reps: reps,
@@ -186,7 +187,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
 
           _exerciseSets[exercise.name] = List.generate(
             setNum,
-            (int i) => CompletedSet(
+            (i) => CompletedSet(
               setIndex: i + 1,
               weight: targetKg,
               reps: reps,
@@ -222,7 +223,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
       String activeEx = '';
       String activeSet = '';
       for (final MapEntry<String, List<CompletedSet>> entry in _exerciseSets.entries) {
-        final int nextIdx = entry.value.indexWhere((CompletedSet s) => !s.isCompleted);
+        final int nextIdx = entry.value.indexWhere((s) => !s.isCompleted);
         if (nextIdx != -1) {
           activeEx = _swappedExerciseNames[entry.key] ?? entry.key;
           final String wtStr = _weightControllers[entry.key]?.text ?? '';
@@ -240,7 +241,6 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
 
       activeSession.startSession(
         sessionTitle: widget.dayTemplate.title,
-        sessionType: SessionType.workout,
         isPreviewMode: !_isLiveMode,
         currentExercise: activeEx,
         currentSetInfo: activeSet,
@@ -260,7 +260,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
       listen: false,
     );
     final Map<String, double> weights = <String, double>{};
-    _weightControllers.forEach((String k, TextEditingController v) {
+    _weightControllers.forEach((k, v) {
       final double? parsed = double.tryParse(v.text);
       if (parsed != null) {
         weights[k] = parsed;
@@ -288,10 +288,10 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
 
   bool _isDraftEmpty() {
     final bool hasCompletedSets = _exerciseSets.values.any(
-      (List<CompletedSet> sets) => sets.any((CompletedSet s) => s.isCompleted),
+      (sets) => sets.any((s) => s.isCompleted),
     );
     final bool hasCompletedDynamic = _dynamicItems.any(
-      (DynamicWorkoutItem i) => i.isCompleted,
+      (i) => i.isCompleted,
     );
     return !hasCompletedSets &&
         !hasCompletedDynamic &&
@@ -304,9 +304,9 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
       context,
       listen: false,
     );
-    return showDialog<bool>(
+    return await showDialog<bool>(
       context: context,
-      builder: (BuildContext ctx) => AlertDialog(
+      builder: (ctx) => AlertDialog(
         backgroundColor: AppTheme.darkBackground,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
@@ -443,17 +443,17 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
 
     final String? currentSwapped = _swappedExerciseNames[exercise.name];
 
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
       backgroundColor: Colors.transparent,
-      builder: (BuildContext ctx) {
+      builder: (ctx) {
         return ExerciseSwapModal(
           exercise: exercise,
           currentSwappedName: currentSwapped,
           currentWeek: currentWeek,
-          onSwapSelected: (LiftModel newLift) {
+          onSwapSelected: (newLift) {
             final double targetKg = ExerciseSwapHelper.calculateSwappedWeight(
               newLift: newLift,
               exerciseTemplate: exercise,
@@ -562,12 +562,12 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
         ? currentSets.first.reps
         : WorkoutWeightHelper.extractRepsCount(exercise.setScheme);
 
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
       backgroundColor: Colors.transparent,
-      builder: (BuildContext ctx) {
+      builder: (ctx) {
         return WorkoutWeightDialog(
           exercise: exercise,
           displayName: displayName,
@@ -576,10 +576,10 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
           currentWeek: currentWeek,
           onWeightUpdated:
               ({
-                required double newWeightKg,
-                required bool update1RM,
-                int? newReps,
-                double? new1RMKg,
+                required newWeightKg,
+                required update1RM,
+                newReps,
+                new1RMKg,
               }) async {
                 final int finalReps = newReps ?? currentReps;
                 setState(() {
@@ -605,10 +605,10 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
 
                 if (update1RM && new1RMKg != null && new1RMKg > 0) {
                   final LiftModel targetLift = liftProvider.lifts.firstWhere(
-                    (LiftModel l) =>
+                    (l) =>
                         l.name.toLowerCase() == displayName.toLowerCase(),
                     orElse: () => liftProvider.lifts.firstWhere(
-                      (LiftModel l) =>
+                      (l) =>
                           l.id.toLowerCase() == exercise.liftId.toLowerCase(),
                       orElse: () => liftProvider.lifts.first,
                     ),
@@ -628,7 +628,6 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                           '🔥 ${targetLift.name} 1RM updated to ${new1RMKg.toStringAsFixed(1)} kg! Target set to ${newWeightKg.toStringAsFixed(1)} kg × $finalReps reps.',
                         ),
                         backgroundColor: AppTheme.primaryAmber,
-                        duration: const Duration(seconds: 4),
                       ),
                     );
                   }
@@ -658,21 +657,21 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     final String displayName =
         _swappedExerciseNames[exerciseName] ?? exerciseName;
 
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
       backgroundColor: Colors.transparent,
-      builder: (BuildContext ctx) {
+      builder: (ctx) {
         return WorkoutSetEditDialog(
           exerciseName: displayName,
           currentSet: currentSet,
           totalSets: sets.length,
           onSaveSet: ({
-            required double newWeightKg,
-            required int newReps,
-            required bool isCompleted,
-            bool applyToSubsequentSets = false,
+            required newWeightKg,
+            required newReps,
+            required isCompleted,
+            applyToSubsequentSets = false,
           }) {
             final SettingsProvider settings = Provider.of<SettingsProvider>(
               context,
@@ -724,10 +723,10 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
   }
 
   void _finishWorkout() {
-    showDialog(
+    showDialog<void>(
       context: context,
-      builder: (BuildContext dialogCtx) => StatefulBuilder(
-        builder: (BuildContext context, setDialogState) {
+      builder: (dialogCtx) => StatefulBuilder(
+        builder: (context, setDialogState) {
           return AlertDialog(
             backgroundColor: AppTheme.darkBackground,
             shape: RoundedRectangleBorder(
@@ -770,7 +769,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                     divisions: 9,
                     activeColor: AppTheme.primaryAmber,
                     inactiveColor: AppTheme.surfaceElevated,
-                    onChanged: (double val) {
+                    onChanged: (val) {
                       setDialogState(() {
                         _selectedRpe = val.round();
                       });
@@ -807,7 +806,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                           'Calves & Achilles',
                           'Wrists & Hands',
                           'Elbows & Arms',
-                        ].map((String tag) {
+                        ].map((tag) {
                           final bool isSelected = _selectedJointStrains
                               .contains(tag);
                           return FilterChip(
@@ -818,7 +817,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                             ),
                             selectedColor: AppTheme.primaryAmber,
                             backgroundColor: AppTheme.surfaceElevated,
-                            onSelected: (bool val) {
+                            onSelected: (val) {
                               setDialogState(() {
                                 if (val) {
                                   _selectedJointStrains.add(tag);
@@ -885,11 +884,11 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
       await showDialog<void>(
         context: context,
         barrierDismissible: false,
-        builder: (BuildContext ctx) => PostSessionBodyCheckinDialog(
+        builder: (ctx) => PostSessionBodyCheckinDialog(
           initialJointStrains: _selectedJointStrains.toList(),
           onComplete: (
-            Map<InjuryRegion, int> updatedPain,
-            List<String> jointTags,
+            updatedPain,
+            jointTags,
           ) async {
             _selectedJointStrains.clear();
             _selectedJointStrains.addAll(jointTags);
@@ -919,13 +918,13 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     final int durationSecs = DateTime.now().difference(_startTime).inSeconds;
 
     final List<ExerciseLog> logs = <ExerciseLog>[];
-    _exerciseSets.forEach((String name, List<CompletedSet> sets) {
+    _exerciseSets.forEach((name, sets) {
       final String displayName = _swappedExerciseNames[name] ?? name;
       logs.add(
         ExerciseLog(
           exerciseName: displayName,
           liftId: displayName.toLowerCase().replaceAll(' ', '_'),
-          sets: sets.where((CompletedSet s) => s.isCompleted).toList(),
+          sets: sets.where((s) => s.isCompleted).toList(),
         ),
       );
     });
@@ -943,7 +942,6 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                 setIndex: 1,
                 weight: item.targetWeightKg ?? 0.0,
                 reps: 1,
-                isCompleted: true,
                 completedAt: DateTime.now(),
               ),
             ],
@@ -955,7 +953,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     final StringBuffer notesBuffer = StringBuffer(_notesController.text.trim());
     final List<DynamicWorkoutItem> completedWods = _dynamicItems
         .where(
-          (DynamicWorkoutItem item) =>
+          (item) =>
               item.isCompleted && item.type == DynamicItemType.wod,
         )
         .toList();
@@ -1029,7 +1027,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
 
     return PopScope(
       canPop: !_isLiveMode || _isDraftEmpty(),
-      onPopInvokedWithResult: (bool didPop, Object? result) async {
+      onPopInvokedWithResult: (didPop, result) async {
         if (didPop) {
           if (!_isLiveMode) {
             try {
@@ -1201,7 +1199,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
+                  MaterialPageRoute<void>(
                     builder: (_) =>
                         WarmupSessionScreen(dayTemplate: widget.dayTemplate),
                   ),
@@ -1297,12 +1295,12 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                           currentMaxes: maxes,
                           appliedSwaps: _swappedExerciseNames,
                           onApplySwaps: (
-                            Map<String, String> swaps,
-                            Map<String, double> weights,
+                            swaps,
+                            weights,
                           ) {
                             setState(() {
                               _swappedExerciseNames.addAll(swaps);
-                              weights.forEach((String exName, double wt) {
+                              weights.forEach((exName, wt) {
                                 if (_weightControllers.containsKey(exName)) {
                                   _weightControllers[exName]!.text =
                                       wt.toStringAsFixed(1);
@@ -1314,7 +1312,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                         ),
 
                       // Phases & Exercises
-                      ...widget.dayTemplate.phases.map((PhaseTemplate phase) {
+                      ...widget.dayTemplate.phases.map((phase) {
                         return _buildPhaseCard(context, phase, settings);
                       }),
 
@@ -1494,12 +1492,12 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
             style: GoogleFonts.outfit(
               fontSize: 13,
               fontWeight: FontWeight.bold,
-              letterSpacing: 1.0,
+              letterSpacing: 1,
               color: AppTheme.primaryAmber,
             ),
           ),
           const SizedBox(height: 12),
-          ...phase.exercises.map((ExerciseTemplate exercise) {
+          ...phase.exercises.map((exercise) {
             final String displayName =
                 _swappedExerciseNames[exercise.name] ?? exercise.name;
             final List<CompletedSet> sets =
@@ -1655,7 +1653,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                               final double currentKg =
                                   double.tryParse(weightCtrl?.text ?? '100') ??
                                   100.0;
-                              showModalBottomSheet(
+                              showModalBottomSheet<void>(
                                 context: context,
                                 isScrollControlled: true,
                                 useSafeArea: true,
@@ -1733,7 +1731,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
-                    children: List.generate(sets.length, (int index) {
+                    children: List.generate(sets.length, (index) {
                       final CompletedSet setItem = sets[index];
                       return GestureDetector(
                         onLongPress: () =>
@@ -1826,7 +1824,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
           }
           _exerciseSets[item.name] = List.generate(
             setNum,
-            (int i) => CompletedSet(
+            (i) => CompletedSet(
               setIndex: i + 1,
               weight: targetKg,
               reps: reps,
@@ -1866,7 +1864,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
           refId: ex.liftId,
           subtitle: phase.name,
           setScheme: ex.setScheme,
-          targetWeightKg: 0.0,
+          targetWeightKg: 0,
         );
         _addDynamicItem(item, shouldPersist: false);
       }
@@ -1898,25 +1896,18 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     switch (item.refId) {
       case 'cindy':
         screen = CindyWodScreen(isPreviewMode: !_isLiveMode);
-        break;
       case 'jackie':
         screen = JackieWodScreen(isPreviewMode: !_isLiveMode);
-        break;
       case 'fran':
         screen = FranWodScreen(isPreviewMode: !_isLiveMode);
-        break;
       case 'helen':
         screen = HelenWodScreen(isPreviewMode: !_isLiveMode);
-        break;
       case 'grace':
         screen = GraceWodScreen(isPreviewMode: !_isLiveMode);
-        break;
       case 'dt':
         screen = DtWodScreen(isPreviewMode: !_isLiveMode);
-        break;
       case 'death_by_burpees':
         screen = DeathByBurpeesScreen(isPreviewMode: !_isLiveMode);
-        break;
     }
 
     if (screen != null) {
@@ -1929,10 +1920,10 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
       }
     } else {
       final WodDefinition wodDef = WodCatalog.allWods.firstWhere(
-        (WodDefinition w) => w.id == item.refId,
+        (w) => w.id == item.refId,
         orElse: () => WodCatalog.allWods.first,
       );
-      WodSetupExplainerSheet.show(context, wodDef);
+      unawaited(WodSetupExplainerSheet.show(context, wodDef));
     }
   }
 
@@ -1949,43 +1940,36 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
         if (log != null && log.date.isAfter(checkThreshold)) {
           result = log.scoreDisplay;
         }
-        break;
       case 'jackie':
         final JackieWorkoutLog? log = recovery.latestJackieWorkoutLog;
         if (log != null && log.date.isAfter(checkThreshold)) {
           result = log.scoreDisplay;
         }
-        break;
       case 'fran':
         final FranWorkoutLog? log = recovery.latestFranWorkoutLog;
         if (log != null && log.date.isAfter(checkThreshold)) {
           result = log.scoreDisplay;
         }
-        break;
       case 'helen':
         final HelenWorkoutLog? log = recovery.latestHelenWorkoutLog;
         if (log != null && log.date.isAfter(checkThreshold)) {
           result = log.scoreDisplay;
         }
-        break;
       case 'grace':
         final GraceWorkoutLog? log = recovery.latestGraceWorkoutLog;
         if (log != null && log.date.isAfter(checkThreshold)) {
           result = log.scoreDisplay;
         }
-        break;
       case 'dt':
         final DtWorkoutLog? log = recovery.latestDtWorkoutLog;
         if (log != null && log.date.isAfter(checkThreshold)) {
           result = log.scoreDisplay;
         }
-        break;
       case 'death_by_burpees':
         final DeathByBurpeesLog? log = recovery.latestDeathByBurpeesLog;
         if (log != null && log.date.isAfter(checkThreshold)) {
           result = log.scoreDisplay;
         }
-        break;
     }
 
     if (result != null) {
@@ -2020,7 +2004,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                   style: GoogleFonts.outfit(
                     fontSize: 13,
                     fontWeight: FontWeight.bold,
-                    letterSpacing: 1.0,
+                    letterSpacing: 1,
                     color: AppTheme.secondaryCyan,
                   ),
                 ),
@@ -2028,7 +2012,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
             ),
           ),
         ],
-        ...List.generate(_dynamicItems.length, (int index) {
+        ...List.generate(_dynamicItems.length, (index) {
           final DynamicWorkoutItem item = _dynamicItems[index];
           switch (item.type) {
             case DynamicItemType.wod:
@@ -2253,7 +2237,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                 IconButton(
                   onPressed: () {
                     final WodDefinition wodDef = WodCatalog.allWods.firstWhere(
-                      (WodDefinition w) => w.id == item.refId,
+                      (w) => w.id == item.refId,
                       orElse: () => WodCatalog.allWods.first,
                     );
                     WodSetupExplainerSheet.show(context, wodDef);
@@ -2453,7 +2437,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (BuildContext ctx) => Container(
+      builder: (ctx) => Container(
         height: MediaQuery.of(context).size.height * 0.70,
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
@@ -2701,7 +2685,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                     ),
                     tooltip: 'Plate Loader',
                     onPressed: () {
-                      showModalBottomSheet(
+                      showModalBottomSheet<void>(
                         context: context,
                         isScrollControlled: true,
                         useSafeArea: true,
@@ -2807,7 +2791,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: List.generate(sets.length, (int setIdx) {
+            children: List.generate(sets.length, (setIdx) {
               final CompletedSet setItem = sets[setIdx];
               return GestureDetector(
                 onLongPress: () => _showSetEditDialog(item.name, setIdx),

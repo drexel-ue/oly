@@ -103,7 +103,7 @@ void main() {
         name: 'Kettlebell Mile Carry',
         refId: 'kettlebell_mile',
         subtitle: '1 Mile Farmer Carry',
-        targetWeightKg: 32.0,
+        targetWeightKg: 32,
       );
       final DynamicWorkoutItem restoredKb =
           DynamicWorkoutItem.fromJson(kbItem.toJson());
@@ -132,7 +132,6 @@ void main() {
             id: '2',
             type: DynamicItemType.kettlebellMile,
             name: 'Kettlebell Mile',
-            isCompleted: false,
           ),
         ],
       );
@@ -154,7 +153,7 @@ void main() {
     });
 
     test('DayTemplate program templates configure Days 2, 4, 6 as isFreeform: true', () {
-      final List<DayTemplate> program = ProgramCycle.getBuiltInProgram(week: 1);
+      final List<DayTemplate> program = ProgramCycle.getBuiltInProgram();
 
       final DayTemplate day1 = program[0];
       final DayTemplate day2 = program[1];
@@ -189,7 +188,7 @@ void main() {
 
   group('EmptyAddMovementCard Widget Tests', () {
     testWidgets('Renders empty canvas hero card when isSessionEmpty is true', (
-      WidgetTester tester,
+      tester,
     ) async {
       bool addTapped = false;
       bool loadRecTapped = false;
@@ -221,13 +220,12 @@ void main() {
     });
 
     testWidgets('Collapses to simple dashed add button when isSessionEmpty is false', (
-      WidgetTester tester,
+      tester,
     ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
             body: EmptyAddMovementCard(
-              isSessionEmpty: false,
               onAddPressed: () {},
             ),
           ),
@@ -242,7 +240,7 @@ void main() {
 
   group('AddMovementModalSheet Widget Tests', () {
     testWidgets('Filters by categories and adds selected benchmark WOD', (
-      WidgetTester tester,
+      tester,
     ) async {
       tester.view.physicalSize = const Size(1080, 2400);
       tester.view.devicePixelRatio = 1.0;
@@ -254,7 +252,7 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: AddMovementModalSheet(
-              onAddMovement: (DynamicWorkoutItem item) => addedItem = item,
+              onAddMovement: (item) => addedItem = item,
             ),
           ),
         ),
@@ -285,7 +283,7 @@ void main() {
     });
 
     testWidgets('Adds custom movement with custom sets and reps', (
-      WidgetTester tester,
+      tester,
     ) async {
       tester.view.physicalSize = const Size(1080, 2400);
       tester.view.devicePixelRatio = 1.0;
@@ -297,7 +295,7 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: AddMovementModalSheet(
-              onAddMovement: (DynamicWorkoutItem item) => addedItem = item,
+              onAddMovement: (item) => addedItem = item,
             ),
           ),
         ),
@@ -326,7 +324,7 @@ void main() {
     });
 
     testWidgets('Searches and adds exercise from 2,500+ SQLite Exercise Database in All category', (
-      WidgetTester tester,
+      tester,
     ) async {
       tester.view.physicalSize = const Size(1080, 2400);
       tester.view.devicePixelRatio = 1.0;
@@ -338,7 +336,7 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: AddMovementModalSheet(
-              onAddMovement: (DynamicWorkoutItem item) => addedItem = item,
+              onAddMovement: (item) => addedItem = item,
             ),
           ),
         ),
@@ -367,7 +365,7 @@ void main() {
     });
 
     testWidgets('Browses Exercise Library tab, previews exercise and customizes sets and reps', (
-      WidgetTester tester,
+      tester,
     ) async {
       tester.view.physicalSize = const Size(1080, 2400);
       tester.view.devicePixelRatio = 1.0;
@@ -379,7 +377,7 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: AddMovementModalSheet(
-              onAddMovement: (DynamicWorkoutItem item) => addedItem = item,
+              onAddMovement: (item) => addedItem = item,
             ),
           ),
         ),
@@ -423,7 +421,7 @@ void main() {
 
   group('WorkoutSessionScreen Free-Form Integration Tests', () {
     testWidgets('Renders blank free-form canvas and loads recommended template', (
-      WidgetTester tester,
+      tester,
     ) async {
       tester.view.physicalSize = const Size(1080, 2400);
       tester.view.devicePixelRatio = 1.0;
@@ -466,7 +464,7 @@ void main() {
     });
 
     testWidgets('Restores active draft with dynamic items and checkboxes', (
-      WidgetTester tester,
+      tester,
     ) async {
       tester.view.physicalSize = const Size(1080, 2400);
       tester.view.devicePixelRatio = 1.0;
@@ -495,14 +493,12 @@ void main() {
             name: 'DT',
             refId: 'dt',
             subtitle: '5 Rounds: 12 DL, 9 HPC, 6 PJ',
-            isCompleted: false,
           ),
           DynamicWorkoutItem(
             id: 'kb_1',
             type: DynamicItemType.kettlebellMile,
             name: 'Kettlebell Mile Carry',
             refId: 'kettlebell_mile',
-            isCompleted: false,
           ),
         ],
       );
@@ -535,7 +531,7 @@ void main() {
       expect(find.text('1 Mile Carry Completed!'), findsOneWidget);
     });
 
-    testWidgets('EmptyAddMovementCard renders preview mode texts when isPreviewMode is true', (WidgetTester tester) async {
+    testWidgets('EmptyAddMovementCard renders preview mode texts when isPreviewMode is true', (tester) async {
       await tester.pumpWidget(
         buildTestApp(
           child: Scaffold(
@@ -556,7 +552,7 @@ void main() {
       expect(find.text('START BY ADDING A MOVEMENT'), findsOneWidget);
     });
 
-    testWidgets('WorkoutSessionScreen in preview mode displays PREVIEW mode pill, banner, and preview card actions', (WidgetTester tester) async {
+    testWidgets('WorkoutSessionScreen in preview mode displays PREVIEW mode pill, banner, and preview card actions', (tester) async {
       final DayTemplate freeformDay = DayTemplate(
         dayNumber: 2,
         title: 'Day 2: Conditioning & Accessories',
@@ -581,14 +577,12 @@ void main() {
             name: 'FRAN',
             refId: 'fran',
             subtitle: '21-15-9 Thrusters & Pull-ups',
-            isCompleted: false,
           ),
           DynamicWorkoutItem(
             id: 'kb_mile',
             type: DynamicItemType.kettlebellMile,
             name: 'Kettlebell Mile Carry',
             refId: 'kettlebell_mile',
-            isCompleted: false,
           ),
         ],
       );
@@ -627,17 +621,17 @@ void main() {
       expect(find.text('Tap to Mark 1 Mile Complete'), findsOneWidget);
     });
 
-    testWidgets('AddMovementModalSheet allows previewing WOD setup explainer with ADD TO WORKOUT action', (WidgetTester tester) async {
+    testWidgets('AddMovementModalSheet allows previewing WOD setup explainer with ADD TO WORKOUT action', (tester) async {
       DynamicWorkoutItem? addedItem;
 
       await tester.pumpWidget(
         buildTestApp(
           child: Scaffold(
             body: Builder(
-              builder: (BuildContext ctx) => ElevatedButton(
+              builder: (ctx) => ElevatedButton(
                 onPressed: () => AddMovementModalSheet.show(
                   ctx,
-                  onAddMovement: (DynamicWorkoutItem item) => addedItem = item,
+                  onAddMovement: (item) => addedItem = item,
                 ),
                 child: const Text('Open Modal'),
               ),

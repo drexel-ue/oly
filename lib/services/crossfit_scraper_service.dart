@@ -13,7 +13,7 @@ import 'package:sqflite_common/sqlite_api.dart';
 /// and official CrossFit Movements from crossfit.com.
 /// Fully idempotent: caches raw responses and uses deterministic IDs and upserts.
 class CrossfitScraperService {
-  CrossfitScraperService({
+  new({
     String? cacheDirectory,
     http.Client? client,
   })  : _cacheDir = cacheDirectory ?? p.join(Directory.current.path, '.crossfit_cache'),
@@ -574,7 +574,7 @@ class CrossfitScraperService {
 
   static String _extractNameFromSlug(String slug) {
     return slug
-        .split(RegExp(r'[-_]'))
+        .split(RegExp('[-_]'))
         .where((s) => s.isNotEmpty)
         .map((w) => w[0].toUpperCase() + w.substring(1))
         .join(' ');
@@ -815,7 +815,7 @@ class CrossfitScraperService {
 }
 
 class _RawHeroCard {
-  _RawHeroCard({
+  new({
     required this.slug,
     required this.name,
     required this.url,

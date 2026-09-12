@@ -30,7 +30,7 @@ void main() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
       const MethodChannel('plugins.flutter.io/flutter_timezone'),
-      (MethodCall methodCall) async {
+      (methodCall) async {
         return 'America/New_York';
       },
     );
@@ -38,7 +38,7 @@ void main() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
       const MethodChannel('dexterous.com/flutter/local_notifications'),
-      (MethodCall methodCall) async {
+      (methodCall) async {
         return true;
       },
     );
@@ -46,7 +46,7 @@ void main() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
       const MethodChannel('xyz.luan/audioplayers'),
-      (MethodCall methodCall) async {
+      (methodCall) async {
         return 1;
       },
     );
@@ -54,7 +54,7 @@ void main() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
       const MethodChannel('xyz.luan/audioplayers.global'),
-      (MethodCall methodCall) async {
+      (methodCall) async {
         return 1;
       },
     );
@@ -227,7 +227,7 @@ void main() {
     }
 
     testWidgets('Renders exactly 4 domain tabs: TRAIN, RECOVER, FUEL, INSIGHTS', (
-      WidgetTester tester,
+      tester,
     ) async {
       await tester.pumpWidget(createTestApp());
       await tester.pumpAndSettle();
@@ -245,7 +245,7 @@ void main() {
     });
 
     testWidgets('Switches tabs cleanly between domains', (
-      WidgetTester tester,
+      tester,
     ) async {
       await tester.pumpWidget(createTestApp());
       await tester.pumpAndSettle();
@@ -273,7 +273,7 @@ void main() {
     });
 
     testWidgets('ActiveSessionMiniDock renders when session is active and updates', (
-      WidgetTester tester,
+      tester,
     ) async {
       final ActiveSessionProvider sessionProvider = ActiveSessionProvider();
 
@@ -312,7 +312,7 @@ void main() {
     });
 
     testWidgets('AthleteSummaryOverviewCard renders daily briefing details', (
-      WidgetTester tester,
+      tester,
     ) async {
       final DayTemplate day = ProgramCycle.getBuiltInProgram().first;
 
@@ -364,7 +364,7 @@ void main() {
     });
 
     testWidgets('ActiveSessionMiniDock renders PREVIEW badge in preview mode', (
-      WidgetTester tester,
+      tester,
     ) async {
       final ActiveSessionProvider sessionProvider = ActiveSessionProvider();
 
@@ -391,7 +391,7 @@ void main() {
 
     testWidgets(
       'ActiveSessionMiniDock renders RECOVERY badge and expands into RecoverySessionScreen for mobility flow',
-      (WidgetTester tester) async {
+      (tester) async {
         final ActiveSessionProvider sessionProvider = ActiveSessionProvider();
         final GeneratedRecoveryRoutine routine = GeneratedRecoveryRoutine(
           phaseGroups: <RecoveryPhaseGroup>[],
@@ -436,7 +436,7 @@ void main() {
 
     testWidgets(
       'ActiveSessionMiniDock dismiss button closes preview mode dock immediately',
-      (WidgetTester tester) async {
+      (tester) async {
         final ActiveSessionProvider sessionProvider = ActiveSessionProvider();
 
         await tester.pumpWidget(createTestApp(sessionProvider: sessionProvider));
@@ -463,7 +463,7 @@ void main() {
 
     testWidgets(
       'WorkoutSessionScreen preview mode AppBar close button dismisses active session',
-      (WidgetTester tester) async {
+      (tester) async {
         final DayTemplate day = ProgramCycle.getBuiltInProgram().first;
         final ActiveSessionProvider sessionProvider = ActiveSessionProvider();
 
@@ -522,7 +522,7 @@ void main() {
 
     testWidgets(
       'WorkoutSessionScreen Exit Preview button scrolls into view and dismisses active session',
-      (WidgetTester tester) async {
+      (tester) async {
         final DayTemplate day = ProgramCycle.getBuiltInProgram().first;
         final ActiveSessionProvider sessionProvider = ActiveSessionProvider();
 

@@ -21,9 +21,7 @@ void main() {
 
       const NutritionGoalModel goal = NutritionGoalModel(
         goalType: GoalType.cutting,
-        proteinGramsPerLbLbm: 1.05,
         dailyCalorieAdjustment: -450,
-        carbCyclingEnabled: true,
       );
 
       final MacroTargets restDayTargets =
@@ -61,22 +59,22 @@ void main() {
       'Calculates adaptive TDEE from logged intake and body composition delta',
       () {
         final BodyCompositionEntry startComp = BodyCompositionEntry.create(
-          timestamp: DateTime(2026, 7, 1),
-          weightLb: 265.0,
-          bodyFatLb: 56.0,
-          fatFreeMassLb: 209.0,
+          timestamp: DateTime(2026, 7),
+          weightLb: 265,
+          bodyFatLb: 56,
+          fatFreeMassLb: 209,
         );
 
         final BodyCompositionEntry endComp = BodyCompositionEntry.create(
           timestamp: DateTime(2026, 7, 15), // 14 days later
-          weightLb: 263.0,
-          bodyFatLb: 54.0, // -2.0 lb fat
-          fatFreeMassLb: 209.0, // 0 lb muscle lost
+          weightLb: 263,
+          bodyFatLb: 54, // -2.0 lb fat
+          fatFreeMassLb: 209, // 0 lb muscle lost
         );
 
         final List<DailyNutritionLog> logs = List.generate(
           14,
-          (int i) => DailyNutritionLog.create(
+          (i) => DailyNutritionLog.create(
             date: '2026-07-${(i + 1).toString().padLeft(2, '0')}',
             entries: <NutritionEntry>[
               NutritionEntry.create(
@@ -132,7 +130,7 @@ void main() {
         weightLb: 264.8,
         fatFreeMassLb: 208.6,
         bodyFatLb: 56.2,
-        bodyWaterPct: 52.0, // Sub-optimal (<55%)
+        bodyWaterPct: 52, // Sub-optimal (<55%)
       );
 
       final double boostedWater =

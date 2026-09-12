@@ -10,7 +10,7 @@ import 'package:oly/widgets/rest_timer_widget.dart';
 import 'package:provider/provider.dart';
 
 class MaxTestScreen extends StatefulWidget {
-  const MaxTestScreen({super.key});
+  const new({super.key});
 
   @override
   State<MaxTestScreen> createState() => _MaxTestScreenState();
@@ -135,7 +135,7 @@ class _MaxTestScreenState extends State<MaxTestScreen> {
                       isExpanded: true,
                       dropdownColor: AppTheme.surfaceCard,
                       underline: const SizedBox(),
-                      items: lifts.lifts.map((LiftModel l) {
+                      items: lifts.lifts.map((l) {
                         return DropdownMenuItem<String>(
                           value: l.id,
                           child: Text(
@@ -147,7 +147,7 @@ class _MaxTestScreenState extends State<MaxTestScreen> {
                           ),
                         );
                       }).toList(),
-                      onChanged: (String? val) {
+                      onChanged: (val) {
                         if (val != null) {
                           setState(() {
                             _selectedLiftId = val;
@@ -428,7 +428,7 @@ class _MaxTestScreenState extends State<MaxTestScreen> {
                   color: AppTheme.primaryAmber,
                 ),
                 onPressed: () {
-                  showModalBottomSheet(
+                  showModalBottomSheet<void>(
                     context: context,
                     isScrollControlled: true,
                     useSafeArea: true,

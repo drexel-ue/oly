@@ -16,7 +16,7 @@ void main() {
         id: 'snatch',
         name: 'Snatch',
         category: LiftCategory.snatch,
-        currentMax: 100.0,
+        currentMax: 100,
       );
       final LiftModel overheadPress = LiftModel(
         id: 'military_press',
@@ -24,7 +24,7 @@ void main() {
         category: LiftCategory.overhead,
         anchorLiftId: 'snatch',
         targetRatio: 0.55,
-        currentMax: 40.0, // 40% vs 55% target -> Underdeveloped
+        currentMax: 40, // 40% vs 55% target -> Underdeveloped
       );
 
       final List<LiftRatioAnalysis> analysis = <LiftRatioAnalysis>[
@@ -48,13 +48,13 @@ void main() {
       expect(routine.exercises.length, equals(12));
       expect(
         routine.diagnosticReasons.any(
-          (String r) => r.contains('Military Press'),
+          (r) => r.contains('Military Press'),
         ),
         isTrue,
       );
       expect(
         routine.exercises.any(
-          (MobilityExerciseModel e) =>
+          (e) =>
               e.focusArea == MobilityFocusArea.thoracicSpine ||
               e.focusArea == MobilityFocusArea.shoulderOverhead,
         ),
@@ -62,19 +62,19 @@ void main() {
       );
       expect(
         routine.exercises.any(
-          (MobilityExerciseModel e) => e.id == 'kettlebell_mile',
+          (e) => e.id == 'kettlebell_mile',
         ),
         isTrue,
       );
       expect(
         routine.exercises.any(
-          (MobilityExerciseModel e) => e.id == 'ghd_back_extensions',
+          (e) => e.id == 'ghd_back_extensions',
         ),
         isTrue,
       );
       expect(
         routine.exercises.any(
-          (MobilityExerciseModel e) => e.id == 'seated_leg_extensions',
+          (e) => e.id == 'seated_leg_extensions',
         ),
         isTrue,
       );
@@ -92,8 +92,8 @@ void main() {
             liftId: 'back_squat',
             exerciseName: 'Back Squat',
             sets: <CompletedSet>[
-              CompletedSet(setIndex: 1, reps: 5, weight: 100.0),
-              CompletedSet(setIndex: 2, reps: 5, weight: 100.0),
+              CompletedSet(setIndex: 1, reps: 5, weight: 100),
+              CompletedSet(setIndex: 2, reps: 5, weight: 100),
             ],
           ),
         ],
@@ -108,12 +108,12 @@ void main() {
       expect(routine.phaseGroups.length, equals(4));
       expect(routine.exercises.length, equals(12));
       expect(
-        routine.diagnosticReasons.any((String r) => r.contains('Squat volume')),
+        routine.diagnosticReasons.any((r) => r.contains('Squat volume')),
         isTrue,
       );
       expect(
         routine.exercises.any(
-          (MobilityExerciseModel e) =>
+          (e) =>
               e.focusArea == MobilityFocusArea.hipCapsule ||
               e.focusArea == MobilityFocusArea.ankleDorsiflexion,
         ),
@@ -121,19 +121,19 @@ void main() {
       );
       expect(
         routine.exercises.any(
-          (MobilityExerciseModel e) => e.id == 'kettlebell_mile',
+          (e) => e.id == 'kettlebell_mile',
         ),
         isTrue,
       );
       expect(
         routine.exercises.any(
-          (MobilityExerciseModel e) => e.id == 'ghd_back_extensions',
+          (e) => e.id == 'ghd_back_extensions',
         ),
         isTrue,
       );
       expect(
         routine.exercises.any(
-          (MobilityExerciseModel e) => e.id == 'seated_leg_extensions',
+          (e) => e.id == 'seated_leg_extensions',
         ),
         isTrue,
       );

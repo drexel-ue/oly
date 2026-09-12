@@ -19,7 +19,7 @@ import 'package:oly/widgets/wod_setup_explainer_sheet.dart';
 import 'package:provider/provider.dart';
 
 class GraceWodCard extends StatefulWidget {
-  const GraceWodCard({
+  const new({
     required this.exercise,
     required this.onCompleted,
     super.key,
@@ -131,7 +131,7 @@ class _GraceWodCardState extends State<GraceWodCard> {
     _playBeepIfEnabled();
 
     _stopwatchTimer?.cancel();
-    _stopwatchTimer = Timer.periodic(const Duration(seconds: 1), (Timer timer) {
+    _stopwatchTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (!mounted) {
         timer.cancel();
         return;
@@ -237,7 +237,7 @@ class _GraceWodCardState extends State<GraceWodCard> {
 
     final bool? shouldSave = await showDialog<bool>(
       context: context,
-      builder: (BuildContext ctx) {
+      builder: (ctx) {
         return AlertDialog(
           backgroundColor: AppTheme.surfaceCard,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -271,7 +271,7 @@ class _GraceWodCardState extends State<GraceWodCard> {
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
                         color: AppTheme.textSecondary,
-                        letterSpacing: 1.0,
+                        letterSpacing: 1,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -730,11 +730,11 @@ class _GraceWodCardState extends State<GraceWodCard> {
                       DropdownMenuItem<double>(value: 61.2, child: Text('135 lb / 61 kg (Rx Men)')),
                       DropdownMenuItem<double>(value: 43.1, child: Text('95 lb / 43 kg (Rx Women)')),
                       DropdownMenuItem<double>(value: 52.2, child: Text('115 lb / 52 kg (Scaled)')),
-                      DropdownMenuItem<double>(value: 34.0, child: Text('75 lb / 34 kg (Scaled)')),
+                      DropdownMenuItem<double>(value: 34, child: Text('75 lb / 34 kg (Scaled)')),
                       DropdownMenuItem<double>(value: 70.3, child: Text('155 lb / 70 kg (Heavy)')),
                       DropdownMenuItem<double>(value: 83.9, child: Text('185 lb / 84 kg (Elite)')),
                     ],
-                    onChanged: (double? val) {
+                    onChanged: (val) {
                       if (val != null) {
                         setState(() {
                           _barbellWeightKg = val;
@@ -767,7 +767,7 @@ class _GraceWodCardState extends State<GraceWodCard> {
                       DropdownMenuItem<String>(value: 'sets_of_5', child: Text('Sets of 5 Reps')),
                       DropdownMenuItem<String>(value: 'unbroken', child: Text('Unbroken Sprint')),
                     ],
-                    onChanged: (String? val) {
+                    onChanged: (val) {
                       if (val != null) {
                         setState(() => _repPacingScheme = val);
                       }
@@ -808,7 +808,7 @@ class _GraceWodCardState extends State<GraceWodCard> {
                           fontSize: 11,
                           fontWeight: FontWeight.bold,
                           color: AppTheme.textSecondary,
-                          letterSpacing: 1.0,
+                          letterSpacing: 1,
                         ),
                       ),
                       const SizedBox(height: 2),
@@ -977,7 +977,7 @@ class _GraceWodCardState extends State<GraceWodCard> {
             fontSize: 12,
             fontWeight: FontWeight.bold,
             color: AppTheme.secondaryCyan,
-            letterSpacing: 1.0,
+            letterSpacing: 1,
           ),
         ),
         const SizedBox(height: 12),
@@ -1025,10 +1025,10 @@ class _GraceWodCardState extends State<GraceWodCard> {
                   DropdownMenuItem<double>(value: 61.2, child: Text('135 lb (Rx Men)')),
                   DropdownMenuItem<double>(value: 43.1, child: Text('95 lb (Rx Women)')),
                   DropdownMenuItem<double>(value: 52.2, child: Text('115 lb (Scaled)')),
-                  DropdownMenuItem<double>(value: 34.0, child: Text('75 lb (Scaled)')),
+                  DropdownMenuItem<double>(value: 34, child: Text('75 lb (Scaled)')),
                   DropdownMenuItem<double>(value: 70.3, child: Text('155 lb (Heavy)')),
                 ],
-                onChanged: (double? val) {
+                onChanged: (val) {
                   if (val != null) {
                     setState(() {
                       _barbellWeightKg = val;
@@ -1052,7 +1052,7 @@ class _GraceWodCardState extends State<GraceWodCard> {
                   DropdownMenuItem<String>(value: 'touch_and_go', child: Text('Touch & Go')),
                   DropdownMenuItem<String>(value: 'sets_of_5', child: Text('Sets of 5')),
                 ],
-                onChanged: (String? val) {
+                onChanged: (val) {
                   if (val != null) {
                     setState(() => _repPacingScheme = val);
                   }

@@ -6,7 +6,7 @@ import 'package:oly/theme/app_theme.dart';
 import 'package:oly/widgets/jackie_wod_card.dart';
 
 class JackieWodScreen extends StatefulWidget {
-  const JackieWodScreen({
+  const new({
     super.key,
     this.isPreviewMode = false,
   });
@@ -30,7 +30,7 @@ class _JackieWodScreenState extends State<JackieWodScreen> {
   Widget build(BuildContext context) {
     final MobilityExerciseModel jackieExercise =
         MobilityExerciseModel.defaultExercises().firstWhere(
-      (MobilityExerciseModel e) => e.id == 'jackie_wod',
+      (e) => e.id == 'jackie_wod',
     );
 
     return Scaffold(

@@ -22,8 +22,6 @@ void main() {
         round1TimeSeconds: 105, // 1:45
         round2TimeSeconds: 70, // 1:10
         round3TimeSeconds: 40, // 0:40
-        barbellWeightKg: 43.1,
-        pullupVariation: 'kipping',
       );
 
       expect(rxLog.scalingTier, equals('Rx'));
@@ -59,8 +57,7 @@ void main() {
 
       final FranWorkoutLog scaledLightBar = FranWorkoutLog(
         totalTimeSeconds: 300,
-        barbellWeightKg: 34.0, // 75 lb for men
-        isRxWomen: false,
+        barbellWeightKg: 34, // 75 lb for men
       );
       expect(scaledLightBar.scalingTier, equals('Scaled'));
 
@@ -88,7 +85,6 @@ void main() {
       // First session: 5:00 (300s) -> should be PR
       final FranWorkoutLog firstLog = FranWorkoutLog(
         totalTimeSeconds: 300,
-        barbellWeightKg: 43.1,
         scalingTier: 'Rx',
       );
       final FranWorkoutLog result1 = await recovery.logFranWorkout(firstLog);
@@ -100,7 +96,6 @@ void main() {
       // Slower session: 5:20 (320s) -> NOT a PR
       final FranWorkoutLog slowerLog = FranWorkoutLog(
         totalTimeSeconds: 320,
-        barbellWeightKg: 43.1,
         scalingTier: 'Rx',
       );
       final FranWorkoutLog result2 = await recovery.logFranWorkout(slowerLog);
@@ -110,7 +105,6 @@ void main() {
       // Faster session: 3:50 (230s) -> NEW PR
       final FranWorkoutLog fasterLog = FranWorkoutLog(
         totalTimeSeconds: 230,
-        barbellWeightKg: 43.1,
         scalingTier: 'Rx',
       );
       final FranWorkoutLog result3 = await recovery.logFranWorkout(fasterLog);
@@ -154,10 +148,10 @@ void main() {
     }
 
     testWidgets('Renders FranWodCard header, stopwatch, rounds, and setup explainer button',
-        (WidgetTester tester) async {
+        (tester) async {
       final MobilityExerciseModel franExercise =
           MobilityExerciseModel.defaultExercises().firstWhere(
-        (MobilityExerciseModel e) => e.id == 'fran_wod',
+        (e) => e.id == 'fran_wod',
       );
 
       await tester.pumpWidget(
@@ -180,14 +174,14 @@ void main() {
     });
 
     testWidgets('Can start stopwatch and progress through Round of 21 to Round of 15',
-        (WidgetTester tester) async {
+        (tester) async {
       tester.view.physicalSize = const Size(1080, 2400);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() => tester.view.resetPhysicalSize());
 
       final MobilityExerciseModel franExercise =
           MobilityExerciseModel.defaultExercises().firstWhere(
-        (MobilityExerciseModel e) => e.id == 'fran_wod',
+        (e) => e.id == 'fran_wod',
       );
 
       await tester.pumpWidget(
@@ -218,10 +212,10 @@ void main() {
     });
 
     testWidgets('Toggles between Live Mode and Manual Entry mode',
-        (WidgetTester tester) async {
+        (tester) async {
       final MobilityExerciseModel franExercise =
           MobilityExerciseModel.defaultExercises().firstWhere(
-        (MobilityExerciseModel e) => e.id == 'fran_wod',
+        (e) => e.id == 'fran_wod',
       );
 
       await tester.pumpWidget(

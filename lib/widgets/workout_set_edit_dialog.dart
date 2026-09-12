@@ -6,7 +6,7 @@ import 'package:oly/theme/app_theme.dart';
 import 'package:provider/provider.dart';
 
 class WorkoutSetEditDialog extends StatefulWidget {
-  const WorkoutSetEditDialog({
+  const new({
     required this.exerciseName,
     required this.currentSet,
     required this.totalSets,
@@ -105,8 +105,8 @@ class _WorkoutSetEditDialogState extends State<WorkoutSetEditDialog> {
   Widget build(BuildContext context) {
     final SettingsProvider settings = Provider.of<SettingsProvider>(context);
     final List<double> steppers = settings.isLbs
-        ? <double>[-10.0, -5.0, -2.5, 2.5, 5.0, 10.0]
-        : <double>[-5.0, -2.5, -1.0, 1.0, 2.5, 5.0];
+        ? <double>[-10, -5, -2.5, 2.5, 5, 10]
+        : <double>[-5, -2.5, -1, 1, 2.5, 5];
     const List<int> repPresets = <int>[1, 2, 3, 5, 8, 10, 12];
 
     final bool hasSubsequentSets = widget.currentSet.setIndex < widget.totalSets;
@@ -182,7 +182,7 @@ class _WorkoutSetEditDialogState extends State<WorkoutSetEditDialog> {
                 style: GoogleFonts.outfit(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
-                  letterSpacing: 1.0,
+                  letterSpacing: 1,
                   color: AppTheme.textSecondary,
                 ),
               ),
@@ -219,7 +219,7 @@ class _WorkoutSetEditDialogState extends State<WorkoutSetEditDialog> {
                             color: AppTheme.textSecondary,
                           ),
                         ),
-                        onChanged: (String val) {
+                        onChanged: (val) {
                           final double? parsed = double.tryParse(val);
                           if (parsed != null && parsed >= 0) {
                             setState(() {
@@ -247,7 +247,7 @@ class _WorkoutSetEditDialogState extends State<WorkoutSetEditDialog> {
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
-                  children: steppers.map((double delta) {
+                  children: steppers.map((delta) {
                     final bool isPositive = delta > 0;
                     final String text = isPositive ? '+$delta' : '$delta';
                     return Padding(
@@ -255,7 +255,6 @@ class _WorkoutSetEditDialogState extends State<WorkoutSetEditDialog> {
                       child: ActionChip(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 4,
-                          vertical: 0,
                         ),
                         backgroundColor: AppTheme.surfaceElevated,
                         side: const BorderSide(color: AppTheme.borderColor),
@@ -284,7 +283,7 @@ class _WorkoutSetEditDialogState extends State<WorkoutSetEditDialog> {
                 style: GoogleFonts.outfit(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
-                  letterSpacing: 1.0,
+                  letterSpacing: 1,
                   color: AppTheme.textSecondary,
                 ),
               ),
@@ -325,7 +324,7 @@ class _WorkoutSetEditDialogState extends State<WorkoutSetEditDialog> {
                           border: InputBorder.none,
                           hintText: '1',
                         ),
-                        onChanged: (String val) {
+                        onChanged: (val) {
                           final int? parsed = int.tryParse(val);
                           if (parsed != null && parsed >= 1) {
                             setState(() {
@@ -359,7 +358,7 @@ class _WorkoutSetEditDialogState extends State<WorkoutSetEditDialog> {
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
-                  children: repPresets.map((int r) {
+                  children: repPresets.map((r) {
                     final bool isSelected = _currentReps == r;
                     return Padding(
                       padding: const EdgeInsets.only(right: 6),
@@ -367,7 +366,6 @@ class _WorkoutSetEditDialogState extends State<WorkoutSetEditDialog> {
                         selected: isSelected,
                         padding: const EdgeInsets.symmetric(
                           horizontal: 4,
-                          vertical: 0,
                         ),
                         backgroundColor: AppTheme.surfaceElevated,
                         selectedColor: AppTheme.secondaryCyan.withValues(alpha: 0.25),
@@ -446,7 +444,7 @@ class _WorkoutSetEditDialogState extends State<WorkoutSetEditDialog> {
                       Switch(
                         value: _isCompleted,
                         activeThumbColor: AppTheme.primaryAmber,
-                        onChanged: (bool val) {
+                        onChanged: (val) {
                           setState(() {
                             _isCompleted = val;
                           });
@@ -474,7 +472,7 @@ class _WorkoutSetEditDialogState extends State<WorkoutSetEditDialog> {
                           value: _applyToSubsequent,
                           activeColor: AppTheme.primaryAmber,
                           checkColor: Colors.black,
-                          onChanged: (bool? val) {
+                          onChanged: (val) {
                             setState(() {
                               _applyToSubsequent = val ?? false;
                             });

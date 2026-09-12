@@ -19,7 +19,7 @@ import 'package:oly/widgets/wod_setup_explainer_sheet.dart';
 import 'package:provider/provider.dart';
 
 class JackieWodCard extends StatefulWidget {
-  const JackieWodCard({
+  const new({
     required this.exercise,
     required this.onCompleted,
     super.key,
@@ -136,7 +136,7 @@ class _JackieWodCardState extends State<JackieWodCard> {
     _playBeepIfEnabled();
 
     _stopwatchTimer?.cancel();
-    _stopwatchTimer = Timer.periodic(const Duration(seconds: 1), (Timer timer) {
+    _stopwatchTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (!mounted) {
         timer.cancel();
         return;
@@ -247,7 +247,7 @@ class _JackieWodCardState extends State<JackieWodCard> {
 
     final bool? shouldSave = await showDialog<bool>(
       context: context,
-      builder: (BuildContext ctx) {
+      builder: (ctx) {
         return AlertDialog(
           backgroundColor: AppTheme.surfaceCard,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -281,7 +281,7 @@ class _JackieWodCardState extends State<JackieWodCard> {
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
                         color: AppTheme.textSecondary,
-                        letterSpacing: 1.0,
+                        letterSpacing: 1,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -784,7 +784,7 @@ class _JackieWodCardState extends State<JackieWodCard> {
                       DropdownMenuItem<double>(value: 29.5, child: Text('65 lb / 29.5 kg (Heavy)')),
                       DropdownMenuItem<double>(value: 43.1, child: Text('95 lb / 43.1 kg (Elite)'))
                     ],
-                    onChanged: (double? val) {
+                    onChanged: (val) {
                       if (val != null) {
                         setState(() => _barbellWeightKg = val);
                       }
@@ -909,7 +909,7 @@ class _JackieWodCardState extends State<JackieWodCard> {
                       DropdownMenuItem<String>(value: 'jumping', child: Text('Jumping Pull-ups (Scaled)')),
                       DropdownMenuItem<String>(value: 'chest_to_bar', child: Text('Chest-to-Bar (Hard)')),
                     ],
-                    onChanged: (String? val) {
+                    onChanged: (val) {
                       if (val != null) {
                         setState(() => _pullupVariation = val);
                       }
@@ -1141,7 +1141,7 @@ class _JackieWodCardState extends State<JackieWodCard> {
             fontSize: 12,
             fontWeight: FontWeight.bold,
             color: AppTheme.secondaryCyan,
-            letterSpacing: 1.0,
+            letterSpacing: 1,
           ),
         ),
         const SizedBox(height: 12),
@@ -1191,7 +1191,7 @@ class _JackieWodCardState extends State<JackieWodCard> {
                   DropdownMenuItem<double>(value: 15.9, child: Text('35 lb (Scaled)')),
                   DropdownMenuItem<double>(value: 29.5, child: Text('65 lb (Heavy)')),
                 ],
-                onChanged: (double? val) {
+                onChanged: (val) {
                   if (val != null) {
                     setState(() => _barbellWeightKg = val);
                   }
@@ -1213,7 +1213,7 @@ class _JackieWodCardState extends State<JackieWodCard> {
                   DropdownMenuItem<String>(value: 'band_assisted', child: Text('Banded (Scaled)')),
                   DropdownMenuItem<String>(value: 'ring_rows', child: Text('Ring Rows (Scaled)')),
                 ],
-                onChanged: (String? val) {
+                onChanged: (val) {
                   if (val != null) {
                     setState(() => _pullupVariation = val);
                   }

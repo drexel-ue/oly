@@ -1,5 +1,5 @@
 class PREntry {
-  PREntry({
+  new({
     required this.id,
     required this.weight,
     required this.reps,
@@ -8,7 +8,7 @@ class PREntry {
     this.notes,
   });
 
-  factory PREntry.fromJson(Map<String, dynamic> json) {
+  factory fromJson(Map<String, dynamic> json) {
     return PREntry(
       id: json['id'] as String,
       weight: (json['weight'] as num).toDouble(),

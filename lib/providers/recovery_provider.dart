@@ -18,7 +18,7 @@ import 'package:oly/services/storage_service.dart';
 import 'package:uuid/uuid.dart';
 
 class RecoveryProvider extends ChangeNotifier {
-  RecoveryProvider(this._storage) {
+  new(this._storage) {
     _loadLogs();
   }
   final StorageService _storage;
@@ -39,7 +39,7 @@ class RecoveryProvider extends ChangeNotifier {
   void _loadLogs() {
     final List<Map<String, dynamic>> raw = _storage.loadRawRecoveryLogs();
     _recoveryLogs = raw
-        .map((Map<String, dynamic> map) => RecoverySessionLog.fromJson(map))
+        .map(RecoverySessionLog.fromJson)
         .toList();
     _accessoryLogs = _storage.loadAccessoryLogs();
     _kettlebellMileLogs = _storage.loadKettlebellMileLogs();
@@ -77,7 +77,7 @@ class RecoveryProvider extends ChangeNotifier {
   int get totalMobilityMinutes {
     return _recoveryLogs.fold(
       0,
-      (int sum, RecoverySessionLog log) => sum + log.durationMinutes,
+      (sum, log) => sum + log.durationMinutes,
     );
   }
 
@@ -86,7 +86,7 @@ class RecoveryProvider extends ChangeNotifier {
   // --- KETTLEBELL MILE PROGRESSION METHODS ---
   List<KettlebellMileLog> getKettlebellMileHistory() {
     return List<KettlebellMileLog>.from(_kettlebellMileLogs)
-      ..sort((KettlebellMileLog a, KettlebellMileLog b) => b.date.compareTo(a.date));
+      ..sort((a, b) => b.date.compareTo(a.date));
   }
 
   KettlebellMileLog? get latestKettlebellMileLog {
@@ -99,7 +99,7 @@ class RecoveryProvider extends ChangeNotifier {
   double getCurrentKettlebellTargetPercentage() {
     final KettlebellMileLog? latest = latestKettlebellMileLog;
     if (latest == null) {
-      return 10.0; // Baseline start at 10% BW
+      return 10; // Baseline start at 10% BW
     }
 
     if (latest.completedUnder20Min ||
@@ -145,9 +145,9 @@ class RecoveryProvider extends ChangeNotifier {
   // --- CROSSFIT CINDY METHODS ---
   List<CindyWorkoutLog> getCindyWorkoutHistory({String? tier}) {
     final List<CindyWorkoutLog> list = List<CindyWorkoutLog>.from(_cindyWorkoutLogs)
-      ..sort((CindyWorkoutLog a, CindyWorkoutLog b) => b.date.compareTo(a.date));
+      ..sort((a, b) => b.date.compareTo(a.date));
     if (tier != null) {
-      return list.where((CindyWorkoutLog e) => e.scalingTier == tier).toList();
+      return list.where((e) => e.scalingTier == tier).toList();
     }
     return list;
   }
@@ -163,7 +163,7 @@ class RecoveryProvider extends ChangeNotifier {
       return null;
     }
     return history.reduce(
-      (CindyWorkoutLog a, CindyWorkoutLog b) => a.totalReps >= b.totalReps ? a : b,
+      (a, b) => a.totalReps >= b.totalReps ? a : b,
     );
   }
 
@@ -177,9 +177,9 @@ class RecoveryProvider extends ChangeNotifier {
   // --- CROSSFIT JACKIE METHODS ---
   List<JackieWorkoutLog> getJackieWorkoutHistory({String? tier}) {
     final List<JackieWorkoutLog> list = List<JackieWorkoutLog>.from(_jackieWorkoutLogs)
-      ..sort((JackieWorkoutLog a, JackieWorkoutLog b) => b.date.compareTo(a.date));
+      ..sort((a, b) => b.date.compareTo(a.date));
     if (tier != null) {
-      return list.where((JackieWorkoutLog e) => e.scalingTier == tier).toList();
+      return list.where((e) => e.scalingTier == tier).toList();
     }
     return list;
   }
@@ -195,7 +195,7 @@ class RecoveryProvider extends ChangeNotifier {
       return null;
     }
     return history.reduce(
-      (JackieWorkoutLog a, JackieWorkoutLog b) => a.totalTimeSeconds <= b.totalTimeSeconds ? a : b,
+      (a, b) => a.totalTimeSeconds <= b.totalTimeSeconds ? a : b,
     );
   }
 
@@ -209,9 +209,9 @@ class RecoveryProvider extends ChangeNotifier {
   // --- CROSSFIT FRAN METHODS ---
   List<FranWorkoutLog> getFranWorkoutHistory({String? tier}) {
     final List<FranWorkoutLog> list = List<FranWorkoutLog>.from(_franWorkoutLogs)
-      ..sort((FranWorkoutLog a, FranWorkoutLog b) => b.date.compareTo(a.date));
+      ..sort((a, b) => b.date.compareTo(a.date));
     if (tier != null) {
-      return list.where((FranWorkoutLog e) => e.scalingTier == tier).toList();
+      return list.where((e) => e.scalingTier == tier).toList();
     }
     return list;
   }
@@ -227,7 +227,7 @@ class RecoveryProvider extends ChangeNotifier {
       return null;
     }
     return history.reduce(
-      (FranWorkoutLog a, FranWorkoutLog b) => a.totalTimeSeconds <= b.totalTimeSeconds ? a : b,
+      (a, b) => a.totalTimeSeconds <= b.totalTimeSeconds ? a : b,
     );
   }
 
@@ -241,9 +241,9 @@ class RecoveryProvider extends ChangeNotifier {
   // --- CROSSFIT HELEN METHODS ---
   List<HelenWorkoutLog> getHelenWorkoutHistory({String? tier}) {
     final List<HelenWorkoutLog> list = List<HelenWorkoutLog>.from(_helenWorkoutLogs)
-      ..sort((HelenWorkoutLog a, HelenWorkoutLog b) => b.date.compareTo(a.date));
+      ..sort((a, b) => b.date.compareTo(a.date));
     if (tier != null) {
-      return list.where((HelenWorkoutLog e) => e.scalingTier == tier).toList();
+      return list.where((e) => e.scalingTier == tier).toList();
     }
     return list;
   }
@@ -259,7 +259,7 @@ class RecoveryProvider extends ChangeNotifier {
       return null;
     }
     return history.reduce(
-      (HelenWorkoutLog a, HelenWorkoutLog b) => a.totalTimeSeconds <= b.totalTimeSeconds ? a : b,
+      (a, b) => a.totalTimeSeconds <= b.totalTimeSeconds ? a : b,
     );
   }
 
@@ -273,9 +273,9 @@ class RecoveryProvider extends ChangeNotifier {
   // --- CROSSFIT GRACE METHODS ---
   List<GraceWorkoutLog> getGraceWorkoutHistory({String? tier}) {
     final List<GraceWorkoutLog> list = List<GraceWorkoutLog>.from(_graceWorkoutLogs)
-      ..sort((GraceWorkoutLog a, GraceWorkoutLog b) => b.date.compareTo(a.date));
+      ..sort((a, b) => b.date.compareTo(a.date));
     if (tier != null) {
-      return list.where((GraceWorkoutLog e) => e.scalingTier == tier).toList();
+      return list.where((e) => e.scalingTier == tier).toList();
     }
     return list;
   }
@@ -291,7 +291,7 @@ class RecoveryProvider extends ChangeNotifier {
       return null;
     }
     return history.reduce(
-      (GraceWorkoutLog a, GraceWorkoutLog b) => a.totalTimeSeconds <= b.totalTimeSeconds ? a : b,
+      (a, b) => a.totalTimeSeconds <= b.totalTimeSeconds ? a : b,
     );
   }
 
@@ -305,9 +305,9 @@ class RecoveryProvider extends ChangeNotifier {
   // --- CROSSFIT HERO WOD DT METHODS ---
   List<DtWorkoutLog> getDtWorkoutHistory({String? tier}) {
     final List<DtWorkoutLog> list = List<DtWorkoutLog>.from(_dtWorkoutLogs)
-      ..sort((DtWorkoutLog a, DtWorkoutLog b) => b.date.compareTo(a.date));
+      ..sort((a, b) => b.date.compareTo(a.date));
     if (tier != null) {
-      return list.where((DtWorkoutLog e) => e.scalingTier == tier).toList();
+      return list.where((e) => e.scalingTier == tier).toList();
     }
     return list;
   }
@@ -323,7 +323,7 @@ class RecoveryProvider extends ChangeNotifier {
       return null;
     }
     return history.reduce(
-      (DtWorkoutLog a, DtWorkoutLog b) => a.totalTimeSeconds <= b.totalTimeSeconds ? a : b,
+      (a, b) => a.totalTimeSeconds <= b.totalTimeSeconds ? a : b,
     );
   }
 
@@ -337,9 +337,9 @@ class RecoveryProvider extends ChangeNotifier {
   // --- CROSSFIT BENCHMARK DEATH BY BURPEES METHODS ---
   List<DeathByBurpeesLog> getDeathByBurpeesHistory({String? tier}) {
     final List<DeathByBurpeesLog> list = List<DeathByBurpeesLog>.from(_deathByBurpeesLogs)
-      ..sort((DeathByBurpeesLog a, DeathByBurpeesLog b) => b.date.compareTo(a.date));
+      ..sort((a, b) => b.date.compareTo(a.date));
     if (tier != null) {
-      return list.where((DeathByBurpeesLog e) => e.scalingTier == tier).toList();
+      return list.where((e) => e.scalingTier == tier).toList();
     }
     return list;
   }
@@ -355,7 +355,7 @@ class RecoveryProvider extends ChangeNotifier {
       return null;
     }
     return history.reduce(
-      (DeathByBurpeesLog a, DeathByBurpeesLog b) => a.totalReps >= b.totalReps ? a : b,
+      (a, b) => a.totalReps >= b.totalReps ? a : b,
     );
   }
 
@@ -370,12 +370,12 @@ class RecoveryProvider extends ChangeNotifier {
   List<AccessoryLog> getAccessoryHistory(String exerciseId) {
     return _accessoryLogs
         .where(
-          (AccessoryLog l) =>
+          (l) =>
               l.exerciseId == exerciseId ||
               l.exerciseName.toLowerCase() == exerciseId.toLowerCase(),
         )
         .toList()
-      ..sort((AccessoryLog a, AccessoryLog b) => b.date.compareTo(a.date));
+      ..sort((a, b) => b.date.compareTo(a.date));
   }
 
   AccessoryLog? getLatestAccessoryLog(String exerciseId) {
@@ -386,11 +386,11 @@ class RecoveryProvider extends ChangeNotifier {
   double getAccessoryPersonalBest(String exerciseId) {
     final List<AccessoryLog> history = getAccessoryHistory(exerciseId);
     if (history.isEmpty) {
-      return 0.0;
+      return 0;
     }
     return history
-        .map((AccessoryLog e) => e.weightKg)
-        .reduce((double a, double b) => a > b ? a : b);
+        .map((e) => e.weightKg)
+        .reduce((a, b) => a > b ? a : b);
   }
 
   Map<String, List<AccessoryLog>> get groupedAccessoryProgressions {
@@ -400,7 +400,7 @@ class RecoveryProvider extends ChangeNotifier {
     }
     for (final String key in map.keys) {
       map[key]!.sort(
-        (AccessoryLog a, AccessoryLog b) => a.date.compareTo(b.date),
+        (a, b) => a.date.compareTo(b.date),
       ); // chronological order
     }
     return map;
@@ -457,7 +457,7 @@ class RecoveryProvider extends ChangeNotifier {
 
     _recoveryLogs.insert(0, newLog);
     final List<Map<String, dynamic>> rawList = _recoveryLogs
-        .map((RecoverySessionLog log) => log.toJson())
+        .map((log) => log.toJson())
         .toList();
     await _storage.saveRawRecoveryLogs(rawList);
     notifyListeners();
@@ -490,7 +490,6 @@ class RecoveryProvider extends ChangeNotifier {
           scoreDisplay: cindy.scoreDisplay,
           completedRounds: cindy.completedRounds,
           completedReps: cindy.partialReps,
-          isRx: true,
           isPr: true,
           category: 'The Girls',
         );
@@ -673,4 +672,3 @@ class RecoveryProvider extends ChangeNotifier {
     notifyListeners();
   }
 }
-

@@ -7,7 +7,7 @@ import 'package:oly/models/body_composition_entry.dart';
 import 'package:oly/services/app_log_service.dart';
 
 class OcrScanResult {
-  const OcrScanResult({
+  const new({
     required this.rawText,
     required this.isSuccess,
     this.entry,
@@ -22,9 +22,9 @@ class OcrScanResult {
 }
 
 class RenphoOcrService {
-  RenphoOcrService({TextRecognizer? recognizer})
+  new({TextRecognizer? recognizer})
     : _recognizer =
-          recognizer ?? TextRecognizer(script: TextRecognitionScript.latin);
+          recognizer ?? TextRecognizer();
   final TextRecognizer _recognizer;
 
   Future<void> dispose() async {
@@ -152,9 +152,9 @@ class RenphoOcrService {
     // 1. Normalize OCR text: replace typos (Ib -> lb, kca1 -> kcal, O Protein -> Protein)
     final String normalized = rawText
         .replaceAll('\r\n', '\n')
-        .replaceAll(RegExp(r'\bIb\b|\bIB\b|\b1b\b', caseSensitive: true), 'lb')
+        .replaceAll(RegExp(r'\bIb\b|\bIB\b|\b1b\b'), 'lb')
         .replaceAll(RegExp(r'O\s+Protein', caseSensitive: false), 'Protein')
-        .replaceAll(RegExp(r'kca1|kcaI', caseSensitive: false), 'kcal')
+        .replaceAll(RegExp('kca1|kcaI', caseSensitive: false), 'kcal')
         .replaceAll('·', '.')
         .replaceAll('•', '.');
 
@@ -302,7 +302,7 @@ class RenphoOcrService {
     }
 
     if (proteinLb == null || proteinPct == null) {
-      final (double? w, double? p) = extractDual(r'Protein');
+      final (double? w, double? p) = extractDual('Protein');
       proteinLb ??= w;
       proteinPct ??= p;
     }
@@ -403,7 +403,7 @@ class RenphoOcrService {
       proteinPct,
       bmrKcal,
       metabolicAge,
-    ].where((num? v) => v != null).length;
+    ].where((v) => v != null).length;
 
     if (foundCount < 2 && (weightLb == null || weightLb <= 0)) {
       return null;
@@ -430,7 +430,6 @@ class RenphoOcrService {
       proteinPct: proteinPct,
       bmrKcal: bmrKcal,
       metabolicAge: metabolicAge,
-      source: 'renpho_ocr',
     );
   }
 }

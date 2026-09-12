@@ -5,7 +5,7 @@ import 'package:oly/models/mobility_exercise_model.dart';
 import 'package:oly/services/app_log_service.dart';
 
 class InjuryDatabaseService {
-  InjuryDatabaseService._();
+  new _();
   static final InjuryDatabaseService instance = InjuryDatabaseService._();
 
   List<CatalogInjury> _cachedCatalog = <CatalogInjury>[];
@@ -50,18 +50,18 @@ class InjuryDatabaseService {
   List<CatalogInjury> getByRegion(InjuryRegion region) {
     if (!_isLoaded || _cachedCatalog.isEmpty) {
       return _builtInFallbackCatalog()
-          .where((CatalogInjury c) => c.supportedRegions.contains(region) || c.region == region)
+          .where((c) => c.supportedRegions.contains(region) || c.region == region)
           .toList();
     }
     return _cachedCatalog
-        .where((CatalogInjury c) => c.supportedRegions.contains(region) || c.region == region)
+        .where((c) => c.supportedRegions.contains(region) || c.region == region)
         .toList();
   }
 
   List<CatalogInjury> getBySubRegion(InjurySubRegion subRegion) {
     final List<CatalogInjury> source =
         _isLoaded && _cachedCatalog.isNotEmpty ? _cachedCatalog : _builtInFallbackCatalog();
-    return source.where((CatalogInjury c) => c.subRegion == subRegion).toList();
+    return source.where((c) => c.subRegion == subRegion).toList();
   }
 
   List<CatalogInjury> getByRegionAndSubRegion(InjuryRegion region, [InjurySubRegion? subRegion]) {
@@ -70,10 +70,10 @@ class InjuryDatabaseService {
       return regionInjuries;
     }
     final List<CatalogInjury> specific =
-        regionInjuries.where((CatalogInjury c) => c.subRegion == subRegion).toList();
+        regionInjuries.where((c) => c.subRegion == subRegion).toList();
     if (specific.isNotEmpty) {
       final List<CatalogInjury> others =
-          regionInjuries.where((CatalogInjury c) => c.subRegion != subRegion).toList();
+          regionInjuries.where((c) => c.subRegion != subRegion).toList();
       return <CatalogInjury>[...specific, ...others];
     }
     return regionInjuries;
@@ -88,7 +88,7 @@ class InjuryDatabaseService {
       return source;
     }
 
-    return source.where((CatalogInjury c) {
+    return source.where((c) {
       return c.name.toLowerCase().contains(clean) ||
           c.osiicsCode.toLowerCase().contains(clean) ||
           c.description.toLowerCase().contains(clean) ||
@@ -100,7 +100,7 @@ class InjuryDatabaseService {
     final List<CatalogInjury> source =
         _isLoaded && _cachedCatalog.isNotEmpty ? _cachedCatalog : _builtInFallbackCatalog();
     try {
-      return source.firstWhere((CatalogInjury c) => c.id == id);
+      return source.firstWhere((c) => c.id == id);
     } catch (_) {
       return null;
     }

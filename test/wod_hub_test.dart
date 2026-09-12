@@ -86,7 +86,7 @@ void main() {
       final WodSetupExplainer setup = jackie.setupExplainer;
 
       expect(setup.floorPlanAdvice, contains('Position the Concept2 Rower'));
-      expect(setup.equipmentChecklist.any((String item) => item.contains('Concept2 Rower')), isTrue);
+      expect(setup.equipmentChecklist.any((item) => item.contains('Concept2 Rower')), isTrue);
       expect(setup.movementStandards.length, 3);
       expect(setup.movementStandards[0].movementName, '1,000m Row');
       expect(setup.movementStandards[1].movementName, 'Barbell Thruster');
@@ -130,7 +130,7 @@ void main() {
     }
 
     testWidgets('Renders WodHubScreen with Shuffle Hero, Search bar, and WOD list',
-        (WidgetTester tester) async {
+        (tester) async {
       tester.view.physicalSize = const Size(1080, 2400);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() => tester.view.resetPhysicalSize());
@@ -154,7 +154,7 @@ void main() {
       expect(find.text('BURPEES'), findsOneWidget);
     });
 
-    testWidgets('Filters WODs via search input', (WidgetTester tester) async {
+    testWidgets('Filters WODs via search input', (tester) async {
       await tester.runAsync(() async {
         await tester.pumpWidget(createTestApp(const WodHubScreen()));
         await Future<void>.delayed(const Duration(milliseconds: 100));
@@ -172,7 +172,7 @@ void main() {
     });
 
     testWidgets('Opens Shuffle modal and can reroll or view setup',
-        (WidgetTester tester) async {
+        (tester) async {
       await tester.runAsync(() async {
         await tester.pumpWidget(createTestApp(const WodHubScreen()));
         await Future<void>.delayed(const Duration(milliseconds: 100));
@@ -194,7 +194,7 @@ void main() {
     });
 
     testWidgets('Filters Hero WODs via category chip and views Hero Tribute Sheet',
-        (WidgetTester tester) async {
+        (tester) async {
       tester.view.physicalSize = const Size(1080, 2400);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() => tester.view.resetPhysicalSize());
@@ -222,12 +222,12 @@ void main() {
       expect(find.text('FALLEN HERO MEMORIAL'), findsOneWidget);
     });
 
-    testWidgets('Opens Setup Explainer Sheet for Jackie', (WidgetTester tester) async {
+    testWidgets('Opens Setup Explainer Sheet for Jackie', (tester) async {
       await tester.pumpWidget(
         createTestApp(
           Scaffold(
             body: Builder(
-              builder: (BuildContext context) {
+              builder: (context) {
                 return ElevatedButton(
                   onPressed: () {
                     WodSetupExplainerSheet.show(context, WodCatalog.jackie);

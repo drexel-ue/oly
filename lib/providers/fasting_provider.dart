@@ -14,7 +14,7 @@ import 'package:oly/services/storage_service.dart';
 import 'package:uuid/uuid.dart';
 
 class FastingProvider extends ChangeNotifier {
-  FastingProvider(this._storage, {NotificationService? notificationService})
+  new(this._storage, {NotificationService? notificationService})
       : _notificationService = notificationService ?? NotificationService() {
     _loadState();
   }
@@ -88,7 +88,6 @@ class FastingProvider extends ChangeNotifier {
     return FastingEngineService.generateProjection(
       currentProtocol: protocol,
       config: _circadianConfig,
-      daysCount: 7,
     );
   }
 
@@ -117,7 +116,7 @@ class FastingProvider extends ChangeNotifier {
 
     // Merge in any biomarkers stored inside activeSession or past history
     final Set<String> existingIds =
-        _biomarkers.map((FastingBiomarkerEntry e) => e.id).toSet();
+        _biomarkers.map((e) => e.id).toSet();
     if (_activeSession != null) {
       for (final FastingBiomarkerEntry b in _activeSession!.biomarkers) {
         if (!existingIds.contains(b.id)) {
@@ -134,7 +133,7 @@ class FastingProvider extends ChangeNotifier {
         }
       }
     }
-    _biomarkers.sort((FastingBiomarkerEntry a, FastingBiomarkerEntry b) =>
+    _biomarkers.sort((a, b) =>
         a.timestamp.compareTo(b.timestamp));
 
     if (_pantryItems.isEmpty) {
@@ -155,7 +154,6 @@ class FastingProvider extends ChangeNotifier {
           comps.isNotEmpty ? comps.first : null;
       _cachedFuelWaterOz = goal.getRecommendedWaterGoalOz(
         latestBodyComp: latestComp,
-        isTrainingDay: false,
       );
       _cachedIsTrainingDay = false;
     }
@@ -170,7 +168,7 @@ class FastingProvider extends ChangeNotifier {
 
   void _startTicker() {
     _tickerTimer?.cancel();
-    _tickerTimer = Timer.periodic(const Duration(seconds: 1), (Timer timer) {
+    _tickerTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_activeSession == null) {
         timer.cancel();
         return;
@@ -295,10 +293,10 @@ class FastingProvider extends ChangeNotifier {
 
   /// Delete a biomarker reading
   Future<void> deleteBiomarkerEntry(String id) async {
-    _biomarkers.removeWhere((FastingBiomarkerEntry e) => e.id == id);
+    _biomarkers.removeWhere((e) => e.id == id);
     await _storage.saveFastingBiomarkers(_biomarkers);
     if (_activeSession != null) {
-      _activeSession!.biomarkers.removeWhere((FastingBiomarkerEntry e) => e.id == id);
+      _activeSession!.biomarkers.removeWhere((e) => e.id == id);
       await _storage.saveActiveFastingSession(_activeSession);
     }
     _syncNotificationSchedules();
@@ -308,7 +306,7 @@ class FastingProvider extends ChangeNotifier {
   /// Toggle item in the Fasting Grocery / Pantry checklist
   Future<void> togglePantryItem(String itemId) async {
     final int index =
-        _pantryItems.indexWhere((FastingGroceryItem i) => i.id == itemId);
+        _pantryItems.indexWhere((i) => i.id == itemId);
     if (index != -1) {
       final FastingGroceryItem current = _pantryItems[index];
       _pantryItems[index] = current.copyWith(isChecked: !current.isChecked);
@@ -328,7 +326,6 @@ class FastingProvider extends ChangeNotifier {
       name: name,
       category: category,
       description: description,
-      isChecked: false,
       isCustom: true,
     );
     _pantryItems.add(item);
@@ -338,7 +335,7 @@ class FastingProvider extends ChangeNotifier {
 
   /// Remove a custom grocery item
   Future<void> removeCustomPantryItem(String itemId) async {
-    _pantryItems.removeWhere((FastingGroceryItem i) => i.id == itemId);
+    _pantryItems.removeWhere((i) => i.id == itemId);
     await _storage.saveFastingPantryItems(_pantryItems);
     notifyListeners();
   }

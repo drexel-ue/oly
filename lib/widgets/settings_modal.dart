@@ -12,7 +12,7 @@ import 'package:oly/views/diagnostics/crash_report_screen.dart';
 import 'package:provider/provider.dart';
 
 class SettingsModal extends StatefulWidget {
-  const SettingsModal({super.key});
+  const new({super.key});
 
   @override
   State<SettingsModal> createState() => _SettingsModalState();
@@ -281,7 +281,7 @@ class _SettingsModalState extends State<SettingsModal> {
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
                   color: AppTheme.primaryAmber,
-                  letterSpacing: 1.0,
+                  letterSpacing: 1,
                 ),
               ),
               const SizedBox(height: 12),
@@ -408,7 +408,7 @@ class _SettingsModalState extends State<SettingsModal> {
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
                   color: AppTheme.primaryAmber,
-                  letterSpacing: 1.0,
+                  letterSpacing: 1,
                 ),
               ),
               const SizedBox(height: 8),
@@ -418,7 +418,7 @@ class _SettingsModalState extends State<SettingsModal> {
                   onPressed: () {
                     Navigator.pop(context);
                     Navigator.of(context).push(
-                      MaterialPageRoute(
+                      MaterialPageRoute<void>(
                         builder: (_) => const CrashReportScreen(),
                       ),
                     );
@@ -463,9 +463,9 @@ class _SettingsModalState extends State<SettingsModal> {
       listen: false,
     );
 
-    showDialog(
+    showDialog<void>(
       context: context,
-      builder: (BuildContext ctx) => AlertDialog(
+      builder: (ctx) => AlertDialog(
         backgroundColor: AppTheme.darkBackground,
         title: Text(
           'Paste JSON or CSV Data',

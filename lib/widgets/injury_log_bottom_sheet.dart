@@ -9,7 +9,7 @@ import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 
 class InjuryLogBottomSheet extends StatefulWidget {
-  const InjuryLogBottomSheet({
+  const new({
     required this.initialRegion,
     super.key,
     this.initialSubRegion,
@@ -122,7 +122,7 @@ class _InjuryLogBottomSheetState extends State<InjuryLogBottomSheet> {
       initialDate: _onsetDate,
       firstDate: DateTime.now().subtract(const Duration(days: 365 * 3)),
       lastDate: DateTime.now(),
-      builder: (BuildContext context, Widget? child) {
+      builder: (context, child) {
         return Theme(
           data: ThemeData.dark().copyWith(
             colorScheme: const ColorScheme.dark(
@@ -282,7 +282,7 @@ class _InjuryLogBottomSheetState extends State<InjuryLogBottomSheet> {
                   style: GoogleFonts.inter(
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
-                    letterSpacing: 1.0,
+                    letterSpacing: 1,
                     color: AppTheme.textSecondary,
                   ),
                 ),
@@ -290,7 +290,7 @@ class _InjuryLogBottomSheetState extends State<InjuryLogBottomSheet> {
                 Wrap(
                   spacing: 6,
                   runSpacing: 6,
-                  children: InjurySubRegionExtension.forRegion(_region).map((InjurySubRegion sub) {
+                  children: InjurySubRegionExtension.forRegion(_region).map((sub) {
                     final bool isSelected = _subRegion == sub;
                     return ChoiceChip(
                       selected: isSelected,
@@ -307,7 +307,7 @@ class _InjuryLogBottomSheetState extends State<InjuryLogBottomSheet> {
                       side: BorderSide(
                         color: isSelected ? AppTheme.primaryAmber : AppTheme.borderColor,
                       ),
-                      onSelected: (bool val) {
+                      onSelected: (val) {
                         if (val) {
                           setState(() {
                             _subRegion = sub;
@@ -334,7 +334,7 @@ class _InjuryLogBottomSheetState extends State<InjuryLogBottomSheet> {
                     style: GoogleFonts.inter(
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
-                      letterSpacing: 1.0,
+                      letterSpacing: 1,
                       color: AppTheme.textSecondary,
                     ),
                   ),
@@ -342,7 +342,7 @@ class _InjuryLogBottomSheetState extends State<InjuryLogBottomSheet> {
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
-                    children: _catalogSuggestions.map((CatalogInjury cat) {
+                    children: _catalogSuggestions.map((cat) {
                       final bool isSelected = _nameController.text == cat.name;
                       return ActionChip(
                         label: Text(
@@ -371,7 +371,7 @@ class _InjuryLogBottomSheetState extends State<InjuryLogBottomSheet> {
                   style: GoogleFonts.inter(
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
-                    letterSpacing: 1.0,
+                    letterSpacing: 1,
                     color: AppTheme.textSecondary,
                   ),
                 ),
@@ -413,7 +413,7 @@ class _InjuryLogBottomSheetState extends State<InjuryLogBottomSheet> {
                             style: GoogleFonts.inter(
                               fontSize: 11,
                               fontWeight: FontWeight.bold,
-                              letterSpacing: 1.0,
+                              letterSpacing: 1,
                               color: AppTheme.textSecondary,
                             ),
                           ),
@@ -459,7 +459,7 @@ class _InjuryLogBottomSheetState extends State<InjuryLogBottomSheet> {
                             style: GoogleFonts.inter(
                               fontSize: 11,
                               fontWeight: FontWeight.bold,
-                              letterSpacing: 1.0,
+                              letterSpacing: 1,
                               color: AppTheme.textSecondary,
                             ),
                           ),
@@ -514,7 +514,7 @@ class _InjuryLogBottomSheetState extends State<InjuryLogBottomSheet> {
                       style: GoogleFonts.inter(
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
-                        letterSpacing: 1.0,
+                        letterSpacing: 1,
                         color: AppTheme.textSecondary,
                       ),
                     ),
@@ -544,14 +544,13 @@ class _InjuryLogBottomSheetState extends State<InjuryLogBottomSheet> {
                 const SizedBox(height: 8),
                 Slider(
                   value: _painScale.toDouble(),
-                  min: 0,
                   max: 10,
                   divisions: 10,
                   activeColor: _painScale <= 3
                       ? AppTheme.primaryAmber
                       : (_painScale <= 6 ? const Color(0xFFFF9F0A) : Colors.redAccent),
                   inactiveColor: AppTheme.surfaceElevated,
-                  onChanged: (double val) => setState(() => _painScale = val.round()),
+                  onChanged: (val) => setState(() => _painScale = val.round()),
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -582,7 +581,7 @@ class _InjuryLogBottomSheetState extends State<InjuryLogBottomSheet> {
                   style: GoogleFonts.inter(
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
-                    letterSpacing: 1.0,
+                    letterSpacing: 1,
                     color: AppTheme.textSecondary,
                   ),
                 ),
@@ -590,7 +589,7 @@ class _InjuryLogBottomSheetState extends State<InjuryLogBottomSheet> {
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
-                  children: BiomechanicalConstraint.values.map((BiomechanicalConstraint c) {
+                  children: BiomechanicalConstraint.values.map((c) {
                     final bool isSelected = _selectedConstraints.contains(c);
                     return FilterChip(
                       selected: isSelected,
@@ -607,7 +606,7 @@ class _InjuryLogBottomSheetState extends State<InjuryLogBottomSheet> {
                       side: BorderSide(
                         color: isSelected ? AppTheme.primaryAmber : AppTheme.borderColor,
                       ),
-                      onSelected: (bool selected) {
+                      onSelected: (selected) {
                         setState(() {
                           if (selected) {
                             _selectedConstraints.add(c);
@@ -627,7 +626,7 @@ class _InjuryLogBottomSheetState extends State<InjuryLogBottomSheet> {
                   style: GoogleFonts.inter(
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
-                    letterSpacing: 1.0,
+                    letterSpacing: 1,
                     color: AppTheme.textSecondary,
                   ),
                 ),
@@ -662,7 +661,6 @@ class _InjuryLogBottomSheetState extends State<InjuryLogBottomSheet> {
             children: <Widget>[
               if (widget.existingInjury != null) ...<Widget>[
                 Expanded(
-                  flex: 1,
                   child: OutlinedButton(
                     onPressed: _resolve,
                     style: OutlinedButton.styleFrom(

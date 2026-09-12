@@ -2,7 +2,7 @@ import 'package:uuid/uuid.dart';
 
 /// Represents the specific exercise variation and metrics for a single round of Cindy.
 class CindyRoundDetail {
-  CindyRoundDetail({
+  new({
     required this.roundNumber,
     this.pullupVariation = 'standard',
     this.pullupAddedWeightKg,
@@ -24,7 +24,7 @@ class CindyRoundDetail {
           squatAddedWeightKg: squatAddedWeightKg,
         );
 
-  factory CindyRoundDetail.fromJson(Map<String, dynamic> json) {
+  factory fromJson(Map<String, dynamic> json) {
     return CindyRoundDetail(
       roundNumber: json['roundNumber'] as int? ?? 1,
       pullupVariation: json['pullupVariation'] as String? ?? 'standard',
@@ -198,7 +198,7 @@ class CindyRoundDetail {
 
 /// Represents an entire completed or logged CrossFit Cindy session (AMRAP 20 Minutes).
 class CindyWorkoutLog {
-  CindyWorkoutLog({
+  new({
     required this.completedRounds,
     String? id,
     DateTime? date,
@@ -216,7 +216,7 @@ class CindyWorkoutLog {
         date = date ?? DateTime.now(),
         rounds = rounds ?? <CindyRoundDetail>[];
 
-  factory CindyWorkoutLog.fromJson(Map<String, dynamic> json) {
+  factory fromJson(Map<String, dynamic> json) {
     final List<dynamic>? rawRounds = json['rounds'] as List<dynamic>?;
     final List<CindyRoundDetail> roundList = rawRounds != null
         ? rawRounds
@@ -297,12 +297,12 @@ class CindyWorkoutLog {
       return 'Rx';
     }
 
-    final bool hasScaledRound = rounds.any((CindyRoundDetail r) => r.roundTier == 'Scaled');
+    final bool hasScaledRound = rounds.any((r) => r.roundTier == 'Scaled');
     if (hasScaledRound) {
       return 'Scaled';
     }
 
-    final bool hasWeightedRound = rounds.any((CindyRoundDetail r) => r.roundTier == 'Weighted');
+    final bool hasWeightedRound = rounds.any((r) => r.roundTier == 'Weighted');
     if (hasWeightedRound) {
       return 'Weighted';
     }
@@ -310,9 +310,9 @@ class CindyWorkoutLog {
     return 'Rx';
   }
 
-  int get rxRoundCount => rounds.where((CindyRoundDetail r) => r.roundTier == 'Rx').length;
-  int get scaledRoundCount => rounds.where((CindyRoundDetail r) => r.roundTier == 'Scaled').length;
-  int get weightedRoundCount => rounds.where((CindyRoundDetail r) => r.roundTier == 'Weighted').length;
+  int get rxRoundCount => rounds.where((r) => r.roundTier == 'Rx').length;
+  int get scaledRoundCount => rounds.where((r) => r.roundTier == 'Scaled').length;
+  int get weightedRoundCount => rounds.where((r) => r.roundTier == 'Weighted').length;
 
   /// High-level summary of progressions used across rounds
   String get progressionSummary {
@@ -364,7 +364,7 @@ class CindyWorkoutLog {
       'partialPullups': partialPullups,
       'partialPushups': partialPushups,
       'partialSquats': partialSquats,
-      'rounds': rounds.map((CindyRoundDetail r) => r.toJson()).toList(),
+      'rounds': rounds.map((r) => r.toJson()).toList(),
       'partialPullupVariation': partialPullupVariation,
       'partialPushupVariation': partialPushupVariation,
       'partialSquatVariation': partialSquatVariation,

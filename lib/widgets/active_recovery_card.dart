@@ -11,7 +11,7 @@ import 'package:oly/views/recovery_session_screen.dart';
 import 'package:provider/provider.dart';
 
 class ActiveRecoveryCard extends StatelessWidget {
-  const ActiveRecoveryCard({super.key});
+  const new({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -116,7 +116,7 @@ class ActiveRecoveryCard extends StatelessWidget {
           const SizedBox(height: 8),
 
           // Diagnostic Reasons list
-          ...routine.diagnosticReasons.take(2).map((String reason) {
+          ...routine.diagnosticReasons.take(2).map((reason) {
             return Padding(
               padding: const EdgeInsets.only(bottom: 4),
               child: Row(
@@ -151,7 +151,7 @@ class ActiveRecoveryCard extends StatelessWidget {
           Wrap(
             spacing: 6,
             runSpacing: 6,
-            children: routine.phaseGroups.map((RecoveryPhaseGroup group) {
+            children: routine.phaseGroups.map((group) {
               return Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
@@ -181,7 +181,7 @@ class ActiveRecoveryCard extends StatelessWidget {
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
+                      MaterialPageRoute<void>(
                         builder: (_) => RecoverySessionScreen(
                           routine: routine,
                           isPreviewMode: true,
@@ -220,7 +220,7 @@ class ActiveRecoveryCard extends StatelessWidget {
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
+                      MaterialPageRoute<void>(
                         builder: (_) => RecoverySessionScreen(routine: routine),
                       ),
                     );

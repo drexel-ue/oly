@@ -8,7 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 enum LogLevel { debug, info, warning, error, crash }
 
 class LogEntry {
-  LogEntry({
+  new({
     required this.timestamp,
     required this.level,
     required this.tag,
@@ -17,13 +17,13 @@ class LogEntry {
     this.metadata,
   });
 
-  factory LogEntry.fromJson(Map<String, dynamic> json) {
+  factory fromJson(Map<String, dynamic> json) {
     return LogEntry(
       timestamp:
           DateTime.tryParse(json['timestamp'] as String? ?? '') ??
           DateTime.now(),
       level: LogLevel.values.firstWhere(
-        (LogLevel l) => l.name == json['level'],
+        (l) => l.name == json['level'],
         orElse: () => LogLevel.info,
       ),
       tag: json['tag'] as String? ?? 'APP',
@@ -67,7 +67,7 @@ class LogEntry {
 }
 
 class AppLogService {
-  AppLogService._internal();
+  new _internal();
   static final AppLogService instance = AppLogService._internal();
 
   static const String _keyPersistentLogs = 'oly_persistent_crash_logs_v1';
@@ -84,7 +84,7 @@ class AppLogService {
 
   List<LogEntry> get crashAndErrorLogs => _logs
       .where(
-        (LogEntry l) => l.level == LogLevel.crash || l.level == LogLevel.error,
+        (l) => l.level == LogLevel.crash || l.level == LogLevel.error,
       )
       .toList();
 
@@ -100,12 +100,12 @@ class AppLogService {
     try {
       final String? jsonStr = _prefs!.getString(_keyPersistentLogs);
       if (jsonStr != null && jsonStr.isNotEmpty) {
-        final List<dynamic> list = jsonDecode(jsonStr);
+        final List<dynamic> list = jsonDecode(jsonStr) as List<dynamic>;
         for (final item in list) {
           _logs.add(LogEntry.fromJson(item as Map<String, dynamic>));
         }
         _logs.sort(
-          (LogEntry a, LogEntry b) => b.timestamp.compareTo(a.timestamp),
+          (a, b) => b.timestamp.compareTo(a.timestamp),
         );
       }
     } catch (_) {}
@@ -118,13 +118,13 @@ class AppLogService {
     try {
       final List<Map<String, dynamic>> persistent = _logs
           .where(
-            (LogEntry l) =>
+            (l) =>
                 l.level == LogLevel.crash ||
                 l.level == LogLevel.error ||
                 l.level == LogLevel.warning,
           )
           .take(_maxPersistentLogs)
-          .map((LogEntry l) => l.toJson())
+          .map((l) => l.toJson())
           .toList();
       await _prefs!.setString(_keyPersistentLogs, jsonEncode(persistent));
     } catch (_) {}

@@ -64,17 +64,17 @@ void main() {
       servingSize: '50g bar',
       servingWeightGrams: 50,
       calories: 200,
-      protein: 20.0,
-      carbs: 17.0,
-      fat: 6.0,
-      fiber: 2.0,
+      protein: 20,
+      carbs: 17,
+      fat: 6,
+      fiber: 2,
       barcode: '737628064502',
       source: 'open_food_facts',
     );
 
     testWidgets(
       'SmartPortionDrawer renders protein density, macro split bar, and step chips',
-      (WidgetTester tester) async {
+      (tester) async {
         await tester.pumpWidget(
           buildTestableWidget(
             const SmartPortionDrawer(
@@ -120,7 +120,7 @@ void main() {
 
     testWidgets(
       'LiveBarcodeScannerSheet renders live camera viewfinder, reticle, and manual barcode entry',
-      (WidgetTester tester) async {
+      (tester) async {
         await tester.pumpWidget(
           buildTestableWidget(const LiveBarcodeScannerSheet()),
         );
@@ -147,14 +147,14 @@ void main() {
 
     testWidgets(
       'FoodSearchSheet renders recent scans ribbon when cached products exist',
-      (WidgetTester tester) async {
+      (tester) async {
         await storageService.saveCachedProductJson(
           testFood.barcode!,
           testFood.toJson(),
         );
         await storageService.addRecentScannedBarcode(testFood.barcode!);
 
-        final MockClient mockClient = MockClient((http.Request request) async {
+        final MockClient mockClient = MockClient((request) async {
           return http.Response(
             jsonEncode(<String, dynamic>{'foods': <dynamic>[], 'products': <dynamic>[]}),
             200,
@@ -189,7 +189,7 @@ void main() {
 
     testWidgets(
       'LiveBarcodeScannerSheet manual barcode lookup opens portion drawer and logs entry',
-      (WidgetTester tester) async {
+      (tester) async {
         // Cache the test food item
         await storageService.saveCachedProductJson(
           testFood.barcode!,
@@ -198,7 +198,7 @@ void main() {
 
         await tester.pumpWidget(
           buildTestableWidget(
-            const LiveBarcodeScannerSheet(defaultCategory: MealCategory.lunch),
+            const LiveBarcodeScannerSheet(),
           ),
         );
         await tester.pump(const Duration(milliseconds: 100));
@@ -241,13 +241,12 @@ void main() {
 
     testWidgets(
       'SmartPortionDrawer onScanAnother callback cleanly pops the modal bottom sheet',
-      (WidgetTester tester) async {
+      (tester) async {
         bool popped = false;
         await tester.pumpWidget(
           buildTestableWidget(
             SmartPortionDrawer(
               initialFoodItem: testFood,
-              defaultCategory: MealCategory.lunch,
               onScanAnother: () {
                 popped = true;
               },
@@ -266,8 +265,8 @@ void main() {
 
     testWidgets(
       'FoodSearchSheet searches Wingstop and logs custom wing count using piece chips',
-      (WidgetTester tester) async {
-        final MockClient mockClient = MockClient((http.Request request) async {
+      (tester) async {
+        final MockClient mockClient = MockClient((request) async {
           return http.Response(
             jsonEncode(<String, dynamic>{'foods': <dynamic>[], 'products': <dynamic>[]}),
             200,

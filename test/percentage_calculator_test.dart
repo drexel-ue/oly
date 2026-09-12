@@ -41,7 +41,7 @@ void main() {
         liftId: 'front_squat',
         anchorLiftId: 'clean_and_jerk',
         setScheme: '4 Sets of 3-5 Reps',
-        fixedPercentage: 75.0,
+        fixedPercentage: 75,
       );
 
       final Map<String, double> maxes = <String, double>{
@@ -90,10 +90,10 @@ void main() {
     test('LiftModel calculates correct 1RM suggestion for variation lift (Hang Snatch from Snatch)', () {
       final List<LiftModel> lifts = LiftModel.defaultLifts();
       final LiftModel snatch = lifts.firstWhere(
-        (LiftModel l) => l.id == 'snatch',
+        (l) => l.id == 'snatch',
       );
       final LiftModel hangSnatch = lifts.firstWhere(
-        (LiftModel l) => l.id == 'hang_snatch',
+        (l) => l.id == 'hang_snatch',
       );
 
       snatch.currentMax = 100.0;
@@ -105,26 +105,26 @@ void main() {
 
     test('Week 1 (Week A) alternates 2 Snatch days to 1 Clean & Jerk day', () {
       final List<DayTemplate> week1Days =
-          ProgramCycle.getBuiltInProgram(week: 1);
+          ProgramCycle.getBuiltInProgram();
       expect(week1Days.length, equals(6));
 
       // Day 1: Snatch + Squat (2 exercises)
       final List<ExerciseTemplate> day1Exercises =
-          week1Days[0].phases.expand((PhaseTemplate p) => p.exercises).toList();
+          week1Days[0].phases.expand((p) => p.exercises).toList();
       expect(day1Exercises.length, equals(2));
       expect(day1Exercises[0].liftId, equals('snatch'));
       expect(day1Exercises[1].liftId, equals('back_squat'));
 
       // Day 3 (Lifting Day 2): Clean & Jerk + Front Squat (2 exercises)
       final List<ExerciseTemplate> day3Exercises =
-          week1Days[2].phases.expand((PhaseTemplate p) => p.exercises).toList();
+          week1Days[2].phases.expand((p) => p.exercises).toList();
       expect(day3Exercises.length, equals(2));
       expect(day3Exercises[0].liftId, equals('clean_and_jerk'));
       expect(day3Exercises[1].anchorLiftId, equals('clean_and_jerk'));
 
       // Day 5 (Lifting Day 3): Snatch + Snatch Pull (2 exercises)
       final List<ExerciseTemplate> day5Exercises =
-          week1Days[4].phases.expand((PhaseTemplate p) => p.exercises).toList();
+          week1Days[4].phases.expand((p) => p.exercises).toList();
       expect(day5Exercises.length, equals(2));
       expect(day5Exercises[0].liftId, equals('snatch'));
       expect(day5Exercises[1].liftId, equals('snatch'));
@@ -137,21 +137,21 @@ void main() {
 
       // Day 1: Clean & Jerk + Front Squat (2 exercises)
       final List<ExerciseTemplate> day1Exercises =
-          week2Days[0].phases.expand((PhaseTemplate p) => p.exercises).toList();
+          week2Days[0].phases.expand((p) => p.exercises).toList();
       expect(day1Exercises.length, equals(2));
       expect(day1Exercises[0].liftId, equals('clean_and_jerk'));
       expect(day1Exercises[1].anchorLiftId, equals('clean_and_jerk'));
 
       // Day 3 (Lifting Day 2): Snatch + Back Squat (2 exercises)
       final List<ExerciseTemplate> day3Exercises =
-          week2Days[2].phases.expand((PhaseTemplate p) => p.exercises).toList();
+          week2Days[2].phases.expand((p) => p.exercises).toList();
       expect(day3Exercises.length, equals(2));
       expect(day3Exercises[0].liftId, equals('snatch'));
       expect(day3Exercises[1].liftId, equals('back_squat'));
 
       // Day 5 (Lifting Day 3): Clean & Jerk (Hang Clean) + Clean Pull (2 exercises)
       final List<ExerciseTemplate> day5Exercises =
-          week2Days[4].phases.expand((PhaseTemplate p) => p.exercises).toList();
+          week2Days[4].phases.expand((p) => p.exercises).toList();
       expect(day5Exercises.length, equals(2));
       expect(day5Exercises[0].liftId, equals('clean_and_jerk'));
       expect(day5Exercises[1].liftId, equals('clean_and_jerk'));

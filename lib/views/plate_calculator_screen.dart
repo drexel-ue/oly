@@ -6,14 +6,14 @@ import 'package:oly/theme/app_theme.dart';
 import 'package:provider/provider.dart';
 
 class PlateCalculatorScreen extends StatefulWidget {
-  const PlateCalculatorScreen({super.key});
+  const new({super.key});
 
   @override
   State<PlateCalculatorScreen> createState() => _PlateCalculatorScreenState();
 }
 
 class _PlateCalculatorScreenState extends State<PlateCalculatorScreen> {
-  double _targetWeightKg = 100.0;
+  double _targetWeightKg = 100;
   late TextEditingController _controller;
 
   @override
@@ -106,21 +106,21 @@ class _PlateCalculatorScreenState extends State<PlateCalculatorScreen> {
                           items: settings.isLbs
                               ? <DropdownMenuItem<double>>[
                                   DropdownMenuItem(
-                                    value: 45.0,
+                                    value: 45,
                                     child: Text(
                                       '45 lbs (Standard Bar)',
                                       style: GoogleFonts.outfit(),
                                     ),
                                   ),
                                   DropdownMenuItem(
-                                    value: 35.0,
+                                    value: 35,
                                     child: Text(
                                       "35 lbs (Women's Bar)",
                                       style: GoogleFonts.outfit(),
                                     ),
                                   ),
                                   DropdownMenuItem(
-                                    value: 15.0,
+                                    value: 15,
                                     child: Text(
                                       '15 lbs (Technique Bar)',
                                       style: GoogleFonts.outfit(),
@@ -129,35 +129,35 @@ class _PlateCalculatorScreenState extends State<PlateCalculatorScreen> {
                                 ]
                               : <DropdownMenuItem<double>>[
                                   DropdownMenuItem(
-                                    value: 20.0,
+                                    value: 20,
                                     child: Text(
                                       "20 kg (Men's Bar)",
                                       style: GoogleFonts.outfit(),
                                     ),
                                   ),
                                   DropdownMenuItem(
-                                    value: 15.0,
+                                    value: 15,
                                     child: Text(
                                       "15 kg (Women's Bar)",
                                       style: GoogleFonts.outfit(),
                                     ),
                                   ),
                                   DropdownMenuItem(
-                                    value: 10.0,
+                                    value: 10,
                                     child: Text(
                                       '10 kg (Technique Bar)',
                                       style: GoogleFonts.outfit(),
                                     ),
                                   ),
                                   DropdownMenuItem(
-                                    value: 45.0,
+                                    value: 45,
                                     child: Text(
                                       '45 lbs (20.4 kg)',
                                       style: GoogleFonts.outfit(),
                                     ),
                                   ),
                                 ],
-                          onChanged: (double? val) =>
+                          onChanged: (val) =>
                               val != null ? settings.setBarWeight(val) : null,
                         ),
                       ],
@@ -181,7 +181,7 @@ class _PlateCalculatorScreenState extends State<PlateCalculatorScreen> {
                           items: settings.isLbs
                               ? <DropdownMenuItem<double>>[
                                   DropdownMenuItem(
-                                    value: 5.0,
+                                    value: 5,
                                     child: Text(
                                       '5.0 lbs Collars (Pair)',
                                       style: GoogleFonts.outfit(),
@@ -195,7 +195,7 @@ class _PlateCalculatorScreenState extends State<PlateCalculatorScreen> {
                                     ),
                                   ),
                                   DropdownMenuItem(
-                                    value: 0.0,
+                                    value: 0,
                                     child: Text(
                                       'No Collars (0 lbs)',
                                       style: GoogleFonts.outfit(),
@@ -218,14 +218,14 @@ class _PlateCalculatorScreenState extends State<PlateCalculatorScreen> {
                                     ),
                                   ),
                                   DropdownMenuItem(
-                                    value: 0.0,
+                                    value: 0,
                                     child: Text(
                                       'No Collars',
                                       style: GoogleFonts.outfit(),
                                     ),
                                   ),
                                 ],
-                          onChanged: (double? val) => val != null
+                          onChanged: (val) => val != null
                               ? settings.setCollarWeight(val)
                               : null,
                         ),
@@ -270,7 +270,7 @@ class _PlateCalculatorScreenState extends State<PlateCalculatorScreen> {
                             decoration: const InputDecoration(
                               border: InputBorder.none,
                             ),
-                            onChanged: (String val) {
+                            onChanged: (val) {
                               final double? parsed = double.tryParse(val);
                               if (parsed != null) {
                                 setState(() {
@@ -358,7 +358,6 @@ class _PlateCalculatorScreenState extends State<PlateCalculatorScreen> {
                       child: SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
                         child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: <Widget>[
                             if (result.collarWeight > 0)
                               Container(
@@ -370,7 +369,7 @@ class _PlateCalculatorScreenState extends State<PlateCalculatorScreen> {
                                   borderRadius: BorderRadius.circular(2),
                                 ),
                               ),
-                            ...result.platesPerSide.map((PlateSpec plate) {
+                            ...result.platesPerSide.map((plate) {
                               final double plateHeight =
                                   125.0 * plate.heightFactor;
                               final double plateWidth = plate.isFractional
@@ -463,7 +462,7 @@ class _PlateCalculatorScreenState extends State<PlateCalculatorScreen> {
                         spacing: 8,
                         runSpacing: 8,
                         children: _groupPlates(result.platesPerSide)
-                            .map((MapEntry<PlateSpec, int> e) {
+                            .map((e) {
                               return Chip(
                                 backgroundColor: e.key.color,
                                 label: Text(

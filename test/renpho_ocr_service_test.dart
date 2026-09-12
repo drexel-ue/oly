@@ -90,11 +90,11 @@ Data from RENPHO Scale
       );
 
       // Target weight = 208.6 / (1 - 0.15) = 245.41 lb
-      final double targetWeight = entry.targetWeightForBodyFat(15.0);
+      final double targetWeight = entry.targetWeightForBodyFat(15);
       expect(targetWeight, closeTo(245.41, 0.1));
 
       // Pure fat to lose = 264.8 - 245.41 = 19.39 lb
-      final double fatToLose = entry.fatToLoseForTargetBf(15.0);
+      final double fatToLose = entry.fatToLoseForTargetBf(15);
       expect(fatToLose, closeTo(19.39, 0.1));
     });
 

@@ -7,7 +7,7 @@ import 'package:oly/theme/app_theme.dart';
 import 'package:provider/provider.dart';
 
 class QuickMacroLogSheet extends StatefulWidget {
-  const QuickMacroLogSheet({
+  const new({
     super.key,
     this.defaultCategory = MealCategory.snack,
   });
@@ -146,7 +146,7 @@ class _QuickMacroLogSheetState extends State<QuickMacroLogSheet> {
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
-                children: MealCategory.values.map((MealCategory cat) {
+                children: MealCategory.values.map((cat) {
                   final bool isSelected = _selectedCategory == cat;
                   return Padding(
                     padding: const EdgeInsets.only(right: 8),
@@ -162,13 +162,13 @@ class _QuickMacroLogSheetState extends State<QuickMacroLogSheet> {
                             : FontWeight.normal,
                         color: isSelected ? Colors.black : AppTheme.textPrimary,
                       ),
-                      onSelected: (bool selected) {
+                      onSelected: (selected) {
                         if (selected) {
                           setState(() {
                             _selectedCategory = cat;
                             if (_nameController.text.isEmpty ||
                                 MealCategory.values.any(
-                                  (MealCategory c) =>
+                                  (c) =>
                                       c.displayName == _nameController.text,
                                 )) {
                               _nameController.text = cat.displayName;

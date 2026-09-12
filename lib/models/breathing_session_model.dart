@@ -1,12 +1,12 @@
 class BreathingRoundLog {
-  BreathingRoundLog({
+  new({
     required this.roundNumber,
     required this.breathsCount,
     required this.retentionSeconds,
     this.recoverySeconds = 15,
   });
 
-  factory BreathingRoundLog.fromJson(Map<String, dynamic> json) {
+  factory fromJson(Map<String, dynamic> json) {
     return BreathingRoundLog(
       roundNumber: json['roundNumber'] as int? ?? 1,
       breathsCount: json['breathsCount'] as int? ?? 30,
@@ -37,7 +37,7 @@ class BreathingRoundLog {
 }
 
 class BreathingSessionLog {
-  BreathingSessionLog({
+  new({
     required this.id,
     required this.date,
     required this.totalRounds,
@@ -52,14 +52,14 @@ class BreathingSessionLog {
             (rounds.isEmpty
                 ? 0
                 : rounds
-                    .map((BreathingRoundLog r) => r.retentionSeconds)
-                    .reduce((int a, int b) => a > b ? a : b)),
+                    .map((r) => r.retentionSeconds)
+                    .reduce((a, b) => a > b ? a : b)),
         avgHoldSeconds = avgHoldSeconds ??
             (rounds.isEmpty
                 ? 0
                 : (rounds.fold(
                             0,
-                            (int sum, BreathingRoundLog r) =>
+                            (sum, r) =>
                                 sum + r.retentionSeconds,
                           ) /
                         rounds.length)
@@ -69,21 +69,21 @@ class BreathingSessionLog {
                 ? 0
                 : rounds.fold(
                     0,
-                    (int sum, BreathingRoundLog r) => sum + r.retentionSeconds,
+                    (sum, r) => sum + r.retentionSeconds,
                   )),
         totalDurationSeconds = totalDurationSeconds ??
             (rounds.isEmpty
                 ? 0
                 : rounds.fold(
                     0,
-                    (int sum, BreathingRoundLog r) =>
+                    (sum, r) =>
                         sum +
                         (r.breathsCount * 3) +
                         r.retentionSeconds +
                         r.recoverySeconds,
                   ));
 
-  factory BreathingSessionLog.fromJson(Map<String, dynamic> json) {
+  factory fromJson(Map<String, dynamic> json) {
     final List<dynamic>? rawRounds = json['rounds'] as List<dynamic>?;
     final List<BreathingRoundLog> parsedRounds = rawRounds != null
         ? rawRounds
@@ -140,7 +140,7 @@ class BreathingSessionLog {
       'id': id,
       'date': date.toIso8601String(),
       'totalRounds': totalRounds,
-      'rounds': rounds.map((BreathingRoundLog r) => r.toJson()).toList(),
+      'rounds': rounds.map((r) => r.toJson()).toList(),
       'maxHoldSeconds': maxHoldSeconds,
       'avgHoldSeconds': avgHoldSeconds,
       'totalHoldSeconds': totalHoldSeconds,
@@ -154,7 +154,7 @@ class BreathingSessionLog {
 enum BreathingPace { relaxed, normal, fast }
 
 class WimHofConfig {
-  const WimHofConfig({
+  const new({
     this.defaultRounds = 3,
     this.breathsPerRound = 30,
     this.pace = BreathingPace.normal,
@@ -162,7 +162,7 @@ class WimHofConfig {
     this.hapticsEnabled = true,
   });
 
-  factory WimHofConfig.fromJson(Map<String, dynamic> json) {
+  factory fromJson(Map<String, dynamic> json) {
     BreathingPace parsedPace = BreathingPace.normal;
     final String? paceStr = json['pace'] as String?;
     if (paceStr != null) {
@@ -206,7 +206,7 @@ class WimHofConfig {
       case BreathingPace.relaxed:
         return 2.7;
       case BreathingPace.normal:
-        return 2.0;
+        return 2;
       case BreathingPace.fast:
         return 1.5;
     }
@@ -219,7 +219,7 @@ class WimHofConfig {
       case BreathingPace.normal:
         return 1.5;
       case BreathingPace.fast:
-        return 1.0;
+        return 1;
     }
   }
 

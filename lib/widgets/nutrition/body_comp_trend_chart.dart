@@ -8,7 +8,7 @@ import 'package:oly/theme/app_theme.dart';
 enum ChartMetricType { weightAndLeanMass, bodyFatPercentage, muscleMass }
 
 class BodyCompTrendChart extends StatefulWidget {
-  const BodyCompTrendChart({required this.entries, super.key});
+  const new({required this.entries, super.key});
   final List<BodyCompositionEntry> entries;
 
   @override
@@ -38,7 +38,7 @@ class _BodyCompTrendChartState extends State<BodyCompTrendChart> {
 
     final List<BodyCompositionEntry> sortedEntries =
         List<BodyCompositionEntry>.from(widget.entries)..sort(
-          (BodyCompositionEntry a, BodyCompositionEntry b) =>
+          (a, b) =>
               a.timestamp.compareTo(b.timestamp),
         );
 
@@ -62,7 +62,7 @@ class _BodyCompTrendChartState extends State<BodyCompTrendChart> {
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
                   color: AppTheme.textSecondary,
-                  letterSpacing: 1.0,
+                  letterSpacing: 1,
                 ),
               ),
               // Segmented Choice
@@ -133,14 +133,14 @@ class _BodyCompTrendChartState extends State<BodyCompTrendChart> {
     if (_selectedType == ChartMetricType.weightAndLeanMass) {
       // Line 1: Total Weight
       final List<FlSpot> weightSpots = entries.asMap().entries.map((
-        MapEntry<int, BodyCompositionEntry> e,
+        e,
       ) {
         return FlSpot(e.key.toDouble(), e.value.weightLb);
       }).toList();
 
       // Line 2: Lean Body Mass (LBM)
       final List<FlSpot> leanSpots = entries.asMap().entries.map((
-        MapEntry<int, BodyCompositionEntry> e,
+        e,
       ) {
         return FlSpot(e.key.toDouble(), e.value.leanBodyMassLb);
       }).toList();
@@ -152,7 +152,6 @@ class _BodyCompTrendChartState extends State<BodyCompTrendChart> {
           color: const Color(0xFF00D2FF),
           barWidth: 3,
           isStrokeCapRound: true,
-          dotData: const FlDotData(show: true),
         ),
         LineChartBarData(
           spots: leanSpots,
@@ -160,12 +159,11 @@ class _BodyCompTrendChartState extends State<BodyCompTrendChart> {
           color: const Color(0xFF30D158),
           barWidth: 3,
           isStrokeCapRound: true,
-          dotData: const FlDotData(show: true),
         ),
       ];
     } else if (_selectedType == ChartMetricType.bodyFatPercentage) {
       final List<FlSpot> bfSpots = entries.asMap().entries.map((
-        MapEntry<int, BodyCompositionEntry> e,
+        e,
       ) {
         return FlSpot(e.key.toDouble(), e.value.bodyFatPct ?? 0);
       }).toList();
@@ -177,12 +175,11 @@ class _BodyCompTrendChartState extends State<BodyCompTrendChart> {
           color: const Color(0xFFFF9F0A),
           barWidth: 3,
           isStrokeCapRound: true,
-          dotData: const FlDotData(show: true),
         ),
       ];
     } else {
       final List<FlSpot> muscleSpots = entries.asMap().entries.map((
-        MapEntry<int, BodyCompositionEntry> e,
+        e,
       ) {
         return FlSpot(
           e.key.toDouble(),
@@ -197,30 +194,28 @@ class _BodyCompTrendChartState extends State<BodyCompTrendChart> {
           color: const Color(0xFF30D158),
           barWidth: 3,
           isStrokeCapRound: true,
-          dotData: const FlDotData(show: true),
         ),
       ];
     }
 
     return LineChartData(
       gridData: FlGridData(
-        show: true,
         drawVerticalLine: false,
-        getDrawingHorizontalLine: (double value) => FlLine(
+        getDrawingHorizontalLine: (value) => FlLine(
           color: AppTheme.borderColor.withValues(alpha: 0.5),
           strokeWidth: 1,
         ),
       ),
       titlesData: FlTitlesData(
-        topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+        topTitles: const AxisTitles(),
         rightTitles: const AxisTitles(
-          sideTitles: SideTitles(showTitles: false),
+          
         ),
         leftTitles: AxisTitles(
           sideTitles: SideTitles(
             showTitles: true,
             reservedSize: 42,
-            getTitlesWidget: (double value, TitleMeta meta) => Text(
+            getTitlesWidget: (value, meta) => Text(
               value.toStringAsFixed(0),
               style: GoogleFonts.inter(
                 fontSize: 10,
@@ -232,7 +227,7 @@ class _BodyCompTrendChartState extends State<BodyCompTrendChart> {
         bottomTitles: AxisTitles(
           sideTitles: SideTitles(
             showTitles: true,
-            getTitlesWidget: (double value, TitleMeta meta) {
+            getTitlesWidget: (value, meta) {
               final int index = value.toInt();
               if (index >= 0 && index < entries.length) {
                 return Text(

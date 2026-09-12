@@ -37,11 +37,9 @@ void main() {
         wodId: 'cf_hero_murph',
         wodName: 'Murph',
         format: 'forTime',
-        date: DateTime(2026, 9, 10, 10, 0),
+        date: DateTime(2026, 9, 10, 10),
         durationSeconds: 2435, // 40:35
         scoreDisplay: '40:35',
-        category: 'Hero Benchmark',
-        isRx: true,
         rpe: 9,
         scalingModifications: '20lb vest',
         notes: 'Felt strong on the second mile run.',
@@ -145,11 +143,9 @@ void main() {
         wodId: 'cf_hero_murph',
         wodName: 'Murph',
         format: 'forTime',
-        date: DateTime(2026, 8, 1),
+        date: DateTime(2026, 8),
         durationSeconds: 2700,
         scoreDisplay: '45:00',
-        category: 'Hero Benchmark',
-        isRx: true,
       );
 
       final BenchmarkWodLog logged1 = await recovery.logBenchmarkWod(attempt1);
@@ -167,8 +163,6 @@ void main() {
         date: DateTime(2026, 8, 15),
         durationSeconds: 2880,
         scoreDisplay: '48:00',
-        category: 'Hero Benchmark',
-        isRx: true,
       );
 
       final BenchmarkWodLog logged2 = await recovery.logBenchmarkWod(attempt2);
@@ -182,11 +176,9 @@ void main() {
         wodId: 'cf_hero_murph',
         wodName: 'Murph',
         format: 'forTime',
-        date: DateTime(2026, 9, 1),
+        date: DateTime(2026, 9),
         durationSeconds: 2480,
         scoreDisplay: '41:20',
-        category: 'Hero Benchmark',
-        isRx: true,
       );
 
       final BenchmarkWodLog logged3 = await recovery.logBenchmarkWod(attempt3);
@@ -208,10 +200,9 @@ void main() {
         wodId: 'cf_hero_michael',
         wodName: 'Michael',
         format: 'forTime',
-        date: DateTime(2026, 9, 1),
+        date: DateTime(2026, 9),
         durationSeconds: 1200, // 20:00
         scoreDisplay: '20:00',
-        category: 'Hero Benchmark',
       );
       final BenchmarkWodLog loggedFast = await recovery.logBenchmarkWod(fast);
 
@@ -219,10 +210,9 @@ void main() {
         wodId: 'cf_hero_michael',
         wodName: 'Michael',
         format: 'forTime',
-        date: DateTime(2026, 8, 1),
+        date: DateTime(2026, 8),
         durationSeconds: 1400, // 23:20
         scoreDisplay: '23:20',
-        category: 'Hero Benchmark',
       );
       await recovery.logBenchmarkWod(slow);
 
@@ -269,8 +259,6 @@ void main() {
           date: DateTime(2026, 9, 10),
           durationSeconds: 2410,
           scoreDisplay: '40:10',
-          category: 'Hero Benchmark',
-          isRx: true,
         ),
       );
     });
@@ -290,7 +278,7 @@ void main() {
     }
 
     testWidgets('WodHubScreen switches between Catalog and Progress tabs seamlessly',
-        (WidgetTester tester) async {
+        (tester) async {
       tester.view.physicalSize = const Size(1080, 2400);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() => tester.view.resetPhysicalSize());
@@ -326,12 +314,12 @@ void main() {
     });
 
     testWidgets('Opens WodHistorySheet and displays PR trophy card and history',
-        (WidgetTester tester) async {
+        (tester) async {
       await tester.pumpWidget(
         createTestApp(
           Scaffold(
             body: Builder(
-              builder: (BuildContext context) {
+              builder: (context) {
                 return ElevatedButton(
                   onPressed: () {
                     WodHistorySheet.show(
@@ -362,12 +350,12 @@ void main() {
     });
 
     testWidgets('Opens LogWodScoreSheet and saves a new score',
-        (WidgetTester tester) async {
+        (tester) async {
       await tester.pumpWidget(
         createTestApp(
           Scaffold(
             body: Builder(
-              builder: (BuildContext context) {
+              builder: (context) {
                 return ElevatedButton(
                   onPressed: () {
                     LogWodScoreSheet.show(
@@ -405,7 +393,7 @@ void main() {
     });
 
     testWidgets('AnalyticsScreen displays WODs & Heroes tab with completion progress',
-        (WidgetTester tester) async {
+        (tester) async {
       tester.view.physicalSize = const Size(1080, 2400);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() => tester.view.resetPhysicalSize());

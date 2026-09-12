@@ -11,7 +11,7 @@ import 'package:oly/services/storage_service.dart';
 import 'package:oly/services/tdee_calculator_service.dart';
 
 class NutritionProvider extends ChangeNotifier {
-  NutritionProvider(this._storage) {
+  new(this._storage) {
     _loadData();
   }
   final StorageService _storage;
@@ -68,7 +68,6 @@ class NutritionProvider extends ChangeNotifier {
           proteinGrams: 22,
           carbsGrams: 26,
           fatGrams: 4,
-          category: MealCategory.snack,
           portion: '1 cup non-fat Greek yogurt + 0.5 cup blueberries',
         ),
       ];
@@ -112,7 +111,6 @@ class NutritionProvider extends ChangeNotifier {
     );
     final double waterTarget = _goal.getRecommendedWaterGoalOz(
       latestBodyComp: latestBodyComp,
-      isTrainingDay: false,
     );
     return DailyNutritionLog.create(
       date: dateKey,
@@ -178,7 +176,7 @@ class NutritionProvider extends ChangeNotifier {
     );
 
     final List<NutritionEntry> updatedEntries = current.entries
-        .map((NutritionEntry e) => e.id == entry.id ? entry : e)
+        .map((e) => e.id == entry.id ? entry : e)
         .toList();
     _logs[key] = current.copyWith(entries: updatedEntries);
     await _storage.saveDailyNutritionLogs(_logs);
@@ -198,7 +196,7 @@ class NutritionProvider extends ChangeNotifier {
 
     final List<NutritionEntry> updatedEntries = current.entries
         .map(
-          (NutritionEntry e) =>
+          (e) =>
               e.id == entryId ? e.copyWith(category: newCategory) : e,
         )
         .toList();
@@ -215,7 +213,7 @@ class NutritionProvider extends ChangeNotifier {
     }
 
     final List<NutritionEntry> updatedEntries = current.entries
-        .where((NutritionEntry e) => e.id != entryId)
+        .where((e) => e.id != entryId)
         .toList();
     _logs[key] = current.copyWith(entries: updatedEntries);
     await _storage.saveDailyNutritionLogs(_logs);
@@ -323,7 +321,7 @@ class NutritionProvider extends ChangeNotifier {
 
   Future<void> saveAsTemplate(NutritionEntry entry) async {
     _templates.removeWhere(
-      (NutritionEntry t) => t.name.toLowerCase() == entry.name.toLowerCase(),
+      (t) => t.name.toLowerCase() == entry.name.toLowerCase(),
     );
     _templates.add(entry);
     await _storage.saveMealTemplates(_templates);
@@ -331,7 +329,7 @@ class NutritionProvider extends ChangeNotifier {
   }
 
   Future<void> deleteTemplate(String id) async {
-    _templates.removeWhere((NutritionEntry t) => t.id == id);
+    _templates.removeWhere((t) => t.id == id);
     await _storage.saveMealTemplates(_templates);
     notifyListeners();
   }
@@ -395,7 +393,7 @@ class NutritionProvider extends ChangeNotifier {
     final List<DailyActivityEntry> updatedActivities =
         List<DailyActivityEntry>.from(current.activities);
     final int existingIdx = updatedActivities.indexWhere(
-      (DailyActivityEntry a) =>
+      (a) =>
           a.id == entry.id ||
           (entry.sessionId != null && a.sessionId == entry.sessionId),
     );
@@ -419,7 +417,7 @@ class NutritionProvider extends ChangeNotifier {
     }
 
     final List<DailyActivityEntry> updatedActivities = current.activities
-        .where((DailyActivityEntry a) => a.id != activityId)
+        .where((a) => a.id != activityId)
         .toList();
     _logs[key] = current.copyWith(activities: updatedActivities);
     await _storage.saveDailyNutritionLogs(_logs);
@@ -442,7 +440,7 @@ class NutritionProvider extends ChangeNotifier {
     DailyActivityEntry? existing;
     try {
       existing = current.activities.firstWhere(
-        (DailyActivityEntry a) => a.sessionId == session.id,
+        (a) => a.sessionId == session.id,
       );
     } catch (_) {}
 

@@ -4,7 +4,7 @@ import 'package:oly/models/workout_session.dart';
 import 'package:oly/providers/lift_provider.dart';
 
 class RecoveryPhaseGroup {
-  RecoveryPhaseGroup({
+  new({
     required this.phaseNumber,
     required this.title,
     required this.subtitle,
@@ -17,7 +17,7 @@ class RecoveryPhaseGroup {
 }
 
 class GeneratedRecoveryRoutine {
-  GeneratedRecoveryRoutine({
+  new({
     required this.phaseGroups,
     required this.exercises,
     required this.diagnosticReasons,
@@ -42,7 +42,7 @@ class RecoveryEngineService {
 
     // 1. Inspect Ratio Balance Chart Gaps
     final List<LiftRatioAnalysis> underdeveloped = ratioAnalyses
-        .where((LiftRatioAnalysis a) => a.status == 'Underdeveloped')
+        .where((a) => a.status == 'Underdeveloped')
         .toList();
 
     for (final LiftRatioAnalysis analysis in underdeveloped) {
@@ -53,7 +53,6 @@ class RecoveryEngineService {
           diagnosticReasons.add(
             'Ratio Gap: ${analysis.lift.name} ratio (${analysis.actualRatio.toStringAsFixed(2)}) is underdeveloped vs target (${analysis.targetRatio.toStringAsFixed(2)}).',
           );
-          break;
 
         case LiftCategory.squat:
           targetFocusAreas.add(MobilityFocusArea.hipCapsule);
@@ -62,14 +61,12 @@ class RecoveryEngineService {
           diagnosticReasons.add(
             'Ratio Gap: ${analysis.lift.name} is underdeveloped. Targeting deep receiving squat mechanics.',
           );
-          break;
 
         case LiftCategory.pull:
           targetFocusAreas.add(MobilityFocusArea.posteriorChain);
           diagnosticReasons.add(
             'Ratio Gap: Pulling power in ${analysis.lift.name} needs posterior chain balance.',
           );
-          break;
 
         case LiftCategory.snatch:
         case LiftCategory.cleanAndJerk:
@@ -78,7 +75,6 @@ class RecoveryEngineService {
           diagnosticReasons.add(
             'Ratio Gap: ${analysis.lift.name} performance targeted with overhead position drills.',
           );
-          break;
 
         default:
           break;
@@ -118,7 +114,6 @@ class RecoveryEngineService {
               diagnosticReasons.add(
                 'Athlete Feedback: Shoulder strain reported in last check-in.',
               );
-              break;
             case 'Hips':
             case 'Knees':
               targetFocusAreas.add(MobilityFocusArea.hipCapsule);
@@ -127,19 +122,16 @@ class RecoveryEngineService {
               diagnosticReasons.add(
                 'Athlete Feedback: Lower body joint strain reported in last check-in.',
               );
-              break;
             case 'Lower Back':
               targetFocusAreas.add(MobilityFocusArea.posteriorChain);
               diagnosticReasons.add(
                 'Athlete Feedback: Posterior chain strain reported in last check-in.',
               );
-              break;
             case 'Wrists':
               targetFocusAreas.add(MobilityFocusArea.shoulderOverhead);
               diagnosticReasons.add(
                 'Athlete Feedback: Wrist & front rack tension targeted.',
               );
-              break;
           }
         }
       }
@@ -185,38 +177,38 @@ class RecoveryEngineService {
 
     // Phase 1: Kettlebell Mile Loaded Carry
     final List<MobilityExerciseModel> phase1Exercises = <MobilityExerciseModel>[
-      ...catalog.where((MobilityExerciseModel ex) => ex.id == 'kettlebell_mile'),
+      ...catalog.where((ex) => ex.id == 'kettlebell_mile'),
     ];
     if (phase1Exercises.isEmpty) {
       phase1Exercises.addAll(
         catalog.where(
-          (MobilityExerciseModel ex) => ex.focusArea == MobilityFocusArea.cardio,
+          (ex) => ex.focusArea == MobilityFocusArea.cardio,
         ),
       );
     }
 
     // Phase 2: Core & Posterior Chain Strength (Cable Crunches, Dragon Flags & GHD Back Extensions)
     final List<MobilityExerciseModel> coreOrdered = <MobilityExerciseModel>[
-      ...catalog.where((MobilityExerciseModel ex) => ex.id == 'cable_crunches'),
-      ...catalog.where((MobilityExerciseModel ex) => ex.id == 'dragon_flags'),
-      ...catalog.where((MobilityExerciseModel ex) => ex.id == 'ghd_back_extensions'),
+      ...catalog.where((ex) => ex.id == 'cable_crunches'),
+      ...catalog.where((ex) => ex.id == 'dragon_flags'),
+      ...catalog.where((ex) => ex.id == 'ghd_back_extensions'),
     ];
     if (coreOrdered.isEmpty) {
       coreOrdered.addAll(
-        catalog.where((MobilityExerciseModel ex) => ex.focusArea == MobilityFocusArea.absCore),
+        catalog.where((ex) => ex.focusArea == MobilityFocusArea.absCore),
       );
     }
     final List<MobilityExerciseModel> phase2Exercises = coreOrdered;
 
     // Phase 3: Hypertrophy & Tendon Resilience (Biceps, Triceps & Seated Leg Extensions)
     final List<MobilityExerciseModel> armsOrdered = <MobilityExerciseModel>[
-      ...catalog.where((MobilityExerciseModel ex) => ex.id == 'db_bicep_curls'),
-      ...catalog.where((MobilityExerciseModel ex) => ex.id == 'overhead_tricep_ext'),
-      ...catalog.where((MobilityExerciseModel ex) => ex.id == 'seated_leg_extensions'),
+      ...catalog.where((ex) => ex.id == 'db_bicep_curls'),
+      ...catalog.where((ex) => ex.id == 'overhead_tricep_ext'),
+      ...catalog.where((ex) => ex.id == 'seated_leg_extensions'),
     ];
     if (armsOrdered.isEmpty) {
       armsOrdered.addAll(
-        catalog.where((MobilityExerciseModel ex) => ex.focusArea == MobilityFocusArea.arms),
+        catalog.where((ex) => ex.focusArea == MobilityFocusArea.arms),
       );
     }
     final List<MobilityExerciseModel> phase3Exercises = armsOrdered;
@@ -224,7 +216,7 @@ class RecoveryEngineService {
     // Phase 4: Dynamic Mobility & Weak-Point Accessories
     final List<MobilityExerciseModel> selectedMobility = catalog
         .where(
-          (MobilityExerciseModel ex) =>
+          (ex) =>
               ex.category == MobilityCategory.mobilityDrill &&
               targetFocusAreas.contains(ex.focusArea),
         )
@@ -234,7 +226,7 @@ class RecoveryEngineService {
     if (selectedMobility.length < 3) {
       final Iterable<MobilityExerciseModel> remaining = catalog
           .where(
-            (MobilityExerciseModel ex) =>
+            (ex) =>
                 ex.category == MobilityCategory.mobilityDrill &&
                 !selectedMobility.contains(ex),
           )
@@ -244,7 +236,7 @@ class RecoveryEngineService {
 
     final List<MobilityExerciseModel> selectedAccessories = catalog
         .where(
-          (MobilityExerciseModel ex) =>
+          (ex) =>
               ex.category == MobilityCategory.liftingAccessory &&
               targetFocusAreas.contains(ex.focusArea),
         )
@@ -254,7 +246,7 @@ class RecoveryEngineService {
     if (selectedAccessories.length < 2) {
       final Iterable<MobilityExerciseModel> remaining = catalog
           .where(
-            (MobilityExerciseModel ex) =>
+            (ex) =>
                 ex.category == MobilityCategory.liftingAccessory &&
                 !selectedAccessories.contains(ex),
           )
@@ -295,7 +287,7 @@ class RecoveryEngineService {
     ];
 
     final List<MobilityExerciseModel> allExercises = phaseGroups
-        .expand((RecoveryPhaseGroup g) => g.exercises)
+        .expand((g) => g.exercises)
         .toList();
 
     return GeneratedRecoveryRoutine(

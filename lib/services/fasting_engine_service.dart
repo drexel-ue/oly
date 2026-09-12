@@ -5,7 +5,7 @@ import 'package:oly/models/fasting_session_model.dart';
 
 /// Scientific hydration adjustment details based on fasting duration and Keto-Mojo biomarkers
 class FastingHydrationAdjustment {
-  const FastingHydrationAdjustment({
+  const new({
     required this.bonusOz,
     required this.bonusMl,
     required this.suggestedSodiumMg,
@@ -15,7 +15,7 @@ class FastingHydrationAdjustment {
   });
 
   static const FastingHydrationAdjustment zero = FastingHydrationAdjustment(
-    bonusOz: 0.0,
+    bonusOz: 0,
     bonusMl: 0,
     suggestedSodiumMg: 0,
     rationale: 'Baseline hydration',
@@ -37,7 +37,7 @@ class FastingEngineService {
     required double ketoneMmolL,
   }) {
     if (ketoneMmolL <= 0.05) {
-      return 99.0;
+      return 99;
     }
     final double glucoseMmolL = glucoseMgDl / 18.016;
     return glucoseMmolL / ketoneMmolL;
@@ -61,7 +61,7 @@ class FastingEngineService {
       return FastingHydrationAdjustment.zero;
     }
 
-    double bonusOz = 0.0;
+    double bonusOz = 0;
     int sodiumMg = 0;
     String rationale = '';
     bool isHemoRisk = false;
@@ -198,34 +198,27 @@ class FastingEngineService {
         case DateTime.monday:
           workoutFocus = 'Snatch Wave & Clean Pulls (6:00 AM)';
           notes = 'High CNS day. Intramuscular glycogen fully loaded.';
-          break;
         case DateTime.tuesday:
           workoutFocus = 'Clean & Jerk + Front Squat (6:00 AM)';
           notes = 'Heavy leg drive session. Stay on top of hydration.';
-          break;
         case DateTime.wednesday:
           workoutFocus = 'Power Snatch & Overhead Squats (6:00 AM)';
           notes = 'Moderate volume speed work.';
-          break;
         case DateTime.thursday:
           workoutFocus = 'Active Recovery / Mobility (6:00 AM)';
           isWorkoutDay = false;
           notes = 'Rest day. Great day for an extended fast or Wim Hof breathwork.';
-          break;
         case DateTime.friday:
           workoutFocus = 'Clean & Jerk Complex (6:00 AM)';
           notes = 'Full platform intensity.';
-          break;
         case DateTime.saturday:
           workoutFocus = 'Max Test or Heavy Singles (6:00 AM)';
           notes = 'Barbell peaking session.';
-          break;
         case DateTime.sunday:
         default:
           workoutFocus = 'Full Rest & Mobility (6:00 AM)';
           isWorkoutDay = false;
           notes = 'Weekly reset. Fasting starts Sunday 6:00 PM.';
-          break;
       }
 
       // Fasting & Feeding window calculations

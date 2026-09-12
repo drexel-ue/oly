@@ -6,7 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:oly/theme/app_theme.dart';
 
 class WarmupSheet extends StatefulWidget {
-  const WarmupSheet({super.key});
+  const new({super.key});
 
   @override
   State<WarmupSheet> createState() => _WarmupSheetState();
@@ -47,7 +47,7 @@ class _WarmupSheetState extends State<WarmupSheet> {
       setState(() => _isTimerRunning = false);
     } else {
       setState(() => _isTimerRunning = true);
-      _timer = Timer.periodic(const Duration(seconds: 1), (Timer timer) {
+      _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
         if (_secondsRemaining > 0) {
           setState(() => _secondsRemaining--);
         } else {
@@ -260,7 +260,7 @@ class _WarmupSheetState extends State<WarmupSheet> {
                   borderRadius: BorderRadius.circular(16),
                   clipBehavior: Clip.antiAlias,
                   child: Column(
-                    children: _droms.keys.map((String key) {
+                    children: _droms.keys.map((key) {
                       return CheckboxListTile(
                         title: Text(
                           key,
@@ -269,7 +269,7 @@ class _WarmupSheetState extends State<WarmupSheet> {
                         value: _droms[key],
                         activeColor: AppTheme.primaryAmber,
                         checkColor: Colors.black,
-                        onChanged: (bool? val) =>
+                        onChanged: (val) =>
                             setState(() => _droms[key] = val ?? false),
                       );
                     }).toList(),
@@ -303,7 +303,7 @@ class _WarmupSheetState extends State<WarmupSheet> {
                         value: _stretchShoulders,
                         activeColor: AppTheme.primaryAmber,
                         checkColor: Colors.black,
-                        onChanged: (bool? val) =>
+                        onChanged: (val) =>
                             setState(() => _stretchShoulders = val ?? false),
                       ),
                       CheckboxListTile(
@@ -314,7 +314,7 @@ class _WarmupSheetState extends State<WarmupSheet> {
                         value: _stretchAnkles,
                         activeColor: AppTheme.primaryAmber,
                         checkColor: Colors.black,
-                        onChanged: (bool? val) =>
+                        onChanged: (val) =>
                             setState(() => _stretchAnkles = val ?? false),
                       ),
                     ],

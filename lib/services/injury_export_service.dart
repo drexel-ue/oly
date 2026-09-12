@@ -8,7 +8,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 
 class InjuryExportService {
-  InjuryExportService._();
+  new _();
 
   static const String exportVersion = '1.0.0';
 
@@ -18,21 +18,21 @@ class InjuryExportService {
     String? athleteName,
   }) {
     final List<InjuryRecord> active =
-        allInjuries.where((InjuryRecord i) => i.isActive).toList();
+        allInjuries.where((i) => i.isActive).toList();
     final List<InjuryRecord> resolved =
-        allInjuries.where((InjuryRecord i) => !i.isActive).toList();
+        allInjuries.where((i) => !i.isActive).toList();
 
     final int acuteCount =
-        active.where((InjuryRecord i) => i.stage == InjuryStage.acute).length;
+        active.where((i) => i.stage == InjuryStage.acute).length;
     final int subacuteCount = active
-        .where((InjuryRecord i) => i.stage == InjuryStage.subacute)
+        .where((i) => i.stage == InjuryStage.subacute)
         .length;
     final int chronicCount =
-        active.where((InjuryRecord i) => i.stage == InjuryStage.chronic).length;
+        active.where((i) => i.stage == InjuryStage.chronic).length;
 
     final double avgPain = active.isEmpty
         ? 0.0
-        : active.map((InjuryRecord i) => i.painScale).reduce((int a, int b) => a + b) /
+        : active.map((i) => i.painScale).reduce((a, b) => a + b) /
             active.length;
 
     final Map<String, dynamic> exportData = <String, dynamic>{
@@ -48,7 +48,7 @@ class InjuryExportService {
         'resolvedCount': resolved.length,
         'averagePainScore': double.parse(avgPain.toStringAsFixed(1)),
       },
-      'injuries': allInjuries.map((InjuryRecord injury) {
+      'injuries': allInjuries.map((injury) {
         final Map<String, dynamic> map = injury.toJson();
         map['regionDisplayName'] = injury.region.displayName;
         map['durationInDays'] = injury.durationInDays;
@@ -71,16 +71,16 @@ class InjuryExportService {
     final pw.Document pdf = pw.Document();
 
     final List<InjuryRecord> active =
-        allInjuries.where((InjuryRecord i) => i.isActive).toList();
+        allInjuries.where((i) => i.isActive).toList();
 
     final int acuteCount =
-        active.where((InjuryRecord i) => i.stage == InjuryStage.acute).length;
+        active.where((i) => i.stage == InjuryStage.acute).length;
     final int chronicCount =
-        active.where((InjuryRecord i) => i.stage == InjuryStage.chronic).length;
+        active.where((i) => i.stage == InjuryStage.chronic).length;
 
     final double avgPain = active.isEmpty
         ? 0.0
-        : active.map((InjuryRecord i) => i.painScale).reduce((int a, int b) => a + b) /
+        : active.map((i) => i.painScale).reduce((a, b) => a + b) /
             active.length;
 
     final DateFormat dateFormat = DateFormat('yyyy-MM-dd HH:mm');
@@ -107,7 +107,7 @@ class InjuryExportService {
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(32),
-        header: (pw.Context context) {
+        header: (context) {
           return pw.Container(
             padding: const pw.EdgeInsets.only(bottom: 12),
             margin: const pw.EdgeInsets.only(bottom: 16),
@@ -147,13 +147,13 @@ class InjuryExportService {
             ),
           );
         },
-        footer: (pw.Context context) {
+        footer: (context) {
           return pw.Container(
             padding: const pw.EdgeInsets.only(top: 8),
             margin: const pw.EdgeInsets.only(top: 16),
             decoration: const pw.BoxDecoration(
               border: pw.Border(
-                top: pw.BorderSide(color: PdfColors.grey300, width: 1),
+                top: pw.BorderSide(color: PdfColors.grey300),
               ),
             ),
             child: pw.Row(
@@ -171,7 +171,7 @@ class InjuryExportService {
             ),
           );
         },
-        build: (pw.Context context) {
+        build: (context) {
           return <pw.Widget>[
             // 1. Athlete & Executive Overview Block
             pw.Container(
@@ -333,7 +333,7 @@ class InjuryExportService {
                   'Pain',
                   'Loading Vectors to Avoid',
                 ],
-                data: active.map((InjuryRecord injury) {
+                data: active.map((injury) {
                   return <String>[
                     injury.region.displayName,
                     injury.name,
@@ -344,7 +344,7 @@ class InjuryExportService {
                       'Standard'
                     else
                       injury.constraints
-                          .map((BiomechanicalConstraint c) => c.displayName)
+                          .map((c) => c.displayName)
                           .join(', '),
                   ];
                 }).toList(),
@@ -353,7 +353,7 @@ class InjuryExportService {
             pw.SizedBox(height: 18),
 
             // 4. Recommended Movement Substitutions & Rehab Cues
-            if (active.any((InjuryRecord i) =>
+            if (active.any((i) =>
                 i.safeSubstitutions.isNotEmpty || i.rehabCues.isNotEmpty)) ...<pw.Widget>[
               pw.Text(
                 'RECOMMENDED EXERCISE REGRESSIONS & REHAB PROTOCOLS',
@@ -384,11 +384,11 @@ class InjuryExportService {
                   '1RM Load %',
                   'Biomechanical Rationale',
                 ],
-                data: active.expand((InjuryRecord injury) {
+                data: active.expand((injury) {
                   if (injury.safeSubstitutions.isEmpty) {
                     return <List<String>>[];
                   }
-                  return injury.safeSubstitutions.map((InjurySubstitution sub) {
+                  return injury.safeSubstitutions.map((sub) {
                     return <String>[
                       injury.name,
                       sub.targetExercise,
@@ -437,7 +437,7 @@ class InjuryExportService {
                   'Pain Check-In History',
                   'Notes',
                 ],
-                data: allInjuries.map((InjuryRecord injury) {
+                data: allInjuries.map((injury) {
                   final String onsetStr =
                       DateFormat('yyyy-MM-dd').format(injury.onsetDate);
                   final String statusStr = injury.isActive
@@ -447,7 +447,7 @@ class InjuryExportService {
                   final String historyStr = injury.history.isEmpty
                       ? 'Initial: ${injury.painScale}/10'
                       : injury.history
-                          .map((InjuryHistoryEntry h) =>
+                          .map((h) =>
                               '${DateFormat("MM/dd").format(h.date)}: ${h.painScale}/10')
                           .join('\n');
 
@@ -466,7 +466,7 @@ class InjuryExportService {
       ),
     );
 
-    return pdf.save();
+    return await pdf.save();
   }
 
   static pw.Widget _buildMetricBox(String title, String value) {
@@ -546,12 +546,10 @@ class InjuryExportService {
   }) async {
     await Printing.layoutPdf(
       name: generatePdfFileName(),
-      onLayout: (PdfPageFormat format) async {
-        return generatePdfReport(
-          allInjuries: allInjuries,
-          athleteName: athleteName,
-        );
-      },
+      onLayout: (format) => generatePdfReport(
+        allInjuries: allInjuries,
+        athleteName: athleteName,
+      ),
     );
   }
 

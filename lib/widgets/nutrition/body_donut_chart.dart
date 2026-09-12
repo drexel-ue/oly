@@ -5,7 +5,7 @@ import 'package:oly/models/body_composition_entry.dart';
 import 'package:oly/theme/app_theme.dart';
 
 class BodyDonutChart extends StatelessWidget {
-  const BodyDonutChart({required this.entry, super.key});
+  const new({required this.entry, super.key});
   final BodyCompositionEntry entry;
 
   @override
@@ -34,7 +34,7 @@ class BodyDonutChart extends StatelessWidget {
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
                   color: AppTheme.textSecondary,
-                  letterSpacing: 1.0,
+                  letterSpacing: 1,
                 ),
               ),
               Container(

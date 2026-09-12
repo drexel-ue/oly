@@ -7,7 +7,7 @@ import 'package:oly/theme/app_theme.dart';
 /// Modal bottom sheet that provides an in-depth explainer of gym setup, floor layout,
 /// movement standards, target pacing, and scaling matrix for any WOD.
 class WodSetupExplainerSheet extends StatefulWidget {
-  const WodSetupExplainerSheet({
+  const new({
     required this.wod,
     super.key,
     this.onStartWod,
@@ -29,7 +29,7 @@ class WodSetupExplainerSheet extends StatefulWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (BuildContext ctx) => WodSetupExplainerSheet(
+      builder: (ctx) => WodSetupExplainerSheet(
         wod: wod,
         onStartWod: onStartWod,
         onAddWod: onAddWod,
@@ -314,9 +314,7 @@ class _WodSetupExplainerSheetState extends State<WodSetupExplainerSheet>
                       ),
                       onPressed: () {
                         Navigator.pop(context);
-                        if (widget.onStartWod != null) {
-                          widget.onStartWod!();
-                        }
+                        widget.onStartWod?.call();
                       },
                     ),
                   ),
@@ -368,7 +366,7 @@ class _WodSetupExplainerSheetState extends State<WodSetupExplainerSheet>
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
                         color: AppTheme.secondaryCyan,
-                        letterSpacing: 1.0,
+                        letterSpacing: 1,
                       ),
                     ),
                   ],
@@ -395,7 +393,7 @@ class _WodSetupExplainerSheetState extends State<WodSetupExplainerSheet>
             icon: Icons.checklist_rounded,
           ),
           const SizedBox(height: 10),
-          ...explainer.equipmentChecklist.map((String item) {
+          ...explainer.equipmentChecklist.map((item) {
             return Container(
               margin: const EdgeInsets.only(bottom: 8),
               padding: const EdgeInsets.all(12),
@@ -443,7 +441,7 @@ class _WodSetupExplainerSheetState extends State<WodSetupExplainerSheet>
     return ListView.builder(
       padding: const EdgeInsets.all(20),
       itemCount: explainer.movementStandards.length,
-      itemBuilder: (BuildContext context, int index) {
+      itemBuilder: (context, index) {
         final WodMovementStandard standard = explainer.movementStandards[index];
         return Container(
           margin: const EdgeInsets.only(bottom: 16),
@@ -509,7 +507,7 @@ class _WodSetupExplainerSheetState extends State<WodSetupExplainerSheet>
                 ),
               ],
               const SizedBox(height: 12),
-              ...standard.standards.map((String cue) {
+              ...standard.standards.map((cue) {
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 6),
                   child: Row(
@@ -564,7 +562,7 @@ class _WodSetupExplainerSheetState extends State<WodSetupExplainerSheet>
               border: Border.all(color: AppTheme.surfaceElevated),
             ),
             child: Column(
-              children: explainer.targetTimes.entries.map((MapEntry<String, String> entry) {
+              children: explainer.targetTimes.entries.map((entry) {
                 final bool isElite = entry.key == 'Elite';
                 return Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -617,7 +615,7 @@ class _WodSetupExplainerSheetState extends State<WodSetupExplainerSheet>
             icon: Icons.speed_rounded,
           ),
           const SizedBox(height: 10),
-          ...explainer.pacingStrategy.map((String tip) {
+          ...explainer.pacingStrategy.map((tip) {
             return Container(
               margin: const EdgeInsets.only(bottom: 10),
               padding: const EdgeInsets.all(14),
@@ -667,7 +665,7 @@ class _WodSetupExplainerSheetState extends State<WodSetupExplainerSheet>
   Widget _buildScalingTab(WodSetupExplainer explainer) {
     return ListView(
       padding: const EdgeInsets.all(20),
-      children: explainer.scalingOptions.entries.map((MapEntry<String, String> entry) {
+      children: explainer.scalingOptions.entries.map((entry) {
         final bool isRx = entry.key == 'Rx';
         return Container(
           margin: const EdgeInsets.only(bottom: 12),

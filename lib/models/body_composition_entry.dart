@@ -1,7 +1,7 @@
 import 'package:uuid/uuid.dart';
 
 class BodyCompositionEntry {
-  const BodyCompositionEntry({
+  const new({
     required this.id,
     required this.timestamp,
     required this.weightLb,
@@ -27,7 +27,7 @@ class BodyCompositionEntry {
     this.notes,
   });
 
-  factory BodyCompositionEntry.create({
+  factory create({
     required double weightLb,
     String? id,
     DateTime? timestamp,
@@ -92,7 +92,7 @@ class BodyCompositionEntry {
     );
   }
 
-  factory BodyCompositionEntry.fromJson(Map<String, dynamic> json) {
+  factory fromJson(Map<String, dynamic> json) {
     return BodyCompositionEntry(
       id: json['id'] as String,
       timestamp: DateTime.parse(json['timestamp'] as String),

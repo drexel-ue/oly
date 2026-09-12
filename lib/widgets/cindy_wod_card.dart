@@ -18,7 +18,7 @@ import 'package:oly/widgets/cindy_variation_modal.dart';
 import 'package:provider/provider.dart';
 
 class CindyWodCard extends StatefulWidget {
-  const CindyWodCard({
+  const new({
     required this.exercise,
     required this.onCompleted,
     super.key,
@@ -194,7 +194,7 @@ class _CindyWodCardState extends State<CindyWodCard> {
         _hasStarted = true;
       }
       setState(() => _isTimerRunning = true);
-      _wodTimer = Timer.periodic(const Duration(seconds: 1), (Timer timer) {
+      _wodTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
         if (_secondsRemaining > 0) {
           setState(() {
             _secondsRemaining--;
@@ -320,11 +320,11 @@ class _CindyWodCardState extends State<CindyWodCard> {
   }
 
   void _openVariationModal({String? movementFocus}) {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (BuildContext ctx) => CindyVariationModal(
+      builder: (ctx) => CindyVariationModal(
         initialPullupVariation: _currentPullupVariation,
         initialPullupWeightKg: _currentPullupWeightKg,
         initialPullupBand: _currentPullupBand,
@@ -334,13 +334,13 @@ class _CindyWodCardState extends State<CindyWodCard> {
         initialSquatWeightKg: _currentSquatWeightKg,
         initialSelectedMovement: movementFocus,
         onApply: ({
-          required String pullupVariation,
-          required String pushupVariation,
-          required String squatVariation,
-          double? pullupWeightKg,
-          String? pullupBand,
-          double? pushupWeightKg,
-          double? squatWeightKg,
+          required pullupVariation,
+          required pushupVariation,
+          required squatVariation,
+          pullupWeightKg,
+          pullupBand,
+          pushupWeightKg,
+          squatWeightKg,
         }) {
           setState(() {
             _currentPullupVariation = pullupVariation;
@@ -395,7 +395,7 @@ class _CindyWodCardState extends State<CindyWodCard> {
 
     final bool? shouldSave = await showDialog<bool>(
       context: context,
-      builder: (BuildContext ctx) {
+      builder: (ctx) {
         return AlertDialog(
           backgroundColor: AppTheme.surfaceCard,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -429,7 +429,7 @@ class _CindyWodCardState extends State<CindyWodCard> {
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
                         color: AppTheme.textSecondary,
-                        letterSpacing: 1.0,
+                        letterSpacing: 1,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -605,11 +605,11 @@ class _CindyWodCardState extends State<CindyWodCard> {
   }
 
   void _showHistorySheet(BuildContext context, RecoveryProvider recovery) {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (BuildContext ctx) {
+      builder: (ctx) {
         final List<CindyWorkoutLog> history = recovery.getCindyWorkoutHistory();
         final CindyWorkoutLog? pr = recovery.getCindyPersonalRecord();
 
@@ -684,7 +684,7 @@ class _CindyWodCardState extends State<CindyWodCard> {
                                     fontSize: 10,
                                     fontWeight: FontWeight.bold,
                                     color: AppTheme.primaryAmber,
-                                    letterSpacing: 1.0,
+                                    letterSpacing: 1,
                                   ),
                                 ),
                                 Text(
@@ -720,8 +720,8 @@ class _CindyWodCardState extends State<CindyWodCard> {
                       : ListView.separated(
                           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                           itemCount: history.length,
-                          separatorBuilder: (BuildContext _, int _) => const Divider(color: AppTheme.borderColor),
-                          itemBuilder: (BuildContext _, int index) {
+                          separatorBuilder: (_, _) => const Divider(color: AppTheme.borderColor),
+                          itemBuilder: (_, index) {
                             final CindyWorkoutLog log = history[index];
                             return ListTile(
                               contentPadding: EdgeInsets.zero,
@@ -878,7 +878,7 @@ class _CindyWodCardState extends State<CindyWodCard> {
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
                         color: AppTheme.primaryAmber,
-                        letterSpacing: 1.0,
+                        letterSpacing: 1,
                       ),
                     ),
                   ),
@@ -1094,7 +1094,7 @@ class _CindyWodCardState extends State<CindyWodCard> {
                         style: GoogleFonts.outfit(
                           fontSize: 11,
                           fontWeight: FontWeight.bold,
-                          letterSpacing: 1.0,
+                          letterSpacing: 1,
                           color: AppTheme.textSecondary,
                         ),
                       ),
@@ -1279,7 +1279,7 @@ class _CindyWodCardState extends State<CindyWodCard> {
                               fontSize: 11,
                               fontWeight: FontWeight.bold,
                               color: AppTheme.textSecondary,
-                              letterSpacing: 1.0,
+                              letterSpacing: 1,
                             ),
                           ),
                           Text(
@@ -1294,7 +1294,7 @@ class _CindyWodCardState extends State<CindyWodCard> {
                       ),
                       // Round Tier Pill with Configure Action
                       InkWell(
-                        onTap: () => _openVariationModal(),
+                        onTap: _openVariationModal,
                         borderRadius: BorderRadius.circular(10),
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -1429,7 +1429,7 @@ class _CindyWodCardState extends State<CindyWodCard> {
                 style: GoogleFonts.outfit(
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
-                  letterSpacing: 1.0,
+                  letterSpacing: 1,
                   color: AppTheme.textSecondary,
                 ),
               ),
@@ -1439,8 +1439,8 @@ class _CindyWodCardState extends State<CindyWodCard> {
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
                   itemCount: _loggedRounds.length,
-                  separatorBuilder: (BuildContext _, int _) => const SizedBox(width: 8),
-                  itemBuilder: (BuildContext _, int index) {
+                  separatorBuilder: (_, _) => const SizedBox(width: 8),
+                  itemBuilder: (_, index) {
                     final CindyRoundDetail r = _loggedRounds[index];
                     return Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -1497,7 +1497,7 @@ class _CindyWodCardState extends State<CindyWodCard> {
                     style: GoogleFonts.outfit(
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
-                      letterSpacing: 1.0,
+                      letterSpacing: 1,
                       color: AppTheme.textSecondary,
                     ),
                   ),
@@ -1555,7 +1555,7 @@ class _CindyWodCardState extends State<CindyWodCard> {
                         ),
                       ),
                       OutlinedButton.icon(
-                        onPressed: () => _openVariationModal(),
+                        onPressed: _openVariationModal,
                         icon: const Icon(Icons.tune, size: 14, color: AppTheme.secondaryCyan),
                         label: Text(
                           'Variations',

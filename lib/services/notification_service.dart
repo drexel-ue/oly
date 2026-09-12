@@ -10,8 +10,8 @@ import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
 class NotificationService {
-  factory NotificationService() => _instance;
-  NotificationService._internal();
+  factory() => _instance;
+  new _internal();
   static final NotificationService _instance = NotificationService._internal();
 
   final FlutterLocalNotificationsPlugin _notifications =
@@ -55,7 +55,6 @@ class NotificationService {
               session_pkg.AVAudioSessionSetActiveOptions.notifyOthersOnDeactivation,
           androidAudioAttributes: session_pkg.AndroidAudioAttributes(
             contentType: session_pkg.AndroidAudioContentType.sonification,
-            flags: session_pkg.AndroidAudioFlags.none,
             usage: session_pkg.AndroidAudioUsage.alarm,
           ),
           androidAudioFocusGainType:
@@ -72,9 +71,7 @@ class NotificationService {
         AndroidInitializationSettings('@mipmap/ic_launcher');
     const DarwinInitializationSettings iosSettings =
         DarwinInitializationSettings(
-          requestAlertPermission: true,
-          requestBadgePermission: true,
-          requestSoundPermission: true,
+          
         );
 
     const InitializationSettings initSettings = InitializationSettings(
@@ -85,7 +82,7 @@ class NotificationService {
     try {
       await _notifications.initialize(
         initSettings,
-        onDidReceiveNotificationResponse: (NotificationResponse response) {
+        onDidReceiveNotificationResponse: (response) {
           debugPrint('Notification tapped: ${response.payload}');
         },
       );
@@ -116,8 +113,7 @@ class NotificationService {
         await _audioPlayer!.setAudioContext(
           ap.AudioContext(
             iOS: ap.AudioContextIOS(
-              category: ap.AVAudioSessionCategory.playback,
-              options: const <ap.AVAudioSessionOptions>{},
+              
             ),
             android: const ap.AudioContextAndroid(
               usageType: ap.AndroidUsageType.alarm,
@@ -144,9 +140,11 @@ class NotificationService {
         }
       });
 
-      completer.future.then((_) async {
-        await _deactivateAudioSession();
-      });
+      unawaited(
+        completer.future.then((_) async {
+          await _deactivateAudioSession();
+        }),
+      );
 
       await _audioPlayer!.play(ap.AssetSource('sounds/timer_beep.wav'));
     } catch (e) {
@@ -198,8 +196,6 @@ class NotificationService {
             channelDescription: 'Alarm alerts when rest timer reaches 0s',
             importance: Importance.max,
             priority: Priority.high,
-            playSound: true,
-            enableVibration: true,
           );
 
       const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
@@ -311,8 +307,6 @@ class NotificationService {
       'oly_hydration_channel',
       'Hydration Reminders',
       channelDescription: 'Paced hydration reminders to hit daily water goal',
-      importance: Importance.defaultImportance,
-      priority: Priority.defaultPriority,
     );
 
     const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
@@ -407,8 +401,6 @@ class NotificationService {
       'oly_coffee_channel',
       'Fasting Coffee Alerts',
       channelDescription: 'Strategic coffee timing to assist fasting & athletic sleep',
-      importance: Importance.defaultImportance,
-      priority: Priority.defaultPriority,
     );
 
     const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
@@ -475,7 +467,7 @@ class NotificationService {
     try {
       for (int i = 0; i < 4; i++) {
         await HapticFeedback.heavyImpact();
-        await Future.delayed(const Duration(milliseconds: 200));
+        await Future<void>.delayed(const Duration(milliseconds: 200));
       }
     } catch (e) {
       debugPrint('Vibration error: $e');

@@ -53,46 +53,35 @@ class SetupConfig {
         case '--help':
         case 'help':
           config.showHelp = true;
-          break;
         case '-q':
         case '--quick':
         case '--fast':
         case '--core':
           config.quick = true;
-          break;
         case '--full':
           config.quick = false;
-          break;
         case '--skip-pub':
         case '--no-pub':
           config.skipPub = true;
-          break;
         case '--skip-db':
         case '--no-db':
           config.skipDb = true;
-          break;
         case '--skip-exercise-db':
           config.skipExerciseDb = true;
-          break;
         case '--skip-usda-db':
           config.skipUsdaDb = true;
-          break;
         case '--skip-crossfit':
         case '--skip-cf':
           config.skipCrossfit = true;
-          break;
         case '-t':
         case '--test':
         case '--verify':
           config.runTests = true;
-          break;
         case '-a':
         case '--analyze':
           config.runAnalyze = true;
-          break;
         case '--clean':
           config.clean = true;
-          break;
         default:
           stdout.writeln(Ansi.yellow('⚠️  Unknown option: $arg (use --help for usage)'));
       }

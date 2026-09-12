@@ -6,7 +6,7 @@ import 'package:oly/theme/app_theme.dart';
 import 'package:provider/provider.dart';
 
 class CindyVariationModal extends StatefulWidget {
-  const CindyVariationModal({
+  const new({
     required this.initialPullupVariation,
     required this.initialPushupVariation,
     required this.initialSquatVariation,
@@ -224,7 +224,7 @@ class _CindyVariationModalState extends State<CindyVariationModal> {
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
                         color: tierColor,
-                        letterSpacing: 1.0,
+                        letterSpacing: 1,
                       ),
                     ),
                   ),
@@ -257,7 +257,7 @@ class _CindyVariationModalState extends State<CindyVariationModal> {
                         <String, String>{'id': 'weighted', 'label': 'Weighted'},
                       ],
                       selectedId: _pullupVariation,
-                      onSelected: (String id) {
+                      onSelected: (id) {
                         setState(() => _pullupVariation = id);
                       },
                     ),
@@ -266,7 +266,7 @@ class _CindyVariationModalState extends State<CindyVariationModal> {
                       _buildSubOptionRow(
                         label: 'Band Tension:',
                         child: Row(
-                          children: <String>['light', 'medium', 'heavy'].map((String band) {
+                          children: <String>['light', 'medium', 'heavy'].map((band) {
                             final bool isSel = _pullupBand == band;
                             return Padding(
                               padding: const EdgeInsets.only(right: 6),
@@ -313,7 +313,7 @@ class _CindyVariationModalState extends State<CindyVariationModal> {
                         <String, String>{'id': 'weighted', 'label': 'Weighted'},
                       ],
                       selectedId: _pushupVariation,
-                      onSelected: (String id) {
+                      onSelected: (id) {
                         setState(() => _pushupVariation = id);
                       },
                     ),
@@ -342,7 +342,7 @@ class _CindyVariationModalState extends State<CindyVariationModal> {
                         <String, String>{'id': 'weighted_vest', 'label': 'Weight Vest'},
                       ],
                       selectedId: _squatVariation,
-                      onSelected: (String id) {
+                      onSelected: (id) {
                         setState(() => _squatVariation = id);
                       },
                     ),
@@ -406,7 +406,7 @@ class _CindyVariationModalState extends State<CindyVariationModal> {
           style: GoogleFonts.outfit(
             fontSize: 12,
             fontWeight: FontWeight.bold,
-            letterSpacing: 1.0,
+            letterSpacing: 1,
             color: color,
           ),
         ),
@@ -422,7 +422,7 @@ class _CindyVariationModalState extends State<CindyVariationModal> {
     return Wrap(
       spacing: 8,
       runSpacing: 8,
-      children: options.map((Map<String, String> opt) {
+      children: options.map((opt) {
         final String id = opt['id']!;
         final String label = opt['label']!;
         final bool isSel = id == selectedId;

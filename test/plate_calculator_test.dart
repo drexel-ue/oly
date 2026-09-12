@@ -5,10 +5,9 @@ void main() {
   group('PlateCalculator Tests', () {
     test('Calculates exact plate breakdown for 100kg bar in KG', () {
       final PlateCalcResult result = PlateCalculator.calculate(
-        targetWeight: 100.0,
-        barWeight: 20.0,
-        collarWeight: 0.0,
-        isLbs: false,
+        targetWeight: 100,
+        barWeight: 20,
+        collarWeight: 0,
       );
 
       expect(result.isExact, isTrue);
@@ -21,10 +20,9 @@ void main() {
 
     test('Handles empty bar weight (20kg)', () {
       final PlateCalcResult result = PlateCalculator.calculate(
-        targetWeight: 20.0,
-        barWeight: 20.0,
-        collarWeight: 0.0,
-        isLbs: false,
+        targetWeight: 20,
+        barWeight: 20,
+        collarWeight: 0,
       );
 
       expect(result.isExact, isTrue);
@@ -34,9 +32,9 @@ void main() {
 
     test('Calculates breakdown in LBS', () {
       final PlateCalcResult result = PlateCalculator.calculate(
-        targetWeight: 135.0,
-        barWeight: 45.0,
-        collarWeight: 0.0,
+        targetWeight: 135,
+        barWeight: 45,
+        collarWeight: 0,
         isLbs: true,
       );
 
@@ -51,7 +49,7 @@ void main() {
       'Defaults to 45 lbs bar when isLbs is true without explicit barWeight',
       () {
         final PlateCalcResult result = PlateCalculator.calculate(
-          targetWeight: 225.0,
+          targetWeight: 225,
           isLbs: true,
         );
 

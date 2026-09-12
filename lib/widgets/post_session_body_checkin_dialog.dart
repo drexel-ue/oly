@@ -7,13 +7,13 @@ import 'package:oly/widgets/interactive_body_map.dart';
 import 'package:provider/provider.dart';
 
 class PostSessionBodyCheckinDialog extends StatefulWidget {
-  const PostSessionBodyCheckinDialog({
+  const new({
     required this.onComplete,
     super.key,
     this.initialJointStrains = const <String>[],
   });
 
-  final Function(Map<InjuryRegion, int> updatedPain, List<String> jointTags) onComplete;
+  final void Function(Map<InjuryRegion, int> updatedPain, List<String> jointTags) onComplete;
   final List<String> initialJointStrains;
 
   @override
@@ -71,7 +71,7 @@ class _PostSessionBodyCheckinDialogState
 
   void _syncJointTags() {
     _jointTags.clear();
-    _sessionPainMap.forEach((InjuryRegion r, int pain) {
+    _sessionPainMap.forEach((r, pain) {
       if (pain > 0) {
         if (r == InjuryRegion.leftShoulder || r == InjuryRegion.rightShoulder) {
           _jointTags.add('Shoulders');
@@ -168,7 +168,7 @@ class _PostSessionBodyCheckinDialogState
                 style: GoogleFonts.inter(
                   fontSize: 10,
                   fontWeight: FontWeight.bold,
-                  letterSpacing: 1.0,
+                  letterSpacing: 1,
                   color: AppTheme.textSecondary,
                 ),
               ),
@@ -265,7 +265,6 @@ class _PostSessionBodyCheckinDialogState
                       const SizedBox(height: 4),
                       Slider(
                         value: (_sessionPainMap[_focusedRegion!] ?? 0).toDouble(),
-                        min: 0,
                         max: 10,
                         divisions: 10,
                         activeColor: (_sessionPainMap[_focusedRegion!] ?? 0) == 0
@@ -275,7 +274,7 @@ class _PostSessionBodyCheckinDialogState
                                 : ((_sessionPainMap[_focusedRegion!] ?? 0) <= 6
                                     ? const Color(0xFFFF9F0A)
                                     : Colors.redAccent)),
-                        onChanged: (double v) {
+                        onChanged: (v) {
                           setState(() {
                             final int val = v.round();
                             _sessionPainMap[_focusedRegion!] = val;
@@ -353,7 +352,7 @@ class _PostSessionBodyCheckinDialogState
                       style: GoogleFonts.inter(
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
-                        letterSpacing: 1.0,
+                        letterSpacing: 1,
                         color: AppTheme.textSecondary,
                       ),
                     ),
@@ -370,7 +369,7 @@ class _PostSessionBodyCheckinDialogState
                 Wrap(
                   spacing: 6,
                   runSpacing: 6,
-                  children: _sessionPainMap.entries.map((MapEntry<InjuryRegion, int> entry) {
+                  children: _sessionPainMap.entries.map((entry) {
                     final int prePain = provider.getPainForRegion(entry.key);
                     final int postPain = entry.value;
                     final int delta = postPain - prePain;

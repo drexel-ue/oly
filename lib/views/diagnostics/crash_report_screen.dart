@@ -5,7 +5,7 @@ import 'package:oly/services/app_log_service.dart';
 import 'package:oly/theme/app_theme.dart';
 
 class CrashReportScreen extends StatefulWidget {
-  const CrashReportScreen({super.key});
+  const new({super.key});
 
   @override
   State<CrashReportScreen> createState() => _CrashReportScreenState();
@@ -49,7 +49,7 @@ class _CrashReportScreenState extends State<CrashReportScreen> {
   Future<void> _clearLogs() async {
     final bool? confirm = await showDialog<bool>(
       context: context,
-      builder: (BuildContext ctx) => AlertDialog(
+      builder: (ctx) => AlertDialog(
         backgroundColor: AppTheme.surfaceCard,
         title: Text(
           'Clear System Logs?',
@@ -100,7 +100,7 @@ class _CrashReportScreenState extends State<CrashReportScreen> {
   @override
   Widget build(BuildContext context) {
     final List<LogEntry> allLogs = AppLogService.instance.logs;
-    final List<LogEntry> filteredLogs = allLogs.where((LogEntry log) {
+    final List<LogEntry> filteredLogs = allLogs.where((log) {
       if (_filterLevel != null && log.level != _filterLevel) {
         return false;
       }
@@ -114,13 +114,13 @@ class _CrashReportScreenState extends State<CrashReportScreen> {
     }).toList();
 
     final int crashCount = allLogs
-        .where((LogEntry l) => l.level == LogLevel.crash)
+        .where((l) => l.level == LogLevel.crash)
         .length;
     final int errorCount = allLogs
-        .where((LogEntry l) => l.level == LogLevel.error)
+        .where((l) => l.level == LogLevel.error)
         .length;
     final int warnCount = allLogs
-        .where((LogEntry l) => l.level == LogLevel.warning)
+        .where((l) => l.level == LogLevel.warning)
         .length;
 
     return Scaffold(
@@ -198,7 +198,7 @@ class _CrashReportScreenState extends State<CrashReportScreen> {
                       fontSize: 13,
                       color: AppTheme.textPrimary,
                     ),
-                    onChanged: (String val) =>
+                    onChanged: (val) =>
                         setState(() => _searchQuery = val.trim()),
                     decoration: InputDecoration(
                       hintText: 'Filter by tag or message (e.g. OCR, WOD, Barcode)...',
@@ -297,7 +297,7 @@ class _CrashReportScreenState extends State<CrashReportScreen> {
                     padding: const EdgeInsets.fromLTRB(16, 6, 16, 20),
                     itemCount: filteredLogs.length,
                     separatorBuilder: (_, _) => const SizedBox(height: 8),
-                    itemBuilder: (BuildContext ctx, int idx) =>
+                    itemBuilder: (ctx, idx) =>
                         _buildLogCard(filteredLogs[idx]),
                   ),
           ),
@@ -377,7 +377,7 @@ class _CrashReportScreenState extends State<CrashReportScreen> {
         side: BorderSide(
           color: isSelected ? AppTheme.primaryAmber : AppTheme.borderColor,
         ),
-        onSelected: (bool sel) =>
+        onSelected: (sel) =>
             setState(() => _filterLevel = sel ? level : null),
       ),
     );
@@ -388,19 +388,14 @@ class _CrashReportScreenState extends State<CrashReportScreen> {
     switch (entry.level) {
       case LogLevel.crash:
         badgeColor = Colors.redAccent;
-        break;
       case LogLevel.error:
         badgeColor = Colors.orangeAccent;
-        break;
       case LogLevel.warning:
         badgeColor = AppTheme.primaryAmber;
-        break;
       case LogLevel.info:
         badgeColor = AppTheme.secondaryCyan;
-        break;
       case LogLevel.debug:
         badgeColor = Colors.grey;
-        break;
     }
 
     final bool hasStack =

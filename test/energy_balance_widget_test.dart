@@ -46,7 +46,7 @@ void main() {
   group('Energy Balance & Metabolic Science Widget Tests', () {
     testWidgets(
       'EnergyBalanceCard renders Energy In, Energy Out, Deficit, and Breakdown',
-      (WidgetTester tester) async {
+      (tester) async {
         final DailyNutritionLog log = DailyNutritionLog.create(
           date: '2026-08-27',
           targetCalories: 3200,
@@ -64,7 +64,7 @@ void main() {
             DailyActivityEntry.create(
               activityType: 'workout_wod',
               name: 'Olympic Lifting WOD',
-              durationMinutes: 45.0,
+              durationMinutes: 45,
               metValue: 6.5,
               caloriesBurned: 520,
               source: 'wod_auto_sync',
@@ -72,7 +72,7 @@ void main() {
             DailyActivityEntry.create(
               activityType: 'walking_steps',
               name: 'Brisk Walk',
-              durationMinutes: 30.0,
+              durationMinutes: 30,
               metValue: 3.8,
               caloriesBurned: 240,
             ),
@@ -108,7 +108,7 @@ void main() {
 
     testWidgets(
       'MetabolicScienceExplainerScreen renders all 5 interactive science tabs',
-      (WidgetTester tester) async {
+      (tester) async {
         await tester.pumpWidget(
           const MaterialApp(home: MetabolicScienceExplainerScreen()),
         );
@@ -142,7 +142,7 @@ void main() {
 
     testWidgets(
       'ActivityLogSheet renders presets, Algorithm B energy calculation, and saves entry',
-      (WidgetTester tester) async {
+      (tester) async {
         await tester.pumpWidget(buildTestableWidget(const ActivityLogSheet()));
         await tester.pumpAndSettle();
 
@@ -162,7 +162,7 @@ void main() {
 
     testWidgets(
       'NutritionDashboardScreen renders Energy In vs Out selector and activities section',
-      (WidgetTester tester) async {
+      (tester) async {
         await tester.pumpWidget(
           buildTestableWidget(const NutritionDashboardScreen()),
         );

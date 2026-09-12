@@ -19,11 +19,11 @@ class MockDataHelper {
         id: 'snatch',
         name: 'Snatch',
         category: LiftCategory.snatch,
-        currentMax: 95.0,
+        currentMax: 95,
         history: <PREntry>[
           PREntry(
             id: 'pr_sn_1',
-            weight: 95.0,
+            weight: 95,
             reps: 1,
             date: now.subtract(const Duration(days: 4)),
             notes: 'Smooth lockout, solid catch',
@@ -37,7 +37,7 @@ class MockDataHelper {
           ),
           PREntry(
             id: 'pr_sn_3',
-            weight: 90.0,
+            weight: 90,
             reps: 1,
             date: now.subtract(const Duration(days: 35)),
             notes: 'Solid baseline',
@@ -48,11 +48,11 @@ class MockDataHelper {
         id: 'clean_and_jerk',
         name: 'Clean & Jerk',
         category: LiftCategory.cleanAndJerk,
-        currentMax: 120.0,
+        currentMax: 120,
         history: <PREntry>[
           PREntry(
             id: 'pr_cj_1',
-            weight: 120.0,
+            weight: 120,
             reps: 1,
             date: now.subtract(const Duration(days: 5)),
             notes: 'Fast recovery out of the hole, strong split jerk',
@@ -65,7 +65,7 @@ class MockDataHelper {
           ),
           PREntry(
             id: 'pr_cj_3',
-            weight: 115.0,
+            weight: 115,
             reps: 1,
             date: now.subtract(const Duration(days: 40)),
           ),
@@ -77,7 +77,7 @@ class MockDataHelper {
         category: LiftCategory.snatch,
         anchorLiftId: 'snatch',
         targetRatio: 0.82,
-        currentMax: 78.0,
+        currentMax: 78,
       ),
       LiftModel(
         id: 'hang_snatch',
@@ -85,7 +85,7 @@ class MockDataHelper {
         category: LiftCategory.snatch,
         anchorLiftId: 'snatch',
         targetRatio: 0.88,
-        currentMax: 84.0,
+        currentMax: 84,
       ),
       LiftModel(
         id: 'muscle_snatch',
@@ -93,7 +93,7 @@ class MockDataHelper {
         category: LiftCategory.snatch,
         anchorLiftId: 'snatch',
         targetRatio: 0.60,
-        currentMax: 60.0,
+        currentMax: 60,
       ),
       LiftModel(
         id: 'power_clean',
@@ -101,7 +101,7 @@ class MockDataHelper {
         category: LiftCategory.cleanAndJerk,
         anchorLiftId: 'clean_and_jerk',
         targetRatio: 0.85,
-        currentMax: 102.0,
+        currentMax: 102,
       ),
       LiftModel(
         id: 'hang_clean',
@@ -109,7 +109,7 @@ class MockDataHelper {
         category: LiftCategory.cleanAndJerk,
         anchorLiftId: 'clean_and_jerk',
         targetRatio: 0.88,
-        currentMax: 106.0,
+        currentMax: 106,
       ),
       LiftModel(
         id: 'block_clean',
@@ -117,7 +117,7 @@ class MockDataHelper {
         category: LiftCategory.cleanAndJerk,
         anchorLiftId: 'clean_and_jerk',
         targetRatio: 0.90,
-        currentMax: 108.0,
+        currentMax: 108,
       ),
       LiftModel(
         id: 'back_squat',
@@ -125,18 +125,18 @@ class MockDataHelper {
         category: LiftCategory.squat,
         anchorLiftId: 'clean_and_jerk',
         targetRatio: 1.35,
-        currentMax: 160.0,
+        currentMax: 160,
         history: <PREntry>[
           PREntry(
             id: 'pr_bs_1',
-            weight: 160.0,
+            weight: 160,
             reps: 1,
             date: now.subtract(const Duration(days: 7)),
             notes: 'High bar depth below parallel',
           ),
           PREntry(
             id: 'pr_bs_2',
-            weight: 155.0,
+            weight: 155,
             reps: 3,
             date: now.subtract(const Duration(days: 25)),
           ),
@@ -148,7 +148,7 @@ class MockDataHelper {
         category: LiftCategory.squat,
         anchorLiftId: 'back_squat',
         targetRatio: 0.85,
-        currentMax: 136.0,
+        currentMax: 136,
       ),
       LiftModel(
         id: 'snatch_pull',
@@ -156,7 +156,7 @@ class MockDataHelper {
         category: LiftCategory.pull,
         anchorLiftId: 'snatch',
         targetRatio: 1.05,
-        currentMax: 105.0,
+        currentMax: 105,
       ),
       LiftModel(
         id: 'snatch_deadlift',
@@ -164,7 +164,7 @@ class MockDataHelper {
         category: LiftCategory.pull,
         anchorLiftId: 'snatch',
         targetRatio: 1.15,
-        currentMax: 115.0,
+        currentMax: 115,
       ),
       LiftModel(
         id: 'military_press',
@@ -172,7 +172,7 @@ class MockDataHelper {
         category: LiftCategory.overhead,
         anchorLiftId: 'clean_and_jerk',
         targetRatio: 0.55,
-        currentMax: 66.0,
+        currentMax: 66,
       ),
       LiftModel(
         id: 'push_press',
@@ -180,7 +180,7 @@ class MockDataHelper {
         category: LiftCategory.overhead,
         anchorLiftId: 'clean_and_jerk',
         targetRatio: 0.75,
-        currentMax: 90.0,
+        currentMax: 90,
       ),
       LiftModel(
         id: 'rdl',
@@ -188,16 +188,14 @@ class MockDataHelper {
         category: LiftCategory.pull,
         anchorLiftId: 'clean_and_jerk',
         targetRatio: 0.80,
-        currentMax: 96.0,
+        currentMax: 96,
       ),
     ];
   }
 
   static ProgramCycle getMockProgramCycle() {
     return ProgramCycle(
-      currentCycle: 1,
       currentWeek: 2, // Heavy loading week (70%)
-      currentDay: 1, // Day 1: Snatch & Clean Strength
       completedSessionIds: <String>[
         'sess_w1_d1',
         'sess_w1_d2',
@@ -232,25 +230,21 @@ class MockDataHelper {
                 setIndex: 1,
                 weight: 61.5,
                 reps: 2,
-                isCompleted: true,
               ),
               CompletedSet(
                 setIndex: 2,
                 weight: 61.5,
                 reps: 2,
-                isCompleted: true,
               ),
               CompletedSet(
                 setIndex: 3,
                 weight: 61.5,
                 reps: 2,
-                isCompleted: true,
               ),
               CompletedSet(
                 setIndex: 4,
                 weight: 61.5,
                 reps: 2,
-                isCompleted: true,
               ),
             ],
           ),
@@ -260,27 +254,23 @@ class MockDataHelper {
             sets: <CompletedSet>[
               CompletedSet(
                 setIndex: 1,
-                weight: 78.0,
+                weight: 78,
                 reps: 3,
-                isCompleted: true,
               ),
               CompletedSet(
                 setIndex: 2,
-                weight: 78.0,
+                weight: 78,
                 reps: 3,
-                isCompleted: true,
               ),
               CompletedSet(
                 setIndex: 3,
-                weight: 78.0,
+                weight: 78,
                 reps: 3,
-                isCompleted: true,
               ),
               CompletedSet(
                 setIndex: 4,
-                weight: 78.0,
+                weight: 78,
                 reps: 3,
-                isCompleted: true,
               ),
             ],
           ),
@@ -290,27 +280,23 @@ class MockDataHelper {
             sets: <CompletedSet>[
               CompletedSet(
                 setIndex: 1,
-                weight: 104.0,
+                weight: 104,
                 reps: 6,
-                isCompleted: true,
               ),
               CompletedSet(
                 setIndex: 2,
-                weight: 104.0,
+                weight: 104,
                 reps: 6,
-                isCompleted: true,
               ),
               CompletedSet(
                 setIndex: 3,
-                weight: 104.0,
+                weight: 104,
                 reps: 6,
-                isCompleted: true,
               ),
               CompletedSet(
                 setIndex: 4,
-                weight: 104.0,
+                weight: 104,
                 reps: 6,
-                isCompleted: true,
               ),
             ],
           ),
@@ -335,19 +321,16 @@ class MockDataHelper {
                 setIndex: 1,
                 weight: 47.5,
                 reps: 3,
-                isCompleted: true,
               ),
               CompletedSet(
                 setIndex: 2,
                 weight: 47.5,
                 reps: 3,
-                isCompleted: true,
               ),
               CompletedSet(
                 setIndex: 3,
                 weight: 47.5,
                 reps: 3,
-                isCompleted: true,
               ),
             ],
           ),
@@ -357,27 +340,23 @@ class MockDataHelper {
             sets: <CompletedSet>[
               CompletedSet(
                 setIndex: 1,
-                weight: 84.0,
+                weight: 84,
                 reps: 3,
-                isCompleted: true,
               ),
               CompletedSet(
                 setIndex: 2,
-                weight: 84.0,
+                weight: 84,
                 reps: 3,
-                isCompleted: true,
               ),
               CompletedSet(
                 setIndex: 3,
-                weight: 84.0,
+                weight: 84,
                 reps: 3,
-                isCompleted: true,
               ),
               CompletedSet(
                 setIndex: 4,
-                weight: 84.0,
+                weight: 84,
                 reps: 3,
-                isCompleted: true,
               ),
             ],
           ),
@@ -400,27 +379,23 @@ class MockDataHelper {
             sets: <CompletedSet>[
               CompletedSet(
                 setIndex: 1,
-                weight: 90.0,
+                weight: 90,
                 reps: 5,
-                isCompleted: true,
               ),
               CompletedSet(
                 setIndex: 2,
-                weight: 90.0,
+                weight: 90,
                 reps: 5,
-                isCompleted: true,
               ),
               CompletedSet(
                 setIndex: 3,
-                weight: 90.0,
+                weight: 90,
                 reps: 5,
-                isCompleted: true,
               ),
               CompletedSet(
                 setIndex: 4,
-                weight: 90.0,
+                weight: 90,
                 reps: 5,
-                isCompleted: true,
               ),
             ],
           ),
@@ -455,7 +430,7 @@ class MockDataHelper {
         id: 'acc_1',
         exerciseId: 'bicep_curls',
         exerciseName: 'Bicep Curls / Hammer Curls',
-        weightKg: 10.0,
+        weightKg: 10,
         sets: 3,
         reps: 12,
         date: now.subtract(const Duration(days: 21)),
@@ -475,7 +450,7 @@ class MockDataHelper {
         id: 'acc_3',
         exerciseId: 'bicep_curls',
         exerciseName: 'Bicep Curls / Hammer Curls',
-        weightKg: 15.0,
+        weightKg: 15,
         sets: 3,
         reps: 12,
         date: now.subtract(const Duration(days: 2)),
@@ -495,7 +470,7 @@ class MockDataHelper {
         id: 'acc_5',
         exerciseId: 'tricep_extensions',
         exerciseName: 'Overhead Tricep Extensions',
-        weightKg: 15.0,
+        weightKg: 15,
         sets: 3,
         reps: 15,
         date: now.subtract(const Duration(days: 3)),
@@ -515,7 +490,7 @@ class MockDataHelper {
         id: 'acc_7',
         exerciseId: 'lateral_delt_flyes',
         exerciseName: 'Lateral & Rear Delt Flyes',
-        weightKg: 10.0,
+        weightKg: 10,
         sets: 3,
         reps: 15,
         date: now.subtract(const Duration(days: 4)),
@@ -525,7 +500,7 @@ class MockDataHelper {
         id: 'acc_8',
         exerciseId: 'sots_press',
         exerciseName: 'Sots Press & Snatch Balance Prep',
-        weightKg: 20.0,
+        weightKg: 20,
         sets: 3,
         reps: 5,
         date: now.subtract(const Duration(days: 16)),
@@ -535,7 +510,7 @@ class MockDataHelper {
         id: 'acc_9',
         exerciseId: 'sots_press',
         exerciseName: 'Sots Press & Snatch Balance Prep',
-        weightKg: 25.0,
+        weightKg: 25,
         sets: 3,
         reps: 5,
         date: now.subtract(const Duration(days: 5)),
@@ -557,7 +532,7 @@ class MockDataHelper {
       bmrKcal: 2394,
       bodyWaterPct: 57.8,
       muscleMassLb: 198.6,
-      boneMassLb: 10.0,
+      boneMassLb: 10,
       proteinPct: 17.6,
       visceralFat: 12,
       subcutaneousFatPct: 18.4,
@@ -665,26 +640,22 @@ class MockDataHelper {
         id: 'breath_sess_1',
         date: now.subtract(const Duration(days: 3)),
         totalRounds: 3,
-        readinessRating: 4,
         notes: 'Felt deep relaxation on round 2.',
         rounds: <BreathingRoundLog>[
           BreathingRoundLog(
             roundNumber: 1,
             breathsCount: 30,
             retentionSeconds: 75,
-            recoverySeconds: 15,
           ),
           BreathingRoundLog(
             roundNumber: 2,
             breathsCount: 30,
             retentionSeconds: 105,
-            recoverySeconds: 15,
           ),
           BreathingRoundLog(
             roundNumber: 3,
             breathsCount: 30,
             retentionSeconds: 130,
-            recoverySeconds: 15,
           ),
         ],
       ),
@@ -699,25 +670,21 @@ class MockDataHelper {
             roundNumber: 1,
             breathsCount: 30,
             retentionSeconds: 90,
-            recoverySeconds: 15,
           ),
           BreathingRoundLog(
             roundNumber: 2,
             breathsCount: 30,
             retentionSeconds: 120,
-            recoverySeconds: 15,
           ),
           BreathingRoundLog(
             roundNumber: 3,
             breathsCount: 30,
             retentionSeconds: 145,
-            recoverySeconds: 15,
           ),
           BreathingRoundLog(
             roundNumber: 4,
             breathsCount: 30,
             retentionSeconds: 165,
-            recoverySeconds: 15,
           ),
         ],
       ),
@@ -727,22 +694,22 @@ class MockDataHelper {
   /// Seeds SharedPreferences with comprehensive mock data
   static Future<StorageService> setupMockStorage() async {
     final String liftsJson = jsonEncode(
-      getMockLifts().map((LiftModel e) => e.toJson()).toList(),
+      getMockLifts().map((e) => e.toJson()).toList(),
     );
     final String cycleJson = jsonEncode(getMockProgramCycle().toJson());
     final String sessionsJson = jsonEncode(
-      getMockWorkoutSessions().map((WorkoutSession e) => e.toJson()).toList(),
+      getMockWorkoutSessions().map((e) => e.toJson()).toList(),
     );
     final String recoveryJson = jsonEncode(getMockRecoveryLogs());
     final String accessoryJson = jsonEncode(
-      getMockAccessoryLogs().map((AccessoryLog e) => e.toJson()).toList(),
+      getMockAccessoryLogs().map((e) => e.toJson()).toList(),
     );
     final String bodyCompJson = jsonEncode(<Map<String, dynamic>>[
       getMockBodyComp().toJson(),
     ]);
     final String nutritionJson = jsonEncode(getMockNutritionData());
     final String breathingJson = jsonEncode(
-      getMockBreathingLogs().map((BreathingSessionLog e) => e.toJson()).toList(),
+      getMockBreathingLogs().map((e) => e.toJson()).toList(),
     );
     final String goalJson = jsonEncode(<String, num>{
       'dailyCalorieTarget': 2400,

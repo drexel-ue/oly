@@ -2,7 +2,7 @@ import 'package:uuid/uuid.dart';
 
 /// Represents an entire completed or logged CrossFit Jackie session (For Time: 1000m Row, 50 Thrusters, 30 Pull-ups).
 class JackieWorkoutLog {
-  JackieWorkoutLog({
+  new({
     required this.totalTimeSeconds,
     String? id,
     DateTime? date,
@@ -30,7 +30,7 @@ class JackieWorkoutLog {
               pullupReps: pullupReps,
             );
 
-  factory JackieWorkoutLog.fromJson(Map<String, dynamic> json) {
+  factory fromJson(Map<String, dynamic> json) {
     return JackieWorkoutLog(
       id: json['id'] as String? ?? const Uuid().v4(),
       date: DateTime.tryParse(json['date'] as String? ?? '') ?? DateTime.now(),

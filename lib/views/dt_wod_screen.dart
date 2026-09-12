@@ -6,7 +6,7 @@ import 'package:oly/theme/app_theme.dart';
 import 'package:oly/widgets/dt_wod_card.dart';
 
 class DtWodScreen extends StatefulWidget {
-  const DtWodScreen({
+  const new({
     super.key,
     this.isPreviewMode = false,
   });
@@ -30,7 +30,7 @@ class _DtWodScreenState extends State<DtWodScreen> {
   Widget build(BuildContext context) {
     final MobilityExerciseModel dtExercise =
         MobilityExerciseModel.defaultExercises().firstWhere(
-      (MobilityExerciseModel e) => e.id == 'dt_wod',
+      (e) => e.id == 'dt_wod',
     );
 
     return Scaffold(

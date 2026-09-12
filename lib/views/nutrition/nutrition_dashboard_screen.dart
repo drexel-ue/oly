@@ -24,7 +24,7 @@ import 'package:oly/widgets/nutrition/macro_ring_card.dart';
 import 'package:provider/provider.dart';
 
 class NutritionDashboardScreen extends StatefulWidget {
-  const NutritionDashboardScreen({super.key});
+  const new({super.key});
 
   @override
   State<NutritionDashboardScreen> createState() =>
@@ -87,7 +87,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
             tooltip: 'Metabolic Science & Calculations',
             onPressed: () {
               Navigator.of(context).push(
-                MaterialPageRoute(
+                MaterialPageRoute<void>(
                   builder: (_) => const MetabolicScienceExplainerScreen(),
                 ),
               );
@@ -101,7 +101,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
             tooltip: 'Body Composition Analytics',
             onPressed: () {
               Navigator.of(context).push(
-                MaterialPageRoute(
+                MaterialPageRoute<void>(
                   builder: (_) => const BodyCompAnalyticsScreen(),
                 ),
               );
@@ -112,7 +112,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
             tooltip: 'Goal Settings',
             onPressed: () {
               Navigator.of(context).push(
-                MaterialPageRoute(
+                MaterialPageRoute<void>(
                   builder: (_) => const NutritionSettingsScreen(),
                 ),
               );
@@ -189,7 +189,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
                       style: GoogleFonts.inter(
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
-                        letterSpacing: 1.0,
+                        letterSpacing: 1,
                         color: AppTheme.textSecondary,
                       ),
                     ),
@@ -214,7 +214,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
                 ),
                 const SizedBox(height: 8),
 
-                ...MealCategory.values.map((MealCategory category) {
+                ...MealCategory.values.map((category) {
                   return _buildMealCategorySection(
                     context,
                     nutrition,
@@ -232,12 +232,12 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
-          showModalBottomSheet(
+          showModalBottomSheet<void>(
             context: context,
             isScrollControlled: true,
             backgroundColor: Colors.transparent,
             builder: (_) =>
-                const FoodSearchSheet(defaultCategory: MealCategory.lunch),
+                const FoodSearchSheet(),
           );
         },
         backgroundColor: AppTheme.primaryAmber,
@@ -443,7 +443,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
                 initialDate: nutrition.selectedDate,
                 firstDate: DateTime(2024),
                 lastDate: DateTime(2030),
-                builder: (BuildContext context, Widget? child) {
+                builder: (context, child) {
                   return Theme(
                     data: ThemeData.dark().copyWith(
                       colorScheme: const ColorScheme.dark(
@@ -536,7 +536,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
               ),
               InkWell(
                 onTap: () {
-                  showModalBottomSheet(
+                  showModalBottomSheet<void>(
                     context: context,
                     isScrollControlled: true,
                     backgroundColor: Colors.transparent,
@@ -958,7 +958,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
               physics: const NeverScrollableScrollPhysics(),
               itemCount: activities.length,
               separatorBuilder: (_, _) => const SizedBox(height: 6),
-              itemBuilder: (BuildContext ctx, int idx) {
+              itemBuilder: (ctx, idx) {
                 final DailyActivityEntry a = activities[idx];
                 return Dismissible(
                   key: Key(a.id),
@@ -1114,7 +1114,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
               ),
               tooltip: 'Quick Macro Log',
               onPressed: () {
-                showModalBottomSheet(
+                showModalBottomSheet<void>(
                   context: context,
                   isScrollControlled: true,
                   backgroundColor: Colors.transparent,
@@ -1171,7 +1171,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
                 color: AppTheme.borderColor.withValues(alpha: 0.5),
                 height: 1,
               ),
-              itemBuilder: (BuildContext context, int index) {
+              itemBuilder: (context, index) {
                 final NutritionEntry item = entries[index];
                 return Dismissible(
                   key: Key(item.id),
@@ -1205,7 +1205,6 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
                           style: GoogleFonts.inter(color: Colors.white),
                         ),
                         backgroundColor: AppTheme.surfaceElevated,
-                        duration: const Duration(seconds: 4),
                         action: SnackBarAction(
                           label: 'UNDO',
                           textColor: AppTheme.primaryAmber,
@@ -1299,7 +1298,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
   }
 
   void _openEditFoodSheet(BuildContext context, NutritionEntry item) {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -1308,7 +1307,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
   }
 
   void _openActivityLogSheet(BuildContext context) {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -1317,7 +1316,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
   }
 
   void _openFoodSearchSheet(BuildContext context, MealCategory category) {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,

@@ -4,7 +4,7 @@ import 'package:oly/theme/app_theme.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class MetabolicScienceExplainerScreen extends StatelessWidget {
-  const MetabolicScienceExplainerScreen({super.key});
+  const new({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -103,7 +103,7 @@ class MetabolicScienceExplainerScreen extends StatelessWidget {
 // TAB 1: Energy & TDEE
 // ---------------------------------------------------------------------------
 class _EnergyAndTdeeTab extends StatelessWidget {
-  const _EnergyAndTdeeTab();
+  const new();
 
   @override
   Widget build(BuildContext context) {
@@ -148,7 +148,7 @@ class _EnergyAndTdeeTab extends StatelessWidget {
 // TAB 2: Algorithm B (METs & LBM Scaling)
 // ---------------------------------------------------------------------------
 class _AlgorithmBTab extends StatelessWidget {
-  const _AlgorithmBTab();
+  const new();
 
   @override
   Widget build(BuildContext context) {
@@ -183,7 +183,7 @@ class _AlgorithmBTab extends StatelessWidget {
 // TAB 3: WOD & Lifting Physics
 // ---------------------------------------------------------------------------
 class _WodPhysicsTab extends StatelessWidget {
-  const _WodPhysicsTab();
+  const new();
 
   @override
   Widget build(BuildContext context) {
@@ -223,7 +223,7 @@ class _WodPhysicsTab extends StatelessWidget {
 // TAB 4: Hydration Model
 // ---------------------------------------------------------------------------
 class _HydrationModelTab extends StatelessWidget {
-  const _HydrationModelTab();
+  const new();
 
   @override
   Widget build(BuildContext context) {
@@ -256,7 +256,7 @@ class _HydrationModelTab extends StatelessWidget {
 // TAB 5: Open-Source Sources & Citations
 // ---------------------------------------------------------------------------
 class _OpenSourcesTab extends StatelessWidget {
-  const _OpenSourcesTab();
+  const new();
 
   @override
   Widget build(BuildContext context) {

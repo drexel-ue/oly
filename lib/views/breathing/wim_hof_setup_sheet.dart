@@ -8,7 +8,7 @@ import 'package:oly/views/breathing/wim_hof_session_screen.dart';
 import 'package:provider/provider.dart';
 
 class WimHofSetupSheet extends StatefulWidget {
-  const WimHofSetupSheet({super.key});
+  const new({super.key});
 
   @override
   State<WimHofSetupSheet> createState() => _WimHofSetupSheetState();
@@ -193,7 +193,7 @@ class _WimHofSetupSheetState extends State<WimHofSetupSheet> {
               style: GoogleFonts.inter(
                 fontSize: 11,
                 fontWeight: FontWeight.bold,
-                letterSpacing: 1.0,
+                letterSpacing: 1,
                 color: AppTheme.textSecondary,
               ),
             ),
@@ -246,7 +246,7 @@ class _WimHofSetupSheetState extends State<WimHofSetupSheet> {
                 Expanded(
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: <int>[1, 3, 4, 5].map((int r) {
+                    children: <int>[1, 3, 4, 5].map((r) {
                       final bool isSelected = _rounds == r;
                       return Expanded(
                         child: GestureDetector(
@@ -296,13 +296,13 @@ class _WimHofSetupSheetState extends State<WimHofSetupSheet> {
               style: GoogleFonts.inter(
                 fontSize: 11,
                 fontWeight: FontWeight.bold,
-                letterSpacing: 1.0,
+                letterSpacing: 1,
                 color: AppTheme.textSecondary,
               ),
             ),
             const SizedBox(height: 10),
             Row(
-              children: <int>[20, 30, 40].map((int b) {
+              children: <int>[20, 30, 40].map((b) {
                 final bool isSelected = _breathsPerRound == b;
                 return Expanded(
                   child: GestureDetector(
@@ -362,13 +362,13 @@ class _WimHofSetupSheetState extends State<WimHofSetupSheet> {
               style: GoogleFonts.inter(
                 fontSize: 11,
                 fontWeight: FontWeight.bold,
-                letterSpacing: 1.0,
+                letterSpacing: 1,
                 color: AppTheme.textSecondary,
               ),
             ),
             const SizedBox(height: 10),
             Row(
-              children: BreathingPace.values.map((BreathingPace p) {
+              children: BreathingPace.values.map((p) {
                 final bool isSelected = _pace == p;
                 String label;
                 String speedDesc;
@@ -376,15 +376,12 @@ class _WimHofSetupSheetState extends State<WimHofSetupSheet> {
                   case BreathingPace.relaxed:
                     label = 'Relaxed';
                     speedDesc = '4.5s cycle';
-                    break;
                   case BreathingPace.normal:
                     label = 'Normal';
                     speedDesc = '3.5s cycle';
-                    break;
                   case BreathingPace.fast:
                     label = 'Fast';
                     speedDesc = '2.5s cycle';
-                    break;
                 }
 
                 return Expanded(
@@ -473,7 +470,7 @@ class _WimHofSetupSheetState extends State<WimHofSetupSheet> {
                       Switch(
                         value: _soundEnabled,
                         activeThumbColor: AppTheme.secondaryCyan,
-                        onChanged: (bool val) =>
+                        onChanged: (val) =>
                             setState(() => _soundEnabled = val),
                       ),
                     ],
@@ -503,7 +500,7 @@ class _WimHofSetupSheetState extends State<WimHofSetupSheet> {
                       Switch(
                         value: _hapticsEnabled,
                         activeThumbColor: AppTheme.primaryAmber,
-                        onChanged: (bool val) =>
+                        onChanged: (val) =>
                             setState(() => _hapticsEnabled = val),
                       ),
                     ],

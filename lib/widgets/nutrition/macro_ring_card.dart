@@ -4,7 +4,7 @@ import 'package:oly/models/daily_nutrition_log.dart';
 import 'package:oly/theme/app_theme.dart';
 
 class MacroRingCard extends StatelessWidget {
-  const MacroRingCard({required this.log, super.key, this.onToggleTrainingDay});
+  const new({required this.log, super.key, this.onToggleTrainingDay});
   final DailyNutritionLog log;
   final VoidCallback? onToggleTrainingDay;
 
@@ -42,7 +42,7 @@ class MacroRingCard extends StatelessWidget {
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                       color: AppTheme.textSecondary,
-                      letterSpacing: 1.0,
+                      letterSpacing: 1,
                     ),
                   ),
                   const SizedBox(height: 4),
