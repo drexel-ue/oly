@@ -1301,41 +1301,57 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                       // Active Fasting Training HUD & Safety Advisory
                       if (fastingProvider != null &&
                           fastingProvider.isFastingActive) ...<Widget>[
-                        _buildFastedTrainingBanner(context, fastingProvider),
+                        OlyEntryReveal(
+                          child: _buildFastedTrainingBanner(context, fastingProvider),
+                        ),
                         const SizedBox(height: 12),
                       ],
 
                       // Active Injury Biomechanical Adaptation Banner
                       if (injuryProvider != null &&
                           injuryProvider.activeInjuries.isNotEmpty)
-                        SessionInjuryAdaptationCard(
-                          dayTemplate: widget.dayTemplate,
-                          activeInjuries: injuryProvider.activeInjuries,
-                          currentWeek: week,
-                          currentMaxes: maxes,
-                          appliedSwaps: _swappedExerciseNames,
-                          onApplySwaps: (
-                            swaps,
-                            weights,
-                          ) {
-                            setState(() {
-                              _swappedExerciseNames.addAll(swaps);
-                              weights.forEach((exName, wt) {
-                                if (_weightControllers.containsKey(exName)) {
-                                  _weightControllers[exName]!.text =
-                                      wt.toStringAsFixed(1);
-                                }
+                        OlyEntryReveal(
+                          index: fastingProvider != null &&
+                                  fastingProvider.isFastingActive
+                              ? 1
+                              : 0,
+                          child: SessionInjuryAdaptationCard(
+                            dayTemplate: widget.dayTemplate,
+                            activeInjuries: injuryProvider.activeInjuries,
+                            currentWeek: week,
+                            currentMaxes: maxes,
+                            appliedSwaps: _swappedExerciseNames,
+                            onApplySwaps: (
+                              swaps,
+                              weights,
+                            ) {
+                              setState(() {
+                                _swappedExerciseNames.addAll(swaps);
+                                weights.forEach((exName, wt) {
+                                  if (_weightControllers.containsKey(exName)) {
+                                    _weightControllers[exName]!.text =
+                                        wt.toStringAsFixed(1);
+                                  }
+                                });
                               });
-                            });
-                            _persistDraft();
-                          },
+                              _persistDraft();
+                            },
+                          ),
                         ),
 
                       // Phases & Exercises
                       ...List<Widget>.generate(
                         widget.dayTemplate.phases.length,
                         (index) => OlyEntryReveal(
-                          index: index,
+                          index: index +
+                              (fastingProvider != null &&
+                                      fastingProvider.isFastingActive
+                                  ? 1
+                                  : 0) +
+                              (injuryProvider != null &&
+                                      injuryProvider.activeInjuries.isNotEmpty
+                                  ? 1
+                                  : 0),
                           child: _buildPhaseCard(
                             context,
                             widget.dayTemplate.phases[index],
@@ -1347,13 +1363,30 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                       // Dynamic Items (WODs, Carries, Custom exercises)
                       if (_dynamicItems.isNotEmpty)
                         OlyEntryReveal(
-                          index: widget.dayTemplate.phases.length,
+                          index: widget.dayTemplate.phases.length +
+                              (fastingProvider != null &&
+                                      fastingProvider.isFastingActive
+                                  ? 1
+                                  : 0) +
+                              (injuryProvider != null &&
+                                      injuryProvider.activeInjuries.isNotEmpty
+                                  ? 1
+                                  : 0),
                           child: _buildDynamicItemsSection(context, settings),
                         ),
 
                       // Blank Canvas Hero or Dashed Add Card
                       OlyEntryReveal(
-                        index: widget.dayTemplate.phases.length + 1,
+                        index: widget.dayTemplate.phases.length +
+                            (fastingProvider != null &&
+                                    fastingProvider.isFastingActive
+                                ? 1
+                                : 0) +
+                            (injuryProvider != null &&
+                                    injuryProvider.activeInjuries.isNotEmpty
+                                ? 1
+                                : 0) +
+                            1,
                         child: EmptyAddMovementCard(
                           isSessionEmpty: widget.dayTemplate.phases.isEmpty &&
                               _dynamicItems.isEmpty,
@@ -1370,22 +1403,34 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                       const SizedBox(height: 16),
 
                       // Session Notes input
-                      TextField(
-                        controller: _notesController,
-                        focusNode: _notesFocusNode,
-                        maxLines: 2,
-                        style: GoogleFonts.inter(color: AppTheme.textPrimary),
-                        decoration: InputDecoration(
-                          hintText: 'Workout Notes (RPE, feel, fatigue)...',
-                          hintStyle: GoogleFonts.inter(
-                            color: AppTheme.textSecondary,
-                          ),
-                          filled: true,
-                          fillColor: AppTheme.surfaceCard,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            borderSide: const BorderSide(
-                              color: AppTheme.borderColor,
+                      OlyEntryReveal(
+                        index: widget.dayTemplate.phases.length +
+                            (fastingProvider != null &&
+                                    fastingProvider.isFastingActive
+                                ? 1
+                                : 0) +
+                            (injuryProvider != null &&
+                                    injuryProvider.activeInjuries.isNotEmpty
+                                ? 1
+                                : 0) +
+                            2,
+                        child: TextField(
+                          controller: _notesController,
+                          focusNode: _notesFocusNode,
+                          maxLines: 2,
+                          style: GoogleFonts.inter(color: AppTheme.textPrimary),
+                          decoration: InputDecoration(
+                            hintText: 'Workout Notes (RPE, feel, fatigue)...',
+                            hintStyle: GoogleFonts.inter(
+                              color: AppTheme.textSecondary,
+                            ),
+                            filled: true,
+                            fillColor: AppTheme.surfaceCard,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              borderSide: const BorderSide(
+                                color: AppTheme.borderColor,
+                              ),
                             ),
                           ),
                         ),
@@ -1393,104 +1438,115 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                       const SizedBox(height: 24),
 
                       // Action Buttons (Live Mode vs Preview Mode)
-                      if (_isLiveMode)
-                        SizedBox(
-                          width: double.infinity,
-                          height: 52,
-                          child: ElevatedButton.icon(
-                            onPressed: _finishWorkout,
-                            icon: const Icon(
-                              Icons.check_circle_outline,
-                              color: Colors.black,
-                            ),
-                            label: Text(
-                              'Complete & Save Session',
-                              style: GoogleFonts.outfit(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppTheme.primaryAmber,
-                              foregroundColor: Colors.black,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                            ),
-                          ),
-                        )
-                      else
-                        Row(
-                          children: <Widget>[
-                            Expanded(
-                              child: OutlinedButton(
-                                onPressed: () {
-                                  try {
-                                    final ActiveSessionProvider activeSession =
-                                        Provider.of<ActiveSessionProvider>(
-                                      context,
-                                      listen: false,
-                                    );
-                                    activeSession.endSession();
-                                  } catch (_) {}
-                                  Navigator.pop(context);
-                                },
-                                style: OutlinedButton.styleFrom(
-                                  minimumSize: const Size(0, 50),
-                                  foregroundColor: AppTheme.textSecondary,
-                                  side: const BorderSide(
-                                    color: AppTheme.borderColor,
+                      OlyEntryReveal(
+                        index: widget.dayTemplate.phases.length +
+                            (fastingProvider != null &&
+                                    fastingProvider.isFastingActive
+                                ? 1
+                                : 0) +
+                            (injuryProvider != null &&
+                                    injuryProvider.activeInjuries.isNotEmpty
+                                ? 1
+                                : 0) +
+                            3,
+                        child: _isLiveMode
+                            ? SizedBox(
+                                width: double.infinity,
+                                height: 52,
+                                child: ElevatedButton.icon(
+                                  onPressed: _finishWorkout,
+                                  icon: const Icon(
+                                    Icons.check_circle_outline,
+                                    color: Colors.black,
                                   ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                ),
-                                child: Text(
-                                  'Exit Preview',
-                                  style: GoogleFonts.outfit(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: ElevatedButton.icon(
-                                onPressed: () {
-                                  setState(() {
-                                    _isLiveMode = true;
-                                  });
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        'Switched to Live Workout! You can now log your sets.',
-                                      ),
-                                      backgroundColor: AppTheme.primaryAmber,
+                                  label: Text(
+                                    'Complete & Save Session',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
                                     ),
-                                  );
-                                },
-                                icon: const Icon(
-                                  Icons.play_arrow,
-                                  color: Colors.black,
-                                ),
-                                label: Text(
-                                  'Start Live Log',
-                                  style: GoogleFonts.outfit(
-                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppTheme.primaryAmber,
+                                    foregroundColor: Colors.black,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
                                   ),
                                 ),
-                                style: ElevatedButton.styleFrom(
-                                  minimumSize: const Size(0, 50),
-                                  backgroundColor: AppTheme.primaryAmber,
-                                  foregroundColor: Colors.black,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(16),
+                              )
+                            : Row(
+                                children: <Widget>[
+                                  Expanded(
+                                    child: OutlinedButton(
+                                      onPressed: () {
+                                        try {
+                                          final ActiveSessionProvider activeSession =
+                                              Provider.of<ActiveSessionProvider>(
+                                            context,
+                                            listen: false,
+                                          );
+                                          activeSession.endSession();
+                                        } catch (_) {}
+                                        Navigator.pop(context);
+                                      },
+                                      style: OutlinedButton.styleFrom(
+                                        minimumSize: const Size(0, 50),
+                                        foregroundColor: AppTheme.textSecondary,
+                                        side: const BorderSide(
+                                          color: AppTheme.borderColor,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(16),
+                                        ),
+                                      ),
+                                      child: Text(
+                                        'Exit Preview',
+                                        style: GoogleFonts.outfit(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
                                   ),
-                                ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: ElevatedButton.icon(
+                                      onPressed: () {
+                                        setState(() {
+                                          _isLiveMode = true;
+                                        });
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(
+                                            content: Text(
+                                              'Switched to Live Workout! You can now log your sets.',
+                                            ),
+                                            backgroundColor: AppTheme.primaryAmber,
+                                          ),
+                                        );
+                                      },
+                                      icon: const Icon(
+                                        Icons.play_arrow,
+                                        color: Colors.black,
+                                      ),
+                                      label: Text(
+                                        'Start Live Log',
+                                        style: GoogleFonts.outfit(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      style: ElevatedButton.styleFrom(
+                                        minimumSize: const Size(0, 50),
+                                        backgroundColor: AppTheme.primaryAmber,
+                                        foregroundColor: Colors.black,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(16),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ),
-                          ],
-                        ),
+                      ),
                       const SizedBox(height: 24),
                     ],
                   ),
