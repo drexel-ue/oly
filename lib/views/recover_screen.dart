@@ -12,6 +12,7 @@ import 'package:oly/theme/app_theme.dart';
 import 'package:oly/views/breathing/wim_hof_setup_sheet.dart';
 import 'package:oly/views/injury_tracker_screen.dart';
 import 'package:oly/views/recovery_session_screen.dart';
+import 'package:oly/widgets/motion/oly_entry_reveal.dart';
 import 'package:provider/provider.dart';
 
 /// The dedicated RECOVER domain view for physiological readiness,
@@ -115,30 +116,41 @@ class RecoverScreen extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           children: <Widget>[
             // 1. Holistic Daily Readiness Score Card
-            _buildReadinessCard(
-              context,
-              readinessScore,
-              readinessColor,
-              activeInjuries,
-              todayBreathingRounds,
+            OlyEntryReveal(
+              child: _buildReadinessCard(
+                context,
+                readinessScore,
+                readinessColor,
+                activeInjuries,
+                todayBreathingRounds,
+              ),
             ),
             const SizedBox(height: 16),
 
             // 2. Active Dynamic Mobility Protocol Hero Card
-            _buildMobilityHeroCard(context, mobilityRoutine),
+            OlyEntryReveal(
+              index: 1,
+              child: _buildMobilityHeroCard(context, mobilityRoutine),
+            ),
             const SizedBox(height: 16),
 
             // 3. Wim Hof Breathwork Hub Card
-            _buildBreathworkCard(
-              context,
-              breathConfig,
-              todayBreathingRounds,
-              bestRetentionSecs,
+            OlyEntryReveal(
+              index: 2,
+              child: _buildBreathworkCard(
+                context,
+                breathConfig,
+                todayBreathingRounds,
+                bestRetentionSecs,
+              ),
             ),
             const SizedBox(height: 16),
 
             // 4. Joint & Soreness Tracker Card
-            _buildInjurySummaryCard(context, activeInjuries),
+            OlyEntryReveal(
+              index: 3,
+              child: _buildInjurySummaryCard(context, activeInjuries),
+            ),
             const SizedBox(height: 24),
           ],
         ),

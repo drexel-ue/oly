@@ -4,6 +4,7 @@ import 'package:oly/models/lift_model.dart';
 import 'package:oly/providers/lift_provider.dart';
 import 'package:oly/providers/settings_provider.dart';
 import 'package:oly/theme/app_theme.dart';
+import 'package:oly/widgets/motion/oly_entry_reveal.dart';
 import 'package:oly/widgets/ratio_chart_widget.dart';
 import 'package:oly/widgets/standard_ratios_sheet.dart';
 import 'package:provider/provider.dart';
@@ -193,9 +194,15 @@ class _LiftsScreenState extends State<LiftsScreen>
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          'Lift Catalog & Ratios',
-          style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
+        title: Hero(
+          tag: 'olympic_total_hero_header',
+          child: Material(
+            type: MaterialType.transparency,
+            child: Text(
+              'Lift Catalog & Ratios',
+              style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
+            ),
+          ),
         ),
         actions: <Widget>[
           IconButton(
@@ -236,14 +243,19 @@ class _LiftsScreenState extends State<LiftsScreen>
               itemCount: lifts.lifts.length,
               itemBuilder: (context, index) {
                 final LiftModel lift = lifts.lifts[index];
-                return _buildLiftCard(context, lift, lifts, settings);
+                return OlyEntryReveal(
+                  index: index.clamp(0, 6),
+                  child: _buildLiftCard(context, lift, lifts, settings),
+                );
               },
             ),
 
             // TAB 2: Ratio Analysis
             SingleChildScrollView(
               padding: const EdgeInsets.all(16),
-              child: RatioChartWidget(ratios: lifts.getRatioAnalysis()),
+              child: OlyEntryReveal(
+                child: RatioChartWidget(ratios: lifts.getRatioAnalysis()),
+              ),
             ),
           ],
         ),

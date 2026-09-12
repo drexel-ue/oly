@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:oly/widgets/motion/oly_page_route.dart';
 
 class AppTheme {
   static const Color darkBackground = Color(0xFF090A0D); // Deep Obsidian
@@ -218,6 +219,13 @@ class AppTheme {
         unselectedItemColor: textSecondary,
         type: BottomNavigationBarType.fixed,
         elevation: 8,
+      ),
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: <TargetPlatform, PageTransitionsBuilder>{
+          TargetPlatform.iOS: OlyPageTransitionsBuilder(),
+          TargetPlatform.android: OlyPageTransitionsBuilder(),
+          TargetPlatform.macOS: OlyPageTransitionsBuilder(),
+        },
       ),
     );
   }

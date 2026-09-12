@@ -12,6 +12,7 @@ import 'package:oly/views/nutrition/fasting_circadian_sheet.dart';
 import 'package:oly/views/nutrition/fasting_refeed_guide_sheet.dart';
 import 'package:oly/views/nutrition/fasting_science_explainer_screen.dart';
 import 'package:oly/views/nutrition/fasting_setup_sheet.dart';
+import 'package:oly/widgets/motion/oly_entry_reveal.dart';
 import 'package:oly/widgets/motion/oly_pressable.dart';
 import 'package:oly/widgets/nutrition/fasting_cellular_card.dart';
 import 'package:oly/widgets/nutrition/fasting_grocery_sheet.dart';
@@ -58,90 +59,101 @@ class FastingDashboardView extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         // Hero Inactive Card
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: AppTheme.surfaceCard,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppTheme.primaryAmber.withValues(alpha: 0.3)),
-          ),
-          child: Column(
-            children: <Widget>[
-              Container(
-                width: 64,
-                height: 64,
-                decoration: BoxDecoration(
-                  color: AppTheme.primaryAmber.withValues(alpha: 0.15),
-                  shape: BoxShape.circle,
-                  border: Border.all(color: AppTheme.primaryAmber),
-                ),
-                child: const Icon(
-                  Icons.hourglass_empty_rounded,
-                  color: AppTheme.primaryAmber,
-                  size: 32,
-                ),
-              ),
-              const SizedBox(height: 14),
-              Text(
-                'No Active Fast in Progress',
-                style: GoogleFonts.outfit(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'Ready to begin your 16:8 circadian cycle? Eating window: 10:00 AM – 6:00 PM.',
-                textAlign: TextAlign.center,
-                style: GoogleFonts.inter(
-                  fontSize: 12,
-                  color: AppTheme.textSecondary,
-                ),
-              ),
-              const SizedBox(height: 18),
-              SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: OlyPressable(
-                  borderRadius: BorderRadius.circular(12),
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primaryAmber,
-                      foregroundColor: Colors.black,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    icon: const Icon(Icons.play_arrow, size: 22),
-                    label: Text(
-                      'START GUIDED FAST',
-                      style: GoogleFonts.outfit(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 0.8,
-                      ),
-                    ),
-                    onPressed: () => FastingSetupSheet.show(context),
+        OlyEntryReveal(
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: AppTheme.surfaceCard,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppTheme.primaryAmber.withValues(alpha: 0.3)),
+            ),
+            child: Column(
+              children: <Widget>[
+                Container(
+                  width: 64,
+                  height: 64,
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryAmber.withValues(alpha: 0.15),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: AppTheme.primaryAmber),
+                  ),
+                  child: const Icon(
+                    Icons.hourglass_empty_rounded,
+                    color: AppTheme.primaryAmber,
+                    size: 32,
                   ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 14),
+                Text(
+                  'No Active Fast in Progress',
+                  style: GoogleFonts.outfit(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Ready to begin your 16:8 circadian cycle? Eating window: 10:00 AM – 6:00 PM.',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    color: AppTheme.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: 18),
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: OlyPressable(
+                    borderRadius: BorderRadius.circular(12),
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primaryAmber,
+                        foregroundColor: Colors.black,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      icon: const Icon(Icons.play_arrow, size: 22),
+                      label: Text(
+                        'START GUIDED FAST',
+                        style: GoogleFonts.outfit(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.8,
+                        ),
+                      ),
+                      onPressed: () => FastingSetupSheet.show(context),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
         const SizedBox(height: 16),
 
         // Keto-Mojo Blood Glucose, Ketones & GKI Card
-        _buildKetoMojoCard(context, fasting),
+        OlyEntryReveal(
+          index: 1,
+          child: _buildKetoMojoCard(context, fasting),
+        ),
         const SizedBox(height: 16),
 
         // Quick Tools Row (Pantry, GKI Tracking, Science)
-        _buildQuickToolsRow(context),
+        OlyEntryReveal(
+          index: 2,
+          child: _buildQuickToolsRow(context),
+        ),
         const SizedBox(height: 16),
 
         // 7-Day Forward Projection Card
-        FastingProjectionCard(scheduleDays: fasting.projectionSchedule),
+        OlyEntryReveal(
+          index: 3,
+          child: FastingProjectionCard(scheduleDays: fasting.projectionSchedule),
+        ),
         const SizedBox(height: 16),
 
         // History Section
@@ -168,23 +180,37 @@ class FastingDashboardView extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         // Hero Radial Dial
-        FastingRadialGauge(session: session, size: 260),
+        OlyEntryReveal(
+          child: FastingRadialGauge(session: session, size: 260),
+        ),
         const SizedBox(height: 18),
 
         // Live Cellular Mechanism Card
-        FastingCellularCard(session: session),
+        OlyEntryReveal(
+          index: 1,
+          child: FastingCellularCard(session: session),
+        ),
         const SizedBox(height: 16),
 
         // Electrolyte & Hydration Station
-        _buildElectrolyteStation(context, fasting, session),
+        OlyEntryReveal(
+          index: 2,
+          child: _buildElectrolyteStation(context, fasting, session),
+        ),
         const SizedBox(height: 16),
 
         // Keto-Mojo Biomarker Card
-        _buildKetoMojoCard(context, fasting),
+        OlyEntryReveal(
+          index: 3,
+          child: _buildKetoMojoCard(context, fasting),
+        ),
         const SizedBox(height: 16),
 
         // 7-Day Forward Projection
-        FastingProjectionCard(scheduleDays: fasting.projectionSchedule),
+        OlyEntryReveal(
+          index: 4,
+          child: FastingProjectionCard(scheduleDays: fasting.projectionSchedule),
+        ),
         const SizedBox(height: 16),
 
         // Quick Tools

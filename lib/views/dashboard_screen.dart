@@ -10,6 +10,7 @@ import 'package:oly/services/recovery_engine_service.dart';
 import 'package:oly/theme/app_theme.dart';
 import 'package:oly/views/analytics_screen.dart';
 import 'package:oly/views/breathing/wim_hof_setup_sheet.dart';
+import 'package:oly/views/lifts_screen.dart';
 import 'package:oly/views/nutrition/nutrition_dashboard_screen.dart';
 import 'package:oly/views/nutrition/renpho_scanner_sheet.dart';
 import 'package:oly/views/recovery_session_screen.dart';
@@ -18,6 +19,7 @@ import 'package:oly/views/wod_hub_screen.dart';
 import 'package:oly/views/workout_session_screen.dart';
 import 'package:oly/widgets/athlete_summary_overview_card.dart';
 import 'package:oly/widgets/motion/kinetic_counter.dart';
+import 'package:oly/widgets/motion/oly_entry_reveal.dart';
 import 'package:oly/widgets/motion/oly_pressable.dart';
 import 'package:oly/widgets/plate_modal.dart';
 import 'package:oly/widgets/settings_modal.dart';
@@ -115,195 +117,228 @@ class DashboardScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               // Athlete Daily Briefing / Summary Overview Card
-              AthleteSummaryOverviewCard(
-                dayTemplate: currentDay,
-                onNavigateTab: onNavigateTab,
+              OlyEntryReveal(
+                child: AthleteSummaryOverviewCard(
+                  dayTemplate: currentDay,
+                  onNavigateTab: onNavigateTab,
+                ),
               ),
               const SizedBox(height: 16),
 
               // Active Cycle Banner
-              _buildCycleCard(context, program),
+              OlyEntryReveal(
+                index: 1,
+                child: _buildCycleCard(context, program),
+              ),
               const SizedBox(height: 16),
 
               // Active In-Progress Workout Resume Card (if present)
               if (program.hasActiveDraft) ...<Widget>[
-                _buildActiveSessionResumeCard(context, program),
+                OlyEntryReveal(
+                  index: 1,
+                  child: _buildActiveSessionResumeCard(context, program),
+                ),
                 const SizedBox(height: 16),
               ],
 
               // Today's Scheduled Workout Card
-              _buildTodayWorkoutCard(context, program, currentDay),
+              OlyEntryReveal(
+                index: 2,
+                child: _buildTodayWorkoutCard(context, program, currentDay),
+              ),
               const SizedBox(height: 16),
 
               // CrossFit & Hero Conditioning Hub Showcase
-              _buildCrossfitWodShowcaseCard(context),
+              OlyEntryReveal(
+                index: 3,
+                child: _buildCrossfitWodShowcaseCard(context),
+              ),
               const SizedBox(height: 16),
 
               // Olympic Total & Primary PRs
-              _buildOlympicTotalCard(
-                context,
-                program,
-                lifts,
-                settings,
-                snatchKg,
-                cjKg,
-                olyTotalKg,
+              OlyEntryReveal(
+                index: 4,
+                child: _buildOlympicTotalCard(
+                  context,
+                  program,
+                  lifts,
+                  settings,
+                  snatchKg,
+                  cjKg,
+                  olyTotalKg,
+                ),
               ),
               const SizedBox(height: 16),
 
               // Quick Actions (Warmup & Plate Loader)
-              Row(
-                children: <Widget>[
-                  Expanded(
-                    child: _buildActionCard(
-                      context,
-                      title: 'Guided Warm-Up',
-                      subtitle: 'Row, DROMs & Barbell',
-                      icon: Icons.directions_run,
-                      accentColor: AppTheme.secondaryCyan,
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute<void>(
-                            builder: (_) =>
-                                WarmupSessionScreen(dayTemplate: currentDay),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildActionCard(
-                      context,
-                      title: 'Plate Loader',
-                      subtitle: 'Bar & Bumper Calc',
-                      icon: Icons.pie_chart,
-                      accentColor: AppTheme.primaryAmber,
-                      onTap: () {
-                        showModalBottomSheet<void>(
-                          context: context,
-                          isScrollControlled: true,
-                          useSafeArea: true,
-                          backgroundColor: Colors.transparent,
-                          builder: (_) =>
-                              const PlateModal(initialWeightKg: 100),
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-
-              // Nutrition & Renpho Scale Scanner Row
-              Row(
-                children: <Widget>[
-                  Expanded(
-                    child: _buildActionCard(
-                      context,
-                      title: 'Calorie & Macros',
-                      subtitle: 'Daily Food & Fuel',
-                      icon: Icons.restaurant,
-                      accentColor: AppTheme.primaryAmber,
-                      onTap: () {
-                        if (onNavigateTab != null) {
-                          onNavigateTab!(2); // Switch to FUEL tab
-                        } else {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute<void>(
-                              builder: (_) => const NutritionDashboardScreen(),
-                            ),
-                          );
-                        }
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildActionCard(
-                      context,
-                      title: 'Renpho Scale Scan',
-                      subtitle: 'LBM, BF% & BMR',
-                      icon: Icons.document_scanner,
-                      accentColor: AppTheme.successGreen,
-                      onTap: () {
-                        showModalBottomSheet<void>(
-                          context: context,
-                          isScrollControlled: true,
-                          useSafeArea: true,
-                          backgroundColor: Colors.transparent,
-                          builder: (_) => const RenphoScannerSheet(),
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-
-              // Wim Hof Breathwork & Analytics Row
-              Row(
-                children: <Widget>[
-                  Expanded(
-                    child: _buildActionCard(
-                      context,
-                      title: 'Wim Hof Breath',
-                      subtitle: 'Oxygen & Retention',
-                      icon: Icons.air,
-                      accentColor: AppTheme.secondaryCyan,
-                      onTap: () {
-                        showModalBottomSheet<void>(
-                          context: context,
-                          isScrollControlled: true,
-                          useSafeArea: true,
-                          backgroundColor: Colors.transparent,
-                          builder: (_) => const WimHofSetupSheet(),
-                        );
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildActionCard(
-                      context,
-                      title: 'Breath Analytics',
-                      subtitle: 'PRs & Hold Trends',
-                      icon: Icons.insights_outlined,
-                      accentColor: AppTheme.primaryAmber,
-                      onTap: () {
-                        if (onNavigateTab != null) {
-                          onNavigateTab!(3, 3); // Analytics Tab -> Breathwork (Tab 3, Sub-tab 3)
-                        } else {
+              OlyEntryReveal(
+                index: 5,
+                child: Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: _buildActionCard(
+                        context,
+                        title: 'Guided Warm-Up',
+                        subtitle: 'Row, DROMs & Barbell',
+                        icon: Icons.directions_run,
+                        accentColor: AppTheme.secondaryCyan,
+                        onTap: () {
                           Navigator.push(
                             context,
                             MaterialPageRoute<void>(
                               builder: (_) =>
-                                  const AnalyticsScreen(initialTabIndex: 3),
+                                  WarmupSessionScreen(dayTemplate: currentDay),
                             ),
                           );
-                        }
-                      },
+                        },
+                      ),
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildActionCard(
+                        context,
+                        title: 'Plate Loader',
+                        subtitle: 'Bar & Bumper Calc',
+                        icon: Icons.pie_chart,
+                        accentColor: AppTheme.primaryAmber,
+                        onTap: () {
+                          showModalBottomSheet<void>(
+                            context: context,
+                            isScrollControlled: true,
+                            useSafeArea: true,
+                            backgroundColor: Colors.transparent,
+                            builder: (_) =>
+                                const PlateModal(initialWeightKg: 100),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              // Nutrition & Renpho Scale Scanner Row
+              OlyEntryReveal(
+                index: 6,
+                child: Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: _buildActionCard(
+                        context,
+                        title: 'Calorie & Macros',
+                        subtitle: 'Daily Food & Fuel',
+                        icon: Icons.restaurant,
+                        accentColor: AppTheme.primaryAmber,
+                        onTap: () {
+                          if (onNavigateTab != null) {
+                            onNavigateTab!(2); // Switch to FUEL tab
+                          } else {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute<void>(
+                                builder: (_) =>
+                                    const NutritionDashboardScreen(),
+                              ),
+                            );
+                          }
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildActionCard(
+                        context,
+                        title: 'Renpho Scale Scan',
+                        subtitle: 'LBM, BF% & BMR',
+                        icon: Icons.document_scanner,
+                        accentColor: AppTheme.successGreen,
+                        onTap: () {
+                          showModalBottomSheet<void>(
+                            context: context,
+                            isScrollControlled: true,
+                            useSafeArea: true,
+                            backgroundColor: Colors.transparent,
+                            builder: (_) => const RenphoScannerSheet(),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              // Wim Hof Breathwork & Analytics Row
+              OlyEntryReveal(
+                index: 7,
+                child: Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: _buildActionCard(
+                        context,
+                        title: 'Wim Hof Breath',
+                        subtitle: 'Oxygen & Retention',
+                        icon: Icons.air,
+                        accentColor: AppTheme.secondaryCyan,
+                        onTap: () {
+                          showModalBottomSheet<void>(
+                            context: context,
+                            isScrollControlled: true,
+                            useSafeArea: true,
+                            backgroundColor: Colors.transparent,
+                            builder: (_) => const WimHofSetupSheet(),
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildActionCard(
+                        context,
+                        title: 'Breath Analytics',
+                        subtitle: 'PRs & Hold Trends',
+                        icon: Icons.insights_outlined,
+                        accentColor: AppTheme.primaryAmber,
+                        onTap: () {
+                          if (onNavigateTab != null) {
+                            onNavigateTab!(3, 3); // Analytics Tab -> Breathwork
+                          } else {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute<void>(
+                                builder: (_) =>
+                                    const AnalyticsScreen(initialTabIndex: 3),
+                              ),
+                            );
+                          }
+                        },
+                      ),
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(height: 12),
 
               // Routine Explorer
-              _buildActionCard(
-                context,
-                title: 'Routine Explorer',
-                subtitle: 'Preview Any Periodization Week & Day',
-                icon: Icons.explore,
-                accentColor: AppTheme.secondaryCyan,
-                onTap: () => _showRoutineExplorerSheet(context, program),
+              OlyEntryReveal(
+                index: 8,
+                child: _buildActionCard(
+                  context,
+                  title: 'Routine Explorer',
+                  subtitle: 'Preview Any Periodization Week & Day',
+                  icon: Icons.explore,
+                  accentColor: AppTheme.secondaryCyan,
+                  onTap: () => _showRoutineExplorerSheet(context, program),
+                ),
               ),
               const SizedBox(height: 16),
 
               // Ratio Balance Glance
-              _buildRatioGlanceCard(context, lifts),
+              OlyEntryReveal(
+                index: 9,
+                child: _buildRatioGlanceCard(context, lifts),
+              ),
             ],
           ),
         ),
@@ -951,53 +986,68 @@ class DashboardScreen extends StatelessWidget {
     double cj,
     double total,
   ) {
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: AppTheme.surfaceCard,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: AppTheme.primaryAmber.withValues(alpha: 0.35),
+    return OlyPressable(
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute<void>(
+            builder: (_) => const LiftsScreen(),
+          ),
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: AppTheme.surfaceCard,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: AppTheme.primaryAmber.withValues(alpha: 0.35),
+          ),
+          boxShadow: <BoxShadow>[
+            BoxShadow(
+              color: AppTheme.primaryAmber.withValues(alpha: 0.08),
+              blurRadius: 16,
+              offset: const Offset(0, 4),
+            ),
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.4),
+              blurRadius: 12,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
-        boxShadow: <BoxShadow>[
-          BoxShadow(
-            color: AppTheme.primaryAmber.withValues(alpha: 0.08),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
-          ),
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.4),
-            blurRadius: 12,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: <Widget>[
-              Text(
-                'OLYMPIC TOTAL',
-                style: GoogleFonts.outfit(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1.2,
-                  color: AppTheme.primaryAmber,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Hero(
+              tag: 'olympic_total_hero_header',
+              child: Material(
+                type: MaterialType.transparency,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    Text(
+                      'OLYMPIC TOTAL',
+                      style: GoogleFonts.outfit(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.2,
+                        color: AppTheme.primaryAmber,
+                      ),
+                    ),
+                    KineticCounter(
+                      value: settings.toDisplayWeight(total),
+                      suffix: ' ${settings.unitLabel}',
+                      style: GoogleFonts.outfit(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.primaryAmber,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              KineticCounter(
-                value: settings.toDisplayWeight(total),
-                suffix: ' ${settings.unitLabel}',
-                style: GoogleFonts.outfit(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.primaryAmber,
-                ),
-              ),
-            ],
-          ),
+            ),
           const SizedBox(height: 12),
           const Divider(color: AppTheme.borderColor),
           const SizedBox(height: 8),
@@ -1089,6 +1139,7 @@ class DashboardScreen extends StatelessWidget {
             ],
           ),
         ],
+      ),
       ),
     );
   }

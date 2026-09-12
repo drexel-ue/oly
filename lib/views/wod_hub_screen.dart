@@ -29,6 +29,7 @@ import 'package:oly/views/helen_wod_screen.dart';
 import 'package:oly/views/jackie_wod_screen.dart';
 import 'package:oly/widgets/hero_wod_detail_sheet.dart';
 import 'package:oly/widgets/log_wod_score_sheet.dart';
+import 'package:oly/widgets/motion/oly_entry_reveal.dart';
 import 'package:oly/widgets/motion/oly_pressable.dart';
 import 'package:oly/widgets/wod_history_sheet.dart';
 import 'package:oly/widgets/wod_setup_explainer_sheet.dart';
@@ -568,7 +569,9 @@ class _WodHubScreenState extends State<WodHubScreen> {
         child: Column(
           children: <Widget>[
             // Tab Selector: WOD Catalog vs Progress & PRs
-            _buildTabSelector(),
+            OlyEntryReveal(
+              child: _buildTabSelector(),
+            ),
 
             // Active Tab Content
             Expanded(
@@ -681,12 +684,18 @@ class _WodHubScreenState extends State<WodHubScreen> {
           child: Column(
             children: <Widget>[
               // Shuffle Hero Banner
-              _buildShuffleHeroBanner(),
+              OlyEntryReveal(
+                index: 1,
+                child: _buildShuffleHeroBanner(),
+              ),
 
               const SizedBox(height: 12),
 
               // Stats Quick Row
-              _buildStatsRow(totalLogged, recovery),
+              OlyEntryReveal(
+                index: 2,
+                child: _buildStatsRow(totalLogged, recovery),
+              ),
 
               const SizedBox(height: 12),
 
@@ -843,7 +852,10 @@ class _WodHubScreenState extends State<WodHubScreen> {
                       itemCount: _filteredWods.length,
                       itemBuilder: (context, index) {
                         final WodDefinition wod = _filteredWods[index];
-                        return _buildWodCard(wod, recovery);
+                        return OlyEntryReveal(
+                          index: (index % 6) + 3,
+                          child: _buildWodCard(wod, recovery),
+                        );
                       },
                     ),
         ),
@@ -1794,12 +1806,18 @@ class _WodHubScreenState extends State<WodHubScreen> {
               children: <Widget>[
                 Row(
                   children: <Widget>[
-                    Text(
-                      wod.name,
-                      style: GoogleFonts.outfit(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: AppTheme.textPrimary,
+                    Hero(
+                      tag: 'wod_title_${wod.id}',
+                      child: Material(
+                        type: MaterialType.transparency,
+                        child: Text(
+                          wod.name,
+                          style: GoogleFonts.outfit(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.textPrimary,
+                          ),
+                        ),
                       ),
                     ),
                     const SizedBox(width: 8),

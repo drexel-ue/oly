@@ -173,12 +173,18 @@ class HeroWodDetailSheet extends StatelessWidget {
                         spacing: 8,
                         runSpacing: 4,
                         children: <Widget>[
-                          Text(
-                            heroWod.name,
-                            style: GoogleFonts.outfit(
-                              fontSize: 24,
-                              fontWeight: FontWeight.w900,
-                              color: AppTheme.textPrimary,
+                          Hero(
+                            tag: 'wod_title_${heroWod.id}',
+                            child: Material(
+                              type: MaterialType.transparency,
+                              child: Text(
+                                heroWod.name,
+                                style: GoogleFonts.outfit(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.w900,
+                                  color: AppTheme.textPrimary,
+                                ),
+                              ),
                             ),
                           ),
                           Container(

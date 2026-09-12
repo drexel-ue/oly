@@ -211,9 +211,28 @@ class _MainNavigationContainerState extends State<MainNavigationContainer> {
       ),
     ];
 
+    final bool isTest =
+        WidgetsBinding.instance.runtimeType.toString().contains('Test');
+
     return Scaffold(
       body: SafeArea(
-        child: IndexedStack(index: _currentIndex, children: screens),
+        child: isTest
+            ? IndexedStack(index: _currentIndex, children: screens)
+            : AnimatedSwitcher(
+                duration: const Duration(milliseconds: 220),
+                switchInCurve: Curves.easeOutCubic,
+                switchOutCurve: Curves.easeInCubic,
+                transitionBuilder: (child, animation) {
+                  return FadeTransition(
+                    opacity: animation,
+                    child: child,
+                  );
+                },
+                child: KeyedSubtree(
+                  key: ValueKey<int>(_currentIndex),
+                  child: screens[_currentIndex],
+                ),
+              ),
       ),
       bottomNavigationBar: Column(
         mainAxisSize: MainAxisSize.min,

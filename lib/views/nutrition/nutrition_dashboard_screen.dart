@@ -18,6 +18,7 @@ import 'package:oly/views/nutrition/metabolic_science_explainer_screen.dart';
 import 'package:oly/views/nutrition/nutrition_settings_screen.dart';
 import 'package:oly/views/nutrition/quick_macro_log_sheet.dart';
 import 'package:oly/views/nutrition/renpho_scanner_sheet.dart';
+import 'package:oly/widgets/motion/oly_entry_reveal.dart';
 import 'package:oly/widgets/nutrition/energy_balance_card.dart';
 import 'package:oly/widgets/nutrition/fasting_active_card.dart';
 import 'package:oly/widgets/nutrition/macro_ring_card.dart';
@@ -148,36 +149,46 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
                 const FastingDashboardView()
               else ...<Widget>[
                 // Hero View (Energy Balance or Macro Ring)
-                if (_selectedViewIndex == 0)
-                  EnergyBalanceCard(
-                    log: currentLog,
-                    latestBodyComp: bodyComp.latestEntry,
-                    goal: nutrition.goal,
-                    onLogActivityTap: () => _openActivityLogSheet(context),
-                  )
-                else
-                  MacroRingCard(
-                    log: currentLog,
-                    onToggleTrainingDay: () {
-                      nutrition.toggleTrainingDay(
-                        !currentLog.isTrainingDay,
-                        latestBodyComp: bodyComp.latestEntry,
-                      );
-                    },
-                  ),
+                OlyEntryReveal(
+                  child: _selectedViewIndex == 0
+                      ? EnergyBalanceCard(
+                          log: currentLog,
+                          latestBodyComp: bodyComp.latestEntry,
+                          goal: nutrition.goal,
+                          onLogActivityTap: () => _openActivityLogSheet(context),
+                        )
+                      : MacroRingCard(
+                          log: currentLog,
+                          onToggleTrainingDay: () {
+                            nutrition.toggleTrainingDay(
+                              !currentLog.isTrainingDay,
+                              latestBodyComp: bodyComp.latestEntry,
+                            );
+                          },
+                        ),
+                ),
 
                 const SizedBox(height: 14),
 
                 // Renpho Biometrics Glance Card
-                _buildRenphoGlanceCard(context, bodyComp),
+                OlyEntryReveal(
+                  index: 1,
+                  child: _buildRenphoGlanceCard(context, bodyComp),
+                ),
                 const SizedBox(height: 14),
 
                 // Water Tracker Strip
-                _buildWaterTracker(context, nutrition, currentLog),
+                OlyEntryReveal(
+                  index: 2,
+                  child: _buildWaterTracker(context, nutrition, currentLog),
+                ),
                 const SizedBox(height: 16),
 
                 // Daily Activities & Workout Energy Section
-                _buildActivitiesSection(context, nutrition, currentLog, bodyComp),
+                OlyEntryReveal(
+                  index: 3,
+                  child: _buildActivitiesSection(context, nutrition, currentLog, bodyComp),
+                ),
                 const SizedBox(height: 16),
 
                 // Meal Category Sections

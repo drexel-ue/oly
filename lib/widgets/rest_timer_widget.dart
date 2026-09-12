@@ -21,6 +21,7 @@ class RestTimerWidget extends StatefulWidget {
     this.notificationBody = 'Time for your next set! Keep pushing.',
     this.onFinished,
     this.notesFocusNode,
+    this.initiallyMinimized = false,
   });
   final String title;
   final IconData icon;
@@ -32,6 +33,7 @@ class RestTimerWidget extends StatefulWidget {
   final String notificationBody;
   final VoidCallback? onFinished;
   final FocusNode? notesFocusNode;
+  final bool initiallyMinimized;
 
   @override
   State<RestTimerWidget> createState() => _RestTimerWidgetState();
@@ -44,7 +46,7 @@ class _RestTimerWidgetState extends State<RestTimerWidget>
   late int _secondsRemaining;
   DateTime? _targetEndTime;
   bool _isRunning = false;
-  bool _isMinimized = false;
+  late bool _isMinimized;
 
   @override
   void initState() {
@@ -52,6 +54,7 @@ class _RestTimerWidgetState extends State<RestTimerWidget>
     WidgetsBinding.instance.addObserver(this);
     _totalSeconds = widget.initialSeconds;
     _secondsRemaining = widget.initialSeconds;
+    _isMinimized = widget.initiallyMinimized;
     widget.notesFocusNode?.addListener(_handleFocusChange);
   }
 

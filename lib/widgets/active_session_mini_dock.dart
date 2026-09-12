@@ -202,15 +202,21 @@ class ActiveSessionMiniDock extends StatelessWidget {
                                       ),
                                     ],
                                     Flexible(
-                                      child: Text(
-                                        titleText,
-                                        style: GoogleFonts.outfit(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 14,
-                                          color: AppTheme.textPrimary,
+                                      child: Hero(
+                                        tag: 'active_session_dock_title',
+                                        child: Material(
+                                          type: MaterialType.transparency,
+                                          child: Text(
+                                            titleText,
+                                            style: GoogleFonts.outfit(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 14,
+                                              color: AppTheme.textPrimary,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
                                         ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
                                     if (session.currentSetInfo.isNotEmpty &&

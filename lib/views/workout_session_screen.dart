@@ -38,6 +38,7 @@ import 'package:oly/views/warmup_session_screen.dart';
 import 'package:oly/widgets/add_movement_modal_sheet.dart';
 import 'package:oly/widgets/empty_add_movement_card.dart';
 import 'package:oly/widgets/exercise_swap_modal.dart';
+import 'package:oly/widgets/motion/oly_entry_reveal.dart';
 import 'package:oly/widgets/plate_modal.dart';
 import 'package:oly/widgets/post_session_body_checkin_dialog.dart';
 import 'package:oly/widgets/rest_timer_widget.dart';
@@ -384,6 +385,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
   }
 
   void _toggleSetCompletion(String exerciseName, int setIndex) {
+    HapticFeedback.lightImpact();
     setState(() {
       final List<CompletedSet>? list = _exerciseSets[exerciseName];
       if (list != null && setIndex < list.length) {
@@ -1092,9 +1094,15 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                     Navigator.pop(context);
                   },
                 ),
-          title: Text(
-            widget.dayTemplate.title,
-            style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
+          title: Hero(
+            tag: 'active_session_dock_title',
+            child: Material(
+              type: MaterialType.transparency,
+              child: Text(
+                widget.dayTemplate.title,
+                style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
+              ),
+            ),
           ),
           actions: <Widget>[
             // Mode Toggle Button in AppBar (Preview vs Live)
@@ -1324,25 +1332,39 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                         ),
 
                       // Phases & Exercises
-                      ...widget.dayTemplate.phases.map((phase) {
-                        return _buildPhaseCard(context, phase, settings);
-                      }),
+                      ...List<Widget>.generate(
+                        widget.dayTemplate.phases.length,
+                        (index) => OlyEntryReveal(
+                          index: index,
+                          child: _buildPhaseCard(
+                            context,
+                            widget.dayTemplate.phases[index],
+                            settings,
+                          ),
+                        ),
+                      ),
 
                       // Dynamic Items (WODs, Carries, Custom exercises)
                       if (_dynamicItems.isNotEmpty)
-                        _buildDynamicItemsSection(context, settings),
+                        OlyEntryReveal(
+                          index: widget.dayTemplate.phases.length,
+                          child: _buildDynamicItemsSection(context, settings),
+                        ),
 
                       // Blank Canvas Hero or Dashed Add Card
-                      EmptyAddMovementCard(
-                        isSessionEmpty: widget.dayTemplate.phases.isEmpty &&
-                            _dynamicItems.isEmpty,
-                        isPreviewMode: !_isLiveMode,
-                        onAddPressed: _openAddMovementModal,
-                        onLoadRecommendedPressed: widget.dayTemplate.isFreeform &&
-                                widget.dayTemplate.phases.isEmpty &&
-                                _dynamicItems.isEmpty
-                            ? _loadRecommendedTemplate
-                            : null,
+                      OlyEntryReveal(
+                        index: widget.dayTemplate.phases.length + 1,
+                        child: EmptyAddMovementCard(
+                          isSessionEmpty: widget.dayTemplate.phases.isEmpty &&
+                              _dynamicItems.isEmpty,
+                          isPreviewMode: !_isLiveMode,
+                          onAddPressed: _openAddMovementModal,
+                          onLoadRecommendedPressed: widget.dayTemplate.isFreeform &&
+                                  widget.dayTemplate.phases.isEmpty &&
+                                  _dynamicItems.isEmpty
+                              ? _loadRecommendedTemplate
+                              : null,
+                        ),
                       ),
 
                       const SizedBox(height: 16),
@@ -1475,7 +1497,10 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                 ),
               ),
               // Embedded Rest Timer at bottom
-              RestTimerWidget(notesFocusNode: _notesFocusNode),
+              RestTimerWidget(
+                notesFocusNode: _notesFocusNode,
+                initiallyMinimized: true,
+              ),
             ],
           ),
         ),
