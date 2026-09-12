@@ -4,7 +4,10 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:oly/models/benchmark_wod_log.dart';
 import 'package:oly/models/crossfit_hero_wod.dart';
+import 'package:oly/models/daily_activity_entry.dart';
 import 'package:oly/models/wod_definition.dart';
+import 'package:oly/providers/body_comp_provider.dart';
+import 'package:oly/providers/nutrition_provider.dart';
 import 'package:oly/providers/recovery_provider.dart';
 import 'package:oly/theme/app_theme.dart';
 import 'package:provider/provider.dart';
@@ -223,7 +226,12 @@ class _LogWodScoreSheetState extends State<LogWodScoreSheet> {
       return;
     }
 
-    final RecoveryProvider recovery = Provider.of<RecoveryProvider>(context, listen: false);
+    final RecoveryProvider recovery =
+        Provider.of<RecoveryProvider>(context, listen: false);
+    final NutritionProvider? nutrition =
+        Provider.of<NutritionProvider?>(context, listen: false);
+    final BodyCompProvider? bodyComp =
+        Provider.of<BodyCompProvider?>(context, listen: false);
     final String scoreStr = _calculateScoreDisplay();
 
     final BenchmarkWodLog newLog = BenchmarkWodLog.create(
@@ -241,10 +249,34 @@ class _LogWodScoreSheetState extends State<LogWodScoreSheet> {
       rpe: _rpe,
       averageHeartRate: int.tryParse(_hrController.text.trim()),
       caloriesBurned: int.tryParse(_calController.text.trim()),
-      notes: _notesController.text.trim().isNotEmpty ? _notesController.text.trim() : null,
+      notes: _notesController.text.trim().isNotEmpty
+          ? _notesController.text.trim()
+          : null,
     );
 
     final BenchmarkWodLog saved = await recovery.logBenchmarkWod(newLog);
+
+    // Cohesive cross-pillar sync: Feed WOD energy expenditure into FUEL (NutritionProvider)
+    if (nutrition != null) {
+      try {
+        final double durationMins =
+            (saved.durationSeconds > 0 ? saved.durationSeconds : 1200) / 60.0;
+        final int cals =
+            saved.caloriesBurned ?? (durationMins * 11.5).round();
+        final DailyActivityEntry activityEntry = DailyActivityEntry.create(
+          activityType: 'workout_wod',
+          name: 'CrossFit WOD: ${saved.wodName}',
+          durationMinutes: durationMins,
+          metValue: 8.5,
+          caloriesBurned: cals,
+          source: 'wod_auto_sync',
+          notes:
+              '${saved.scoreDisplay} (${saved.isRx ? "Rx" : "Scaled"})${saved.notes != null ? " • ${saved.notes}" : ""}',
+        );
+        await nutrition.addActivity(activityEntry,
+            latestBodyComp: bodyComp?.latestEntry);
+      } catch (_) {}
+    }
 
     await HapticFeedback.heavyImpact();
     if (mounted) {

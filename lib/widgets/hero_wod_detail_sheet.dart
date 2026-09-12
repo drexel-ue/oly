@@ -6,7 +6,9 @@ import 'package:oly/models/crossfit_hero_wod.dart';
 import 'package:oly/models/dt_workout_log.dart';
 import 'package:oly/models/wod_definition.dart';
 import 'package:oly/models/workout_session.dart';
+import 'package:oly/providers/injury_provider.dart';
 import 'package:oly/providers/recovery_provider.dart';
+import 'package:oly/services/wod_injury_analyzer.dart';
 import 'package:oly/theme/app_theme.dart';
 import 'package:oly/views/dt_wod_screen.dart';
 import 'package:oly/widgets/log_wod_score_sheet.dart';
@@ -321,6 +323,24 @@ class HeroWodDetailSheet extends StatelessWidget {
                     },
                   ),
 
+                  // Active Injury Precaution Banner
+                  Builder(
+                    builder: (ctx) {
+                      final InjuryProvider injuryProvider = Provider.of<InjuryProvider>(ctx);
+                      final List<WodInjuryPrecaution> precautions = WodInjuryAnalyzer.analyzePrecautions(
+                        movements: heroWod.movementsSummary,
+                        activeInjuries: injuryProvider.activeInjuries,
+                      );
+                      if (precautions.isEmpty) {
+                        return const SizedBox.shrink();
+                      }
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: _buildInjuryPrecautionCard(precautions),
+                      );
+                    },
+                  ),
+
                   // Fallen Hero Memorial Card
                   if (heroWod.tributeText.isNotEmpty) ...<Widget>[
                     _buildMemorialTributeCard(),
@@ -627,6 +647,97 @@ class HeroWodDetailSheet extends StatelessWidget {
           }).toList(),
         ),
       ],
+    );
+  }
+
+  Widget _buildInjuryPrecautionCard(List<WodInjuryPrecaution> precautions) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.amber.shade900.withValues(alpha: 0.18),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: Colors.amber.shade600.withValues(alpha: 0.55),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              Icon(Icons.healing_rounded, color: Colors.amber.shade400, size: 20),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'ACTIVE INJURY PRECAUTION',
+                  style: GoogleFonts.outfit(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1,
+                    color: Colors.amber.shade400,
+                  ),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.amber.shade700.withValues(alpha: 0.35),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  '${precautions.length} Flagged',
+                  style: GoogleFonts.outfit(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.amber.shade200,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'This workout includes movement patterns contraindicated by your active injury profile:',
+            style: GoogleFonts.inter(
+              fontSize: 12,
+              color: AppTheme.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 10),
+          ...precautions.map(
+            (p) => Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  const Padding(
+                    padding: EdgeInsets.only(top: 2),
+                    child: Icon(Icons.warning_amber_rounded, size: 14, color: Colors.amber),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: RichText(
+                      text: TextSpan(
+                        style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textPrimary),
+                        children: <InlineSpan>[
+                          TextSpan(
+                            text: '${p.movement}: ',
+                            style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                          ),
+                          TextSpan(
+                            text: p.cautionReason,
+                            style: TextStyle(color: Colors.amber.shade200),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

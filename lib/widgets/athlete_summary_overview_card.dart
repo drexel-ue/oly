@@ -24,7 +24,7 @@ class AthleteSummaryOverviewCard extends StatelessWidget {
   });
 
   final DayTemplate dayTemplate;
-  final void Function(int)? onNavigateTab;
+  final void Function(int, [int?])? onNavigateTab;
 
   @override
   Widget build(BuildContext context) {

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:oly/models/breathing_session_model.dart';
 import 'package:oly/services/notification_service.dart';
 import 'package:oly/services/recovery_engine_service.dart';
 
@@ -29,6 +30,11 @@ class ActiveSessionProvider extends ChangeNotifier {
   int _mobilityExerciseIndex = 0;
   Set<String> _completedMobilityIds = <String>{};
 
+  // Breathwork session state
+  WimHofConfig? _activeBreathingConfig;
+  int _breathingRound = 1;
+  int _breathingTotalRounds = 3;
+
   // Rest Timer State
   Timer? _timer;
   int _restSecondsRemaining = 0;
@@ -51,6 +57,10 @@ class ActiveSessionProvider extends ChangeNotifier {
   int get mobilityExerciseIndex => _mobilityExerciseIndex;
   Set<String> get completedMobilityIds =>
       Set<String>.unmodifiable(_completedMobilityIds);
+
+  WimHofConfig? get activeBreathingConfig => _activeBreathingConfig;
+  int get breathingRound => _breathingRound;
+  int get breathingTotalRounds => _breathingTotalRounds;
 
   int get restSecondsRemaining => _restSecondsRemaining;
   int get restTotalSeconds => _restTotalSeconds;
@@ -83,6 +93,9 @@ class ActiveSessionProvider extends ChangeNotifier {
     GeneratedRecoveryRoutine? mobilityRoutine,
     int mobilityExerciseIndex = 0,
     Set<String>? completedMobilityIds,
+    WimHofConfig? breathingConfig,
+    int breathingRound = 1,
+    int breathingTotalRounds = 3,
   }) {
     _isActive = true;
     _isMinimized = isMinimized;
@@ -100,6 +113,12 @@ class ActiveSessionProvider extends ChangeNotifier {
       _completedMobilityIds = completedMobilityIds != null
           ? Set<String>.from(completedMobilityIds)
           : <String>{};
+    }
+
+    if (breathingConfig != null) {
+      _activeBreathingConfig = breathingConfig;
+      _breathingRound = breathingRound;
+      _breathingTotalRounds = breathingTotalRounds;
     }
     notifyListeners();
   }
@@ -127,6 +146,20 @@ class ActiveSessionProvider extends ChangeNotifier {
     if (totalExercises > 0) {
       _currentSetInfo = 'Ex ${exerciseIndex + 1} of $totalExercises';
     }
+    notifyListeners();
+  }
+
+  /// Update breathwork routine progression
+  void updateBreathingProgress({
+    required int round,
+    required int totalRounds,
+    required String phaseName,
+    required String detail,
+  }) {
+    _breathingRound = round;
+    _breathingTotalRounds = totalRounds;
+    _currentExercise = 'Round $round of $totalRounds ($phaseName)';
+    _currentSetInfo = detail;
     notifyListeners();
   }
 
@@ -165,6 +198,9 @@ class ActiveSessionProvider extends ChangeNotifier {
     _activeMobilityRoutine = null;
     _mobilityExerciseIndex = 0;
     _completedMobilityIds.clear();
+    _activeBreathingConfig = null;
+    _breathingRound = 1;
+    _breathingTotalRounds = 3;
     _isRestTimerRunning = false;
     _restSecondsRemaining = 0;
     _restTargetEndTime = null;

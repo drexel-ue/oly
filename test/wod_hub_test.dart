@@ -3,8 +3,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nested/nested.dart';
+import 'package:oly/models/injury_model.dart';
 import 'package:oly/models/wod_definition.dart';
 import 'package:oly/providers/body_comp_provider.dart';
+import 'package:oly/providers/injury_provider.dart';
 import 'package:oly/providers/nutrition_provider.dart';
 import 'package:oly/providers/recovery_provider.dart';
 import 'package:oly/providers/settings_provider.dart';
@@ -104,6 +106,7 @@ void main() {
     late SettingsProvider settings;
     late BodyCompProvider bodyComp;
     late NutritionProvider nutrition;
+    late InjuryProvider injuryProvider;
 
     setUp(() async {
       SharedPreferences.setMockInitialValues(<String, Object>{});
@@ -113,6 +116,7 @@ void main() {
       settings = SettingsProvider(storage);
       bodyComp = BodyCompProvider(storage);
       nutrition = NutritionProvider(storage);
+      injuryProvider = InjuryProvider(storage);
     });
 
     Widget createTestApp(Widget child) {
@@ -122,6 +126,7 @@ void main() {
           ChangeNotifierProvider<SettingsProvider>.value(value: settings),
           ChangeNotifierProvider<BodyCompProvider>.value(value: bodyComp),
           ChangeNotifierProvider<NutritionProvider>.value(value: nutrition),
+          ChangeNotifierProvider<InjuryProvider>.value(value: injuryProvider),
         ],
         child: MaterialApp(
           home: child,
@@ -251,6 +256,59 @@ void main() {
       expect(find.text('Scaling Matrix'), findsOneWidget);
       expect(find.text('Gym Floor Plan & Spacing'), findsOneWidget);
       expect(find.text('Equipment Checklist'), findsOneWidget);
+    });
+
+    testWidgets('Filters WODs via equipment chips', (tester) async {
+      tester.view.physicalSize = const Size(1080, 2400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() => tester.view.resetPhysicalSize());
+
+      await tester.runAsync(() async {
+        await tester.pumpWidget(createTestApp(const WodHubScreen()));
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+      });
+      await tester.pumpAndSettle();
+
+      // Tap 'Barbell' equipment chip
+      expect(find.text('Barbell'), findsOneWidget);
+      await tester.tap(find.text('Barbell'));
+      await tester.pumpAndSettle();
+
+      // Should show Barbell WODs like DT or Fran
+      expect(find.text('DT'), findsWidgets);
+      // Pure bodyweight Cindy should be filtered out
+      expect(find.text('Cindy'), findsNothing);
+    });
+
+    testWidgets('Displays active injury precaution badges when movements conflict',
+        (tester) async {
+      tester.view.physicalSize = const Size(1080, 2400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() => tester.view.resetPhysicalSize());
+
+      // Add an active knee strain
+      await injuryProvider.addInjury(
+        InjuryRecord(
+          id: 'inj-knee-test',
+          name: 'Patellar Tendonitis',
+          region: InjuryRegion.leftKnee,
+          onsetDate: DateTime.now(),
+          painScale: 6,
+          constraints: <BiomechanicalConstraint>[
+            BiomechanicalConstraint.avoidDeepKneeFlexion,
+          ],
+        ),
+      );
+
+      await tester.runAsync(() async {
+        await tester.pumpWidget(createTestApp(const WodHubScreen()));
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+      });
+      await tester.pumpAndSettle();
+
+      // CAUTION badge should appear on squatting WOD cards
+      expect(find.text('CAUTION'), findsWidgets);
+      expect(find.textContaining('Active Precaution: Patellar Tendonitis'), findsWidgets);
     });
   });
 }

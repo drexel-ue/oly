@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:oly/models/injury_model.dart';
 import 'package:oly/models/program_model.dart';
 import 'package:oly/models/workout_session.dart';
-import 'package:oly/providers/injury_provider.dart';
 import 'package:oly/providers/lift_provider.dart';
 import 'package:oly/providers/program_provider.dart';
 import 'package:oly/providers/recovery_provider.dart';
@@ -12,14 +10,12 @@ import 'package:oly/services/recovery_engine_service.dart';
 import 'package:oly/theme/app_theme.dart';
 import 'package:oly/views/analytics_screen.dart';
 import 'package:oly/views/breathing/wim_hof_setup_sheet.dart';
-import 'package:oly/views/injury_tracker_screen.dart';
 import 'package:oly/views/nutrition/nutrition_dashboard_screen.dart';
 import 'package:oly/views/nutrition/renpho_scanner_sheet.dart';
 import 'package:oly/views/recovery_session_screen.dart';
 import 'package:oly/views/warmup_session_screen.dart';
 import 'package:oly/views/wod_hub_screen.dart';
 import 'package:oly/views/workout_session_screen.dart';
-import 'package:oly/widgets/active_recovery_card.dart';
 import 'package:oly/widgets/athlete_summary_overview_card.dart';
 import 'package:oly/widgets/plate_modal.dart';
 import 'package:oly/widgets/settings_modal.dart';
@@ -27,7 +23,7 @@ import 'package:provider/provider.dart';
 
 class DashboardScreen extends StatelessWidget {
   const new({super.key, this.onNavigateTab});
-  final void Function(int)? onNavigateTab;
+  final void Function(int, [int?])? onNavigateTab;
 
   @override
   Widget build(BuildContext context) {
@@ -137,12 +133,8 @@ class DashboardScreen extends StatelessWidget {
               _buildTodayWorkoutCard(context, program, currentDay),
               const SizedBox(height: 16),
 
-              // Active Recovery & Mobility Routine
-              const ActiveRecoveryCard(),
-              const SizedBox(height: 16),
-
-              // Body Map & Injury Tracking Card
-              _buildInjuryTrackerCard(context),
+              // CrossFit & Hero Conditioning Hub Showcase
+              _buildCrossfitWodShowcaseCard(context),
               const SizedBox(height: 16),
 
               // Olympic Total & Primary PRs
@@ -213,12 +205,16 @@ class DashboardScreen extends StatelessWidget {
                       icon: Icons.restaurant,
                       accentColor: AppTheme.primaryAmber,
                       onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute<void>(
-                            builder: (_) => const NutritionDashboardScreen(),
-                          ),
-                        );
+                        if (onNavigateTab != null) {
+                          onNavigateTab!(2); // Switch to FUEL tab
+                        } else {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute<void>(
+                              builder: (_) => const NutritionDashboardScreen(),
+                            ),
+                          );
+                        }
                       },
                     ),
                   ),
@@ -245,7 +241,7 @@ class DashboardScreen extends StatelessWidget {
               ),
               const SizedBox(height: 12),
 
-              // Wim Hof Breathwork Row
+              // Wim Hof Breathwork & Analytics Row
               Row(
                 children: <Widget>[
                   Expanded(
@@ -276,12 +272,13 @@ class DashboardScreen extends StatelessWidget {
                       accentColor: AppTheme.primaryAmber,
                       onTap: () {
                         if (onNavigateTab != null) {
-                          onNavigateTab!(5); // Analytics Tab
+                          onNavigateTab!(3, 3); // Analytics Tab -> Breathwork (Tab 3, Sub-tab 3)
                         } else {
                           Navigator.push(
                             context,
                             MaterialPageRoute<void>(
-                              builder: (_) => const AnalyticsScreen(),
+                              builder: (_) =>
+                                  const AnalyticsScreen(initialTabIndex: 3),
                             ),
                           );
                         }
@@ -292,38 +289,14 @@ class DashboardScreen extends StatelessWidget {
               ),
               const SizedBox(height: 12),
 
-              // CrossFit WOD & Conditioning Row
-              Row(
-                children: <Widget>[
-                  Expanded(
-                    child: _buildActionCard(
-                      context,
-                      title: 'CrossFit WODs',
-                      subtitle: 'Cindy, Jackie, Fran, DT & Burpees',
-                      icon: Icons.fitness_center_rounded,
-                      accentColor: AppTheme.primaryAmber,
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute<void>(
-                            builder: (_) => const WodHubScreen(),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildActionCard(
-                      context,
-                      title: 'Routine Explorer',
-                      subtitle: 'Preview Any Week',
-                      icon: Icons.explore,
-                      accentColor: AppTheme.secondaryCyan,
-                      onTap: () => _showRoutineExplorerSheet(context, program),
-                    ),
-                  ),
-                ],
+              // Routine Explorer
+              _buildActionCard(
+                context,
+                title: 'Routine Explorer',
+                subtitle: 'Preview Any Periodization Week & Day',
+                icon: Icons.explore,
+                accentColor: AppTheme.secondaryCyan,
+                onTap: () => _showRoutineExplorerSheet(context, program),
               ),
               const SizedBox(height: 16),
 
@@ -966,192 +939,6 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildInjuryTrackerCard(BuildContext context) {
-    final InjuryProvider? injuryProvider =
-        Provider.of<InjuryProvider?>(context);
-    final List<InjuryRecord> activeInjuries =
-        injuryProvider?.activeInjuries ?? <InjuryRecord>[];
-    final int count = activeInjuries.length;
-    final int acuteCount = injuryProvider?.acuteInjuries.length ?? 0;
-    final int chronicCount = injuryProvider?.chronicInjuries.length ?? 0;
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppTheme.surfaceCard,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: count > 0
-              ? AppTheme.primaryAmber.withValues(alpha: 0.5)
-              : AppTheme.borderColor,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: <Widget>[
-              Row(
-                children: <Widget>[
-                  Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: count > 0
-                          ? AppTheme.primaryAmber.withValues(alpha: 0.2)
-                          : AppTheme.successGreen.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Icon(
-                      Icons.accessibility_new,
-                      color: count > 0
-                          ? AppTheme.primaryAmber
-                          : AppTheme.successGreen,
-                      size: 18,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Text(
-                    'BODY MAP & INJURY SHIELD',
-                    style: GoogleFonts.outfit(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1,
-                      color: AppTheme.textSecondary,
-                    ),
-                  ),
-                ],
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: count > 0
-                      ? AppTheme.primaryAmber.withValues(alpha: 0.2)
-                      : AppTheme.successGreen.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(
-                    color: count > 0
-                        ? AppTheme.primaryAmber.withValues(alpha: 0.5)
-                        : AppTheme.successGreen.withValues(alpha: 0.5),
-                  ),
-                ),
-                child: Text(
-                  count > 0 ? '$count Active Strain${count == 1 ? "" : "s"}' : 'All Clear 🟢',
-                  style: GoogleFonts.inter(
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                    color: count > 0
-                        ? AppTheme.primaryAmber
-                        : AppTheme.successGreen,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-
-          if (count == 0) ...<Widget>[
-            Text(
-              'No active joint or muscle strains reported. All movement patterns clear for maximum loading.',
-              style: GoogleFonts.inter(
-                fontSize: 13,
-                color: AppTheme.textSecondary,
-                height: 1.3,
-              ),
-            ),
-          ] else ...<Widget>[
-            Wrap(
-              spacing: 8,
-              runSpacing: 6,
-              children: activeInjuries.map((injury) {
-                final Color stageColor = injury.stage == InjuryStage.acute
-                    ? AppTheme.primaryAmber
-                    : (injury.stage == InjuryStage.subacute
-                        ? const Color(0xFFFF9F0A)
-                        : const Color(0xFFBF5AF2));
-
-                return Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: AppTheme.surfaceElevated,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: stageColor.withValues(alpha: 0.4)),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      Text(
-                        injury.region.displayName,
-                        style: GoogleFonts.inter(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.textPrimary,
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                        decoration: BoxDecoration(
-                          color: stageColor.withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          '${injury.stage.label} (${injury.painScale}/10)',
-                          style: GoogleFonts.inter(
-                            fontSize: 9,
-                            fontWeight: FontWeight.bold,
-                            color: stageColor,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              'Dynamic adaptations active: ${acuteCount > 0 ? "$acuteCount acute, " : ""}${chronicCount > 0 ? "$chronicCount chronic" : ""}',
-              style: GoogleFonts.inter(
-                fontSize: 11,
-                color: AppTheme.textSecondary,
-              ),
-            ),
-          ],
-          const SizedBox(height: 14),
-
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              icon: const Icon(Icons.map_outlined, size: 16, color: AppTheme.secondaryCyan),
-              label: Text(
-                'Open Interactive Body Map',
-                style: GoogleFonts.inter(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 13,
-                  color: AppTheme.secondaryCyan,
-                ),
-              ),
-              style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: AppTheme.secondaryCyan),
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute<void>(builder: (_) => const InjuryTrackerScreen()),
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildOlympicTotalCard(
     BuildContext context,
     ProgramProvider program,
@@ -1336,6 +1123,184 @@ class DashboardScreen extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCrossfitWodShowcaseCard(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceCard,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: AppTheme.primaryAmber.withValues(alpha: 0.35),
+          width: 1.2,
+        ),
+        boxShadow: <BoxShadow>[
+          BoxShadow(
+            color: AppTheme.primaryAmber.withValues(alpha: 0.08),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              Row(
+                children: <Widget>[
+                  Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryAmber.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(
+                      Icons.military_tech_rounded,
+                      color: AppTheme.primaryAmber,
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    'CROSSFIT & HERO WODS',
+                    style: GoogleFonts.outfit(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 1.2,
+                      color: AppTheme.textPrimary,
+                    ),
+                  ),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryAmber.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: AppTheme.primaryAmber.withValues(alpha: 0.4),
+                  ),
+                ),
+                child: Text(
+                  '248 HEROES',
+                  style: GoogleFonts.outfit(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                    color: AppTheme.primaryAmber,
+                    letterSpacing: 0.6,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Official Memorial Biographies & Interactive Benchmark Trackers',
+            style: GoogleFonts.inter(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: AppTheme.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Tribute workouts honoring fallen military and first responders, plus classic benchmarks (Cindy, Fran, DT, Grace, Murph).',
+            style: GoogleFonts.inter(
+              fontSize: 11,
+              color: AppTheme.textSecondary,
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: 14),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: <Widget>[
+              _buildWodChip(context, 'Cindy (AMRAP 20m)'),
+              _buildWodChip(context, 'Murph (Memorial)'),
+              _buildWodChip(context, 'DT (5 Rds Rx)'),
+              _buildWodChip(context, 'Fran (21-15-9)'),
+            ],
+          ),
+          const SizedBox(height: 14),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryAmber,
+                foregroundColor: Colors.black,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                elevation: 0,
+              ),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute<void>(
+                    builder: (_) => const WodHubScreen(),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.explore_rounded, size: 18),
+              label: Text(
+                'Explore WOD Hub & Memorials',
+                style: GoogleFonts.outfit(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWodChip(BuildContext context, String label) {
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute<void>(
+            builder: (_) => const WodHubScreen(),
+          ),
+        );
+      },
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: AppTheme.surfaceElevated,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: AppTheme.borderColor),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            const Icon(
+              Icons.bolt_rounded,
+              color: AppTheme.primaryAmber,
+              size: 14,
+            ),
+            const SizedBox(width: 4),
+            Text(
+              label,
+              style: GoogleFonts.outfit(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.textPrimary,
               ),
             ),
           ],

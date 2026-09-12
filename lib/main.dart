@@ -180,31 +180,40 @@ class MainNavigationContainer extends StatefulWidget {
 
 class _MainNavigationContainerState extends State<MainNavigationContainer> {
   late int _currentIndex;
-  late final List<Widget> _screens;
+  int _analyticsInitialTab = 0;
 
   @override
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex;
-    _screens = <Widget>[
-      DashboardScreen(onNavigateTab: _switchTab),
-      const RecoverScreen(),
-      const NutritionDashboardScreen(),
-      const AnalyticsScreen(),
-    ];
   }
 
-  void _switchTab(int index) {
-    if (index >= 0 && index < _screens.length) {
-      setState(() => _currentIndex = index);
+  void _switchTab(int index, [int? subIndex]) {
+    if (index >= 0 && index < 4) {
+      setState(() {
+        _currentIndex = index;
+        if (index == 3 && subIndex != null) {
+          _analyticsInitialTab = subIndex;
+        }
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final List<Widget> screens = <Widget>[
+      DashboardScreen(onNavigateTab: _switchTab),
+      const RecoverScreen(),
+      const NutritionDashboardScreen(),
+      AnalyticsScreen(
+        key: ValueKey<int>(_analyticsInitialTab),
+        initialTabIndex: _analyticsInitialTab,
+      ),
+    ];
+
     return Scaffold(
       body: SafeArea(
-        child: IndexedStack(index: _currentIndex, children: _screens),
+        child: IndexedStack(index: _currentIndex, children: screens),
       ),
       bottomNavigationBar: Column(
         mainAxisSize: MainAxisSize.min,

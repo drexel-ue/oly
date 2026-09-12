@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:oly/models/breathing_session_model.dart';
 import 'package:oly/models/program_model.dart';
 import 'package:oly/models/workout_session.dart';
 import 'package:oly/providers/active_session_provider.dart';
 import 'package:oly/providers/program_provider.dart';
 import 'package:oly/theme/app_theme.dart';
+import 'package:oly/views/breathing/wim_hof_session_screen.dart';
 import 'package:oly/views/recovery_session_screen.dart';
 import 'package:oly/views/workout_session_screen.dart';
 import 'package:provider/provider.dart';
@@ -39,18 +41,23 @@ class ActiveSessionMiniDock extends StatelessWidget {
         }
 
         final bool isMobility = session.sessionType == SessionType.mobility;
+        final bool isBreathwork = session.sessionType == SessionType.breathwork;
         final bool isPreview = session.isPreviewMode;
         final bool isResting = session.isRestTimerRunning;
 
         final Color accentColor = isResting
             ? AppTheme.primaryAmber
-            : (isMobility
+            : (isBreathwork
                 ? AppTheme.secondaryCyan
-                : (isPreview ? AppTheme.secondaryCyan : AppTheme.primaryAmber));
+                : (isMobility
+                    ? AppTheme.secondaryCyan
+                    : (isPreview ? AppTheme.secondaryCyan : AppTheme.primaryAmber)));
 
-        final String defaultTitle = isMobility
-            ? 'Active Recovery Routine'
-            : (program.activeDraft?.dayTitle ?? 'Active Workout');
+        final String defaultTitle = isBreathwork
+            ? 'Wim Hof Breathwork'
+            : (isMobility
+                ? 'Active Recovery Routine'
+                : (program.activeDraft?.dayTitle ?? 'Active Workout'));
 
         final String titleText = session.currentExercise.isNotEmpty
             ? session.currentExercise
@@ -64,11 +71,13 @@ class ActiveSessionMiniDock extends StatelessWidget {
                 ? session.currentSetInfo
                 : (session.restSecondsRemaining > 0
                     ? 'PAUSED • ${session.formattedRestTime}'
-                    : (isMobility
-                        ? 'MOBILITY FLOW IN PROGRESS'
-                        : (isPreview
-                            ? 'PREVIEW EXPLORATION'
-                            : 'SESSION IN PROGRESS'))));
+                    : (isBreathwork
+                        ? 'BREATHWORK IN PROGRESS'
+                        : (isMobility
+                            ? 'MOBILITY FLOW IN PROGRESS'
+                            : (isPreview
+                                ? 'PREVIEW EXPLORATION'
+                                : 'SESSION IN PROGRESS')))));
 
         return Container(
           margin: const EdgeInsets.fromLTRB(12, 0, 12, 8),
@@ -122,6 +131,7 @@ class ActiveSessionMiniDock extends StatelessWidget {
                           _buildPulseIcon(
                             isResting: isResting,
                             isMobility: isMobility,
+                            isBreathwork: isBreathwork,
                             accentColor: accentColor,
                           ),
                           const SizedBox(width: 12),
@@ -339,12 +349,15 @@ class ActiveSessionMiniDock extends StatelessWidget {
     required bool isResting,
     required bool isMobility,
     required Color accentColor,
+    bool isBreathwork = false,
   }) {
     final IconData icon = isResting
         ? Icons.timer_rounded
-        : (isMobility
-            ? Icons.self_improvement_rounded
-            : Icons.fitness_center_rounded);
+        : (isBreathwork
+            ? Icons.air_rounded
+            : (isMobility
+                ? Icons.self_improvement_rounded
+                : Icons.fitness_center_rounded));
 
     return Container(
       width: 32,
@@ -378,6 +391,19 @@ class ActiveSessionMiniDock extends StatelessWidget {
     }
 
     session.maximizeSession();
+
+    if (session.sessionType == SessionType.breathwork) {
+      Navigator.push(
+        context,
+        MaterialPageRoute<void>(
+          builder: (_) => WimHofSessionScreen(
+            config: session.activeBreathingConfig ?? const WimHofConfig(),
+            initialRound: session.breathingRound,
+          ),
+        ),
+      );
+      return;
+    }
 
     if (session.sessionType == SessionType.mobility &&
         session.activeMobilityRoutine != null) {
@@ -442,9 +468,11 @@ class ActiveSessionMiniDock extends StatelessWidget {
           ],
         ),
         content: Text(
-          session.sessionType == SessionType.mobility
-              ? 'Are you sure you want to stop this mobility routine? Your progress will not be saved.'
-              : 'Are you sure you want to dismiss the active workout dock? Any logged sets remain safely stored in your draft.',
+          session.sessionType == SessionType.breathwork
+              ? 'Are you sure you want to stop this breathwork session?'
+              : (session.sessionType == SessionType.mobility
+                  ? 'Are you sure you want to stop this mobility routine? Your progress will not be saved.'
+                  : 'Are you sure you want to dismiss the active workout dock? Any logged sets remain safely stored in your draft.'),
           style: GoogleFonts.inter(color: AppTheme.textSecondary),
         ),
         actions: <Widget>[

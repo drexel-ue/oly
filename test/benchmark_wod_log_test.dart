@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:nested/nested.dart';
 import 'package:oly/models/benchmark_wod_log.dart';
 import 'package:oly/providers/body_comp_provider.dart';
+import 'package:oly/providers/injury_provider.dart';
 import 'package:oly/providers/lift_provider.dart';
 import 'package:oly/providers/nutrition_provider.dart';
 import 'package:oly/providers/program_provider.dart';
@@ -238,6 +239,7 @@ void main() {
     late LiftProvider lifts;
     late BodyCompProvider bodyComp;
     late NutritionProvider nutrition;
+    late InjuryProvider injuryProvider;
 
     setUp(() async {
       SharedPreferences.setMockInitialValues(<String, Object>{});
@@ -249,6 +251,7 @@ void main() {
       lifts = LiftProvider(storage);
       bodyComp = BodyCompProvider(storage);
       nutrition = NutritionProvider(storage);
+      injuryProvider = InjuryProvider(storage);
 
       // Seed a Hero WOD log
       await recovery.logBenchmarkWod(
@@ -272,6 +275,7 @@ void main() {
           ChangeNotifierProvider<LiftProvider>.value(value: lifts),
           ChangeNotifierProvider<BodyCompProvider>.value(value: bodyComp),
           ChangeNotifierProvider<NutritionProvider>.value(value: nutrition),
+          ChangeNotifierProvider<InjuryProvider>.value(value: injuryProvider),
         ],
         child: MaterialApp(home: child),
       );

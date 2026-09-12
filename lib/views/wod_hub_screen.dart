@@ -15,8 +15,10 @@ import 'package:oly/models/grace_workout_log.dart';
 import 'package:oly/models/helen_workout_log.dart';
 import 'package:oly/models/jackie_workout_log.dart';
 import 'package:oly/models/wod_definition.dart';
+import 'package:oly/providers/injury_provider.dart';
 import 'package:oly/providers/recovery_provider.dart';
 import 'package:oly/services/exercise_database_service.dart';
+import 'package:oly/services/wod_injury_analyzer.dart';
 import 'package:oly/theme/app_theme.dart';
 import 'package:oly/views/cindy_wod_screen.dart';
 import 'package:oly/views/death_by_burpees_screen.dart';
@@ -53,6 +55,15 @@ class _WodHubScreenState extends State<WodHubScreen> {
     'AMRAP',
     'The Girls',
     'Bodyweight',
+  ];
+
+  String _selectedEquipment = 'All Gear';
+  final List<String> _equipmentFilters = <String>[
+    'All Gear',
+    'Barbell',
+    'Bodyweight',
+    'Dumbbell / KB',
+    'Erg / Box',
   ];
 
   List<CrossfitHeroWod> _databaseHeroWods = <CrossfitHeroWod>[];
@@ -154,6 +165,66 @@ class _WodHubScreenState extends State<WodHubScreen> {
           wod.equipment.any((e) =>
               e.contains('Barbell') || e.contains('Kettlebell') || e.contains('Rower'))) {
         return false;
+      }
+
+      // Equipment filter
+      if (_selectedEquipment == 'Barbell') {
+        final bool hasBarbell = wod.equipment.any((e) {
+          final String el = e.toLowerCase();
+          return el.contains('barbell') || el.contains('bumper') || el.contains('plate');
+        }) || wod.movementsSummary.any((m) {
+          final String ml = m.toLowerCase();
+          return ml.contains('clean') || ml.contains('snatch') || ml.contains('deadlift') ||
+              ml.contains('thruster') || ml.contains('bench') ||
+              (ml.contains('squat') && !ml.contains('air squat') && !ml.contains('pistol'));
+        });
+        if (!hasBarbell) {
+          return false;
+        }
+      } else if (_selectedEquipment == 'Bodyweight') {
+        final bool isBodyweight = (wod.equipment.isEmpty ||
+            wod.equipment.every((e) {
+              final String el = e.toLowerCase();
+              return !el.contains('barbell') &&
+                  !el.contains('dumbbell') &&
+                  !el.contains('kettlebell') &&
+                  !el.contains('row') &&
+                  !el.contains('bike') &&
+                  !el.contains('ski');
+            })) &&
+            !wod.movementsSummary.any((m) {
+              final String ml = m.toLowerCase();
+              return ml.contains('clean') || ml.contains('snatch') || ml.contains('deadlift') ||
+                  ml.contains('thruster') || ml.contains('dumbbell') || ml.contains('kettlebell') ||
+                  ml.contains('row') || ml.contains('bike') || ml.contains('ski');
+            });
+        if (!isBodyweight) {
+          return false;
+        }
+      } else if (_selectedEquipment == 'Dumbbell / KB') {
+        final bool hasDbKb = wod.equipment.any((e) {
+          final String el = e.toLowerCase();
+          return el.contains('dumbbell') || el.contains('kettlebell');
+        }) || wod.movementsSummary.any((m) {
+          final String ml = m.toLowerCase();
+          return ml.contains('dumbbell') || ml.contains('kettlebell') || ml.contains('db') || ml.contains('kb');
+        });
+        if (!hasDbKb) {
+          return false;
+        }
+      } else if (_selectedEquipment == 'Erg / Box') {
+        final bool hasErgOrBox = wod.equipment.any((e) {
+          final String el = e.toLowerCase();
+          return el.contains('row') || el.contains('bike') || el.contains('ski') ||
+              el.contains('rope') || el.contains('ring');
+        }) || wod.movementsSummary.any((m) {
+          final String ml = m.toLowerCase();
+          return ml.contains('row') || ml.contains('bike') || ml.contains('ski') ||
+              ml.contains('rope climb') || ml.contains('muscle-up');
+        });
+        if (!hasErgOrBox) {
+          return false;
+        }
       }
 
       // Search filter
@@ -692,6 +763,53 @@ class _WodHubScreenState extends State<WodHubScreen> {
                               fontSize: 12,
                               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                               color: isSelected ? AppTheme.primaryAmber : AppTheme.textSecondary,
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+
+              const SizedBox(height: 8),
+
+              // Equipment Filter Chips
+              SizedBox(
+                height: 30,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: _equipmentFilters.length,
+                  separatorBuilder: (_, _) => const SizedBox(width: 6),
+                  itemBuilder: (context, index) {
+                    final String eq = _equipmentFilters[index];
+                    final bool isSelected = _selectedEquipment == eq;
+                    return InkWell(
+                      onTap: () {
+                        HapticFeedback.selectionClick();
+                        setState(() => _selectedEquipment = eq);
+                      },
+                      borderRadius: BorderRadius.circular(15),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? AppTheme.secondaryCyan.withValues(alpha: 0.2)
+                              : AppTheme.surfaceCard,
+                          borderRadius: BorderRadius.circular(15),
+                          border: Border.all(
+                            color: isSelected
+                                ? AppTheme.secondaryCyan
+                                : AppTheme.surfaceElevated,
+                          ),
+                        ),
+                        child: Center(
+                          child: Text(
+                            eq,
+                            style: GoogleFonts.outfit(
+                              fontSize: 11,
+                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                              color: isSelected ? AppTheme.secondaryCyan : AppTheme.textSecondary,
                             ),
                           ),
                         ),
@@ -1602,6 +1720,12 @@ class _WodHubScreenState extends State<WodHubScreen> {
     final CrossfitHeroWod? heroWod = _heroWodsByWodId[wod.id.toLowerCase()];
     final bool isHero = heroWod != null || wod.category.toLowerCase().contains('hero');
 
+    final InjuryProvider injuryProvider = Provider.of<InjuryProvider>(context);
+    final List<WodInjuryPrecaution> precautions = WodInjuryAnalyzer.analyzePrecautions(
+      movements: wod.movementsSummary,
+      activeInjuries: injuryProvider.activeInjuries,
+    );
+
     // Check if user has a PR for this WOD
     String? prDisplay;
     final BenchmarkWodLog? benchPr = recovery.getBenchmarkWodPersonalRecord(wod.id);
@@ -1719,6 +1843,35 @@ class _WodHubScreenState extends State<WodHubScreen> {
                         ),
                       ),
                     ],
+                    if (precautions.isNotEmpty) ...<Widget>[
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Colors.amber.shade900.withValues(alpha: 0.25),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                            color: Colors.amber.shade600.withValues(alpha: 0.5),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[
+                            Icon(Icons.healing_rounded, size: 11, color: Colors.amber.shade300),
+                            const SizedBox(width: 3),
+                            Text(
+                              'CAUTION',
+                              style: GoogleFonts.outfit(
+                                fontSize: 9,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.amber.shade300,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                     const Spacer(),
                     if (wod.hasInteractiveTracker) ...<Widget>[
                       Container(
@@ -1800,6 +1953,37 @@ class _WodHubScreenState extends State<WodHubScreen> {
                     ),
                   ),
                 ],
+                if (precautions.isNotEmpty) ...<Widget>[
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Colors.amber.shade900.withValues(alpha: 0.16),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: Colors.amber.shade600.withValues(alpha: 0.35),
+                      ),
+                    ),
+                    child: Row(
+                      children: <Widget>[
+                        Icon(Icons.warning_amber_rounded, size: 14, color: Colors.amber.shade400),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            'Active Precaution: ${precautions.map((p) => p.injury.name).toSet().join(', ')} (${precautions.first.cautionReason.split('.').first})',
+                            style: GoogleFonts.inter(
+                              fontSize: 11,
+                              color: Colors.amber.shade200,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
@@ -1812,18 +1996,25 @@ class _WodHubScreenState extends State<WodHubScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: wod.movementsSummary.map((m) {
+                final WodInjuryPrecaution? pMatch =
+                    precautions.where((p) => p.movement == m).firstOrNull;
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 2),
                   child: Row(
                     children: <Widget>[
-                      const Icon(Icons.arrow_right, size: 16, color: AppTheme.primaryAmber),
+                      Icon(
+                        pMatch != null ? Icons.warning_amber_rounded : Icons.arrow_right,
+                        size: 16,
+                        color: pMatch != null ? Colors.amber.shade400 : AppTheme.primaryAmber,
+                      ),
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
                           m,
                           style: GoogleFonts.inter(
                             fontSize: 12,
-                            color: AppTheme.textPrimary,
+                            fontWeight: pMatch != null ? FontWeight.w600 : FontWeight.normal,
+                            color: pMatch != null ? Colors.amber.shade200 : AppTheme.textPrimary,
                           ),
                         ),
                       ),

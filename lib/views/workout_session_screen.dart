@@ -6,22 +6,26 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:oly/models/cindy_workout_log.dart';
 import 'package:oly/models/death_by_burpees_log.dart';
 import 'package:oly/models/dt_workout_log.dart';
+import 'package:oly/models/fasting_session_model.dart';
 import 'package:oly/models/fran_workout_log.dart';
 import 'package:oly/models/grace_workout_log.dart';
 import 'package:oly/models/helen_workout_log.dart';
 import 'package:oly/models/jackie_workout_log.dart';
 import 'package:oly/models/lift_model.dart';
+import 'package:oly/models/plate_calc.dart';
 import 'package:oly/models/program_model.dart';
 import 'package:oly/models/wod_definition.dart';
 import 'package:oly/models/workout_session.dart';
 import 'package:oly/providers/active_session_provider.dart';
 import 'package:oly/providers/body_comp_provider.dart';
+import 'package:oly/providers/fasting_provider.dart';
 import 'package:oly/providers/injury_provider.dart';
 import 'package:oly/providers/lift_provider.dart';
 import 'package:oly/providers/nutrition_provider.dart';
 import 'package:oly/providers/program_provider.dart';
 import 'package:oly/providers/recovery_provider.dart';
 import 'package:oly/providers/settings_provider.dart';
+import 'package:oly/services/fasting_engine_service.dart';
 import 'package:oly/theme/app_theme.dart';
 import 'package:oly/views/cindy_wod_screen.dart';
 import 'package:oly/views/death_by_burpees_screen.dart';
@@ -1019,6 +1023,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
         Provider.of<InjuryProvider?>(context);
     final LiftProvider liftProvider = Provider.of<LiftProvider>(context);
     final ProgramProvider programProvider = Provider.of<ProgramProvider>(context);
+    final FastingProvider? fastingProvider = Provider.of<FastingProvider?>(context);
 
     final int week = widget.previewWeek ??
         widget.initialDraft?.weekNumber ??
@@ -1285,6 +1290,13 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
+                      // Active Fasting Training HUD & Safety Advisory
+                      if (fastingProvider != null &&
+                          fastingProvider.isFastingActive) ...<Widget>[
+                        _buildFastedTrainingBanner(context, fastingProvider),
+                        const SizedBox(height: 12),
+                      ],
+
                       // Active Injury Biomechanical Adaptation Banner
                       if (injuryProvider != null &&
                           injuryProvider.activeInjuries.isNotEmpty)
@@ -1635,6 +1647,31 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                             ),
                             tooltip: 'Adjust Weight & Recalculate 1RM',
                             onPressed: () => _showWeightAdjustDialog(exercise),
+                          ),
+                          const SizedBox(width: 4),
+                          IconButton(
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(
+                              minWidth: 32,
+                              minHeight: 32,
+                            ),
+                            icon: const Icon(
+                              Icons.trending_up_rounded,
+                              size: 22,
+                              color: AppTheme.secondaryCyan,
+                            ),
+                            tooltip: 'Olympic Warm-Up Ramp',
+                            onPressed: () {
+                              final double currentKg =
+                                  double.tryParse(weightCtrl?.text ?? '100') ??
+                                  100.0;
+                              _showWarmUpRampModal(
+                                context,
+                                displayName,
+                                currentKg,
+                                settings,
+                              );
+                            },
                           ),
                           const SizedBox(width: 4),
                           IconButton(
@@ -2843,6 +2880,581 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildFastedTrainingBanner(
+    BuildContext context,
+    FastingProvider fasting,
+  ) {
+    final FastingSession? active = fasting.activeSession;
+    if (active == null) {
+      return const SizedBox.shrink();
+    }
+
+    final double elapsedHours = active.elapsedHours;
+    final FastingBiologicalStage stage = active.currentStage;
+    final int hours = elapsedHours.toInt();
+    final int mins = ((elapsedHours - hours) * 60).round();
+    final String timeStr = '${hours}h ${mins}m';
+
+    return InkWell(
+      onTap: () => _showFastedLiftingAdvisorySheet(context, fasting),
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          color: AppTheme.surfaceCard,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: AppTheme.primaryAmber.withValues(alpha: 0.6),
+            width: 1.2,
+          ),
+          boxShadow: <BoxShadow>[
+            BoxShadow(
+              color: AppTheme.primaryAmber.withValues(alpha: 0.1),
+              blurRadius: 12,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Row(
+          children: <Widget>[
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: AppTheme.primaryAmber.withValues(alpha: 0.18),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.bolt_rounded,
+                color: AppTheme.primaryAmber,
+                size: 18,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Row(
+                    children: <Widget>[
+                      Text(
+                        'FASTED TRAINING • $timeStr',
+                        style: GoogleFonts.outfit(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w800,
+                          color: AppTheme.primaryAmber,
+                          letterSpacing: 0.8,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 1,
+                        ),
+                        decoration: BoxDecoration(
+                          color:
+                              AppTheme.secondaryCyan.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          stage.shortTitle.toUpperCase(),
+                          style: GoogleFonts.outfit(
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.secondaryCyan,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Hydrate with sodium & electrolytes. Tap for safety guidelines.',
+                    style: GoogleFonts.inter(
+                      fontSize: 11,
+                      color: AppTheme.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(
+              Icons.chevron_right_rounded,
+              color: AppTheme.textSecondary,
+              size: 20,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showFastedLiftingAdvisorySheet(
+    BuildContext context,
+    FastingProvider fasting,
+  ) {
+    final FastingSession? active = fasting.activeSession;
+    if (active == null) {
+      return;
+    }
+
+    final double elapsedHours = active.elapsedHours;
+    final FastingBiologicalStage stage = active.currentStage;
+    final FastingHydrationAdjustment adj =
+        FastingEngineService.calculateFastingHydrationAdjustment(
+      elapsedHours: elapsedHours,
+      latestBiomarker: fasting.latestBiomarker,
+    );
+
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 30),
+        decoration: const BoxDecoration(
+          color: AppTheme.darkBackground,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Center(
+              child: Container(
+                width: 44,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppTheme.textSecondary.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: <Widget>[
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryAmber.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(
+                    Icons.bolt_rounded,
+                    color: AppTheme.primaryAmber,
+                    size: 22,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                        'Fasted Barbell Training Protocol',
+                        style: GoogleFonts.outfit(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.textPrimary,
+                        ),
+                      ),
+                      Text(
+                        '${active.protocol.displayName} • Hour ${elapsedHours.toStringAsFixed(1)} (${stage.shortTitle})',
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          color: AppTheme.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: AppTheme.surfaceCard,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: AppTheme.borderColor),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(
+                    'HYDRATION & ELECTROLYTE TARGET',
+                    style: GoogleFonts.outfit(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      color: AppTheme.primaryAmber,
+                      letterSpacing: 1,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Pre-Lift: Consume at least 16 oz (500 mL) water with ${adj.suggestedSodiumMg > 0 ? "${adj.suggestedSodiumMg} mg" : "500 mg"} pink salt. Natriuresis from fasting lowers blood volume and can impair explosive leg drive if unaddressed.',
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      color: AppTheme.textPrimary,
+                      height: 1.4,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: AppTheme.surfaceCard,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: AppTheme.borderColor),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(
+                    'LIFTING INTENSITY GUIDELINES',
+                    style: GoogleFonts.outfit(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      color: AppTheme.secondaryCyan,
+                      letterSpacing: 1,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    '• Keep reps low (1-3 reps per set) to utilize intramuscular ATP-CP phosphagen stores without relying heavily on glycolytic capacity.\n• Take full recovery (2-3 min) between heavy sets.\n• Terminate session immediately if you experience dizziness, tunnel vision, or orthostatic lightheadedness.',
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      color: AppTheme.textPrimary,
+                      height: 1.4,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryAmber,
+                  foregroundColor: Colors.black,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                onPressed: () => Navigator.pop(ctx),
+                child: Text(
+                  'Understood • Proceed With Lift',
+                  style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showWarmUpRampModal(
+    BuildContext context,
+    String exerciseName,
+    double targetKg,
+    SettingsProvider settings,
+  ) {
+    final double barKg = settings.barWeight;
+    final List<Map<String, dynamic>> rampSteps = <Map<String, dynamic>>[];
+
+    // 1. Empty Bar
+    rampSteps.add(<String, dynamic>{
+      'percent': 0,
+      'label': 'Empty Bar',
+      'weightKg': barKg,
+      'reps': 5,
+      'purpose': 'Movement pattern & joint mobilization',
+    });
+
+    // 2. 50%
+    if (targetKg * 0.50 > barKg) {
+      final double wt = ((targetKg * 0.50) / 2.5).round() * 2.5;
+      rampSteps.add(<String, dynamic>{
+        'percent': 50,
+        'label': '50%',
+        'weightKg': wt,
+        'reps': 3,
+        'purpose': 'Speed of turnover & position check',
+      });
+    }
+
+    // 3. 65%
+    if (targetKg * 0.65 > barKg) {
+      final double wt = ((targetKg * 0.65) / 2.5).round() * 2.5;
+      rampSteps.add(<String, dynamic>{
+        'percent': 65,
+        'label': '65%',
+        'weightKg': wt,
+        'reps': 2,
+        'purpose': 'Explosive extension & catch stability',
+      });
+    }
+
+    // 4. 75%
+    if (targetKg * 0.75 > barKg) {
+      final double wt = ((targetKg * 0.75) / 2.5).round() * 2.5;
+      rampSteps.add(<String, dynamic>{
+        'percent': 75,
+        'label': '75%',
+        'weightKg': wt,
+        'reps': 1,
+        'purpose': 'First heavy technical single',
+      });
+    }
+
+    // 5. 85%
+    if (targetKg * 0.85 > barKg) {
+      final double wt = ((targetKg * 0.85) / 2.5).round() * 2.5;
+      rampSteps.add(<String, dynamic>{
+        'percent': 85,
+        'label': '85%',
+        'weightKg': wt,
+        'reps': 1,
+        'purpose': 'Pre-working set CNS potentiation',
+      });
+    }
+
+    // 6. 92% (if working weight >= 80 kg)
+    if (targetKg >= 80 && targetKg * 0.92 > barKg) {
+      final double wt = ((targetKg * 0.92) / 2.5).round() * 2.5;
+      rampSteps.add(<String, dynamic>{
+        'percent': 92,
+        'label': '92%',
+        'weightKg': wt,
+        'reps': 1,
+        'purpose': 'Near-working feel & confidence primer',
+      });
+    }
+
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.85,
+        ),
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+        decoration: const BoxDecoration(
+          color: AppTheme.darkBackground,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Center(
+              child: Container(
+                width: 44,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppTheme.textSecondary.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 14),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      'Olympic Warm-Up Ramp',
+                      style: GoogleFonts.outfit(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.textPrimary,
+                      ),
+                    ),
+                    Text(
+                      '$exerciseName • Working Target: ${settings.formatWeight(targetKg)}',
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: AppTheme.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+                IconButton(
+                  icon: const Icon(
+                    Icons.close_rounded,
+                    color: AppTheme.textSecondary,
+                  ),
+                  onPressed: () => Navigator.pop(ctx),
+                ),
+              ],
+            ),
+            const Divider(height: 16, color: AppTheme.surfaceElevated),
+            Expanded(
+              child: ListView.separated(
+                itemCount: rampSteps.length,
+                separatorBuilder: (_, _) => const SizedBox(height: 10),
+                itemBuilder: (context, index) {
+                  final Map<String, dynamic> step = rampSteps[index];
+                  final double wt = step['weightKg'] as double;
+                  final String label = step['label'] as String;
+                  final int reps = step['reps'] as int;
+                  final String purpose = step['purpose'] as String;
+
+                  final PlateCalcResult plateResult =
+                      PlateCalculator.calculate(
+                    targetWeight: wt,
+                    barWeight: barKg,
+                    collarWeight: settings.collarWeight,
+                    isLbs: settings.isLbs,
+                  );
+
+                  return Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppTheme.surfaceCard,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: AppTheme.borderColor),
+                    ),
+                    child: Row(
+                      children: <Widget>[
+                        Container(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            color: AppTheme.surfaceElevated,
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: AppTheme.primaryAmber
+                                  .withValues(alpha: 0.4),
+                            ),
+                          ),
+                          child: Center(
+                            child: Text(
+                              label,
+                              style: GoogleFonts.outfit(
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                color: AppTheme.primaryAmber,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              Row(
+                                children: <Widget>[
+                                  Text(
+                                    settings.formatWeight(wt),
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppTheme.textPrimary,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 6,
+                                      vertical: 1.5,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: AppTheme.secondaryCyan
+                                          .withValues(alpha: 0.15),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: Text(
+                                      '$reps ${reps == 1 ? "Rep" : "Reps"}',
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppTheme.secondaryCyan,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                purpose,
+                                style: GoogleFonts.inter(
+                                  fontSize: 11,
+                                  color: AppTheme.textSecondary,
+                                ),
+                              ),
+                              if (plateResult.platesPerSide.isNotEmpty) ...<Widget>[
+                                const SizedBox(height: 6),
+                                Wrap(
+                                  spacing: 4,
+                                  runSpacing: 4,
+                                  children: plateResult.platesPerSide.map((p) {
+                                    return Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 5,
+                                        vertical: 1.5,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: p.color.withValues(alpha: 0.85),
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: Text(
+                                        p.label,
+                                        style: GoogleFonts.outfit(
+                                          fontSize: 9,
+                                          fontWeight: FontWeight.bold,
+                                          color: p.textColor,
+                                        ),
+                                      ),
+                                    );
+                                  }).toList(),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(
+                            Icons.pie_chart_outline,
+                            color: AppTheme.primaryAmber,
+                            size: 20,
+                          ),
+                          tooltip: 'Visualizer',
+                          onPressed: () {
+                            showModalBottomSheet<void>(
+                              context: context,
+                              isScrollControlled: true,
+                              useSafeArea: true,
+                              backgroundColor: Colors.transparent,
+                              builder: (_) =>
+                                  PlateModal(initialWeightKg: wt),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

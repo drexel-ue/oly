@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nested/nested.dart';
 import 'package:oly/main.dart';
+import 'package:oly/models/breathing_session_model.dart';
 import 'package:oly/models/mobility_exercise_model.dart';
 import 'package:oly/models/program_model.dart';
 import 'package:oly/providers/active_session_provider.dart';
@@ -16,6 +17,7 @@ import 'package:oly/providers/recovery_provider.dart';
 import 'package:oly/providers/settings_provider.dart';
 import 'package:oly/services/recovery_engine_service.dart';
 import 'package:oly/services/storage_service.dart';
+import 'package:oly/views/breathing/wim_hof_session_screen.dart';
 import 'package:oly/views/recovery_session_screen.dart';
 import 'package:oly/views/workout_session_screen.dart';
 import 'package:oly/widgets/active_session_mini_dock.dart';
@@ -575,6 +577,55 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(sessionProvider.isActive, isFalse);
+      },
+    );
+
+    testWidgets(
+      'ActiveSessionMiniDock renders Breathwork session and expands into WimHofSessionScreen',
+      (tester) async {
+        tester.view.physicalSize = const Size(1080, 2400);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(() => tester.view.resetPhysicalSize());
+
+        final ActiveSessionProvider sessionProvider = ActiveSessionProvider();
+        final ProgramProvider programProvider = ProgramProvider(storage);
+
+        sessionProvider.startSession(
+          sessionTitle: 'Wim Hof Breathwork',
+          sessionType: SessionType.breathwork,
+          breathingConfig: const WimHofConfig(),
+          breathingRound: 2,
+          currentExercise: 'Round 2 of 3 (Deep Rhythmic Breathing)',
+          currentSetInfo: 'Breath 15 / 30',
+        );
+
+        await tester.pumpWidget(
+          MultiProvider(
+            providers: <SingleChildWidget>[
+              ChangeNotifierProvider<ActiveSessionProvider>.value(
+                value: sessionProvider,
+              ),
+              ChangeNotifierProvider<ProgramProvider>.value(
+                value: programProvider,
+              ),
+            ],
+            child: const MaterialApp(
+              home: Scaffold(
+                bottomNavigationBar: ActiveSessionMiniDock(),
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('Round 2 of 3 (Deep Rhythmic Breathing)'), findsOneWidget);
+        expect(find.text('Breath 15 / 30'), findsWidgets);
+
+        // Tap to expand
+        await tester.tap(find.byType(ActiveSessionMiniDock));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(WimHofSessionScreen), findsOneWidget);
       },
     );
   });

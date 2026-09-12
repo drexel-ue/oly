@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:oly/models/breathing_session_model.dart';
+import 'package:oly/providers/active_session_provider.dart';
 import 'package:oly/providers/breathing_provider.dart';
 import 'package:oly/services/notification_service.dart';
 import 'package:oly/theme/app_theme.dart';
@@ -12,8 +13,13 @@ import 'package:provider/provider.dart';
 enum SessionPhase { prep, hyperventilation, retention, recovery }
 
 class WimHofSessionScreen extends StatefulWidget {
-  const new({required this.config, super.key});
+  const new({
+    this.config = const WimHofConfig(),
+    this.initialRound = 1,
+    super.key,
+  });
   final WimHofConfig config;
+  final int initialRound;
 
   @override
   State<WimHofSessionScreen> createState() => _WimHofSessionScreenState();
@@ -21,7 +27,7 @@ class WimHofSessionScreen extends StatefulWidget {
 
 class _WimHofSessionScreenState extends State<WimHofSessionScreen>
     with TickerProviderStateMixin {
-  int _currentRound = 1;
+  late int _currentRound;
   int _currentBreath = 1;
   SessionPhase _phase = SessionPhase.prep;
   bool _isPaused = false;
@@ -49,8 +55,27 @@ class _WimHofSessionScreenState extends State<WimHofSessionScreen>
   @override
   void initState() {
     super.initState();
+    _currentRound = widget.initialRound;
     _initAnimationController();
     _startPrep();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        try {
+          final ActiveSessionProvider activeSession =
+              Provider.of<ActiveSessionProvider>(context, listen: false);
+          activeSession.startSession(
+            sessionTitle: 'Wim Hof Breathwork',
+            sessionType: SessionType.breathwork,
+            breathingConfig: widget.config,
+            breathingRound: _currentRound,
+            breathingTotalRounds: widget.config.defaultRounds,
+            currentExercise:
+                'Round $_currentRound of ${widget.config.defaultRounds} (Get Ready)',
+            currentSetInfo: 'Prep Phase',
+          );
+        } catch (_) {}
+      }
+    });
   }
 
   void _initAnimationController() {
@@ -101,7 +126,51 @@ class _WimHofSessionScreenState extends State<WimHofSessionScreen>
     _retentionTimer?.cancel();
     _recoveryTimer?.cancel();
     _breathController.dispose();
+    try {
+      final ActiveSessionProvider activeSession =
+          Provider.of<ActiveSessionProvider>(context, listen: false);
+      if (activeSession.isActive &&
+          activeSession.sessionType == SessionType.breathwork &&
+          !activeSession.isMinimized) {
+        activeSession.endSession();
+      }
+    } catch (_) {}
     super.dispose();
+  }
+
+  void _syncToActiveSession() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      try {
+        final ActiveSessionProvider activeSession =
+            Provider.of<ActiveSessionProvider>(context, listen: false);
+        if (activeSession.isActive &&
+            activeSession.sessionType == SessionType.breathwork) {
+          String detail = '';
+          if (_phase == SessionPhase.hyperventilation) {
+            detail = 'Breath $_currentBreath / ${widget.config.breathsPerRound}';
+          } else if (_phase == SessionPhase.retention) {
+            final int m = _retentionSeconds ~/ 60;
+            final int s = _retentionSeconds % 60;
+            detail =
+                'Hold ${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
+          } else if (_phase == SessionPhase.recovery) {
+            detail = 'Recovery Hold ${_recoverySecondsRemaining}s';
+          } else {
+            detail = 'Get Ready';
+          }
+
+          activeSession.updateBreathingProgress(
+            round: _currentRound,
+            totalRounds: widget.config.defaultRounds,
+            phaseName: _phaseTitle(),
+            detail: detail,
+          );
+        }
+      } catch (_) {}
+    });
   }
 
   // --- PHASE TRANSITIONS ---
@@ -111,6 +180,7 @@ class _WimHofSessionScreenState extends State<WimHofSessionScreen>
       _phase = SessionPhase.prep;
       _prepSecondsRemaining = 3;
     });
+    _syncToActiveSession();
 
     _prepTimer?.cancel();
     _prepTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -136,6 +206,7 @@ class _WimHofSessionScreenState extends State<WimHofSessionScreen>
       _currentBreath = 1;
       _isInhaling = true;
     });
+    _syncToActiveSession();
 
     if (widget.config.hapticsEnabled) {
       HapticFeedback.heavyImpact();
@@ -154,6 +225,7 @@ class _WimHofSessionScreenState extends State<WimHofSessionScreen>
       _phase = SessionPhase.retention;
       _retentionSeconds = 0;
     });
+    _syncToActiveSession();
 
     if (widget.config.hapticsEnabled) {
       HapticFeedback.heavyImpact();
@@ -168,6 +240,7 @@ class _WimHofSessionScreenState extends State<WimHofSessionScreen>
         return;
       }
       setState(() => _retentionSeconds++);
+      _syncToActiveSession();
     });
   }
 
@@ -179,6 +252,7 @@ class _WimHofSessionScreenState extends State<WimHofSessionScreen>
       _phase = SessionPhase.recovery;
       _recoverySecondsRemaining = 15;
     });
+    _syncToActiveSession();
 
     if (widget.config.hapticsEnabled) {
       HapticFeedback.heavyImpact();
@@ -231,6 +305,12 @@ class _WimHofSessionScreenState extends State<WimHofSessionScreen>
     if (widget.config.soundEnabled) {
       NotificationService().playTimerBeepSound();
     }
+
+    try {
+      final ActiveSessionProvider activeSession =
+          Provider.of<ActiveSessionProvider>(context, listen: false);
+      activeSession.endSession();
+    } catch (_) {}
 
     Navigator.pushReplacement(
       context,
@@ -301,6 +381,11 @@ class _WimHofSessionScreenState extends State<WimHofSessionScreen>
           if (_completedRounds.isNotEmpty)
             ElevatedButton(
               onPressed: () {
+                try {
+                  final ActiveSessionProvider activeSession =
+                      Provider.of<ActiveSessionProvider>(context, listen: false);
+                  activeSession.endSession();
+                } catch (_) {}
                 Navigator.pop(ctx); // close dialog
                 Navigator.pushReplacement(
                   context,
@@ -320,6 +405,11 @@ class _WimHofSessionScreenState extends State<WimHofSessionScreen>
             ),
           TextButton(
             onPressed: () {
+              try {
+                final ActiveSessionProvider activeSession =
+                    Provider.of<ActiveSessionProvider>(context, listen: false);
+                activeSession.endSession();
+              } catch (_) {}
               Navigator.pop(ctx); // close dialog
               Navigator.pop(context); // exit screen
             },
@@ -372,6 +462,23 @@ class _WimHofSessionScreenState extends State<WimHofSessionScreen>
           ],
         ),
         actions: <Widget>[
+          IconButton(
+            icon: const Icon(
+              Icons.keyboard_arrow_down_rounded,
+              size: 28,
+              color: AppTheme.secondaryCyan,
+            ),
+            tooltip: 'Minimize to Dock',
+            onPressed: () {
+              _syncToActiveSession();
+              try {
+                final ActiveSessionProvider activeSession =
+                    Provider.of<ActiveSessionProvider>(context, listen: false);
+                activeSession.minimizeSession();
+              } catch (_) {}
+              Navigator.pop(context);
+            },
+          ),
           IconButton(
             icon: Icon(
               _isPaused ? Icons.play_arrow : Icons.pause,

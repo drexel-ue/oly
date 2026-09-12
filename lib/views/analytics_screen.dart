@@ -16,7 +16,8 @@ import 'package:oly/widgets/wod_history_sheet.dart';
 import 'package:provider/provider.dart';
 
 class AnalyticsScreen extends StatelessWidget {
-  const new({super.key});
+  const new({super.key, this.initialTabIndex = 0});
+  final int initialTabIndex;
 
   @override
   Widget build(BuildContext context) {
@@ -31,6 +32,7 @@ class AnalyticsScreen extends StatelessWidget {
 
     return DefaultTabController(
       length: 5,
+      initialIndex: initialTabIndex.clamp(0, 4),
       child: Scaffold(
         appBar: AppBar(
           title: Text(
