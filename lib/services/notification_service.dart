@@ -246,6 +246,8 @@ class NotificationService {
     required int dailyTargetMl,
     int wakeHour = 4,
     int wakeMinute = 45,
+    bool isTrainingDay = false,
+    bool isDeepKetosis = false,
   }) async {
     await init();
     await cancelHydrationReminders();
@@ -257,42 +259,51 @@ class NotificationService {
         'hour': 5,
         'minute': 0,
         'title': '💧 Morning Hydration Primer ($portionMl mL)',
-        'body': 'Drink $portionMl mL water + a pinch of salt to restore plasma volume before your 6 AM lift.',
+        'body': isTrainingDay
+            ? 'Drink $portionMl mL water + salt to restore plasma volume before your 6 AM platform lift.'
+            : 'Drink $portionMl mL water + a pinch of salt to kickstart circadian hydration.',
       },
       <String, dynamic>{
         'id': 702,
         'hour': 7,
         'minute': 30,
         'title': '💧 Post-Lift Rehydration ($portionMl mL)',
-        'body': 'Refill with $portionMl mL water to rehydrate muscle tissue after training.',
+        'body': isTrainingDay
+            ? 'Refill with $portionMl mL water. Training day surcharge to rehydrate muscle tissue after lifting.'
+            : 'Drink $portionMl mL water to maintain intracellular hydration.',
       },
       <String, dynamic>{
         'id': 703,
         'hour': 10,
         'minute': 0,
         'title': '💧 Mid-Morning Hydration Check ($portionMl mL)',
-        'body': 'Pacing towards your $dailyTargetMl mL goal. Drink $portionMl mL cool or sparkling water.',
+        'body':
+            'Pacing towards your $dailyTargetMl mL goal. Drink $portionMl mL cool or sparkling water.',
       },
       <String, dynamic>{
         'id': 704,
         'hour': 12,
         'minute': 30,
         'title': '💧 Midday Cellular Hydration ($portionMl mL)',
-        'body': 'Keep electrolytes and fluid balanced during your fast. $portionMl mL target.',
+        'body': isDeepKetosis
+            ? 'Deep ketosis natriuresis active. Drink $portionMl mL water + minerals to sustain energy.'
+            : 'Keep electrolytes and fluid balanced during your fast. $portionMl mL target.',
       },
       <String, dynamic>{
         'id': 705,
         'hour': 15,
         'minute': 30,
         'title': '💧 Afternoon Metabolic Hydration ($portionMl mL)',
-        'body': 'Afternoon slump? Salted water boosts alertness and blunts appetite.',
+        'body':
+            'Afternoon slump? Salted water boosts alertness and blunts appetite.',
       },
       <String, dynamic>{
         'id': 706,
         'hour': 18,
         'minute': 0,
         'title': '💧 Final Evening Hydration ($portionMl mL)',
-        'body': 'Last water target before night. Finish hydration by 6:30 PM for uninterrupted sleep.',
+        'body':
+            'Last water target before night. Finish hydration by 6:30 PM for uninterrupted sleep.',
       },
     ];
 

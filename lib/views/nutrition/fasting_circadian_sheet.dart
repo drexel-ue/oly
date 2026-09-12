@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:oly/models/fasting_session_model.dart';
 import 'package:oly/providers/fasting_provider.dart';
+import 'package:oly/providers/nutrition_provider.dart';
+import 'package:oly/services/fasting_engine_service.dart';
 import 'package:oly/theme/app_theme.dart';
 import 'package:provider/provider.dart';
 
@@ -30,8 +32,22 @@ class _FastingCircadianSheetState extends State<FastingCircadianSheet> {
   @override
   Widget build(BuildContext context) {
     final FastingProvider fasting = Provider.of<FastingProvider>(context);
+    final NutritionProvider nutrition = Provider.of<NutritionProvider>(context);
     final AthleteCircadianConfig config = fasting.circadianConfig;
-    final int portionMl = (config.dailyWaterTargetMl / 6).round();
+
+    // Keep fuel context in sync with the active daily nutrition log
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      fasting.syncFuelContext(
+        fuelWaterOz: nutrition.currentDayLog.targetWaterOz,
+        isTrainingDay: nutrition.currentDayLog.isTrainingDay,
+      );
+    });
+
+    final int effectiveTargetMl = fasting.effectiveDailyWaterTargetMl;
+    final int portionMl = (effectiveTargetMl / 6).round();
+    final FastingHydrationAdjustment adjustment = fasting.currentHydrationAdjustment;
+    final double fuelWaterOz = fasting.cachedFuelWaterOz ?? nutrition.currentDayLog.targetWaterOz;
+    final bool isTrainingDay = fasting.cachedIsTrainingDay || nutrition.currentDayLog.isTrainingDay;
 
     return DraggableScrollableSheet(
       initialChildSize: 0.88,
@@ -177,8 +193,209 @@ class _FastingCircadianSheetState extends State<FastingCircadianSheet> {
                     ),
                     if (config.waterRemindersEnabled) ...<Widget>[
                       const Divider(color: Colors.white12, height: 24),
+
+                      // 1. Sync with Fuel Target Switch
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1E1E2A),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: config.syncWithFuelWaterTarget
+                                ? Colors.cyanAccent.withValues(alpha: 0.3)
+                                : Colors.white10,
+                          ),
+                        ),
+                        child: Row(
+                          children: <Widget>[
+                            const Icon(Icons.sync_alt_rounded,
+                                color: Colors.cyanAccent, size: 18),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: <Widget>[
+                                  Text(
+                                    'Sync with Fuel Tab Target',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Adapts to weight, LBM & +24oz training surcharge',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 10,
+                                      color: AppTheme.textSecondary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Switch.adaptive(
+                              value: config.syncWithFuelWaterTarget,
+                              activeThumbColor: Colors.cyanAccent,
+                              activeTrackColor:
+                                  Colors.cyanAccent.withValues(alpha: 0.4),
+                              onChanged: (bool val) {
+                                fasting.updateCircadianConfig(
+                                  config.copyWith(syncWithFuelWaterTarget: val),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+
+                      // 2. Biomarker & Ketosis Adaptation Switch
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1E1E2A),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: config.adjustForFastingBiomarkers
+                                ? const Color(0xFFFFB74D).withValues(alpha: 0.3)
+                                : Colors.white10,
+                          ),
+                        ),
+                        child: Row(
+                          children: <Widget>[
+                            const Icon(Icons.biotech_outlined,
+                                color: Color(0xFFFFB74D), size: 18),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: <Widget>[
+                                  Text(
+                                    'Keto-Mojo & Natriuresis Adaptation',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Counters fasting sodium/water dumping & ketosis',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 10,
+                                      color: AppTheme.textSecondary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Switch.adaptive(
+                              value: config.adjustForFastingBiomarkers,
+                              activeThumbColor: const Color(0xFFFFB74D),
+                              activeTrackColor: const Color(0xFFFFB74D)
+                                  .withValues(alpha: 0.4),
+                              onChanged: (bool val) {
+                                fasting.updateCircadianConfig(
+                                  config.copyWith(
+                                      adjustForFastingBiomarkers: val),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // 3. Calculated Adaptive Breakdown Card
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF13131A),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                              color: Colors.cyanAccent.withValues(alpha: 0.2)),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: <Widget>[
+                                Text(
+                                  'CALCULATED DAILY TARGET',
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: 0.8,
+                                    color: AppTheme.textSecondary,
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: Colors.cyanAccent
+                                        .withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Text(
+                                    '$effectiveTargetMl mL (~$portionMl mL / alert)',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.cyanAccent,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            if (config.syncWithFuelWaterTarget) ...<Widget>[
+                              _buildTargetDetailRow(
+                                'Fuel Tab Goal:',
+                                '${fuelWaterOz.toStringAsFixed(0)} oz (${(fuelWaterOz * 29.5735).round()} mL)',
+                                isTrainingDay
+                                    ? '+24oz lifting bonus included'
+                                    : 'Rest day baseline calculation',
+                                isPositive: true,
+                              ),
+                            ] else ...<Widget>[
+                              _buildTargetDetailRow(
+                                'Manual Baseline:',
+                                '${config.dailyWaterTargetMl} mL',
+                                'Static athlete setting',
+                              ),
+                            ],
+                            if (config.adjustForFastingBiomarkers &&
+                                adjustment.bonusMl > 0) ...<Widget>[
+                              const SizedBox(height: 6),
+                              _buildTargetDetailRow(
+                                'Metabolic Adjustment:',
+                                '+${adjustment.bonusMl} mL (+${adjustment.bonusOz.toStringAsFixed(0)} oz)',
+                                adjustment.rationale,
+                                isHighlight: true,
+                              ),
+                              if (adjustment.suggestedSodiumMg > 0) ...<Widget>[
+                                const SizedBox(height: 3),
+                                Text(
+                                  '🧂 Recommended salt pairing: +${adjustment.suggestedSodiumMg}mg sodium',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w500,
+                                    color: const Color(0xFFFFB74D),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Manual target override chips
                       Text(
-                        'DAILY WATER TARGET',
+                        'MANUAL TARGET OVERRIDE',
                         style: GoogleFonts.outfit(
                           fontSize: 10,
                           fontWeight: FontWeight.w800,
@@ -186,51 +403,75 @@ class _FastingCircadianSheetState extends State<FastingCircadianSheet> {
                           color: AppTheme.textSecondary,
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 6),
                       Wrap(
                         spacing: 8,
-                        children: _waterTargets.map((int target) {
-                          final bool isSelected =
-                              config.dailyWaterTargetMl == target;
-                          return ChoiceChip(
-                            label: Text('$target mL'),
-                            selected: isSelected,
+                        children: <Widget>[
+                          ChoiceChip(
+                            label: const Text('Auto (Fuel Plan)'),
+                            selected: config.syncWithFuelWaterTarget,
                             selectedColor:
                                 Colors.cyanAccent.withValues(alpha: 0.25),
                             backgroundColor: const Color(0xFF22222E),
                             labelStyle: GoogleFonts.inter(
                               fontSize: 11,
-                              fontWeight: isSelected
+                              fontWeight: config.syncWithFuelWaterTarget
                                   ? FontWeight.bold
                                   : FontWeight.normal,
-                              color: isSelected
+                              color: config.syncWithFuelWaterTarget
                                   ? Colors.cyanAccent
                                   : Colors.white70,
                             ),
                             side: BorderSide(
-                              color: isSelected
+                              color: config.syncWithFuelWaterTarget
                                   ? Colors.cyanAccent
                                   : Colors.white12,
                             ),
                             onSelected: (bool selected) {
                               if (selected) {
                                 fasting.updateCircadianConfig(
-                                  config.copyWith(
-                                      dailyWaterTargetMl: target),
+                                  config.copyWith(syncWithFuelWaterTarget: true),
                                 );
                               }
                             },
-                          );
-                        }).toList(),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        '• Target volume per alert: ~$portionMl mL water',
-                        style: GoogleFonts.inter(
-                          fontSize: 11,
-                          color: Colors.cyanAccent,
-                          fontWeight: FontWeight.w500,
-                        ),
+                          ),
+                          ..._waterTargets.map((int target) {
+                            final bool isSelected =
+                                !config.syncWithFuelWaterTarget &&
+                                    config.dailyWaterTargetMl == target;
+                            return ChoiceChip(
+                              label: Text('$target mL'),
+                              selected: isSelected,
+                              selectedColor:
+                                  Colors.cyanAccent.withValues(alpha: 0.25),
+                              backgroundColor: const Color(0xFF22222E),
+                              labelStyle: GoogleFonts.inter(
+                                fontSize: 11,
+                                fontWeight: isSelected
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
+                                color: isSelected
+                                    ? Colors.cyanAccent
+                                    : Colors.white70,
+                              ),
+                              side: BorderSide(
+                                color: isSelected
+                                    ? Colors.cyanAccent
+                                    : Colors.white12,
+                              ),
+                              onSelected: (bool selected) {
+                                if (selected) {
+                                  fasting.updateCircadianConfig(
+                                    config.copyWith(
+                                      dailyWaterTargetMl: target,
+                                      syncWithFuelWaterTarget: false,
+                                    ),
+                                  );
+                                }
+                              },
+                            );
+                          }),
+                        ],
                       ),
                       const SizedBox(height: 14),
 
@@ -494,6 +735,52 @@ class _FastingCircadianSheetState extends State<FastingCircadianSheet> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildTargetDetailRow(
+    String label,
+    String value,
+    String subtext, {
+    bool isPositive = false,
+    bool isHighlight = false,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: <Widget>[
+            Text(
+              label,
+              style: GoogleFonts.inter(
+                fontSize: 11,
+                color: Colors.white70,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            Text(
+              value,
+              style: GoogleFonts.inter(
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                color: isHighlight
+                    ? const Color(0xFFFFB74D)
+                    : (isPositive ? Colors.cyanAccent : Colors.white),
+              ),
+            ),
+          ],
+        ),
+        Text(
+          subtext,
+          style: GoogleFonts.inter(
+            fontSize: 9.5,
+            color: isHighlight
+                ? const Color(0xFFFFB74D).withValues(alpha: 0.8)
+                : AppTheme.textSecondary,
+          ),
+        ),
+      ],
     );
   }
 

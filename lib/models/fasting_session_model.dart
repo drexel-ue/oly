@@ -351,6 +351,8 @@ class AthleteCircadianConfig {
     this.waterRemindersEnabled = true,
     this.coffeeRemindersEnabled = true,
     this.dailyWaterTargetMl = 3000,
+    this.syncWithFuelWaterTarget = true,
+    this.adjustForFastingBiomarkers = true,
   });
 
   factory AthleteCircadianConfig.fromJson(Map<String, dynamic> json) {
@@ -368,6 +370,10 @@ class AthleteCircadianConfig {
       coffeeRemindersEnabled:
           json['coffeeRemindersEnabled'] as bool? ?? true,
       dailyWaterTargetMl: json['dailyWaterTargetMl'] as int? ?? 3000,
+      syncWithFuelWaterTarget:
+          json['syncWithFuelWaterTarget'] as bool? ?? true,
+      adjustForFastingBiomarkers:
+          json['adjustForFastingBiomarkers'] as bool? ?? true,
     );
   }
 
@@ -382,6 +388,8 @@ class AthleteCircadianConfig {
   final bool waterRemindersEnabled;
   final bool coffeeRemindersEnabled;
   final int dailyWaterTargetMl;
+  final bool syncWithFuelWaterTarget;
+  final bool adjustForFastingBiomarkers;
 
   String get formattedWakeTime =>
       '${wakeHour.toString().padLeft(2, '0')}:${wakeMinute.toString().padLeft(2, '0')} AM';
@@ -402,6 +410,8 @@ class AthleteCircadianConfig {
     bool? waterRemindersEnabled,
     bool? coffeeRemindersEnabled,
     int? dailyWaterTargetMl,
+    bool? syncWithFuelWaterTarget,
+    bool? adjustForFastingBiomarkers,
   }) {
     return AthleteCircadianConfig(
       wakeHour: wakeHour ?? this.wakeHour,
@@ -417,6 +427,10 @@ class AthleteCircadianConfig {
       coffeeRemindersEnabled:
           coffeeRemindersEnabled ?? this.coffeeRemindersEnabled,
       dailyWaterTargetMl: dailyWaterTargetMl ?? this.dailyWaterTargetMl,
+      syncWithFuelWaterTarget:
+          syncWithFuelWaterTarget ?? this.syncWithFuelWaterTarget,
+      adjustForFastingBiomarkers:
+          adjustForFastingBiomarkers ?? this.adjustForFastingBiomarkers,
     );
   }
 
@@ -433,6 +447,8 @@ class AthleteCircadianConfig {
       'waterRemindersEnabled': waterRemindersEnabled,
       'coffeeRemindersEnabled': coffeeRemindersEnabled,
       'dailyWaterTargetMl': dailyWaterTargetMl,
+      'syncWithFuelWaterTarget': syncWithFuelWaterTarget,
+      'adjustForFastingBiomarkers': adjustForFastingBiomarkers,
     };
   }
 }

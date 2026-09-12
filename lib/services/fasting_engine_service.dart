@@ -1,6 +1,33 @@
 import 'package:intl/intl.dart';
+import 'package:oly/models/fasting_biomarker_entry.dart';
 import 'package:oly/models/fasting_grocery_item.dart';
 import 'package:oly/models/fasting_session_model.dart';
+
+/// Scientific hydration adjustment details based on fasting duration and Keto-Mojo biomarkers
+class FastingHydrationAdjustment {
+  const FastingHydrationAdjustment({
+    required this.bonusOz,
+    required this.bonusMl,
+    required this.suggestedSodiumMg,
+    required this.rationale,
+    this.isHemoconcentrationRisk = false,
+    this.isDeepKetosis = false,
+  });
+
+  static const FastingHydrationAdjustment zero = FastingHydrationAdjustment(
+    bonusOz: 0.0,
+    bonusMl: 0,
+    suggestedSodiumMg: 0,
+    rationale: 'Baseline hydration',
+  );
+
+  final double bonusOz;
+  final int bonusMl;
+  final int suggestedSodiumMg;
+  final String rationale;
+  final bool isHemoconcentrationRisk;
+  final bool isDeepKetosis;
+}
 
 class FastingEngineService {
   /// Calculate Glucose-Ketone Index (GKI)
@@ -14,6 +41,97 @@ class FastingEngineService {
     }
     final double glucoseMmolL = glucoseMgDl / 18.016;
     return glucoseMmolL / ketoneMmolL;
+  }
+
+  /// Calculates scientific hydration and sodium adjustment based on fasting hours and Keto-Mojo biomarkers.
+  ///
+  /// Research formulation:
+  /// 1. Natriuresis of Fasting: Insulin drop triggers renal sodium & water dumping.
+  /// 2. Glycogen Clearance: 3-4g water liberated per 1g glycogen burnt, shifting fluid dynamics.
+  /// 3. Ketone Osmotic Clearance: Ketones (BOHB >= 1.5 mmol/L) pull cations and water via glomerular filtration.
+  /// 4. Hemoconcentration / Stress Diuresis: Elevated glucose (>110 mg/dL) with elevated ketones indicates
+  ///    contracted plasma volume requiring rapid rehydration.
+  static FastingHydrationAdjustment calculateFastingHydrationAdjustment({
+    required double elapsedHours,
+    FastingBiomarkerEntry? latestBiomarker,
+  }) {
+    // If not actively fasting (e.g. fed state < 4 hours) and no ketone reading, 0 bonus.
+    if (elapsedHours < 4.0 &&
+        (latestBiomarker == null || latestBiomarker.ketoneMmolL < 0.5)) {
+      return FastingHydrationAdjustment.zero;
+    }
+
+    double bonusOz = 0.0;
+    int sodiumMg = 0;
+    String rationale = '';
+    bool isHemoRisk = false;
+    bool isDeepKetosis = false;
+
+    // Check for Hemoconcentration (elevated glucose > 110 mg/dL + elevated ketones >= 1.0 mmol/L during fast)
+    if (latestBiomarker != null &&
+        latestBiomarker.glucoseMgDl > 110.0 &&
+        latestBiomarker.ketoneMmolL >= 1.0) {
+      bonusOz = 24.0; // ~710 mL
+      sodiumMg = 800;
+      isHemoRisk = true;
+      rationale =
+          'Hemoconcentration Alert: Elevated glucose (${latestBiomarker.glucoseMgDl.toStringAsFixed(0)} mg/dL) with ketones indicates contracted intravascular volume. Hydrate with electrolyte water.';
+      return FastingHydrationAdjustment(
+        bonusOz: bonusOz,
+        bonusMl: (bonusOz * 29.5735).round(),
+        suggestedSodiumMg: sodiumMg,
+        rationale: rationale,
+        isHemoconcentrationRisk: true,
+        isDeepKetosis: true,
+      );
+    }
+
+    // High / Therapeutic Ketosis (GKI < 3.0 or Ketones >= 1.5 mmol/L)
+    if (latestBiomarker != null &&
+        (latestBiomarker.ketoneMmolL >= 1.5 || latestBiomarker.gki < 3.0)) {
+      isDeepKetosis = true;
+      bonusOz += 16.0; // ~475 mL
+      sodiumMg += 600;
+      rationale =
+          'Deep Ketosis Natriuresis: Ketones at ${latestBiomarker.ketoneMmolL.toStringAsFixed(1)} mmol/L (GKI ${latestBiomarker.gki.toStringAsFixed(1)}) increase renal electrolyte dumping. +16 oz fluid + 600mg salt recommended.';
+    } else if (latestBiomarker != null && latestBiomarker.ketoneMmolL >= 0.8) {
+      bonusOz += 10.0; // ~295 mL
+      sodiumMg += 400;
+      rationale =
+          'Nutritional Ketosis: Ketones at ${latestBiomarker.ketoneMmolL.toStringAsFixed(1)} mmol/L. Glycogen stores depleted, mild natriuresis active.';
+    } else {
+      // Stage-based fasting adjustments if biomarker reading not available
+      if (elapsedHours >= 24.0) {
+        isDeepKetosis = true;
+        bonusOz += 18.0;
+        sodiumMg += 700;
+        rationale =
+            'Extended Fasting (24h+): High cellular autophagy and sustained sodium dumping. +18 oz fluid + sodium required.';
+      } else if (elapsedHours >= 16.0) {
+        bonusOz += 12.0;
+        sodiumMg += 500;
+        rationale =
+            'Fasting Natriuresis (16-24h): Insulin suppression drives kidney water clearance. +12 oz fluid recommended.';
+      } else if (elapsedHours >= 12.0) {
+        bonusOz += 6.0;
+        sodiumMg += 300;
+        rationale =
+            'Ketosis Onset (12-16h): Early liver glycogen release. +6 oz fluid recommended.';
+      }
+    }
+
+    if (bonusOz == 0.0) {
+      return FastingHydrationAdjustment.zero;
+    }
+
+    return FastingHydrationAdjustment(
+      bonusOz: bonusOz,
+      bonusMl: (bonusOz * 29.5735).round(),
+      suggestedSodiumMg: sodiumMg,
+      rationale: rationale,
+      isHemoconcentrationRisk: isHemoRisk,
+      isDeepKetosis: isDeepKetosis,
+    );
   }
 
   /// Get current biological stage based on elapsed hours

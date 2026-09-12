@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:oly/models/fasting_biomarker_entry.dart';
 import 'package:oly/models/fasting_session_model.dart';
 import 'package:oly/providers/fasting_provider.dart';
+import 'package:oly/providers/nutrition_provider.dart';
 import 'package:oly/theme/app_theme.dart';
 import 'package:oly/views/nutrition/fasting_biomarker_history_sheet.dart';
 import 'package:oly/views/nutrition/fasting_biomarker_sheet.dart';
@@ -23,6 +24,16 @@ class FastingDashboardView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final FastingProvider fasting = Provider.of<FastingProvider>(context);
+    final NutritionProvider nutrition = Provider.of<NutritionProvider>(context);
+
+    // Keep fuel context synchronized with the active nutrition day log
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      fasting.syncFuelContext(
+        fuelWaterOz: nutrition.currentDayLog.targetWaterOz,
+        isTrainingDay: nutrition.currentDayLog.isTrainingDay,
+      );
+    });
+
     final FastingSession? active = fasting.activeSession;
 
     if (active == null) {
@@ -398,14 +409,28 @@ class FastingDashboardView extends StatelessWidget {
                 avatar: const Icon(Icons.add, size: 14, color: Colors.cyanAccent),
                 label: Text('+250mL Water',
                     style: GoogleFonts.inter(fontSize: 11, color: Colors.white)),
-                onPressed: () => fasting.logWater(250),
+                onPressed: () {
+                  final NutritionProvider nutrition =
+                      Provider.of<NutritionProvider>(context, listen: false);
+                  fasting.logWater(
+                    250,
+                    onLogToFuel: (double oz) => nutrition.addWater(oz),
+                  );
+                },
               ),
               ActionChip(
                 backgroundColor: const Color(0xFF22222C),
                 avatar: const Icon(Icons.add, size: 14, color: Colors.cyanAccent),
                 label: Text('+500mL Water',
                     style: GoogleFonts.inter(fontSize: 11, color: Colors.white)),
-                onPressed: () => fasting.logWater(500),
+                onPressed: () {
+                  final NutritionProvider nutrition =
+                      Provider.of<NutritionProvider>(context, listen: false);
+                  fasting.logWater(
+                    500,
+                    onLogToFuel: (double oz) => nutrition.addWater(oz),
+                  );
+                },
               ),
             ],
           ),

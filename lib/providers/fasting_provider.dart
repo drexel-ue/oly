@@ -1,9 +1,13 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:intl/intl.dart';
+import 'package:oly/models/body_composition_entry.dart';
+import 'package:oly/models/daily_nutrition_log.dart';
 import 'package:oly/models/fasting_biomarker_entry.dart';
 import 'package:oly/models/fasting_grocery_item.dart';
 import 'package:oly/models/fasting_session_model.dart';
+import 'package:oly/models/nutrition_goal_model.dart';
 import 'package:oly/services/fasting_engine_service.dart';
 import 'package:oly/services/notification_service.dart';
 import 'package:oly/services/storage_service.dart';
@@ -26,14 +30,56 @@ class FastingProvider extends ChangeNotifier {
   List<FastingBiomarkerEntry> _biomarkers = <FastingBiomarkerEntry>[];
   Timer? _tickerTimer;
 
+  // Cached fuel context for adaptive hydration calculations
+  double? _cachedFuelWaterOz;
+  bool _cachedIsTrainingDay = false;
+
   // Getters
   FastingSession? get activeSession => _activeSession;
   bool get isFastingActive => _activeSession != null;
+  double get elapsedHours => _activeSession?.elapsedHours ?? 0.0;
   List<FastingSession> get history => List.unmodifiable(_history);
   AthleteCircadianConfig get circadianConfig => _circadianConfig;
   List<FastingGroceryItem> get pantryItems => List.unmodifiable(_pantryItems);
   List<FastingBiomarkerEntry> get allBiomarkers =>
       List<FastingBiomarkerEntry>.unmodifiable(_biomarkers);
+  double? get cachedFuelWaterOz => _cachedFuelWaterOz;
+  bool get cachedIsTrainingDay => _cachedIsTrainingDay;
+
+  /// Returns the research-backed fasting & biomarker hydration adjustment
+  FastingHydrationAdjustment get currentHydrationAdjustment {
+    if (!_circadianConfig.adjustForFastingBiomarkers) {
+      return FastingHydrationAdjustment.zero;
+    }
+    return FastingEngineService.calculateFastingHydrationAdjustment(
+      elapsedHours: elapsedHours,
+      latestBiomarker: latestBiomarker,
+    );
+  }
+
+  /// Calculates the effective daily water target in mL factoring in:
+  /// 1. Fuel tab target (LBM + training day surcharge)
+  /// 2. Fasting natriuresis & Keto-Mojo biomarker adjustment
+  /// 3. Manual preference fallback
+  int get effectiveDailyWaterTargetMl {
+    double baseTargetOz;
+    if (_circadianConfig.syncWithFuelWaterTarget &&
+        _cachedFuelWaterOz != null &&
+        _cachedFuelWaterOz! > 0) {
+      baseTargetOz = _cachedFuelWaterOz!;
+    } else {
+      baseTargetOz = _circadianConfig.dailyWaterTargetMl / 29.5735;
+    }
+
+    int totalTargetMl = (baseTargetOz * 29.5735).round();
+
+    if (_circadianConfig.adjustForFastingBiomarkers) {
+      final FastingHydrationAdjustment adjustment = currentHydrationAdjustment;
+      totalTargetMl += adjustment.bonusMl;
+    }
+
+    return totalTargetMl.clamp(1500, 6000);
+  }
 
   /// 7-Day forward projection schedule based on current protocol
   List<FastingScheduleDay> get projectionSchedule {
@@ -94,6 +140,24 @@ class FastingProvider extends ChangeNotifier {
     if (_pantryItems.isEmpty) {
       _pantryItems = List<FastingGroceryItem>.from(FastingEngineService.getSeedPantryItems());
       _storage.saveFastingPantryItems(_pantryItems);
+    }
+
+    // Initialize cached Fuel target from today's log or nutrition goal fallback
+    final String todayKey = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    final Map<String, DailyNutritionLog> logs = _storage.loadDailyNutritionLogs();
+    if (logs.containsKey(todayKey)) {
+      _cachedFuelWaterOz = logs[todayKey]!.targetWaterOz;
+      _cachedIsTrainingDay = logs[todayKey]!.isTrainingDay;
+    } else {
+      final NutritionGoalModel goal = _storage.loadNutritionGoal();
+      final List<BodyCompositionEntry> comps = _storage.loadBodyCompEntries();
+      final BodyCompositionEntry? latestComp =
+          comps.isNotEmpty ? comps.first : null;
+      _cachedFuelWaterOz = goal.getRecommendedWaterGoalOz(
+        latestBodyComp: latestComp,
+        isTrainingDay: false,
+      );
+      _cachedIsTrainingDay = false;
     }
 
     if (_activeSession != null) {
@@ -185,13 +249,16 @@ class FastingProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Log water intake during an active fast
-  Future<void> logWater(int ml) async {
-    if (_activeSession == null) {
-      return;
+  /// Log water intake during an active fast, with optional bridge to Fuel tab
+  Future<void> logWater(int ml, {void Function(double oz)? onLogToFuel}) async {
+    if (_activeSession != null) {
+      _activeSession!.waterLoggedMl += ml;
+      await _storage.saveActiveFastingSession(_activeSession);
     }
-    _activeSession!.waterLoggedMl += ml;
-    await _storage.saveActiveFastingSession(_activeSession);
+    if (onLogToFuel != null) {
+      final double oz = ml / 29.5735;
+      onLogToFuel(oz);
+    }
     notifyListeners();
   }
 
@@ -222,6 +289,7 @@ class FastingProvider extends ChangeNotifier {
       _history.first.biomarkers.add(entry);
       await _storage.saveFastingHistory(_history);
     }
+    _syncNotificationSchedules();
     notifyListeners();
   }
 
@@ -233,6 +301,7 @@ class FastingProvider extends ChangeNotifier {
       _activeSession!.biomarkers.removeWhere((FastingBiomarkerEntry e) => e.id == id);
       await _storage.saveActiveFastingSession(_activeSession);
     }
+    _syncNotificationSchedules();
     notifyListeners();
   }
 
@@ -274,6 +343,21 @@ class FastingProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Synchronizes dynamic target with active Fuel tab / nutrition state
+  void syncFuelContext({
+    required double fuelWaterOz,
+    required bool isTrainingDay,
+  }) {
+    final bool changed = _cachedFuelWaterOz != fuelWaterOz ||
+        _cachedIsTrainingDay != isTrainingDay;
+    _cachedFuelWaterOz = fuelWaterOz;
+    _cachedIsTrainingDay = isTrainingDay;
+    if (changed) {
+      _syncNotificationSchedules();
+      notifyListeners();
+    }
+  }
+
   /// Update athlete circadian preferences
   Future<void> updateCircadianConfig(AthleteCircadianConfig config) async {
     _circadianConfig = config;
@@ -302,10 +386,13 @@ class FastingProvider extends ChangeNotifier {
 
   void _syncNotificationSchedules() {
     if (_circadianConfig.waterRemindersEnabled) {
+      final FastingHydrationAdjustment adjustment = currentHydrationAdjustment;
       _notificationService.scheduleFastingHydrationReminders(
-        dailyTargetMl: _circadianConfig.dailyWaterTargetMl,
+        dailyTargetMl: effectiveDailyWaterTargetMl,
         wakeHour: _circadianConfig.wakeHour,
         wakeMinute: _circadianConfig.wakeMinute,
+        isTrainingDay: _cachedIsTrainingDay,
+        isDeepKetosis: adjustment.isDeepKetosis,
       );
     } else {
       _notificationService.cancelHydrationReminders();
