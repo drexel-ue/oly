@@ -1601,24 +1601,36 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     PhaseTemplate phase,
     SettingsProvider settings,
   ) {
-    return GlassContainer(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
-      ambientGlowColor: AppTheme.primaryAmber,
-      ambientGlowRadius: 0.9,
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Text(
-            phase.name.toUpperCase(),
-            style: GoogleFonts.outfit(
-              fontSize: 13,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 1,
-              color: AppTheme.primaryAmber,
+          Padding(
+            padding: const EdgeInsets.only(left: 4, bottom: 12),
+            child: Row(
+              children: <Widget>[
+                Container(
+                  width: 3,
+                  height: 14,
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryAmber,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  phase.name.toUpperCase(),
+                  style: GoogleFonts.outfit(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1.2,
+                    color: AppTheme.primaryAmber,
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 12),
           ...phase.exercises.map((exercise) {
             final String displayName =
                 _swappedExerciseNames[exercise.name] ?? exercise.name;
@@ -1633,17 +1645,14 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                 ? sets.first.reps
                 : WorkoutWeightHelper.extractRepsCount(exercise.setScheme);
 
-            return Container(
-              margin: const EdgeInsets.only(bottom: 12),
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppTheme.surfaceElevated,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: isSwapped
-                      ? AppTheme.primaryAmber.withValues(alpha: 0.6)
-                      : AppTheme.borderColor,
-                ),
+            return GlassContainer(
+              margin: const EdgeInsets.only(bottom: 14),
+              padding: const EdgeInsets.all(14),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: isSwapped
+                    ? AppTheme.primaryAmber.withValues(alpha: 0.6)
+                    : Colors.white.withValues(alpha: 0.10),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

@@ -98,8 +98,8 @@ class AthleteSummaryOverviewCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(24),
       child: GlassContainer(
         borderRadius: BorderRadius.circular(24),
-        ambientGlowColor: hasDraft ? AppTheme.primaryAmber : const Color(0x33FF9F0A),
-        ambientGlowRadius: 1.1,
+        ambientGlowColor:
+            hasDraft ? AppTheme.primaryAmber : AppTheme.primaryAmber.withValues(alpha: 0.4),
         padding: EdgeInsets.zero,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -355,9 +355,7 @@ class AthleteSummaryOverviewCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(14),
                         child: ElevatedButton.icon(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: hasDraft
-                                ? AppTheme.primaryAmber
-                                : AppTheme.secondaryCyan,
+                            backgroundColor: AppTheme.primaryAmber,
                             foregroundColor: Colors.black,
                             padding: const EdgeInsets.symmetric(vertical: 14),
                             shape: RoundedRectangleBorder(
@@ -399,8 +397,10 @@ class AthleteSummaryOverviewCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(14),
                         child: OutlinedButton.icon(
                           style: OutlinedButton.styleFrom(
-                            foregroundColor: AppTheme.secondaryCyan,
-                            side: const BorderSide(color: AppTheme.secondaryCyan),
+                            foregroundColor: AppTheme.textPrimary,
+                            side: BorderSide(
+                              color: Colors.white.withValues(alpha: 0.18),
+                            ),
                             padding: const EdgeInsets.symmetric(vertical: 14),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(14),
@@ -415,8 +415,11 @@ class AthleteSummaryOverviewCard extends StatelessWidget {
                               ),
                             );
                           },
-                          icon:
-                              const Icon(Icons.directions_run_rounded, size: 18),
+                          icon: const Icon(
+                            Icons.directions_run_rounded,
+                            size: 18,
+                            color: AppTheme.primaryAmber,
+                          ),
                           label: Text(
                             'Warm-Up',
                             style: GoogleFonts.outfit(

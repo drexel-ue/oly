@@ -39,37 +39,34 @@ class GlassContainer extends StatelessWidget {
     final effectiveShadow = boxShadow ??
         <BoxShadow>[
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.5),
-            blurRadius: 20,
+            color: Colors.black.withValues(alpha: 0.55),
+            blurRadius: 22,
             offset: const Offset(0, 6),
           ),
           if (ambientGlowColor != null)
             BoxShadow(
-              color: ambientGlowColor!.withValues(alpha: 0.18),
-              blurRadius: 24,
-              spreadRadius: 1,
+              color: ambientGlowColor!.withValues(alpha: 0.12),
+              blurRadius: 32,
+              offset: const Offset(0, 4),
             ),
         ];
 
     final effectiveGradient = gradient ??
-        (ambientGlowColor != null
-            ? RadialGradient(
-                center: const Alignment(0, -0.7),
-                radius: ambientGlowRadius,
-                colors: <Color>[
-                  ambientGlowColor!.withValues(alpha: 0.18),
-                  (backgroundColor ?? AppTheme.surfaceGlass)
-                      .withValues(alpha: 0.85),
-                ],
-              )
-            : null);
+        LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: <Color>[
+            backgroundColor ?? const Color(0xFF181C28),
+            if (backgroundColor != null)
+              backgroundColor!.withValues(alpha: 0.85)
+            else
+              const Color(0xFF10121A),
+          ],
+        );
 
     Widget content = Container(
       padding: padding,
       decoration: BoxDecoration(
-        color: effectiveGradient == null
-            ? (backgroundColor ?? AppTheme.surfaceGlass)
-            : null,
         gradient: effectiveGradient,
         borderRadius: borderRadius,
         border: effectiveBorder,
