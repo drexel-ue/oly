@@ -54,6 +54,8 @@ class OlyEntryReveal extends StatefulWidget {
     this.slidePixels = 28,
     this.horizontalSlidePixels,
     this.curve = Curves.easeOutCubic,
+    this.horizontalCurve,
+    this.verticalCurve,
     this.reverseCurve = Curves.easeInCubic,
     this.fade = true,
     this.waitForPageTransition = true,
@@ -88,6 +90,16 @@ class OlyEntryReveal extends StatefulWidget {
   /// Easing curve for the reveal.
   final Curve curve;
 
+  /// Optional curve applied to horizontal translation when navigating between tabs.
+  /// When combined with [verticalCurve], creates a dynamic J-curve / scoop trajectory
+  /// rather than a rigid 45-degree straight diagonal line.
+  /// Defaults to [Cubic(0.12, 0.80, 0.22, 1.0)].
+  final Curve? horizontalCurve;
+
+  /// Optional curve applied to vertical translation when navigating between tabs.
+  /// Defaults to [Cubic(0.40, 0.05, 0.20, 1.0)].
+  final Curve? verticalCurve;
+
   /// Easing curve for the reverse exit.
   final Curve reverseCurve;
 
@@ -108,7 +120,6 @@ class OlyEntryReveal extends StatefulWidget {
 class _OlyEntryRevealState extends State<OlyEntryReveal>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
-  late final Animation<double> _curvedAnimation;
   Timer? _entryTimer;
   Timer? _exitTimer;
   late final bool _isTest;
@@ -125,12 +136,6 @@ class _OlyEntryRevealState extends State<OlyEntryReveal>
       vsync: this,
       duration: widget.duration,
       reverseDuration: widget.reverseDuration,
-    );
-
-    _curvedAnimation = CurvedAnimation(
-      parent: _controller,
-      curve: widget.curve,
-      reverseCurve: widget.reverseCurve,
     );
 
     if (_isTest) {
@@ -253,12 +258,24 @@ class _OlyEntryRevealState extends State<OlyEntryReveal>
             : 0.0);
 
     return AnimatedBuilder(
-      animation: _curvedAnimation,
+      animation: _controller,
       builder: (context, child) {
-        final double progress = _curvedAnimation.value;
-        final double dx = (1 - progress) * horizontalOffset;
-        final double dy = (1 - progress) * widget.slidePixels;
-        final double opacity = widget.fade ? progress.clamp(0, 1) : 1;
+        final double t = _controller.value;
+        final bool isHorizontalActive = horizontalOffset != 0.0;
+
+        // Decouple horizontal and vertical progression to carve an athletic J-curve / scoop trajectory
+        // rather than a rigid 45-degree straight line.
+        final double progressX = isHorizontalActive
+            ? (widget.horizontalCurve ?? const Cubic(0.12, 0.8, 0.22, 1)).transform(t)
+            : widget.curve.transform(t);
+
+        final double progressY = isHorizontalActive
+            ? (widget.verticalCurve ?? const Cubic(0.4, 0.05, 0.2, 1)).transform(t)
+            : widget.curve.transform(t);
+
+        final double dx = (1 - progressX) * horizontalOffset;
+        final double dy = (1 - progressY) * widget.slidePixels;
+        final double opacity = widget.fade ? widget.curve.transform(t).clamp(0, 1) : 1;
 
         return Transform.translate(
           offset: Offset(dx, dy),

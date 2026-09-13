@@ -406,6 +406,27 @@ void main() {
       ), findsWidgets);
     });
 
+    testWidgets('OlyEntryReveal configures decoupled J-curve trajectory parameters', (
+      tester,
+    ) async {
+      const OlyEntryReveal revealWidget = OlyEntryReveal(
+        horizontalCurve: Cubic(0.12, 0.8, 0.22, 1),
+        verticalCurve: Cubic(0.4, 0.05, 0.2, 1),
+        child: SizedBox(width: 100, height: 100),
+      );
+
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(body: revealWidget),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final OlyEntryReveal found = tester.widget(find.byType(OlyEntryReveal));
+      expect(found.horizontalCurve, isNotNull);
+      expect(found.verticalCurve, isNotNull);
+    });
+
     testWidgets('AthleteSummaryOverviewCard renders daily briefing details', (
       tester,
     ) async {
