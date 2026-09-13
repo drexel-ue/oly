@@ -16,9 +16,13 @@ import 'package:oly/models/nutrition_entry.dart';
 import 'package:oly/models/program_model.dart';
 import 'package:oly/models/wod_definition.dart';
 import 'package:oly/models/workout_session.dart';
+import 'package:oly/providers/active_session_provider.dart';
 import 'package:oly/providers/body_comp_provider.dart';
 import 'package:oly/providers/breathing_provider.dart';
+import 'package:oly/providers/c25k_provider.dart';
 import 'package:oly/providers/fasting_provider.dart';
+import 'package:oly/providers/goal_provider.dart';
+import 'package:oly/providers/grip_hang_provider.dart';
 import 'package:oly/providers/injury_provider.dart';
 import 'package:oly/providers/lift_provider.dart';
 import 'package:oly/providers/nutrition_provider.dart';
@@ -35,9 +39,13 @@ import 'package:oly/views/breathing/breathing_analytics_tab.dart';
 import 'package:oly/views/breathing/wim_hof_session_screen.dart';
 import 'package:oly/views/breathing/wim_hof_setup_sheet.dart';
 import 'package:oly/views/breathing/wim_hof_summary_screen.dart';
+import 'package:oly/views/c25k/c25k_active_run_screen.dart';
+import 'package:oly/views/c25k/c25k_program_detail_screen.dart';
 import 'package:oly/views/dashboard_screen.dart';
 import 'package:oly/views/death_by_burpees_screen.dart';
 import 'package:oly/views/diagnostics/crash_report_screen.dart';
+import 'package:oly/views/grip/dynamometer_entry_sheet.dart';
+import 'package:oly/views/grip/grip_hang_detail_screen.dart';
 import 'package:oly/views/injury_tracker_screen.dart';
 import 'package:oly/views/lifts_screen.dart';
 import 'package:oly/views/max_test_screen.dart';
@@ -143,6 +151,10 @@ void main() {
   late InjuryProvider injuryProvider;
   late BreathingProvider breathingProvider;
   late FastingProvider fastingProvider;
+  late GoalProvider goalProvider;
+  late GripHangProvider gripHangProvider;
+  late C25kProvider c25kProvider;
+  late ActiveSessionProvider activeSessionProvider;
 
   setUpAll(() async {
     GoogleFonts.config.allowRuntimeFetching = false;
@@ -215,6 +227,10 @@ void main() {
     injuryProvider = InjuryProvider(storage);
     breathingProvider = BreathingProvider(storage);
     fastingProvider = FastingProvider(storage);
+    activeSessionProvider = ActiveSessionProvider();
+    goalProvider = GoalProvider(storage);
+    gripHangProvider = GripHangProvider(storage);
+    c25kProvider = C25kProvider(storage);
   });
 
   GlobalKey boundaryKey = GlobalKey();
@@ -232,6 +248,10 @@ void main() {
         ChangeNotifierProvider.value(value: injuryProvider),
         ChangeNotifierProvider.value(value: breathingProvider),
         ChangeNotifierProvider.value(value: fastingProvider),
+        ChangeNotifierProvider.value(value: activeSessionProvider),
+        ChangeNotifierProvider.value(value: goalProvider),
+        ChangeNotifierProvider.value(value: gripHangProvider),
+        ChangeNotifierProvider.value(value: c25kProvider),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -1366,6 +1386,76 @@ void main() {
         );
         await captureScreen(tester, '40_fasting_refeed_guide_sheet');
         expect(find.text('STRUCTURED REFEEDING PROTOCOL'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      '41 Renders Grip Strength & Active Hang Dashboard Screen',
+      (tester) async {
+        tester.view.physicalSize = const Size(1170, 2532);
+        tester.view.devicePixelRatio = 2.0;
+        addTearDown(() => tester.view.resetPhysicalSize());
+
+        await tester.pumpWidget(
+          buildTestScreen(
+            const GripHangDetailScreen(),
+          ),
+        );
+        await captureScreen(tester, '41_grip_hang_detail_screen');
+        expect(find.text('Grip & Active Hang'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      '42 Renders Home Handheld Dynamometer Entry Sheet',
+      (tester) async {
+        tester.view.physicalSize = const Size(1170, 2532);
+        tester.view.devicePixelRatio = 2.0;
+        addTearDown(() => tester.view.resetPhysicalSize());
+
+        await tester.pumpWidget(
+          buildTestScreen(
+            const Scaffold(
+              body: DynamometerEntrySheet(),
+            ),
+          ),
+        );
+        await captureScreen(tester, '42_dynamometer_entry_sheet');
+        expect(find.text('Home Dynamometer Test'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      '43 Renders Couch to 5K 9-Week Curriculum Screen',
+      (tester) async {
+        tester.view.physicalSize = const Size(1170, 2532);
+        tester.view.devicePixelRatio = 2.0;
+        addTearDown(() => tester.view.resetPhysicalSize());
+
+        await tester.pumpWidget(
+          buildTestScreen(
+            const C25kProgramDetailScreen(),
+          ),
+        );
+        await captureScreen(tester, '43_c25k_program_detail_screen');
+        expect(find.text('Couch to 5K Program'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      '44 Renders Couch to 5K Active Interval Runner Screen',
+      (tester) async {
+        tester.view.physicalSize = const Size(1170, 2532);
+        tester.view.devicePixelRatio = 2.0;
+        addTearDown(() => tester.view.resetPhysicalSize());
+
+        await tester.pumpWidget(
+          buildTestScreen(
+            const C25kActiveRunScreen(week: 1, day: 1),
+          ),
+        );
+        await captureScreen(tester, '44_c25k_active_run_screen');
+        expect(find.text('WEEK 1 DAY 1'), findsOneWidget);
       },
     );
   });

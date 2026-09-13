@@ -16,7 +16,9 @@
   <img src="https://img.shields.io/badge/Open%20Food%20Facts-SDK%20v3-00B259?logo=openfoodfacts&logoColor=white" alt="Open Food Facts SDK" />
   <img src="https://img.shields.io/badge/Google%20ML%20Kit-OCR%20Vision-4285F4?logo=google&logoColor=white" alt="ML Kit Vision" />
   <img src="https://img.shields.io/badge/Theme-Dark%20Obsidian-121214" alt="Theme" />
-  <img src="https://img.shields.io/badge/Tests-327%20Passing-brightgreen" alt="Tests" />
+  <img src="https://img.shields.io/badge/Goals-Composable%20Tracks-FF9E1B" alt="Goals" />
+  <img src="https://img.shields.io/badge/C25K-9--Week%20Progression-00B259" alt="C25K" />
+  <img src="https://img.shields.io/badge/Tests-381%20Passing-brightgreen" alt="Tests" />
   <img src="https://img.shields.io/badge/License-Proprietary-FF9E1B" alt="License" />
 </p>
 
@@ -27,6 +29,9 @@
 **OLY** unites elite Olympic weightlifting periodization with a rigorous athlete nutrition engine, metabolic expenditure modeling, an offline-first **Anatomical Body Map & Biomechanical Injury Adaptation Engine**, a **Guided Wim Hof Breathwork & Retention Analytics Suite**, a clinical-grade **Guided Fasting & Metabolic Longevity Engine**, and a complete **2.06M+ item USDA & Restaurant SQLite database with FTS5 token search**. Designed from the ground up for serious athletes:
 
 - **🏋️ Periodization & Lifts**: 4-Day and 5-Day wave loading programs (`65% → 70% → 75% → Deload → Retest`), Catalyst Athletics / Greg Everett 1RM variation ratios, dynamic in-workout exercise swapping, working weight & rep adjustments with live Epley 1RM recalculation, per-set fine-tuning, and an IWF color-coded bumper plate visualizer.
+- **🎯 Extensible Composable Goals**: Reorganized training beyond single-track workouts into an extensible goal-driven framework. Multiple goals (Olympic weightlifting, C25K running, and grip hang protocols) are automatically synthesized into cohesive daily sessions or split routines without requiring separate tracking contexts.
+- **✊ Measured Grip Strength & Active Hang Protocol**: Built around personal milestones of a **5-minute two-hand hang** and a **2-minute unilateral hang**. Features decoupled home handheld dynamometer logging (isometric peak force, bilateral asymmetry %, and rolling 14-day CNS readiness), live hang stopwatches with audio/haptic milestone chimes, and scapular vs. passive joint decompression logging.
+- **🏃 Couch to 5K (C25K) Aerobic Engine**: Complete 9-week / 27-session progressive interval running curriculum with radial countdown timers, real-time pace/interval cues (walk vs. jog), Compendium of Physical Activities Algorithm B net caloric calculation, and seamless integration into daily workouts.
 - **⏳ Guided Fasting & Metabolic Longevity Engine**: Structured progression ladder from intermittent fasting (16:8, 18:6, 20:4) to extended therapeutic fasts (24h, 36h, 48h, 72h). Specifically tailored to athlete circadian rhythm (4:45 AM wake, 6:00 AM barbell lift, 8:45 PM sleep) with contextual heavy lifting advisories, Seymour-Seyfried Glucose Ketone Index (GKI) capillary blood tracking (Keto-Mojo), automated paced hydration & strategic black coffee alert scheduling, 7-day projection planner, pantry checklist, 3-phase structured refeeding guide, and in-depth cellular biology & longevity library.
 - **🌬️ Guided Wim Hof Breathwork & Retention Tracking**: Configurable 1–10 round breathing protocol, 20/30/40 breath counts, adjustable pacing (Relaxed, Normal, Fast), animated pulsing breathing orb, exhale breath hold stopwatch timer, 15-second recovery countdown, and dedicated **Breathwork Analytics** tracking retention progression over time via `fl_chart` LineCharts and round-by-round averages.
 - **🥗 Complete Offline 2.06M+ USDA & Restaurant Database**: Embedded SQLite database (`usda_foods.db`) powered by FTS5 full-text indexing. Contains **Foundation Foods**, **SR Legacy**, **Survey Foods (FNDDS)**, **1.98M+ Branded products** with offline UPC barcode lookup, and curated menus across 26 major restaurant chains (McDonald's, Wingstop, Wendy's, Chick-fil-A, Chipotle, Starbucks, In-N-Out, Panda Express, Subway, Popeyes, Raising Cane's, Five Guys, Shake Shack, etc.).
@@ -41,6 +46,24 @@
 ---
 
 ## 📱 Visual Feature Tour
+
+### 🎯 Composable Goals & Measured Grip Strength
+
+| Grip & Active Hang Console | Home Dynamometer Entry Sheet |
+| :---: | :---: |
+| <img src="screenshots/41_grip_hang_detail_screen.png" width="360" alt="Grip & Active Hang Screen" /> | <img src="screenshots/42_dynamometer_entry_sheet.png" width="360" alt="Home Dynamometer Logger" /> |
+| *3 Milestone progress rings (5:00 Dual Hang, 2:00 Left, 2:00 Right), CNS dynamometer glance, live stopwatch, and curated hang protocols* | *Decoupled home logger for Left/Right isometric force, live bilateral asymmetry meter, dominant hand indicator, and rolling CNS readiness* |
+
+---
+
+### 🏃 Couch to 5K (C25K) Aerobic Engine
+
+| C25K 9-Week Curriculum | Live Interval Runner Engine |
+| :---: | :---: |
+| <img src="screenshots/43_c25k_program_detail_screen.png" width="360" alt="C25K Program Detail Screen" /> | <img src="screenshots/44_c25k_active_run_screen.png" width="360" alt="C25K Active Run Screen" /> |
+| *Full 9-week / 27-session progressive interval roadmap with milestone markers, session logs, and timeline preview* | *High-contrast outdoor runner UI, radial interval countdown ring, current step state pills (JOG / WALK), and live distance/calorie metrics* |
+
+---
 
 ### 🌬️ Guided Wim Hof Breathwork & Retention Analytics
 
@@ -418,7 +441,30 @@ dart run tool/scrape_crossfit.dart
 
 ---
 
-## 📄 Testing Suite (320+ Passing Tests)
+---
+
+## 🎯 Composable Training Goals, Grip Strength & Couch to 5K Engine
+
+OLY reorganizes athletic development into an extensible, multi-goal architecture that combines diverse training regimens into structured daily blueprints without fragmenting the athlete's workflow:
+
+### 1. Extensible Composable Goals
+- **Goal Tracks & Schedules**: Each track (`Olympic Weightlifting`, `Grip & Active Hang`, `Couch to 5K Aerobic Engine`) defines its own weekly schedule config and milestone progression targets.
+- **Daily Composition**: Daily training sessions automatically stitch together scheduled blocks (e.g. Olympic lifting + active hang + C25K run intervals). Athletes can execute everything in one continuous session or perform split sessions across the day.
+- **Unified Mini-Dock Integration**: `ActiveSessionMiniDock` coordinates running workouts, hangs, breathwork, and runs with priority routing ensuring athletes can minimize sessions and resume them without navigation confusion.
+
+### 2. Measured Grip Strength & Active Hang Protocol
+- **Decoupled Handheld Dynamometer Logging**: Built specifically for home baseline tracking without requiring gym equipment. Athletes log Left and Right hand isometric force (kg) at any time.
+- **CNS Neuromuscular Readiness**: Calculates bilateral asymmetry percentage ($|L - R| / \max(L, R) \times 100$) and tracks rolling 14-day baseline averages to detect central nervous system fatigue before touching the barbell.
+- **Active Hang Stopwatch**: Live stopwatch supporting two-hand hangs (5:00 target milestone) and unilateral hangs (2:00 target milestone for either hand), active scapular vs passive decompression styles, milestone alerts at 30s intervals, and personal record detection.
+
+### 3. Couch to 5K (C25K) Running Engine
+- **Structured 9-Week Curriculum**: 27 progressive sessions taking athletes from gentle walk/jog intervals to 30-minute continuous 5K running.
+- **Live Interval Runner UI**: High-contrast outdoor display with radial countdown timer, interval step pills, countdown chimes, and automatic step transitions.
+- **Net Energy Expenditure**: Uses Compendium of Physical Activities Algorithm B (Net MET = Gross MET - 1.0) to accurately isolate running calories from baseline metabolic rate.
+
+---
+
+## 📄 Testing Suite (380+ Passing Tests)
 
 Run the full suite of unit, widget, domain engine, and screenshot rendering tests:
 ```bash
@@ -426,6 +472,10 @@ flutter test
 ```
 
 Test coverage includes:
+- `hang_session_minimize_expand_test.dart`: Multi-goal session minimization routing, active draft context preservation, and timer lifecycle disposal.
+- `goal_provider_test.dart`: Goal scheduling, multi-track composition (Mon/Tue/Wed/Sun), milestone synchronization, and daily block completion persistence.
+- `grip_hang_provider_test.dart`: Handheld dynamometer bilateral asymmetry %, 14-day rolling baseline, CNS fatigue readiness, and hang PR milestone detection.
+- `c25k_provider_test.dart`: Couch to 5K 27-session curriculum, interval state machine, and Compendium Algorithm B net calories.
 - `fasting_engine_test.dart`: Circadian schedule alignment (4:45 AM wake / 6:00 AM lift / 8:45 PM bed), 16:8 to 72h progression, Seymour-Seyfried GKI index math, metabolic stage transitions, and barbell lifting advisories.
 - `fasting_widgets_test.dart`: Fasting radial gauge rendering, biological breakdown card, 7-day forward projection planner, biomarker logging & history sheets, pantry checklist, and gentle refeed guide.
 - `crossfit_hero_wod_test.dart`: Hero WOD model serialization, timing format parsing (`forTime`, `amrap`, `emom`, etc.), `toWodDefinition()` bridge, and offline JSON dataset verification.
@@ -443,7 +493,7 @@ Test coverage includes:
 - `smart_portion_widget_test.dart`: Protein density index, macro split bar, custom piece chips (wings, nuggets, tenders), steppers, and live barcode camera scanner.
 - `renpho_ocr_test.dart`: 13-field OCR regex parsing from smart scale screenshots, lean mass calculations, and BMR updates.
 - `app_log_service_test.dart`: Ring-buffer logging, persistent crash storage, and `CrashReportScreen` UI controls.
-- `screenshot_capture_test.dart`: 40 multi-view layout tests verifying rendering and generating high-res PNGs for all views.
+- `screenshot_capture_test.dart`: 44 multi-view layout tests verifying rendering and generating high-res PNGs for all views (including Grip Hang, Dynamometer Sheet, C25K Program, and C25K Active Run).
 - `exercise_swap_test.dart`: Movement substitution, variation categorization, and weight recalculation.
 - `workout_weight_recalculation_test.dart`: In-workout weight adjustment, 1RM reverse formulas, steppers, and save modes.
 - `feature_audit_test.dart`: Session serialization, RPE, joint strain tags, recovery adaptation, and JSON/CSV backup.
