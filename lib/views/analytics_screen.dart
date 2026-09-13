@@ -68,7 +68,7 @@ class AnalyticsScreen extends StatelessWidget {
 
     final List<Widget> tabViews = <Widget>[
       // TAB 1: Session History Log + Tonnage Summary
-      _buildWorkoutSessionsTab(program, sessions, settings),
+      _buildWorkoutSessionsTab(context, program, sessions, settings),
 
       // TAB 2: CrossFit WODs & Hero Benchmark Progress
       _buildWodAnalyticsTab(context, recovery),
@@ -81,6 +81,7 @@ class AnalyticsScreen extends StatelessWidget {
 
       // Accessory Weight Progressions
       _buildAccessoryProgressionsTab(
+        context,
         groupedAccessories,
         recovery,
         settings,
@@ -91,7 +92,12 @@ class AnalyticsScreen extends StatelessWidget {
 
       // Ratio Balance Chart
       SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 110),
+        padding: EdgeInsets.fromLTRB(
+          16,
+          16,
+          16,
+          MediaQuery.paddingOf(context).bottom + 16,
+        ),
         child: RatioChartWidget(ratios: lifts.getRatioAnalysis()),
       ),
     ];
@@ -125,12 +131,18 @@ class AnalyticsScreen extends StatelessWidget {
   }
 
   Widget _buildWorkoutSessionsTab(
+    BuildContext context,
     ProgramProvider program,
     List<WorkoutSession> sessions,
     SettingsProvider settings,
   ) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 110),
+      padding: EdgeInsets.fromLTRB(
+        16,
+        16,
+        16,
+        MediaQuery.paddingOf(context).bottom + 16,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -331,6 +343,7 @@ class AnalyticsScreen extends StatelessWidget {
   }
 
   Widget _buildAccessoryProgressionsTab(
+    BuildContext context,
     Map<String, List<AccessoryLog>> groupedAccessories,
     RecoveryProvider recovery,
     SettingsProvider settings,
@@ -347,7 +360,12 @@ class AnalyticsScreen extends StatelessWidget {
     );
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 110),
+      padding: EdgeInsets.fromLTRB(
+        16,
+        16,
+        16,
+        MediaQuery.paddingOf(context).bottom + 16,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -693,7 +711,12 @@ class AnalyticsScreen extends StatelessWidget {
     final List<BenchmarkWodLog> recentLogs = recovery.benchmarkWodLogs.take(10).toList();
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 110),
+      padding: EdgeInsets.fromLTRB(
+        16,
+        16,
+        16,
+        MediaQuery.paddingOf(context).bottom + 16,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -1068,7 +1091,12 @@ class AnalyticsScreen extends StatelessWidget {
     final bool isLbs = settings.isLbs;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 110),
+      padding: EdgeInsets.fromLTRB(
+        16,
+        16,
+        16,
+        MediaQuery.paddingOf(context).bottom + 16,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -1397,7 +1425,12 @@ class AnalyticsScreen extends StatelessWidget {
         c25k.sessionLogs.fold(0, (acc, l) => acc + l.netCaloriesBurned);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 110),
+      padding: EdgeInsets.fromLTRB(
+        16,
+        16,
+        16,
+        MediaQuery.paddingOf(context).bottom + 16,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[

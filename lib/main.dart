@@ -237,7 +237,7 @@ class _MainNavigationContainerState extends State<MainNavigationContainer> {
                     (program.hasActiveDraft && session.isRestTimerRunning);
 
                 final MediaQueryData ambientMedia = MediaQuery.of(context);
-                final double dockHeight = hasMiniDock ? 144.0 : 80.0;
+                final double dockHeight = hasMiniDock ? 160.0 : 84.0;
                 final double adjustedBottomPadding =
                     ambientMedia.padding.bottom + dockHeight;
                 final double adjustedBottomViewPadding =

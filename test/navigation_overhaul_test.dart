@@ -325,7 +325,7 @@ void main() {
       // Find the BuildContext of a screen inside MainNavigationContainer (e.g. DashboardScreen)
       final BuildContext dashboardContext = tester.element(find.byType(DashboardScreen));
       final double inactiveBottomPadding = MediaQuery.paddingOf(dashboardContext).bottom;
-      expect(inactiveBottomPadding, equals(80.0));
+      expect(inactiveBottomPadding, equals(84.0));
 
       // Start an active session (minidock becomes visible)
       sessionProvider.startSession(
@@ -337,15 +337,15 @@ void main() {
 
       final BuildContext activeContext = tester.element(find.byType(DashboardScreen));
       final double activeBottomPadding = MediaQuery.paddingOf(activeContext).bottom;
-      expect(activeBottomPadding, equals(144.0));
-      expect(activeBottomPadding - inactiveBottomPadding, equals(64.0));
+      expect(activeBottomPadding, equals(160.0));
+      expect(activeBottomPadding - inactiveBottomPadding, equals(76.0));
 
       // End session (minidock disappears)
       sessionProvider.endSession();
       await tester.pumpAndSettle();
 
       final BuildContext finalContext = tester.element(find.byType(DashboardScreen));
-      expect(MediaQuery.paddingOf(finalContext).bottom, equals(80.0));
+      expect(MediaQuery.paddingOf(finalContext).bottom, equals(84.0));
     });
 
     testWidgets('AthleteSummaryOverviewCard renders daily briefing details', (
