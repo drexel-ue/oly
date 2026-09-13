@@ -249,7 +249,7 @@ class _OlyEntryRevealState extends State<OlyEntryReveal>
     final TabDirectionScope? tabScope = TabDirectionScope.of(context);
     final double horizontalOffset = widget.horizontalSlidePixels ??
         ((tabScope != null && tabScope.direction != 0)
-            ? (tabScope.direction * tabScope.horizontalOffset)
+            ? (-tabScope.direction * tabScope.horizontalOffset)
             : 0.0);
 
     return AnimatedBuilder(

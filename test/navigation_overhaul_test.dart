@@ -17,6 +17,7 @@ import 'package:oly/providers/recovery_provider.dart';
 import 'package:oly/providers/settings_provider.dart';
 import 'package:oly/services/recovery_engine_service.dart';
 import 'package:oly/services/storage_service.dart';
+import 'package:oly/views/analytics_screen.dart';
 import 'package:oly/views/breathing/wim_hof_session_screen.dart';
 import 'package:oly/views/dashboard_screen.dart';
 import 'package:oly/views/recovery_session_screen.dart';
@@ -382,6 +383,27 @@ void main() {
       final TabDirectionScope leftLeapScope = tester.widget(find.byType(TabDirectionScope));
       expect(leftLeapScope.direction, equals(-1));
       expect(leftLeapScope.horizontalOffset, equals(62.0)); // 38 + (3-1)*12 = 62
+    });
+
+    testWidgets('AnalyticsScreen renders cascading OlyEntryReveal animated cards', (
+      tester,
+    ) async {
+      await tester.pumpWidget(createTestApp());
+      await tester.pumpAndSettle();
+
+      // Navigate to Insights / Analytics tab (index 3) via BottomNavigationBar
+      await tester.tap(find.descendant(
+        of: find.byType(BottomNavigationBar),
+        matching: find.byIcon(Icons.insights_outlined),
+      ));
+      await tester.pumpAndSettle();
+
+      // Verify that AnalyticsScreen is now in the tree and contains OlyEntryReveal widgets
+      expect(find.byType(AnalyticsScreen), findsOneWidget);
+      expect(find.descendant(
+        of: find.byType(AnalyticsScreen),
+        matching: find.byType(OlyEntryReveal),
+      ), findsWidgets);
     });
 
     testWidgets('AthleteSummaryOverviewCard renders daily briefing details', (

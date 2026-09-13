@@ -17,6 +17,7 @@ import 'package:oly/views/breathing/breathing_analytics_tab.dart';
 import 'package:oly/views/c25k/c25k_program_detail_screen.dart';
 import 'package:oly/views/grip/dynamometer_entry_sheet.dart';
 import 'package:oly/views/grip/grip_hang_detail_screen.dart';
+import 'package:oly/widgets/motion/oly_entry_reveal.dart';
 import 'package:oly/widgets/ratio_chart_widget.dart';
 import 'package:oly/widgets/wod_history_sheet.dart';
 import 'package:provider/provider.dart';
@@ -98,7 +99,9 @@ class AnalyticsScreen extends StatelessWidget {
           16,
           MediaQuery.paddingOf(context).bottom + 16,
         ),
-        child: RatioChartWidget(ratios: lifts.getRatioAnalysis()),
+        child: OlyEntryReveal(
+          child: RatioChartWidget(ratios: lifts.getRatioAnalysis()),
+        ),
       ),
     ];
 
@@ -147,93 +150,101 @@ class AnalyticsScreen extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           // Tonnage Summary Card
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: <Color>[AppTheme.surfaceElevated, AppTheme.surfaceCard],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+          OlyEntryReveal(
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: <Color>[AppTheme.surfaceElevated, AppTheme.surfaceCard],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: AppTheme.primaryAmber.withValues(alpha: 0.3),
+                ),
               ),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: AppTheme.primaryAmber.withValues(alpha: 0.3),
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    Text(
-                      'TOTAL WEIGHT MOVED',
-                      style: GoogleFonts.outfit(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1.2,
-                        color: AppTheme.primaryAmber,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      Text(
+                        'TOTAL WEIGHT MOVED',
+                        style: GoogleFonts.outfit(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1.2,
+                          color: AppTheme.primaryAmber,
+                        ),
                       ),
-                    ),
-                    const Icon(
-                      Icons.fitness_center,
-                      color: AppTheme.primaryAmber,
-                      size: 22,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  program.formatTotalTons(isLbs: settings.isLbs),
-                  style: GoogleFonts.outfit(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.textPrimary,
+                      const Icon(
+                        Icons.fitness_center,
+                        color: AppTheme.primaryAmber,
+                        size: 22,
+                      ),
+                    ],
                   ),
-                ),
-                const SizedBox(height: 14),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    _buildStatBadge('Workouts', '${sessions.length}'),
-                    _buildStatBadge('Sets', '${program.totalCompletedSets}'),
-                    _buildStatBadge('Reps', '${program.totalCompletedReps}'),
-                  ],
-                ),
-              ],
+                  const SizedBox(height: 8),
+                  Text(
+                    program.formatTotalTons(isLbs: settings.isLbs),
+                    style: GoogleFonts.outfit(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      _buildStatBadge('Workouts', '${sessions.length}'),
+                      _buildStatBadge('Sets', '${program.totalCompletedSets}'),
+                      _buildStatBadge('Reps', '${program.totalCompletedReps}'),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
           const SizedBox(height: 20),
-          Text(
-            'COMPLETED WORKOUT LOGS',
-            style: GoogleFonts.outfit(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              color: AppTheme.textSecondary,
-              letterSpacing: 1,
+          OlyEntryReveal(
+            index: 1,
+            child: Text(
+              'COMPLETED WORKOUT LOGS',
+              style: GoogleFonts.outfit(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: AppTheme.textSecondary,
+                letterSpacing: 1,
+              ),
             ),
           ),
           const SizedBox(height: 12),
 
           if (sessions.isEmpty)
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 40),
-              width: double.infinity,
-              alignment: Alignment.center,
-              child: Column(
-                children: <Widget>[
-                  Icon(
-                    Icons.history,
-                    size: 48,
-                    color: AppTheme.textSecondary.withValues(alpha: 0.5),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'No completed workout sessions yet.',
-                    style: GoogleFonts.inter(color: AppTheme.textSecondary),
-                  ),
-                ],
+            OlyEntryReveal(
+              index: 2,
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 40),
+                width: double.infinity,
+                alignment: Alignment.center,
+                child: Column(
+                  children: <Widget>[
+                    Icon(
+                      Icons.history,
+                      size: 48,
+                      color: AppTheme.textSecondary.withValues(alpha: 0.5),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'No completed workout sessions yet.',
+                      style: GoogleFonts.inter(color: AppTheme.textSecondary),
+                    ),
+                  ],
+                ),
               ),
             )
           else
@@ -250,89 +261,92 @@ class AnalyticsScreen extends StatelessWidget {
                     ? '${(session.totalVolumeKg * 2.20462).toStringAsFixed(0)} lbs'
                     : '${session.totalVolumeKg.toStringAsFixed(0)} kg';
 
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: AppTheme.surfaceCard,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: AppTheme.borderColor),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: <Widget>[
-                          Text(
-                            'Cycle ${session.cycleNumber} • Week ${session.weekNumber} Day ${session.dayNumber}',
-                            style: GoogleFonts.outfit(
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
-                              color: AppTheme.primaryAmber,
-                            ),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 3,
-                            ),
-                            decoration: BoxDecoration(
-                              color: AppTheme.surfaceElevated,
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: AppTheme.borderColor),
-                            ),
-                            child: Text(
-                              sessionVolStr,
+                return OlyEntryReveal(
+                  index: (index + 2).clamp(0, 10),
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppTheme.surfaceCard,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: AppTheme.borderColor),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: <Widget>[
+                            Text(
+                              'Cycle ${session.cycleNumber} • Week ${session.weekNumber} Day ${session.dayNumber}',
                               style: GoogleFonts.outfit(
-                                fontSize: 11,
+                                fontSize: 15,
                                 fontWeight: FontWeight.bold,
-                                color: AppTheme.textPrimary,
+                                color: AppTheme.primaryAmber,
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        dateStr,
-                        style: GoogleFonts.inter(
-                          fontSize: 11,
-                          color: AppTheme.textSecondary,
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 3,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppTheme.surfaceElevated,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: AppTheme.borderColor),
+                              ),
+                              child: Text(
+                                sessionVolStr,
+                                style: GoogleFonts.outfit(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppTheme.textPrimary,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      const Divider(color: AppTheme.borderColor),
-                      const SizedBox(height: 4),
-                      ...session.logs.map((log) {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 4),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: <Widget>[
-                              Expanded(
-                                child: Text(
-                                  log.exerciseName,
-                                  style: GoogleFonts.inter(
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 13,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                '${log.sets.length} sets completed',
-                                style: GoogleFonts.inter(
-                                  fontSize: 12,
-                                  color: AppTheme.textSecondary,
-                                ),
-                              ),
-                            ],
+                        const SizedBox(height: 4),
+                        Text(
+                          dateStr,
+                          style: GoogleFonts.inter(
+                            fontSize: 11,
+                            color: AppTheme.textSecondary,
                           ),
-                        );
-                      }),
-                    ],
+                        ),
+                        const SizedBox(height: 8),
+                        const Divider(color: AppTheme.borderColor),
+                        const SizedBox(height: 4),
+                        ...session.logs.map((log) {
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: <Widget>[
+                                Expanded(
+                                  child: Text(
+                                    log.exerciseName,
+                                    style: GoogleFonts.inter(
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 13,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  '${log.sets.length} sets completed',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 12,
+                                    color: AppTheme.textSecondary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }),
+                      ],
+                    ),
                   ),
                 );
               },
@@ -370,118 +384,126 @@ class AnalyticsScreen extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           // Accessory Overview Banner
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: <Color>[AppTheme.surfaceElevated, AppTheme.surfaceCard],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+          OlyEntryReveal(
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: <Color>[AppTheme.surfaceElevated, AppTheme.surfaceCard],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: AppTheme.accentBlue.withValues(alpha: 0.3),
+                ),
               ),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: AppTheme.accentBlue.withValues(alpha: 0.3),
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    Text(
-                      'ACCESSORY WEIGHT PROGRESSIONS',
-                      style: GoogleFonts.outfit(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1.2,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      Text(
+                        'ACCESSORY WEIGHT PROGRESSIONS',
+                        style: GoogleFonts.outfit(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1.2,
+                          color: AppTheme.accentBlue,
+                        ),
+                      ),
+                      const Icon(
+                        Icons.trending_up,
+                        color: AppTheme.accentBlue,
+                        size: 22,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '${groupedAccessories.keys.length} Movements Tracked',
+                    style: GoogleFonts.outfit(
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      _buildStatBadge(
+                        'Logged Sets',
+                        '$totalSets',
                         color: AppTheme.accentBlue,
                       ),
-                    ),
-                    const Icon(
-                      Icons.trending_up,
-                      color: AppTheme.accentBlue,
-                      size: 22,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  '${groupedAccessories.keys.length} Movements Tracked',
-                  style: GoogleFonts.outfit(
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.textPrimary,
+                      _buildStatBadge(
+                        'Logged Reps',
+                        '$totalReps',
+                        color: AppTheme.accentBlue,
+                      ),
+                      _buildStatBadge(
+                        'Entries',
+                        '$totalEntries',
+                        color: AppTheme.accentBlue,
+                      ),
+                    ],
                   ),
-                ),
-                const SizedBox(height: 14),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    _buildStatBadge(
-                      'Logged Sets',
-                      '$totalSets',
-                      color: AppTheme.accentBlue,
-                    ),
-                    _buildStatBadge(
-                      'Logged Reps',
-                      '$totalReps',
-                      color: AppTheme.accentBlue,
-                    ),
-                    _buildStatBadge(
-                      'Entries',
-                      '$totalEntries',
-                      color: AppTheme.accentBlue,
-                    ),
-                  ],
-                ),
-              ],
+                ],
+              ),
             ),
           ),
           const SizedBox(height: 20),
 
-          Text(
-            'TRACKED ACCESSORY MOVEMENTS',
-            style: GoogleFonts.outfit(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              color: AppTheme.textSecondary,
-              letterSpacing: 1,
+          OlyEntryReveal(
+            index: 1,
+            child: Text(
+              'TRACKED ACCESSORY MOVEMENTS',
+              style: GoogleFonts.outfit(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: AppTheme.textSecondary,
+                letterSpacing: 1,
+              ),
             ),
           ),
           const SizedBox(height: 12),
 
           if (groupedAccessories.isEmpty)
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
-              width: double.infinity,
-              alignment: Alignment.center,
-              child: Column(
-                children: <Widget>[
-                  Icon(
-                    Icons.fitness_center,
-                    size: 48,
-                    color: AppTheme.textSecondary.withValues(alpha: 0.5),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'No accessory weights logged yet.',
-                    style: GoogleFonts.outfit(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
+            OlyEntryReveal(
+              index: 2,
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
+                width: double.infinity,
+                alignment: Alignment.center,
+                child: Column(
+                  children: <Widget>[
+                    Icon(
+                      Icons.fitness_center,
+                      size: 48,
+                      color: AppTheme.textSecondary.withValues(alpha: 0.5),
                     ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'Complete accessory sets in Guided Warm-Ups or Active Recovery routines to automatically record weight progressions and PRs!',
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.inter(
-                      color: AppTheme.textSecondary,
-                      fontSize: 13,
+                    const SizedBox(height: 12),
+                    Text(
+                      'No accessory weights logged yet.',
+                      style: GoogleFonts.outfit(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 6),
+                    Text(
+                      'Complete accessory sets in Guided Warm-Ups or Active Recovery routines to automatically record weight progressions and PRs!',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.inter(
+                        color: AppTheme.textSecondary,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             )
           else
@@ -721,329 +743,347 @@ class AnalyticsScreen extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           // Hero WOD Progress Odyssey Banner
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: <Color>[AppTheme.surfaceElevated, AppTheme.surfaceCard],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+          OlyEntryReveal(
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: <Color>[AppTheme.surfaceElevated, AppTheme.surfaceCard],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: AppTheme.primaryAmber.withValues(alpha: 0.3),
+                ),
               ),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: AppTheme.primaryAmber.withValues(alpha: 0.3),
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    Text(
-                      'CROSSFIT HERO WOD ODYSSEY',
-                      style: GoogleFonts.outfit(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1.2,
-                        color: AppTheme.primaryAmber,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      Text(
+                        'CROSSFIT HERO WOD ODYSSEY',
+                        style: GoogleFonts.outfit(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1.2,
+                          color: AppTheme.primaryAmber,
+                        ),
                       ),
+                      const Icon(
+                        Icons.military_tech_rounded,
+                        color: AppTheme.primaryAmber,
+                        size: 22,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '$completedHeroCount / 248 Hero WODs',
+                    style: GoogleFonts.outfit(
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.textPrimary,
                     ),
-                    const Icon(
-                      Icons.military_tech_rounded,
+                  ),
+                  const SizedBox(height: 10),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(6),
+                    child: LinearProgressIndicator(
+                      value: heroPercent,
+                      backgroundColor: AppTheme.darkBackground,
                       color: AppTheme.primaryAmber,
-                      size: 22,
+                      minHeight: 8,
                     ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  '$completedHeroCount / 248 Hero WODs',
-                  style: GoogleFonts.outfit(
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.textPrimary,
                   ),
-                ),
-                const SizedBox(height: 10),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(6),
-                  child: LinearProgressIndicator(
-                    value: heroPercent,
-                    backgroundColor: AppTheme.darkBackground,
-                    color: AppTheme.primaryAmber,
-                    minHeight: 8,
+                  const SizedBox(height: 8),
+                  Text(
+                    '${(heroPercent * 100).toStringAsFixed(1)}% completed • ${248 - completedHeroCount} remaining tributes',
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      color: AppTheme.textSecondary,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  '${(heroPercent * 100).toStringAsFixed(1)}% completed • ${248 - completedHeroCount} remaining tributes',
-                  style: GoogleFonts.inter(
-                    fontSize: 12,
-                    color: AppTheme.textSecondary,
+                  const SizedBox(height: 14),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      _buildStatBadge('Total WODs', '${recovery.totalAllWodCompletionsCount}'),
+                      _buildStatBadge('Hero Tributes', '$completedHeroCount'),
+                      _buildStatBadge('All-Time PRs', '${allPrsMap.length}', color: Colors.greenAccent),
+                    ],
                   ),
-                ),
-                const SizedBox(height: 14),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    _buildStatBadge('Total WODs', '${recovery.totalAllWodCompletionsCount}'),
-                    _buildStatBadge('Hero Tributes', '$completedHeroCount'),
-                    _buildStatBadge('All-Time PRs', '${allPrsMap.length}', color: Colors.greenAccent),
-                  ],
-                ),
-              ],
+                ],
+              ),
             ),
           ),
 
           const SizedBox(height: 24),
 
           // PR Leaderboard Section
-          Text(
-            'BENCHMARK PERSONAL RECORDS',
-            style: GoogleFonts.outfit(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 1.2,
-              color: AppTheme.primaryAmber,
-            ),
-          ),
-          const SizedBox(height: 12),
+          OlyEntryReveal(
+            index: 1,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  'BENCHMARK PERSONAL RECORDS',
+                  style: GoogleFonts.outfit(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.2,
+                    color: AppTheme.primaryAmber,
+                  ),
+                ),
+                const SizedBox(height: 12),
 
-          if (prsList.isEmpty)
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: AppTheme.surfaceCard,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppTheme.surfaceElevated),
-              ),
-              child: Column(
-                children: <Widget>[
-                  const Icon(
-                    Icons.emoji_events_outlined,
-                    size: 36,
-                    color: AppTheme.textSecondary,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'No Benchmark PRs logged yet',
-                    style: GoogleFonts.outfit(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.textPrimary,
+                if (prsList.isEmpty)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: AppTheme.surfaceCard,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppTheme.surfaceElevated),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Complete and log workouts from the WOD Hub to start tracking your records!',
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.inter(
-                      fontSize: 12,
-                      color: AppTheme.textSecondary,
-                    ),
-                  ),
-                ],
-              ),
-            )
-          else
-            ...prsList.map((pr) {
-              return Container(
-                margin: const EdgeInsets.only(bottom: 8),
-                decoration: BoxDecoration(
-                  color: AppTheme.surfaceCard,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: Colors.greenAccent.withValues(alpha: 0.25),
-                  ),
-                ),
-                child: Material(
-                  color: Colors.transparent,
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-                    onTap: () {
-                      HapticFeedback.selectionClick();
-                      WodHistorySheet.show(
-                        context,
-                        wodId: pr.wodId,
-                        wodName: pr.wodName,
-                        wodFormat: pr.format,
-                      );
-                    },
-                    leading: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.greenAccent.withValues(alpha: 0.12),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.emoji_events_rounded,
-                        color: Colors.greenAccent,
-                        size: 18,
-                      ),
-                    ),
-                    title: Row(
+                    child: Column(
                       children: <Widget>[
-                        Expanded(
-                          child: Text(
-                            pr.wodName,
-                            style: GoogleFonts.outfit(
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
-                              color: AppTheme.textPrimary,
-                            ),
-                          ),
+                        const Icon(
+                          Icons.emoji_events_outlined,
+                          size: 36,
+                          color: AppTheme.textSecondary,
                         ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: pr.isRx
-                                ? Colors.greenAccent.withValues(alpha: 0.15)
-                                : Colors.orangeAccent.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            pr.isRx ? 'Rx' : 'Scaled',
-                            style: GoogleFonts.outfit(
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                              color: pr.isRx ? Colors.greenAccent : Colors.orangeAccent,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    subtitle: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: <Widget>[
+                        const SizedBox(height: 8),
                         Text(
-                          'PR: ${pr.scoreDisplay}',
-                          style: GoogleFonts.outfit(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w900,
-                            color: Colors.greenAccent,
-                          ),
-                        ),
-                        Text(
-                          DateFormat('MMM d, yyyy').format(pr.date),
-                          style: GoogleFonts.inter(
-                            fontSize: 10,
-                            color: AppTheme.textSecondary,
-                          ),
-                        ),
-                      ],
-                    ),
-                    trailing: const Icon(
-                      Icons.history_rounded,
-                      size: 16,
-                      color: AppTheme.textSecondary,
-                    ),
-                  ),
-                ),
-              );
-            }),
-
-          if (recentLogs.isNotEmpty) ...<Widget>[
-            const SizedBox(height: 24),
-            Text(
-              'RECENT WOD SESSIONS',
-              style: GoogleFonts.outfit(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 1.2,
-                color: AppTheme.primaryAmber,
-              ),
-            ),
-            const SizedBox(height: 12),
-            ...recentLogs.map((log) {
-              return Container(
-                margin: const EdgeInsets.only(bottom: 8),
-                decoration: BoxDecoration(
-                  color: AppTheme.surfaceCard,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: AppTheme.surfaceElevated),
-                ),
-                child: Material(
-                  color: Colors.transparent,
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
-                    onTap: () {
-                      HapticFeedback.selectionClick();
-                      WodHistorySheet.show(
-                        context,
-                        wodId: log.wodId,
-                        wodName: log.wodName,
-                        wodFormat: log.format,
-                      );
-                    },
-                  title: Row(
-                    children: <Widget>[
-                      Expanded(
-                        child: Text(
-                          log.wodName,
+                          'No Benchmark PRs logged yet',
                           style: GoogleFonts.outfit(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
                             color: AppTheme.textPrimary,
                           ),
                         ),
-                      ),
-                      if (log.isPr)
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: Colors.greenAccent.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(6),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Complete and log workouts from the WOD Hub to start tracking your records!',
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            color: AppTheme.textSecondary,
                           ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
+                        ),
+                      ],
+                    ),
+                  )
+                else
+                  ...prsList.map((pr) {
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      decoration: BoxDecoration(
+                        color: AppTheme.surfaceCard,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: Colors.greenAccent.withValues(alpha: 0.25),
+                        ),
+                      ),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: ListTile(
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+                          onTap: () {
+                            HapticFeedback.selectionClick();
+                            WodHistorySheet.show(
+                              context,
+                              wodId: pr.wodId,
+                              wodName: pr.wodName,
+                              wodFormat: pr.format,
+                            );
+                          },
+                          leading: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.greenAccent.withValues(alpha: 0.12),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.emoji_events_rounded,
+                              color: Colors.greenAccent,
+                              size: 18,
+                            ),
+                          ),
+                          title: Row(
                             children: <Widget>[
-                              const Icon(Icons.emoji_events_rounded, size: 10, color: Colors.greenAccent),
-                              const SizedBox(width: 2),
-                              Text(
-                                'PR',
-                                style: GoogleFonts.outfit(
-                                  fontSize: 9,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.greenAccent,
+                              Expanded(
+                                child: Text(
+                                  pr.wodName,
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppTheme.textPrimary,
+                                  ),
+                                ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: pr.isRx
+                                      ? Colors.greenAccent.withValues(alpha: 0.15)
+                                      : Colors.orangeAccent.withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  pr.isRx ? 'Rx' : 'Scaled',
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    color: pr.isRx ? Colors.greenAccent : Colors.orangeAccent,
+                                  ),
                                 ),
                               ),
                             ],
                           ),
-                        ),
-                    ],
-                  ),
-                  subtitle: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: <Widget>[
-                      Text(
-                        '${log.scoreDisplay} (${log.isRx ? "Rx" : "Scaled"})',
-                        style: GoogleFonts.inter(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: AppTheme.secondaryCyan,
+                          subtitle: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: <Widget>[
+                              Text(
+                                'PR: ${pr.scoreDisplay}',
+                                style: GoogleFonts.outfit(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w900,
+                                  color: Colors.greenAccent,
+                                ),
+                              ),
+                              Text(
+                                DateFormat('MMM d, yyyy').format(pr.date),
+                                style: GoogleFonts.inter(
+                                  fontSize: 10,
+                                  color: AppTheme.textSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                          trailing: const Icon(
+                            Icons.history_rounded,
+                            size: 16,
+                            color: AppTheme.textSecondary,
+                          ),
                         ),
                       ),
-                      Text(
-                        DateFormat('MMM d, yyyy').format(log.date),
-                        style: GoogleFonts.inter(
-                          fontSize: 10,
-                          color: AppTheme.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                    trailing: const Icon(
-                      Icons.arrow_forward_ios_rounded,
-                      size: 12,
-                      color: AppTheme.textSecondary,
+                    );
+                  }),
+              ],
+            ),
+          ),
+
+          if (recentLogs.isNotEmpty) ...<Widget>[
+            const SizedBox(height: 24),
+            OlyEntryReveal(
+              index: 2,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(
+                    'RECENT WOD SESSIONS',
+                    style: GoogleFonts.outfit(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.2,
+                      color: AppTheme.primaryAmber,
                     ),
                   ),
-                ),
-              );
-            }),
+                  const SizedBox(height: 12),
+                  ...recentLogs.map((log) {
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      decoration: BoxDecoration(
+                        color: AppTheme.surfaceCard,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: AppTheme.surfaceElevated),
+                      ),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: ListTile(
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+                          onTap: () {
+                            HapticFeedback.selectionClick();
+                            WodHistorySheet.show(
+                              context,
+                              wodId: log.wodId,
+                              wodName: log.wodName,
+                              wodFormat: log.format,
+                            );
+                          },
+                        title: Row(
+                          children: <Widget>[
+                            Expanded(
+                              child: Text(
+                                log.wodName,
+                                style: GoogleFonts.outfit(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppTheme.textPrimary,
+                                ),
+                              ),
+                            ),
+                            if (log.isPr)
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: Colors.greenAccent.withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: <Widget>[
+                                    const Icon(Icons.star, size: 10, color: Colors.greenAccent),
+                                    const SizedBox(width: 3),
+                                    Text(
+                                      'PR',
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.greenAccent,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                          ],
+                        ),
+                        subtitle: Row(
+                          children: <Widget>[
+                            Text(
+                              log.scoreDisplay,
+                              style: GoogleFonts.outfit(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: log.isPr ? Colors.greenAccent : AppTheme.primaryAmber,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              '• ${DateFormat('MMM d, yyyy').format(log.date)}',
+                              style: GoogleFonts.inter(
+                                fontSize: 11,
+                                color: AppTheme.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                          trailing: const Icon(
+                            Icons.arrow_forward_ios_rounded,
+                            size: 12,
+                            color: AppTheme.textSecondary,
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
+                ],
+              ),
+            ),
           ],
         ],
       ),
@@ -1101,256 +1141,269 @@ class AnalyticsScreen extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           // Header Summary Card
-          Container(
-            padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(
-              color: AppTheme.surfaceCard,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.white12),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    Text(
-                      'ACTIVE HANG MILESTONE GOALS',
-                      style: GoogleFonts.outfit(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1.1,
-                        color: AppTheme.primaryAmber,
-                      ),
-                    ),
-                    TextButton.icon(
-                      style: TextButton.styleFrom(
-                        foregroundColor: AppTheme.primaryAmber,
-                        padding: EdgeInsets.zero,
-                        minimumSize: Size.zero,
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      ),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute<void>(
-                            builder: (_) => const GripHangDetailScreen(),
-                          ),
-                        );
-                      },
-                      icon: const Icon(Icons.open_in_new, size: 14),
-                      label: Text(
-                        'PROTOCOLS',
+          OlyEntryReveal(
+            child: Container(
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: AppTheme.surfaceCard,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.white12),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      Text(
+                        'ACTIVE HANG MILESTONE GOALS',
                         style: GoogleFonts.outfit(
-                          fontSize: 11,
+                          fontSize: 12,
                           fontWeight: FontWeight.bold,
+                          letterSpacing: 1.1,
+                          color: AppTheme.primaryAmber,
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: _buildHangProgressItem(
-                        'Two-Hand Goal',
-                        '5:00',
-                        grip.bestTwoHandSeconds,
-                        300,
-                        AppTheme.primaryAmber,
+                      TextButton.icon(
+                        style: TextButton.styleFrom(
+                          foregroundColor: AppTheme.primaryAmber,
+                          padding: EdgeInsets.zero,
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute<void>(
+                              builder: (_) => const GripHangDetailScreen(),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.open_in_new, size: 14),
+                        label: Text(
+                          'PROTOCOLS',
+                          style: GoogleFonts.outfit(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
-                    ),
-                    Expanded(
-                      child: _buildHangProgressItem(
-                        'Left Arm Goal',
-                        '2:00',
-                        grip.bestLeftHandSeconds,
-                        120,
-                        AppTheme.secondaryCyan,
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: _buildHangProgressItem(
+                          'Two-Hand Goal',
+                          '5:00',
+                          grip.bestTwoHandSeconds,
+                          300,
+                          AppTheme.primaryAmber,
+                        ),
                       ),
-                    ),
-                    Expanded(
-                      child: _buildHangProgressItem(
-                        'Right Arm Goal',
-                        '2:00',
-                        grip.bestRightHandSeconds,
-                        120,
-                        Colors.deepOrangeAccent,
+                      Expanded(
+                        child: _buildHangProgressItem(
+                          'Left Arm Goal',
+                          '2:00',
+                          grip.bestLeftHandSeconds,
+                          120,
+                          AppTheme.secondaryCyan,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                      Expanded(
+                        child: _buildHangProgressItem(
+                          'Right Arm Goal',
+                          '2:00',
+                          grip.bestRightHandSeconds,
+                          120,
+                          Colors.deepOrangeAccent,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
           const SizedBox(height: 16),
 
           // Dynamometer CNS Readiness Card
-          Container(
-            padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(
-              color: AppTheme.surfaceCard,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.white12),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    Text(
-                      'HOME DYNAMOMETER SQUEEZE',
-                      style: GoogleFonts.outfit(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1.1,
-                        color: AppTheme.primaryAmber,
-                      ),
-                    ),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.surfaceElevated,
-                        foregroundColor: AppTheme.primaryAmber,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 6),
-                        minimumSize: Size.zero,
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        side: const BorderSide(color: AppTheme.primaryAmber),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      onPressed: () => DynamometerEntrySheet.show(context),
-                      child: Text(
-                        'LOG SQUEEZE',
-                        style: GoogleFonts.outfit(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                if (latest != null) ...<Widget>[
+          OlyEntryReveal(
+            index: 1,
+            child: Container(
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: AppTheme.surfaceCard,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.white12),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
-                      _buildStatBadge(
-                        'Right Hand',
-                        '${(isLbs ? latest.rightHandKg * 2.20462 : latest.rightHandKg).toStringAsFixed(1)} ${isLbs ? 'lbs' : 'kg'}',
-                        color: AppTheme.primaryAmber,
+                      Text(
+                        'HOME DYNAMOMETER SQUEEZE',
+                        style: GoogleFonts.outfit(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1.1,
+                          color: AppTheme.primaryAmber,
+                        ),
                       ),
-                      _buildStatBadge(
-                        'Left Hand',
-                        '${(isLbs ? latest.leftHandKg * 2.20462 : latest.leftHandKg).toStringAsFixed(1)} ${isLbs ? 'lbs' : 'kg'}',
-                        color: AppTheme.secondaryCyan,
-                      ),
-                      _buildStatBadge(
-                        'Asymmetry',
-                        '${latest.asymmetryPercent.toStringAsFixed(1)}%',
-                        color: latest.isBalanced
-                            ? AppTheme.successGreen
-                            : AppTheme.primaryAmber,
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.surfaceElevated,
+                          foregroundColor: AppTheme.primaryAmber,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 6),
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          side: const BorderSide(color: AppTheme.primaryAmber),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        onPressed: () => DynamometerEntrySheet.show(context),
+                        child: Text(
+                          'LOG SQUEEZE',
+                          style: GoogleFonts.outfit(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                     ],
                   ),
-                ] else ...<Widget>[
-                  Text(
-                    'No dynamometer measurements recorded yet. Log your hand grip squeeze at home outside of active workouts.',
-                    style: GoogleFonts.inter(
-                      fontSize: 12,
-                      color: AppTheme.textSecondary,
+                  const SizedBox(height: 12),
+                  if (latest != null) ...<Widget>[
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: <Widget>[
+                        _buildStatBadge(
+                          'Right Hand',
+                          '${(isLbs ? latest.rightHandKg * 2.20462 : latest.rightHandKg).toStringAsFixed(1)} ${isLbs ? 'lbs' : 'kg'}',
+                          color: AppTheme.primaryAmber,
+                        ),
+                        _buildStatBadge(
+                          'Left Hand',
+                          '${(isLbs ? latest.leftHandKg * 2.20462 : latest.leftHandKg).toStringAsFixed(1)} ${isLbs ? 'lbs' : 'kg'}',
+                          color: AppTheme.secondaryCyan,
+                        ),
+                        _buildStatBadge(
+                          'Asymmetry',
+                          '${latest.asymmetryPercent.toStringAsFixed(1)}%',
+                          color: latest.isBalanced
+                              ? AppTheme.successGreen
+                              : AppTheme.primaryAmber,
+                        ),
+                      ],
                     ),
-                  ),
+                  ] else ...<Widget>[
+                    Text(
+                      'No dynamometer measurements recorded yet. Log your hand grip squeeze at home outside of active workouts.',
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: AppTheme.textSecondary,
+                      ),
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
           ),
           const SizedBox(height: 20),
 
           // Hang PR History
-          Text(
-            'HANG SESSION HISTORY',
-            style: GoogleFonts.outfit(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 1,
-              color: AppTheme.textSecondary,
-            ),
-          ),
-          const SizedBox(height: 10),
-          if (grip.hangLogs.isEmpty)
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: AppTheme.surfaceCard,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Center(
-                child: Text(
-                  'No hang sessions recorded yet. Start a hang timer to begin progressing toward 5 minutes!',
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.inter(
-                    fontSize: 13,
+          OlyEntryReveal(
+            index: 2,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  'HANG SESSION HISTORY',
+                  style: GoogleFonts.outfit(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1,
                     color: AppTheme.textSecondary,
                   ),
                 ),
-              ),
-            )
-          else
-            ...grip.hangLogs.map((l) {
-              return Container(
-                margin: const EdgeInsets.only(bottom: 8),
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppTheme.surfaceCard,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: l.isPersonalRecord
-                        ? AppTheme.primaryAmber.withValues(alpha: 0.5)
-                        : Colors.white10,
-                  ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Text(
-                          l.mode.displayName,
-                          style: GoogleFonts.outfit(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 13,
-                            color: AppTheme.textPrimary,
-                          ),
-                        ),
-                        Text(
-                          DateFormat('MMM d, yyyy • h:mm a').format(l.date),
-                          style: GoogleFonts.outfit(
-                            fontSize: 11,
-                            color: AppTheme.textSecondary,
-                          ),
-                        ),
-                      ],
+                const SizedBox(height: 10),
+                if (grip.hangLogs.isEmpty)
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: AppTheme.surfaceCard,
+                      borderRadius: BorderRadius.circular(16),
                     ),
-                    Text(
-                      l.formattedDuration,
-                      style: GoogleFonts.outfit(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                        color: l.isPersonalRecord
-                            ? AppTheme.primaryAmber
-                            : AppTheme.textPrimary,
+                    child: Center(
+                      child: Text(
+                        'No hang sessions recorded yet. Start a hang timer to begin progressing toward 5 minutes!',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          color: AppTheme.textSecondary,
+                        ),
                       ),
                     ),
-                  ],
-                ),
-              );
-            }),
+                  )
+                else
+                  ...grip.hangLogs.map((l) {
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppTheme.surfaceCard,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: l.isPersonalRecord
+                              ? AppTheme.primaryAmber.withValues(alpha: 0.5)
+                              : Colors.white10,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: <Widget>[
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              Text(
+                                l.mode.displayName,
+                                style: GoogleFonts.outfit(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                  color: AppTheme.textPrimary,
+                                ),
+                              ),
+                              Text(
+                                DateFormat('MMM d, yyyy • h:mm a').format(l.date),
+                                style: GoogleFonts.outfit(
+                                  fontSize: 11,
+                                  color: AppTheme.textSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                          Text(
+                            l.formattedDuration,
+                            style: GoogleFonts.outfit(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: l.isPersonalRecord
+                                  ? AppTheme.primaryAmber
+                                  : AppTheme.textPrimary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -1435,168 +1488,178 @@ class AnalyticsScreen extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           // Header Stats Card
-          Container(
-            padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(
-              color: AppTheme.surfaceCard,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: AppTheme.secondaryCyan.withValues(alpha: 0.3),
+          OlyEntryReveal(
+            child: Container(
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: AppTheme.surfaceCard,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: AppTheme.secondaryCyan.withValues(alpha: 0.3),
+                ),
               ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    Text(
-                      'COUCH TO 5K PROGRESS',
-                      style: GoogleFonts.outfit(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1.1,
-                        color: AppTheme.secondaryCyan,
-                      ),
-                    ),
-                    TextButton.icon(
-                      style: TextButton.styleFrom(
-                        foregroundColor: AppTheme.secondaryCyan,
-                        padding: EdgeInsets.zero,
-                        minimumSize: Size.zero,
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      ),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute<void>(
-                            builder: (_) => const C25kProgramDetailScreen(),
-                          ),
-                        );
-                      },
-                      icon: const Icon(Icons.open_in_new, size: 14),
-                      label: Text(
-                        'CURRICULUM',
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      Text(
+                        'COUCH TO 5K PROGRESS',
                         style: GoogleFonts.outfit(
-                          fontSize: 11,
+                          fontSize: 12,
                           fontWeight: FontWeight.bold,
+                          letterSpacing: 1.1,
+                          color: AppTheme.secondaryCyan,
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 14),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: <Widget>[
-                    _buildStatBadge(
-                      'Sessions Done',
-                      '$completedCount / 27',
-                      color: AppTheme.secondaryCyan,
-                    ),
-                    _buildStatBadge(
-                      'Total Distance',
-                      '${totalDistance.toStringAsFixed(1)} km',
-                      color: AppTheme.primaryAmber,
-                    ),
-                    _buildStatBadge(
-                      'Net Calories',
-                      '${totalCalories.toStringAsFixed(0)} kcal',
-                      color: AppTheme.successGreen,
-                    ),
-                  ],
-                ),
-              ],
+                      TextButton.icon(
+                        style: TextButton.styleFrom(
+                          foregroundColor: AppTheme.secondaryCyan,
+                          padding: EdgeInsets.zero,
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute<void>(
+                              builder: (_) => const C25kProgramDetailScreen(),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.open_in_new, size: 14),
+                        label: Text(
+                          'CURRICULUM',
+                          style: GoogleFonts.outfit(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: <Widget>[
+                      _buildStatBadge(
+                        'Sessions Done',
+                        '$completedCount / 27',
+                        color: AppTheme.secondaryCyan,
+                      ),
+                      _buildStatBadge(
+                        'Total Distance',
+                        '${totalDistance.toStringAsFixed(1)} km',
+                        color: AppTheme.primaryAmber,
+                      ),
+                      _buildStatBadge(
+                        'Net Calories',
+                        '${totalCalories.toStringAsFixed(0)} kcal',
+                        color: AppTheme.successGreen,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
           const SizedBox(height: 20),
 
           // Completed Run Logs
-          Text(
-            'RUNNING HISTORY',
-            style: GoogleFonts.outfit(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 1,
-              color: AppTheme.textSecondary,
-            ),
-          ),
-          const SizedBox(height: 10),
-          if (c25k.sessionLogs.isEmpty)
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: AppTheme.surfaceCard,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Center(
-                child: Text(
-                  'No runs completed yet. Tap "START RUN INTERVALS" to begin Week 1!',
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.inter(
-                    fontSize: 13,
+          OlyEntryReveal(
+            index: 1,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  'RUNNING HISTORY',
+                  style: GoogleFonts.outfit(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1,
                     color: AppTheme.textSecondary,
                   ),
                 ),
-              ),
-            )
-          else
-            ...c25k.sessionLogs.map((log) {
-              return Container(
-                margin: const EdgeInsets.only(bottom: 8),
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: AppTheme.surfaceCard,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.white10),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Text(
-                          'Week ${log.week} • Day ${log.day}',
-                          style: GoogleFonts.outfit(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                            color: AppTheme.textPrimary,
-                          ),
-                        ),
-                        Text(
-                          '${DateFormat('MMM d, yyyy').format(log.date)} • ${log.estimatedDistanceKm.toStringAsFixed(2)} km',
-                          style: GoogleFonts.outfit(
-                            fontSize: 12,
-                            color: AppTheme.textSecondary,
-                          ),
-                        ),
-                      ],
+                const SizedBox(height: 10),
+                if (c25k.sessionLogs.isEmpty)
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: AppTheme.surfaceCard,
+                      borderRadius: BorderRadius.circular(16),
                     ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: <Widget>[
-                        Text(
-                          log.formattedDuration,
-                          style: GoogleFonts.outfit(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                            color: AppTheme.secondaryCyan,
-                          ),
+                    child: Center(
+                      child: Text(
+                        'No runs completed yet. Tap "START RUN INTERVALS" to begin Week 1!',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          color: AppTheme.textSecondary,
                         ),
-                        Text(
-                          '${log.netCaloriesBurned.toStringAsFixed(0)} kcal',
-                          style: GoogleFonts.outfit(
-                            fontSize: 11,
-                            color: AppTheme.textSecondary,
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
-                  ],
-                ),
-              );
-            }),
+                  )
+                else
+                  ...c25k.sessionLogs.map((log) {
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: AppTheme.surfaceCard,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.white10),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: <Widget>[
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              Text(
+                                'Week ${log.week} • Day ${log.day}',
+                                style: GoogleFonts.outfit(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                  color: AppTheme.textPrimary,
+                                ),
+                              ),
+                              Text(
+                                '${DateFormat('MMM d, yyyy').format(log.date)} • ${log.estimatedDistanceKm.toStringAsFixed(2)} km',
+                                style: GoogleFonts.outfit(
+                                  fontSize: 12,
+                                  color: AppTheme.textSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: <Widget>[
+                              Text(
+                                log.formattedDuration,
+                                style: GoogleFonts.outfit(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                  color: AppTheme.secondaryCyan,
+                                ),
+                              ),
+                              Text(
+                                '${log.netCaloriesBurned.toStringAsFixed(0)} kcal',
+                                style: GoogleFonts.outfit(
+                                  fontSize: 11,
+                                  color: AppTheme.textSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
+              ],
+            ),
+          ),
         ],
       ),
     );

@@ -6,6 +6,7 @@ import 'package:oly/models/breathing_session_model.dart';
 import 'package:oly/providers/breathing_provider.dart';
 import 'package:oly/theme/app_theme.dart';
 import 'package:oly/views/breathing/wim_hof_setup_sheet.dart';
+import 'package:oly/widgets/motion/oly_entry_reveal.dart';
 import 'package:provider/provider.dart';
 
 class BreathingAnalyticsTab extends StatefulWidget {
@@ -39,39 +40,50 @@ class _BreathingAnalyticsTabState extends State<BreathingAnalyticsTab> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           // Hero KPI Overview Card
-          _buildHeroOverviewCard(breathingProvider),
+          OlyEntryReveal(
+            child: _buildHeroOverviewCard(breathingProvider),
+          ),
           const SizedBox(height: 18),
 
           // Retention Trend Line Chart
-          _buildTrendChartCard(breathingProvider),
+          OlyEntryReveal(
+            index: 1,
+            child: _buildTrendChartCard(breathingProvider),
+          ),
           const SizedBox(height: 18),
 
           // Round Progression Average Breakdown
-          _buildRoundAveragesCard(breathingProvider),
+          OlyEntryReveal(
+            index: 2,
+            child: _buildRoundAveragesCard(breathingProvider),
+          ),
           const SizedBox(height: 24),
 
           // Historical Logs Header
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: <Widget>[
-              Text(
-                'BREATHWORK SESSION HISTORY',
-                style: GoogleFonts.outfit(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1,
-                  color: AppTheme.textSecondary,
+          OlyEntryReveal(
+            index: 3,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                Text(
+                  'BREATHWORK SESSION HISTORY',
+                  style: GoogleFonts.outfit(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1,
+                    color: AppTheme.textSecondary,
+                  ),
                 ),
-              ),
-              Text(
-                '${sessions.length} Completed',
-                style: GoogleFonts.inter(
-                  fontSize: 11,
-                  color: AppTheme.secondaryCyan,
-                  fontWeight: FontWeight.w600,
+                Text(
+                  '${sessions.length} Completed',
+                  style: GoogleFonts.inter(
+                    fontSize: 11,
+                    color: AppTheme.secondaryCyan,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
           const SizedBox(height: 12),
 
@@ -82,7 +94,10 @@ class _BreathingAnalyticsTabState extends State<BreathingAnalyticsTab> {
             itemCount: sessions.length,
             itemBuilder: (context, index) {
               final BreathingSessionLog session = sessions[index];
-              return _buildSessionLogCard(context, session, breathingProvider);
+              return OlyEntryReveal(
+                index: (index + 4).clamp(0, 10),
+                child: _buildSessionLogCard(context, session, breathingProvider),
+              );
             },
           ),
           const SizedBox(height: 20),
@@ -95,7 +110,8 @@ class _BreathingAnalyticsTabState extends State<BreathingAnalyticsTab> {
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 32),
-        child: Column(
+        child: OlyEntryReveal(
+          child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Container(
@@ -163,7 +179,8 @@ class _BreathingAnalyticsTabState extends State<BreathingAnalyticsTab> {
           ],
         ),
       ),
-    );
+    ),
+  );
   }
 
   Widget _buildHeroOverviewCard(BreathingProvider breathing) {
