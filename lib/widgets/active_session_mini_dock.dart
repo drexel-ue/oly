@@ -37,7 +37,9 @@ class ActiveSessionMiniDock extends StatelessWidget {
       ) {
         // Render if a session is actively running or an active draft exists with a running timer
         final bool shouldShow = session.isActive ||
-            (program.hasActiveDraft && session.isRestTimerRunning);
+            (program.hasActiveDraft &&
+                (session.isRestTimerRunning ||
+                    session.restSecondsRemaining > 0));
 
         if (!shouldShow) {
           return const SizedBox.shrink();

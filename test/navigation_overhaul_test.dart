@@ -337,8 +337,8 @@ void main() {
 
       final BuildContext activeContext = tester.element(find.byType(DashboardScreen));
       final double activeBottomPadding = MediaQuery.paddingOf(activeContext).bottom;
-      expect(activeBottomPadding, equals(160.0));
-      expect(activeBottomPadding - inactiveBottomPadding, equals(76.0));
+      expect(activeBottomPadding, equals(204.0));
+      expect(activeBottomPadding - inactiveBottomPadding, equals(120.0));
 
       // End session (minidock disappears)
       sessionProvider.endSession();

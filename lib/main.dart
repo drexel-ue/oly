@@ -214,16 +214,6 @@ class _MainNavigationContainerState extends State<MainNavigationContainer> {
 
   @override
   Widget build(BuildContext context) {
-    final List<Widget> screens = <Widget>[
-      DashboardScreen(onNavigateTab: _switchTab),
-      const RecoverScreen(),
-      const NutritionDashboardScreen(),
-      AnalyticsScreen(
-        key: ValueKey<int>(_analyticsInitialTab),
-        initialTabIndex: _analyticsInitialTab,
-      ),
-    ];
-
     final bool isTest =
         WidgetsBinding.instance.runtimeType.toString().contains('Test');
 
@@ -234,10 +224,22 @@ class _MainNavigationContainerState extends State<MainNavigationContainer> {
             child: Consumer2<ActiveSessionProvider, ProgramProvider>(
               builder: (context, session, program, _) {
                 final bool hasMiniDock = session.isActive ||
-                    (program.hasActiveDraft && session.isRestTimerRunning);
+                    (program.hasActiveDraft &&
+                        (session.isRestTimerRunning ||
+                            session.restSecondsRemaining > 0));
+
+                final List<Widget> screens = <Widget>[
+                  DashboardScreen(onNavigateTab: _switchTab),
+                  const RecoverScreen(),
+                  const NutritionDashboardScreen(),
+                  AnalyticsScreen(
+                    key: ValueKey<int>(_analyticsInitialTab),
+                    initialTabIndex: _analyticsInitialTab,
+                  ),
+                ];
 
                 final MediaQueryData ambientMedia = MediaQuery.of(context);
-                final double dockHeight = hasMiniDock ? 160.0 : 84.0;
+                final double dockHeight = hasMiniDock ? 204.0 : 84.0;
                 final double adjustedBottomPadding =
                     ambientMedia.padding.bottom + dockHeight;
                 final double adjustedBottomViewPadding =

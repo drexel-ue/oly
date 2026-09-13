@@ -421,6 +421,7 @@ class DashboardScreen extends StatelessWidget {
                 index: 9,
                 child: _buildRatioGlanceCard(context, lifts),
               ),
+              const SizedBox(height: 16),
             ],
           ),
         ),
