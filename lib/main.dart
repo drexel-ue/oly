@@ -228,7 +228,9 @@ class _MainNavigationContainerState extends State<MainNavigationContainer> {
         WidgetsBinding.instance.runtimeType.toString().contains('Test');
 
     return Scaffold(
+      extendBody: true,
       body: SafeArea(
+        bottom: false,
         child: isTest
             ? IndexedStack(index: _currentIndex, children: screens)
             : AnimatedSwitcher(
@@ -257,9 +259,29 @@ class _MainNavigationContainerState extends State<MainNavigationContainer> {
               padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
               child: GlassContainer(
                 borderRadius: BorderRadius.circular(28),
-                ambientGlowColor: AppTheme.primaryAmber,
-                ambientGlowRadius: 0.9,
-                blur: 16,
+                blur: 24,
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: <Color>[
+                    const Color(0xFF161926).withValues(alpha: 0.65),
+                    const Color(0xFF0C0E14).withValues(alpha: 0.78),
+                  ],
+                ),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.16),
+                ),
+                boxShadow: <BoxShadow>[
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.45),
+                    blurRadius: 28,
+                    offset: const Offset(0, 8),
+                  ),
+                  BoxShadow(
+                    color: AppTheme.primaryAmber.withValues(alpha: 0.08),
+                    blurRadius: 20,
+                  ),
+                ],
                 padding: EdgeInsets.zero,
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(28),

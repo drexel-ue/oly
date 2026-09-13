@@ -300,6 +300,12 @@ void main() {
       await tester.pumpWidget(buildTestScreen(const MainNavigationContainer()));
       await captureScreen(tester, '00_main_app_capsule_dock');
 
+      final Finder scrollable = find.byType(Scrollable);
+      if (scrollable.evaluate().isNotEmpty) {
+        await tester.drag(scrollable.first, const Offset(0, -380));
+        await captureScreen(tester, '00_main_app_capsule_dock_scrolled');
+      }
+
       expect(find.byType(BottomNavigationBar), findsOneWidget);
     });
 

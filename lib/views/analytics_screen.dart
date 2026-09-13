@@ -91,7 +91,7 @@ class AnalyticsScreen extends StatelessWidget {
 
       // Ratio Balance Chart
       SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 110),
         child: RatioChartWidget(ratios: lifts.getRatioAnalysis()),
       ),
     ];
@@ -129,7 +129,7 @@ class AnalyticsScreen extends StatelessWidget {
     SettingsProvider settings,
   ) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 110),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -346,7 +346,7 @@ class AnalyticsScreen extends StatelessWidget {
     );
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 110),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -692,7 +692,7 @@ class AnalyticsScreen extends StatelessWidget {
     final List<BenchmarkWodLog> recentLogs = recovery.benchmarkWodLogs.take(10).toList();
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 110),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -1067,7 +1067,7 @@ class AnalyticsScreen extends StatelessWidget {
     final bool isLbs = settings.isLbs;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 110),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -1396,7 +1396,7 @@ class AnalyticsScreen extends StatelessWidget {
         c25k.sessionLogs.fold(0, (acc, l) => acc + l.netCaloriesBurned);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 110),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[

@@ -130,7 +130,7 @@ class RecoverScreen extends StatelessWidget {
       ),
       body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 110),
           children: <Widget>[
             // 1. Holistic Daily Readiness Score Card
             OlyEntryReveal(

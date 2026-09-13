@@ -29,7 +29,7 @@ class _BreathingAnalyticsTabState extends State<BreathingAnalyticsTab> {
     }
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 110),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
