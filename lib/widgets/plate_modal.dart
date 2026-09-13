@@ -3,6 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:oly/models/plate_calc.dart';
 import 'package:oly/providers/settings_provider.dart';
 import 'package:oly/theme/app_theme.dart';
+import 'package:oly/widgets/motion/animated_barbell_loader.dart';
+import 'package:oly/widgets/motion/glass_container.dart';
 import 'package:provider/provider.dart';
 
 class PlateModal extends StatefulWidget {
@@ -322,116 +324,19 @@ class _PlateModalState extends State<PlateModal> {
               ),
               const SizedBox(height: 20),
 
-              // VISUAL BARBELL DISPLAY
-              Container(
-                height: 140,
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                decoration: BoxDecoration(
-                  color: AppTheme.surfaceCard,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppTheme.borderColor),
-                ),
-                child: Stack(
-                  alignment: Alignment.centerLeft,
-                  children: <Widget>[
-                    // Bar Shaft
-                    Positioned(
-                      left: 0,
-                      right: 0,
-                      child: Container(
-                        height: 16,
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: <Color>[
-                              Color(0xFF8A8F9E),
-                              Color(0xFFD0D5E0),
-                              Color(0xFF8A8F9E),
-                            ],
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                          ),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                      ),
-                    ),
-                    // Collar stop
-                    Positioned(
-                      left: 40,
-                      child: Container(
-                        width: 14,
-                        height: 50,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF4A4E5C),
-                          borderRadius: BorderRadius.circular(3),
-                          border: Border.all(color: Colors.white24),
-                        ),
-                      ),
-                    ),
-                    // Sleeve & Plates
-                    Positioned(
-                      left: 54,
-                      right: 12,
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: <Widget>[
-                            // Collar plate
-                            if (result.collarWeight > 0)
-                              Container(
-                                width: 10,
-                                height: 30,
-                                margin: const EdgeInsets.only(right: 3),
-                                decoration: BoxDecoration(
-                                  color: Colors.grey.shade400,
-                                  borderRadius: BorderRadius.circular(2),
-                                ),
-                              ),
-                            // Plates rendered per side
-                            ...result.platesPerSide.map((plate) {
-                              final double plateHeight =
-                                  110.0 * plate.heightFactor;
-                              final double plateWidth = plate.isFractional
-                                  ? 12.0
-                                  : 18.0;
-                              return Container(
-                                width: plateWidth,
-                                height: plateHeight,
-                                margin: const EdgeInsets.symmetric(
-                                  horizontal: 2,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: plate.color,
-                                  borderRadius: BorderRadius.circular(4),
-                                  border: Border.all(color: Colors.black26),
-                                  boxShadow: const <BoxShadow>[
-                                    BoxShadow(
-                                      color: Colors.black54,
-                                      blurRadius: 3,
-                                      offset: Offset(1, 1),
-                                    ),
-                                  ],
-                                ),
-                                child: Center(
-                                  child: RotatedBox(
-                                    quarterTurns: 1,
-                                    child: Text(
-                                      plate.label,
-                                      style: TextStyle(
-                                        color: plate.textColor,
-                                        fontSize: plate.isFractional ? 9 : 11,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              );
-                            }),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
+              // ANIMATED VISUAL BARBELL DISPLAY
+              GlassContainer(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                ambientGlowColor: AppTheme.primaryAmber,
+                ambientGlowRadius: 1.1,
+                child: AnimatedBarbellLoader(
+                  targetWeight: displayTarget,
+                  barWeight: settings.barWeight,
+                  collarWeight: settings.collarWeight,
+                  isLbs: isLbs,
+                  displayMode: BarbellDisplayMode.singleSleeve,
+                  height: 130,
+                  showBreakdownChips: true,
                 ),
               ),
               const SizedBox(height: 16),

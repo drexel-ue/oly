@@ -8,6 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:golden_toolkit/golden_toolkit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:nested/nested.dart';
+import 'package:oly/main.dart';
 import 'package:oly/models/breathing_session_model.dart';
 import 'package:oly/models/fasting_session_model.dart';
 import 'package:oly/models/injury_model.dart';
@@ -289,6 +290,19 @@ void main() {
   }
 
   group('Mock Data & Screen Rendering Verification Suite', () {
+    testWidgets('00 Renders Main App Navigation with Floating Capsule Dock', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(1170, 2532);
+      tester.view.devicePixelRatio = 2.0;
+      addTearDown(() => tester.view.resetPhysicalSize());
+
+      await tester.pumpWidget(buildTestScreen(const MainNavigationContainer()));
+      await captureScreen(tester, '00_main_app_capsule_dock');
+
+      expect(find.byType(BottomNavigationBar), findsOneWidget);
+    });
+
     testWidgets('01 Renders Dashboard Screen with mock data', (
       tester,
     ) async {

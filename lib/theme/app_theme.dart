@@ -63,6 +63,67 @@ class AppTheme {
     end: Alignment.bottomRight,
   );
 
+  // Atmospheric Ambient Backlight Gradients
+  static const RadialGradient ambientAmberRadial = RadialGradient(
+    center: Alignment(-0.2, -0.6),
+    radius: 1.2,
+    colors: <Color>[
+      Color(0x33FF9F0A),
+      Color(0x0A090A0D),
+    ],
+    stops: <double>[0, 1],
+  );
+
+  static const RadialGradient ambientCyanRadial = RadialGradient(
+    center: Alignment(0.2, -0.6),
+    radius: 1.2,
+    colors: <Color>[
+      Color(0x2E00D2FF),
+      Color(0x0A090A0D),
+    ],
+    stops: <double>[0, 1],
+  );
+
+  static const RadialGradient ambientEmeraldRadial = RadialGradient(
+    center: Alignment(0, -0.5),
+    radius: 1.2,
+    colors: <Color>[
+      Color(0x2910B981),
+      Color(0x0A090A0D),
+    ],
+    stops: <double>[0, 1],
+  );
+
+  // Precision Metallic Barbell Gradients
+  static const LinearGradient barbellSteelGradient = LinearGradient(
+    colors: <Color>[
+      Color(0xFF6B7280),
+      Color(0xFFE5E7EB),
+      Color(0xFF9CA3AF),
+      Color(0xFF4B5563),
+    ],
+    stops: <double>[0, 0.35, 0.7, 1],
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+  );
+
+  static const LinearGradient collarChromeGradient = LinearGradient(
+    colors: <Color>[
+      Color(0xFF475569),
+      Color(0xFFCBD5E1),
+      Color(0xFF94A3B8),
+      Color(0xFF334155),
+    ],
+    stops: <double>[0, 0.3, 0.7, 1],
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+  );
+
+  // Specular Highlight Border (uniform for rounded containers)
+  static Border get specularBorderTop => Border.all(
+        color: Colors.white.withValues(alpha: 0.12),
+      );
+
   // Standard BoxShadows
   static List<BoxShadow> glowAmber({double radius = 16.0, double opacity = 0.25}) =>
       <BoxShadow>[

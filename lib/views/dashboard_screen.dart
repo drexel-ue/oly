@@ -25,6 +25,7 @@ import 'package:oly/views/warmup_session_screen.dart';
 import 'package:oly/views/wod_hub_screen.dart';
 import 'package:oly/views/workout_session_screen.dart';
 import 'package:oly/widgets/athlete_summary_overview_card.dart';
+import 'package:oly/widgets/motion/glass_container.dart';
 import 'package:oly/widgets/motion/kinetic_counter.dart';
 import 'package:oly/widgets/motion/oly_entry_reveal.dart';
 import 'package:oly/widgets/motion/oly_pressable.dart';
@@ -431,23 +432,15 @@ class DashboardScreen extends StatelessWidget {
               ? "Peak Loading"
               : "Base Loading"}';
 
-    return Container(
-      width: double.infinity,
+    return GlassContainer(
       padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: isRetest
-              ? <Color>[const Color(0xFF8E0000), const Color(0xFF2A0000)]
-              : <Color>[AppTheme.surfaceElevated, AppTheme.surfaceCard],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: isRetest
-              ? Colors.redAccent
-              : AppTheme.primaryAmber.withValues(alpha: 0.3),
-        ),
+      ambientGlowColor: isRetest ? Colors.redAccent : AppTheme.primaryAmber,
+      gradient: LinearGradient(
+        colors: isRetest
+            ? <Color>[const Color(0xFF5A0000), const Color(0xFF1E0000)]
+            : <Color>[AppTheme.surfaceElevated, AppTheme.surfaceCard],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -809,14 +802,12 @@ class DashboardScreen extends StatelessWidget {
     DayTemplate day,
     GoalProvider? goalProvider,
   ) {
-    return Container(
-      width: double.infinity,
+    return GlassContainer(
       padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: AppTheme.surfaceCard,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppTheme.borderColor),
-      ),
+      ambientGlowColor: day.isActiveRecovery
+          ? AppTheme.secondaryCyan
+          : AppTheme.primaryAmber,
+      ambientGlowRadius: 1,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -1154,27 +1145,10 @@ class DashboardScreen extends StatelessWidget {
           ),
         );
       },
-      child: Container(
+      child: GlassContainer(
         padding: const EdgeInsets.all(18),
-        decoration: BoxDecoration(
-          color: AppTheme.surfaceCard,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: AppTheme.primaryAmber.withValues(alpha: 0.35),
-          ),
-          boxShadow: <BoxShadow>[
-            BoxShadow(
-              color: AppTheme.primaryAmber.withValues(alpha: 0.08),
-              blurRadius: 16,
-              offset: const Offset(0, 4),
-            ),
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.4),
-              blurRadius: 12,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
+        ambientGlowColor: AppTheme.primaryAmber,
+        ambientGlowRadius: 1.1,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
@@ -1314,22 +1288,11 @@ class DashboardScreen extends StatelessWidget {
     return OlyPressable(
       onPressed: onTap,
       borderRadius: BorderRadius.circular(16),
-      child: Container(
+      child: GlassContainer(
         padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: AppTheme.surfaceCard,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: accentColor.withValues(alpha: 0.25),
-          ),
-          boxShadow: <BoxShadow>[
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.35),
-              blurRadius: 10,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
+        ambientGlowColor: accentColor,
+        ambientGlowRadius: 0.9,
+        borderRadius: BorderRadius.circular(16),
         child: Row(
           children: <Widget>[
             Container(
@@ -1379,24 +1342,10 @@ class DashboardScreen extends StatelessWidget {
   }
 
   Widget _buildCrossfitWodShowcaseCard(BuildContext context) {
-    return Container(
-      width: double.infinity,
+    return GlassContainer(
       padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: AppTheme.surfaceCard,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: AppTheme.primaryAmber.withValues(alpha: 0.35),
-          width: 1.2,
-        ),
-        boxShadow: <BoxShadow>[
-          BoxShadow(
-            color: AppTheme.primaryAmber.withValues(alpha: 0.08),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+      ambientGlowColor: AppTheme.primaryAmber,
+      ambientGlowRadius: 1,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -1561,13 +1510,10 @@ class DashboardScreen extends StatelessWidget {
 
   Widget _buildRatioGlanceCard(BuildContext context, LiftProvider lifts) {
     final List<LiftRatioAnalysis> ratios = lifts.getRatioAnalysis();
-    return Container(
+    return GlassContainer(
       padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: AppTheme.surfaceCard,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppTheme.borderColor),
-      ),
+      ambientGlowColor: AppTheme.secondaryCyan,
+      ambientGlowRadius: 0.9,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[

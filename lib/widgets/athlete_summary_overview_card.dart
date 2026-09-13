@@ -6,13 +6,18 @@ import 'package:oly/models/program_model.dart';
 import 'package:oly/models/workout_session.dart';
 import 'package:oly/providers/breathing_provider.dart';
 import 'package:oly/providers/injury_provider.dart';
+import 'package:oly/providers/lift_provider.dart';
 import 'package:oly/providers/nutrition_provider.dart';
 import 'package:oly/providers/program_provider.dart';
+import 'package:oly/providers/settings_provider.dart';
 import 'package:oly/theme/app_theme.dart';
 import 'package:oly/views/warmup_session_screen.dart';
 import 'package:oly/views/workout_session_screen.dart';
+import 'package:oly/widgets/motion/animated_barbell_loader.dart';
+import 'package:oly/widgets/motion/glass_container.dart';
 import 'package:oly/widgets/motion/oly_pressable.dart';
 import 'package:oly/widgets/motion/pulsing_glow.dart';
+import 'package:oly/widgets/plate_modal.dart';
 import 'package:provider/provider.dart';
 
 /// The high-level Athlete Daily Briefing / Summary Overview Card that sits
@@ -34,6 +39,8 @@ class AthleteSummaryOverviewCard extends StatelessWidget {
     final InjuryProvider injuries = Provider.of<InjuryProvider>(context);
     final NutritionProvider nutrition = Provider.of<NutritionProvider>(context);
     final BreathingProvider breathing = Provider.of<BreathingProvider>(context);
+    final LiftProvider lifts = Provider.of<LiftProvider>(context);
+    final SettingsProvider settings = Provider.of<SettingsProvider>(context);
 
     final List<InjuryRecord> activeInjuries = injuries.activeInjuries;
 
@@ -68,35 +75,32 @@ class AthleteSummaryOverviewCard extends StatelessWidget {
       (sum, p) => sum + p.exercises.length,
     );
 
+    double peakLoadKg = 100;
+    if (!activeDay.isActiveRecovery) {
+      if (activeDay.title.toLowerCase().contains('snatch')) {
+        final double max = lifts.getLift('snatch')?.currentMax ?? 100.0;
+        peakLoadKg = (max * 0.85).roundToDouble();
+      } else if (activeDay.title.toLowerCase().contains('clean')) {
+        final double max = lifts.getLift('clean_and_jerk')?.currentMax ?? 120.0;
+        peakLoadKg = (max * 0.85).roundToDouble();
+      } else {
+        final double max = lifts.getLift('back_squat')?.currentMax ?? 140.0;
+        peakLoadKg = (max * 0.80).roundToDouble();
+      }
+      if (peakLoadKg <= 0) {
+        peakLoadKg = 100.0;
+      }
+    }
+
     return PulsingGlow(
       glowColor: AppTheme.primaryAmber,
       isPulsing: hasDraft,
       borderRadius: BorderRadius.circular(24),
-      child: Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: AppTheme.surfaceCard,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(
-            color: hasDraft
-                ? AppTheme.primaryAmber.withValues(alpha: 0.8)
-                : AppTheme.borderColor,
-            width: hasDraft ? 1.8 : 1.2,
-          ),
-          boxShadow: <BoxShadow>[
-            BoxShadow(
-              color: (hasDraft ? AppTheme.primaryAmber : AppTheme.secondaryCyan)
-                  .withValues(alpha: 0.12),
-              blurRadius: 20,
-              offset: const Offset(0, 6),
-            ),
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.4),
-              blurRadius: 10,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
+      child: GlassContainer(
+        borderRadius: BorderRadius.circular(24),
+        ambientGlowColor: hasDraft ? AppTheme.primaryAmber : const Color(0x33FF9F0A),
+        ambientGlowRadius: 1.1,
+        padding: EdgeInsets.zero,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
@@ -262,6 +266,80 @@ class AthleteSummaryOverviewCard extends StatelessWidget {
                           ),
                         ),
                       ],
+                    ),
+                  ),
+                ],
+
+                // Dynamic Loaded Olympic Barbell Visualizer
+                if (!activeDay.isActiveRecovery) ...<Widget>[
+                  const SizedBox(height: 14),
+                  GestureDetector(
+                    onTap: () {
+                      showModalBottomSheet<void>(
+                        context: context,
+                        isScrollControlled: true,
+                        useSafeArea: true,
+                        backgroundColor: Colors.transparent,
+                        builder: (_) => PlateModal(initialWeightKg: peakLoadKg),
+                      );
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.38),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.08),
+                        ),
+                      ),
+                      child: Column(
+                        children: <Widget>[
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: <Widget>[
+                              Row(
+                                children: <Widget>[
+                                  const Icon(
+                                    Icons.fitness_center,
+                                    size: 13,
+                                    color: AppTheme.primaryAmber,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    'TARGET BARBELL LOAD',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 10.5,
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: 0.8,
+                                      color: AppTheme.primaryAmber,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              Text(
+                                '${settings.toDisplayWeight(peakLoadKg).toStringAsFixed(1)} ${settings.unitLabel.toUpperCase()}',
+                                style: GoogleFonts.outfit(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppTheme.textPrimary,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                            AnimatedBarbellLoader(
+                            targetWeight: settings.toDisplayWeight(peakLoadKg),
+                            barWeight: settings.barWeight,
+                            collarWeight: settings.collarWeight,
+                            isLbs: settings.isLbs,
+                            height: 90,
+                            showBreakdownChips: true,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ],

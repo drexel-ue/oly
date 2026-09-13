@@ -32,6 +32,7 @@ import 'package:oly/views/splash_screen.dart';
 import 'package:oly/views/warmup_session_screen.dart';
 import 'package:oly/views/workout_session_screen.dart';
 import 'package:oly/widgets/active_session_mini_dock.dart';
+import 'package:oly/widgets/motion/glass_container.dart';
 import 'package:provider/provider.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
@@ -250,68 +251,62 @@ class _MainNavigationContainerState extends State<MainNavigationContainer> {
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           const ActiveSessionMiniDock(),
-          Container(
-            decoration: BoxDecoration(
-              color: AppTheme.surfaceCard,
-              border: Border(
-                top: BorderSide(
-                  color: Colors.white.withValues(alpha: 0.07),
-                ),
-              ),
-              boxShadow: <BoxShadow>[
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.5),
-                  blurRadius: 20,
-                  offset: const Offset(0, -4),
-                ),
-              ],
-            ),
-            child: ClipRect(
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-                child: BottomNavigationBar(
-                  currentIndex: _currentIndex,
-                  onTap: (index) {
-                    HapticFeedback.selectionClick();
-                    setState(() => _currentIndex = index);
-                  },
-                  type: BottomNavigationBarType.fixed,
-                  backgroundColor: Colors.transparent,
-                  elevation: 0,
-                  selectedItemColor: AppTheme.primaryAmber,
-                  unselectedItemColor: AppTheme.textSecondary,
-                  selectedLabelStyle: GoogleFonts.outfit(
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 0.8,
+          SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
+              child: GlassContainer(
+                borderRadius: BorderRadius.circular(28),
+                ambientGlowColor: AppTheme.primaryAmber,
+                ambientGlowRadius: 0.9,
+                blur: 16,
+                padding: EdgeInsets.zero,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(28),
+                  child: BottomNavigationBar(
+                    currentIndex: _currentIndex,
+                    onTap: (index) {
+                      HapticFeedback.selectionClick();
+                      setState(() => _currentIndex = index);
+                    },
+                    type: BottomNavigationBarType.fixed,
+                    backgroundColor: Colors.transparent,
+                    elevation: 0,
+                    selectedItemColor: AppTheme.primaryAmber,
+                    unselectedItemColor: AppTheme.textSecondary,
+                    selectedLabelStyle: GoogleFonts.outfit(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.8,
+                    ),
+                    unselectedLabelStyle: GoogleFonts.outfit(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.6,
+                    ),
+                    items: const <BottomNavigationBarItem>[
+                      BottomNavigationBarItem(
+                        icon: Icon(Icons.fitness_center_outlined),
+                        activeIcon: Icon(Icons.fitness_center_rounded),
+                        label: 'TRAIN',
+                      ),
+                      BottomNavigationBarItem(
+                        icon: Icon(Icons.self_improvement_outlined),
+                        activeIcon: Icon(Icons.self_improvement_rounded),
+                        label: 'RECOVER',
+                      ),
+                      BottomNavigationBarItem(
+                        icon: Icon(Icons.restaurant_outlined),
+                        activeIcon: Icon(Icons.restaurant_rounded),
+                        label: 'FUEL',
+                      ),
+                      BottomNavigationBarItem(
+                        icon: Icon(Icons.insights_outlined),
+                        activeIcon: Icon(Icons.insights_rounded),
+                        label: 'INSIGHTS',
+                      ),
+                    ],
                   ),
-                  unselectedLabelStyle: GoogleFonts.outfit(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 0.6,
-                  ),
-                  items: const <BottomNavigationBarItem>[
-                    BottomNavigationBarItem(
-                      icon: Icon(Icons.fitness_center_outlined),
-                      activeIcon: Icon(Icons.fitness_center_rounded),
-                      label: 'TRAIN',
-                    ),
-                    BottomNavigationBarItem(
-                      icon: Icon(Icons.self_improvement_outlined),
-                      activeIcon: Icon(Icons.self_improvement_rounded),
-                      label: 'RECOVER',
-                    ),
-                    BottomNavigationBarItem(
-                      icon: Icon(Icons.restaurant_outlined),
-                      activeIcon: Icon(Icons.restaurant_rounded),
-                      label: 'FUEL',
-                    ),
-                    BottomNavigationBarItem(
-                      icon: Icon(Icons.insights_outlined),
-                      activeIcon: Icon(Icons.insights_rounded),
-                      label: 'INSIGHTS',
-                    ),
-                  ],
                 ),
               ),
             ),

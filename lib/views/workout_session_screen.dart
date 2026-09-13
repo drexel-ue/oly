@@ -42,6 +42,8 @@ import 'package:oly/views/warmup_session_screen.dart';
 import 'package:oly/widgets/add_movement_modal_sheet.dart';
 import 'package:oly/widgets/empty_add_movement_card.dart';
 import 'package:oly/widgets/exercise_swap_modal.dart';
+import 'package:oly/widgets/motion/animated_barbell_loader.dart';
+import 'package:oly/widgets/motion/glass_container.dart';
 import 'package:oly/widgets/motion/oly_entry_reveal.dart';
 import 'package:oly/widgets/plate_modal.dart';
 import 'package:oly/widgets/post_session_body_checkin_dialog.dart';
@@ -1599,14 +1601,11 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     PhaseTemplate phase,
     SettingsProvider settings,
   ) {
-    return Container(
+    return GlassContainer(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppTheme.surfaceCard,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppTheme.borderColor),
-      ),
+      ambientGlowColor: AppTheme.primaryAmber,
+      ambientGlowRadius: 0.9,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -1873,14 +1872,64 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                       ),
                     ),
                   ),
+
+                  // Dynamic Loaded Barbell Visualizer for this exercise
+                  Builder(
+                    builder: (context) {
+                      final double exWeight =
+                          double.tryParse(weightCtrl?.text ?? '0') ?? 0.0;
+                      if (exWeight <= 0) {
+                        return const SizedBox.shrink();
+                      }
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 10),
+                        child: GestureDetector(
+                          onTap: () {
+                            showModalBottomSheet<void>(
+                              context: context,
+                              isScrollControlled: true,
+                              useSafeArea: true,
+                              backgroundColor: Colors.transparent,
+                              builder: (_) =>
+                                  PlateModal(initialWeightKg: exWeight),
+                            );
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: 0.35),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.06),
+                              ),
+                            ),
+                            child: AnimatedBarbellLoader(
+                              targetWeight: settings.toDisplayWeight(exWeight),
+                              barWeight: settings.barWeight,
+                              collarWeight: settings.collarWeight,
+                              isLbs: settings.isLbs,
+                              height: 52,
+                              showBreakdownChips: true,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                   const SizedBox(height: 10),
 
-                  // Set checkboxes row
+                  // Set checkboxes row with active glow state
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
                     children: List.generate(sets.length, (index) {
                       final CompletedSet setItem = sets[index];
+                      final bool isActiveSet = !setItem.isCompleted &&
+                          (index == 0 || sets[index - 1].isCompleted);
+
                       return GestureDetector(
                         onLongPress: () =>
                             _showSetEditDialog(exercise.name, index),
@@ -1892,7 +1941,16 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                                   size: 16,
                                   color: Colors.black,
                                 )
-                              : null,
+                              : (isActiveSet
+                                  ? Container(
+                                      width: 8,
+                                      height: 8,
+                                      decoration: const BoxDecoration(
+                                        color: AppTheme.secondaryCyan,
+                                        shape: BoxShape.circle,
+                                      ),
+                                    )
+                                  : null),
                           label: Text(
                             'Set ${setItem.setIndex}: ${settings.formatWeight(setItem.weight, includeUnit: false)} × ${setItem.reps}',
                             style: GoogleFonts.outfit(
@@ -1900,11 +1958,23 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                               fontWeight: FontWeight.bold,
                               color: setItem.isCompleted
                                   ? Colors.black
-                                  : AppTheme.textPrimary,
+                                  : (isActiveSet
+                                      ? AppTheme.secondaryCyan
+                                      : AppTheme.textPrimary),
                             ),
                           ),
+                          side: BorderSide(
+                            color: isActiveSet
+                                ? AppTheme.secondaryCyan
+                                : (setItem.isCompleted
+                                    ? Colors.transparent
+                                    : AppTheme.borderColor),
+                            width: isActiveSet ? 1.5 : 1.0,
+                          ),
                           selectedColor: AppTheme.primaryAmber,
-                          backgroundColor: AppTheme.surfaceCard,
+                          backgroundColor: isActiveSet
+                              ? AppTheme.secondaryCyan.withValues(alpha: 0.12)
+                              : AppTheme.surfaceCard,
                           onSelected: (_) =>
                               _toggleSetCompletion(exercise.name, index),
                         ),

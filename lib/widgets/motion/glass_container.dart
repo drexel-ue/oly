@@ -10,6 +10,9 @@ class GlassContainer extends StatelessWidget {
     super.key,
     this.blur = 12.0,
     this.backgroundColor,
+    this.gradient,
+    this.ambientGlowColor,
+    this.ambientGlowRadius = 0.8,
     this.borderRadius = const BorderRadius.all(Radius.circular(20)),
     this.padding,
     this.margin,
@@ -20,6 +23,9 @@ class GlassContainer extends StatelessWidget {
   final Widget child;
   final double blur;
   final Color? backgroundColor;
+  final Gradient? gradient;
+  final Color? ambientGlowColor;
+  final double ambientGlowRadius;
   final BorderRadius borderRadius;
   final EdgeInsetsGeometry? padding;
   final EdgeInsetsGeometry? margin;
@@ -28,24 +34,43 @@ class GlassContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final effectiveBorder = border ??
-        Border.all(
-          color: Colors.white.withValues(alpha: 0.08),
-        );
+    final effectiveBorder = border ?? AppTheme.specularBorderTop;
 
     final effectiveShadow = boxShadow ??
         <BoxShadow>[
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.45),
-            blurRadius: 18,
+            color: Colors.black.withValues(alpha: 0.5),
+            blurRadius: 20,
             offset: const Offset(0, 6),
           ),
+          if (ambientGlowColor != null)
+            BoxShadow(
+              color: ambientGlowColor!.withValues(alpha: 0.18),
+              blurRadius: 24,
+              spreadRadius: 1,
+            ),
         ];
+
+    final effectiveGradient = gradient ??
+        (ambientGlowColor != null
+            ? RadialGradient(
+                center: const Alignment(0, -0.7),
+                radius: ambientGlowRadius,
+                colors: <Color>[
+                  ambientGlowColor!.withValues(alpha: 0.18),
+                  (backgroundColor ?? AppTheme.surfaceGlass)
+                      .withValues(alpha: 0.85),
+                ],
+              )
+            : null);
 
     Widget content = Container(
       padding: padding,
       decoration: BoxDecoration(
-        color: backgroundColor ?? AppTheme.surfaceGlass,
+        color: effectiveGradient == null
+            ? (backgroundColor ?? AppTheme.surfaceGlass)
+            : null,
+        gradient: effectiveGradient,
         borderRadius: borderRadius,
         border: effectiveBorder,
       ),
