@@ -56,6 +56,33 @@ class _RestTimerWidgetState extends State<RestTimerWidget>
     _secondsRemaining = widget.initialSeconds;
     _isMinimized = widget.initiallyMinimized;
     widget.notesFocusNode?.addListener(_handleFocusChange);
+
+    // Sync state with ActiveSessionProvider if a rest timer is currently active or paused
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      try {
+        final ActiveSessionProvider activeSession =
+            Provider.of<ActiveSessionProvider>(context, listen: false);
+        if (activeSession.isRestTimerRunning &&
+            activeSession.restSecondsRemaining > 0) {
+          setState(() {
+            _isRunning = true;
+            _secondsRemaining = activeSession.restSecondsRemaining;
+            _totalSeconds = activeSession.restTotalSeconds;
+            _targetEndTime = activeSession.restTargetEndTime;
+          });
+          _startTimer(fromSync: true);
+        } else if (!activeSession.isRestTimerRunning &&
+            activeSession.restSecondsRemaining > 0 &&
+            activeSession.restSecondsRemaining != widget.initialSeconds) {
+          setState(() {
+            _secondsRemaining = activeSession.restSecondsRemaining;
+            _totalSeconds = activeSession.restTotalSeconds;
+            _isRunning = false;
+          });
+        }
+      } catch (_) {}
+    });
   }
 
   @override
@@ -72,6 +99,7 @@ class _RestTimerWidgetState extends State<RestTimerWidget>
     WidgetsBinding.instance.removeObserver(this);
     widget.notesFocusNode?.removeListener(_handleFocusChange);
     _timer?.cancel();
+    _timer = null;
     super.dispose();
   }
 
@@ -88,6 +116,7 @@ class _RestTimerWidgetState extends State<RestTimerWidget>
           _secondsRemaining = 0;
           _isRunning = false;
           _timer?.cancel();
+          _timer = null;
           _triggerFinishAlerts(isForeground: false);
           widget.onFinished?.call();
         }
@@ -106,6 +135,7 @@ class _RestTimerWidgetState extends State<RestTimerWidget>
   void _toggleTimer() {
     if (_isRunning) {
       _timer?.cancel();
+      _timer = null;
       NotificationService().cancelTimerNotification();
       setState(() => _isRunning = false);
       _syncPauseWithGlobalSession();
@@ -119,6 +149,7 @@ class _RestTimerWidgetState extends State<RestTimerWidget>
 
   void _resetTimer() {
     _timer?.cancel();
+    _timer = null;
     NotificationService().cancelTimerNotification();
     setState(() {
       _secondsRemaining = _totalSeconds;
@@ -127,20 +158,25 @@ class _RestTimerWidgetState extends State<RestTimerWidget>
     _syncResetWithGlobalSession();
   }
 
-  void _startTimer() {
+  void _startTimer({bool fromSync = false}) {
     _timer?.cancel();
+    _timer = null;
     _targetEndTime = DateTime.now().add(Duration(seconds: _secondsRemaining));
     setState(() => _isRunning = true);
-    _syncStartWithGlobalSession();
 
-    NotificationService().scheduleTimerNotification(
-      secondsRemaining: _secondsRemaining,
-      title: widget.notificationTitle,
-      body: widget.notificationBody,
-    );
+    if (!fromSync) {
+      _syncStartWithGlobalSession();
+    }
 
     _timer = Timer.periodic(const Duration(seconds: 1), (t) {
+      if (!mounted) {
+        t.cancel();
+        _timer = null;
+        return;
+      }
       if (_targetEndTime == null) {
+        t.cancel();
+        _timer = null;
         return;
       }
       final int remaining = _targetEndTime!
@@ -151,6 +187,7 @@ class _RestTimerWidgetState extends State<RestTimerWidget>
         setState(() => _secondsRemaining = remaining);
       } else {
         t.cancel();
+        _timer = null;
         setState(() {
           _secondsRemaining = 0;
           _isRunning = false;
@@ -169,7 +206,14 @@ class _RestTimerWidgetState extends State<RestTimerWidget>
 
     NotificationService().cancelTimerNotification();
 
-    if (isForeground) {
+    bool handledByActiveSession = false;
+    try {
+      final ActiveSessionProvider activeSession =
+          Provider.of<ActiveSessionProvider>(context, listen: false);
+      handledByActiveSession = activeSession.isRestTimerRunning;
+    } catch (_) {}
+
+    if (isForeground && !handledByActiveSession) {
       if (settings.hapticsEnabled) {
         NotificationService().triggerIntenseVibration();
       }

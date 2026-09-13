@@ -4,6 +4,7 @@ import 'package:oly/models/accessory_log.dart';
 import 'package:oly/models/benchmark_wod_log.dart';
 import 'package:oly/models/body_composition_entry.dart';
 import 'package:oly/models/breathing_session_model.dart';
+import 'package:oly/models/c25k_model.dart';
 import 'package:oly/models/cindy_workout_log.dart';
 import 'package:oly/models/daily_nutrition_log.dart';
 import 'package:oly/models/death_by_burpees_log.dart';
@@ -12,7 +13,9 @@ import 'package:oly/models/fasting_biomarker_entry.dart';
 import 'package:oly/models/fasting_grocery_item.dart';
 import 'package:oly/models/fasting_session_model.dart';
 import 'package:oly/models/fran_workout_log.dart';
+import 'package:oly/models/goal_model.dart';
 import 'package:oly/models/grace_workout_log.dart';
+import 'package:oly/models/grip_hang_model.dart';
 import 'package:oly/models/helen_workout_log.dart';
 import 'package:oly/models/injury_model.dart';
 import 'package:oly/models/jackie_workout_log.dart';
@@ -62,6 +65,12 @@ class StorageService {
       'oly_athlete_circadian_config_v1';
   static const String _keyFastingPantryItems = 'oly_fasting_pantry_items_v1';
   static const String _keyFastingBiomarkers = 'oly_fasting_biomarkers_v1';
+  static const String _keyGoalTracks = 'oly_goal_tracks_v1';
+  static const String _keyDailySessionPlans = 'oly_daily_session_plans_v1';
+  static const String _keyDynamometerEntries = 'oly_dynamometer_entries_v1';
+  static const String _keyHangSessionLogs = 'oly_hang_session_logs_v1';
+  static const String _keyC25kSessionLogs = 'oly_c25k_session_logs_v1';
+  static const String _keyC25kCurrentProgress = 'oly_c25k_current_progress_v1';
 
   final SharedPreferences _prefs;
 
@@ -1397,5 +1406,145 @@ class StorageService {
       entries.map((e) => e.toJson()).toList(),
     );
     await _prefs.setString(_keyFastingBiomarkers, jsonStr);
+  }
+
+  // --- GOAL TRACKS STORAGE ---
+  List<GoalTrack> loadGoalTracks() {
+    final String? jsonStr = _prefs.getString(_keyGoalTracks);
+    if (jsonStr == null || jsonStr.isEmpty) {
+      return GoalTrack.getDefaultGoals();
+    }
+    try {
+      final List<dynamic> list = jsonDecode(jsonStr) as List<dynamic>;
+      return list
+          .map((dynamic e) => GoalTrack.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } catch (_) {
+      return GoalTrack.getDefaultGoals();
+    }
+  }
+
+  Future<void> saveGoalTracks(List<GoalTrack> goals) async {
+    final String jsonStr = jsonEncode(
+      goals.map((g) => g.toJson()).toList(),
+    );
+    await _prefs.setString(_keyGoalTracks, jsonStr);
+  }
+
+  // --- DAILY SESSION PLANS STORAGE ---
+  List<DailySessionPlan> loadDailySessionPlans() {
+    final String? jsonStr = _prefs.getString(_keyDailySessionPlans);
+    if (jsonStr == null || jsonStr.isEmpty) {
+      return <DailySessionPlan>[];
+    }
+    try {
+      final List<dynamic> list = jsonDecode(jsonStr) as List<dynamic>;
+      return list
+          .map((dynamic e) =>
+              DailySessionPlan.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } catch (_) {
+      return <DailySessionPlan>[];
+    }
+  }
+
+  Future<void> saveDailySessionPlans(List<DailySessionPlan> plans) async {
+    final String jsonStr = jsonEncode(
+      plans.map((p) => p.toJson()).toList(),
+    );
+    await _prefs.setString(_keyDailySessionPlans, jsonStr);
+  }
+
+  // --- DYNAMOMETER STORAGE ---
+  List<DynamometerEntry> loadDynamometerEntries() {
+    final String? jsonStr = _prefs.getString(_keyDynamometerEntries);
+    if (jsonStr == null || jsonStr.isEmpty) {
+      return <DynamometerEntry>[];
+    }
+    try {
+      final List<dynamic> list = jsonDecode(jsonStr) as List<dynamic>;
+      return list
+          .map((dynamic e) =>
+              DynamometerEntry.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } catch (_) {
+      return <DynamometerEntry>[];
+    }
+  }
+
+  Future<void> saveDynamometerEntries(List<DynamometerEntry> entries) async {
+    final String jsonStr = jsonEncode(
+      entries.map((e) => e.toJson()).toList(),
+    );
+    await _prefs.setString(_keyDynamometerEntries, jsonStr);
+  }
+
+  // --- HANG SESSION STORAGE ---
+  List<HangSessionLog> loadHangSessionLogs() {
+    final String? jsonStr = _prefs.getString(_keyHangSessionLogs);
+    if (jsonStr == null || jsonStr.isEmpty) {
+      return <HangSessionLog>[];
+    }
+    try {
+      final List<dynamic> list = jsonDecode(jsonStr) as List<dynamic>;
+      return list
+          .map((dynamic e) =>
+              HangSessionLog.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } catch (_) {
+      return <HangSessionLog>[];
+    }
+  }
+
+  Future<void> saveHangSessionLogs(List<HangSessionLog> logs) async {
+    final String jsonStr = jsonEncode(
+      logs.map((l) => l.toJson()).toList(),
+    );
+    await _prefs.setString(_keyHangSessionLogs, jsonStr);
+  }
+
+  // --- C25K STORAGE ---
+  List<C25kSessionLog> loadC25kSessionLogs() {
+    final String? jsonStr = _prefs.getString(_keyC25kSessionLogs);
+    if (jsonStr == null || jsonStr.isEmpty) {
+      return <C25kSessionLog>[];
+    }
+    try {
+      final List<dynamic> list = jsonDecode(jsonStr) as List<dynamic>;
+      return list
+          .map((dynamic e) =>
+              C25kSessionLog.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } catch (_) {
+      return <C25kSessionLog>[];
+    }
+  }
+
+  Future<void> saveC25kSessionLogs(List<C25kSessionLog> logs) async {
+    final String jsonStr = jsonEncode(
+      logs.map((l) => l.toJson()).toList(),
+    );
+    await _prefs.setString(_keyC25kSessionLogs, jsonStr);
+  }
+
+  Map<String, int> loadC25kProgress() {
+    final String? jsonStr = _prefs.getString(_keyC25kCurrentProgress);
+    if (jsonStr == null || jsonStr.isEmpty) {
+      return <String, int>{'week': 1, 'day': 1};
+    }
+    try {
+      final Map<String, dynamic> map = jsonDecode(jsonStr) as Map<String, dynamic>;
+      return <String, int>{
+        'week': map['week'] as int? ?? 1,
+        'day': map['day'] as int? ?? 1,
+      };
+    } catch (_) {
+      return <String, int>{'week': 1, 'day': 1};
+    }
+  }
+
+  Future<void> saveC25kProgress(int week, int day) async {
+    final String jsonStr = jsonEncode(<String, int>{'week': week, 'day': day});
+    await _prefs.setString(_keyC25kCurrentProgress, jsonStr);
   }
 }

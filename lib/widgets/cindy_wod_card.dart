@@ -195,6 +195,11 @@ class _CindyWodCardState extends State<CindyWodCard> {
       }
       setState(() => _isTimerRunning = true);
       _wodTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+        if (!mounted) {
+          timer.cancel();
+          _wodTimer = null;
+          return;
+        }
         if (_secondsRemaining > 0) {
           setState(() {
             _secondsRemaining--;
@@ -218,6 +223,7 @@ class _CindyWodCardState extends State<CindyWodCard> {
           }
         } else {
           timer.cancel();
+          _wodTimer = null;
           setState(() => _isTimerRunning = false);
         }
       });

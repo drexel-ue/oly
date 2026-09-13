@@ -4,13 +4,19 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:oly/models/accessory_log.dart';
 import 'package:oly/models/benchmark_wod_log.dart';
+import 'package:oly/models/grip_hang_model.dart';
 import 'package:oly/models/workout_session.dart';
+import 'package:oly/providers/c25k_provider.dart';
+import 'package:oly/providers/grip_hang_provider.dart';
 import 'package:oly/providers/lift_provider.dart';
 import 'package:oly/providers/program_provider.dart';
 import 'package:oly/providers/recovery_provider.dart';
 import 'package:oly/providers/settings_provider.dart';
 import 'package:oly/theme/app_theme.dart';
 import 'package:oly/views/breathing/breathing_analytics_tab.dart';
+import 'package:oly/views/c25k/c25k_program_detail_screen.dart';
+import 'package:oly/views/grip/dynamometer_entry_sheet.dart';
+import 'package:oly/views/grip/grip_hang_detail_screen.dart';
 import 'package:oly/widgets/ratio_chart_widget.dart';
 import 'package:oly/widgets/wod_history_sheet.dart';
 import 'package:provider/provider.dart';
@@ -19,66 +25,98 @@ class AnalyticsScreen extends StatelessWidget {
   const new({super.key, this.initialTabIndex = 0});
   final int initialTabIndex;
 
+  GripHangProvider? _safeGrip(BuildContext context) {
+    try {
+      return Provider.of<GripHangProvider>(context);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  C25kProvider? _safeC25k(BuildContext context) {
+    try {
+      return Provider.of<C25kProvider>(context);
+    } catch (_) {
+      return null;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final ProgramProvider program = Provider.of<ProgramProvider>(context);
     final LiftProvider lifts = Provider.of<LiftProvider>(context);
     final RecoveryProvider recovery = Provider.of<RecoveryProvider>(context);
     final SettingsProvider settings = Provider.of<SettingsProvider>(context);
+    final GripHangProvider? grip = _safeGrip(context);
+    final C25kProvider? c25k = _safeC25k(context);
+    final bool hasGrip = grip != null;
+    final bool hasC25k = c25k != null;
 
     final List<WorkoutSession> sessions = program.sessions;
     final Map<String, List<AccessoryLog>> groupedAccessories =
         recovery.groupedAccessoryProgressions;
 
+    final List<Widget> tabs = <Widget>[
+      const Tab(text: 'Workouts'),
+      const Tab(text: 'WODs & Heroes'),
+      if (hasGrip) const Tab(text: 'Grip & Hangs'),
+      if (hasC25k) const Tab(text: 'C25K Running'),
+      const Tab(text: 'Accessories'),
+      const Tab(text: 'Breathwork'),
+      const Tab(text: 'Ratios'),
+    ];
+
+    final List<Widget> tabViews = <Widget>[
+      // TAB 1: Session History Log + Tonnage Summary
+      _buildWorkoutSessionsTab(program, sessions, settings),
+
+      // TAB 2: CrossFit WODs & Hero Benchmark Progress
+      _buildWodAnalyticsTab(context, recovery),
+
+      // Optional Grip & Active Hang Analytics
+      if (hasGrip) _buildGripHangAnalyticsTab(context, grip, settings),
+
+      // Optional C25K Running Analytics
+      if (hasC25k) _buildC25kAnalyticsTab(context, c25k),
+
+      // Accessory Weight Progressions
+      _buildAccessoryProgressionsTab(
+        groupedAccessories,
+        recovery,
+        settings,
+      ),
+
+      // Wim Hof Breathwork Retention Analytics
+      const BreathingAnalyticsTab(),
+
+      // Ratio Balance Chart
+      SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: RatioChartWidget(ratios: lifts.getRatioAnalysis()),
+      ),
+    ];
+
     return DefaultTabController(
-      length: 5,
-      initialIndex: initialTabIndex.clamp(0, 4),
+      length: tabs.length,
+      initialIndex: initialTabIndex.clamp(0, tabs.length - 1),
       child: Scaffold(
         appBar: AppBar(
           title: Text(
             'Analytics & Session Logs',
             style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
           ),
-          bottom: const TabBar(
+          bottom: TabBar(
             isScrollable: true,
             tabAlignment: TabAlignment.start,
             indicatorColor: AppTheme.primaryAmber,
             labelColor: AppTheme.primaryAmber,
             unselectedLabelColor: AppTheme.textSecondary,
-            tabs: <Widget>[
-              Tab(text: 'Workouts'),
-              Tab(text: 'WODs & Heroes'),
-              Tab(text: 'Accessories'),
-              Tab(text: 'Breathwork'),
-              Tab(text: 'Ratios'),
-            ],
+            tabs: tabs,
           ),
         ),
         body: SafeArea(
           child: TabBarView(
-            children: <Widget>[
-              // TAB 1: Session History Log + Tonnage Summary
-              _buildWorkoutSessionsTab(program, sessions, settings),
-
-              // TAB 2: CrossFit WODs & Hero Benchmark Progress
-              _buildWodAnalyticsTab(context, recovery),
-
-              // TAB 3: Accessory Weight Progressions
-              _buildAccessoryProgressionsTab(
-                groupedAccessories,
-                recovery,
-                settings,
-              ),
-
-              // TAB 4: Wim Hof Breathwork Retention Analytics
-              const BreathingAnalyticsTab(),
-
-              // TAB 5: Ratio Balance Chart
-              SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: RatioChartWidget(ratios: lifts.getRatioAnalysis()),
-              ),
-            ],
+            children: tabViews,
           ),
         ),
       ),
@@ -1014,6 +1052,517 @@ class AnalyticsScreen extends StatelessWidget {
               color: AppTheme.textSecondary,
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  // --- TAB: GRIP & ACTIVE HANG ANALYTICS ---
+  Widget _buildGripHangAnalyticsTab(
+    BuildContext context,
+    GripHangProvider grip,
+    SettingsProvider settings,
+  ) {
+    final DynamometerEntry? latest = grip.latestDynamometerEntry;
+    final bool isLbs = settings.isLbs;
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          // Header Summary Card
+          Container(
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              color: AppTheme.surfaceCard,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Colors.white12),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    Text(
+                      'ACTIVE HANG MILESTONE GOALS',
+                      style: GoogleFonts.outfit(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.1,
+                        color: AppTheme.primaryAmber,
+                      ),
+                    ),
+                    TextButton.icon(
+                      style: TextButton.styleFrom(
+                        foregroundColor: AppTheme.primaryAmber,
+                        padding: EdgeInsets.zero,
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute<void>(
+                            builder: (_) => const GripHangDetailScreen(),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.open_in_new, size: 14),
+                      label: Text(
+                        'PROTOCOLS',
+                        style: GoogleFonts.outfit(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: _buildHangProgressItem(
+                        'Two-Hand Goal',
+                        '5:00',
+                        grip.bestTwoHandSeconds,
+                        300,
+                        AppTheme.primaryAmber,
+                      ),
+                    ),
+                    Expanded(
+                      child: _buildHangProgressItem(
+                        'Left Arm Goal',
+                        '2:00',
+                        grip.bestLeftHandSeconds,
+                        120,
+                        AppTheme.secondaryCyan,
+                      ),
+                    ),
+                    Expanded(
+                      child: _buildHangProgressItem(
+                        'Right Arm Goal',
+                        '2:00',
+                        grip.bestRightHandSeconds,
+                        120,
+                        Colors.deepOrangeAccent,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Dynamometer CNS Readiness Card
+          Container(
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              color: AppTheme.surfaceCard,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Colors.white12),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    Text(
+                      'HOME DYNAMOMETER SQUEEZE',
+                      style: GoogleFonts.outfit(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.1,
+                        color: AppTheme.primaryAmber,
+                      ),
+                    ),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.surfaceElevated,
+                        foregroundColor: AppTheme.primaryAmber,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 6),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        side: const BorderSide(color: AppTheme.primaryAmber),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      onPressed: () => DynamometerEntrySheet.show(context),
+                      child: Text(
+                        'LOG SQUEEZE',
+                        style: GoogleFonts.outfit(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                if (latest != null) ...<Widget>[
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: <Widget>[
+                      _buildStatBadge(
+                        'Right Hand',
+                        '${(isLbs ? latest.rightHandKg * 2.20462 : latest.rightHandKg).toStringAsFixed(1)} ${isLbs ? 'lbs' : 'kg'}',
+                        color: AppTheme.primaryAmber,
+                      ),
+                      _buildStatBadge(
+                        'Left Hand',
+                        '${(isLbs ? latest.leftHandKg * 2.20462 : latest.leftHandKg).toStringAsFixed(1)} ${isLbs ? 'lbs' : 'kg'}',
+                        color: AppTheme.secondaryCyan,
+                      ),
+                      _buildStatBadge(
+                        'Asymmetry',
+                        '${latest.asymmetryPercent.toStringAsFixed(1)}%',
+                        color: latest.isBalanced
+                            ? AppTheme.successGreen
+                            : AppTheme.primaryAmber,
+                      ),
+                    ],
+                  ),
+                ] else ...<Widget>[
+                  Text(
+                    'No dynamometer measurements recorded yet. Log your hand grip squeeze at home outside of active workouts.',
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      color: AppTheme.textSecondary,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          // Hang PR History
+          Text(
+            'HANG SESSION HISTORY',
+            style: GoogleFonts.outfit(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1,
+              color: AppTheme.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 10),
+          if (grip.hangLogs.isEmpty)
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: AppTheme.surfaceCard,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Center(
+                child: Text(
+                  'No hang sessions recorded yet. Start a hang timer to begin progressing toward 5 minutes!',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    color: AppTheme.textSecondary,
+                  ),
+                ),
+              ),
+            )
+          else
+            ...grip.hangLogs.map((l) {
+              return Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppTheme.surfaceCard,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: l.isPersonalRecord
+                        ? AppTheme.primaryAmber.withValues(alpha: 0.5)
+                        : Colors.white10,
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text(
+                          l.mode.displayName,
+                          style: GoogleFonts.outfit(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                            color: AppTheme.textPrimary,
+                          ),
+                        ),
+                        Text(
+                          DateFormat('MMM d, yyyy • h:mm a').format(l.date),
+                          style: GoogleFonts.outfit(
+                            fontSize: 11,
+                            color: AppTheme.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Text(
+                      l.formattedDuration,
+                      style: GoogleFonts.outfit(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: l.isPersonalRecord
+                            ? AppTheme.primaryAmber
+                            : AppTheme.textPrimary,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHangProgressItem(
+    String title,
+    String targetLabel,
+    int currentSeconds,
+    int targetSeconds,
+    Color color,
+  ) {
+    final double ratio = (currentSeconds / targetSeconds).clamp(0.0, 1.0);
+    final int minutes = currentSeconds ~/ 60;
+    final int seconds = currentSeconds % 60;
+    final String currentStr =
+        '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+
+    return Column(
+      children: <Widget>[
+        SizedBox(
+          width: 64,
+          height: 64,
+          child: Stack(
+            fit: StackFit.expand,
+            children: <Widget>[
+              CircularProgressIndicator(
+                value: ratio,
+                strokeWidth: 5,
+                backgroundColor: Colors.white10,
+                valueColor: AlwaysStoppedAnimation<Color>(color),
+              ),
+              Center(
+                child: Text(
+                  '${(ratio * 100).round()}%',
+                  style: GoogleFonts.outfit(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                    color: AppTheme.textPrimary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          title,
+          style: GoogleFonts.outfit(
+            fontSize: 11,
+            fontWeight: FontWeight.bold,
+            color: AppTheme.textPrimary,
+          ),
+        ),
+        Text(
+          '$currentStr / $targetLabel',
+          style: GoogleFonts.outfit(
+            fontSize: 10,
+            color: AppTheme.textSecondary,
+          ),
+        ),
+      ],
+    );
+  }
+
+  // --- TAB: C25K RUNNING ANALYTICS ---
+  Widget _buildC25kAnalyticsTab(BuildContext context, C25kProvider c25k) {
+    final int completedCount = c25k.totalCompletedSessions;
+    final double totalDistance = c25k.sessionLogs
+        .fold(0, (acc, l) => acc + l.estimatedDistanceKm);
+    final double totalCalories =
+        c25k.sessionLogs.fold(0, (acc, l) => acc + l.netCaloriesBurned);
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          // Header Stats Card
+          Container(
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              color: AppTheme.surfaceCard,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: AppTheme.secondaryCyan.withValues(alpha: 0.3),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    Text(
+                      'COUCH TO 5K PROGRESS',
+                      style: GoogleFonts.outfit(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.1,
+                        color: AppTheme.secondaryCyan,
+                      ),
+                    ),
+                    TextButton.icon(
+                      style: TextButton.styleFrom(
+                        foregroundColor: AppTheme.secondaryCyan,
+                        padding: EdgeInsets.zero,
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute<void>(
+                            builder: (_) => const C25kProgramDetailScreen(),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.open_in_new, size: 14),
+                      label: Text(
+                        'CURRICULUM',
+                        style: GoogleFonts.outfit(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: <Widget>[
+                    _buildStatBadge(
+                      'Sessions Done',
+                      '$completedCount / 27',
+                      color: AppTheme.secondaryCyan,
+                    ),
+                    _buildStatBadge(
+                      'Total Distance',
+                      '${totalDistance.toStringAsFixed(1)} km',
+                      color: AppTheme.primaryAmber,
+                    ),
+                    _buildStatBadge(
+                      'Net Calories',
+                      '${totalCalories.toStringAsFixed(0)} kcal',
+                      color: AppTheme.successGreen,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          // Completed Run Logs
+          Text(
+            'RUNNING HISTORY',
+            style: GoogleFonts.outfit(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1,
+              color: AppTheme.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 10),
+          if (c25k.sessionLogs.isEmpty)
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: AppTheme.surfaceCard,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Center(
+                child: Text(
+                  'No runs completed yet. Tap "START RUN INTERVALS" to begin Week 1!',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    color: AppTheme.textSecondary,
+                  ),
+                ),
+              ),
+            )
+          else
+            ...c25k.sessionLogs.map((log) {
+              return Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: AppTheme.surfaceCard,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.white10),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text(
+                          'Week ${log.week} • Day ${log.day}',
+                          style: GoogleFonts.outfit(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                            color: AppTheme.textPrimary,
+                          ),
+                        ),
+                        Text(
+                          '${DateFormat('MMM d, yyyy').format(log.date)} • ${log.estimatedDistanceKm.toStringAsFixed(2)} km',
+                          style: GoogleFonts.outfit(
+                            fontSize: 12,
+                            color: AppTheme.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: <Widget>[
+                        Text(
+                          log.formattedDuration,
+                          style: GoogleFonts.outfit(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                            color: AppTheme.secondaryCyan,
+                          ),
+                        ),
+                        Text(
+                          '${log.netCaloriesBurned.toStringAsFixed(0)} kcal',
+                          style: GoogleFonts.outfit(
+                            fontSize: 11,
+                            color: AppTheme.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            }),
         ],
       ),
     );

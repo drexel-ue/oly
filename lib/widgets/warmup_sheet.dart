@@ -48,10 +48,16 @@ class _WarmupSheetState extends State<WarmupSheet> {
     } else {
       setState(() => _isTimerRunning = true);
       _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+        if (!mounted) {
+          timer.cancel();
+          _timer = null;
+          return;
+        }
         if (_secondsRemaining > 0) {
           setState(() => _secondsRemaining--);
         } else {
           timer.cancel();
+          _timer = null;
           setState(() => _isTimerRunning = false);
         }
       });

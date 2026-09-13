@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:oly/models/breathing_session_model.dart';
+import 'package:oly/models/grip_hang_model.dart';
 import 'package:oly/models/injury_model.dart';
 import 'package:oly/providers/breathing_provider.dart';
+import 'package:oly/providers/grip_hang_provider.dart';
 import 'package:oly/providers/injury_provider.dart';
 import 'package:oly/providers/lift_provider.dart';
 import 'package:oly/providers/program_provider.dart';
@@ -10,9 +12,11 @@ import 'package:oly/providers/recovery_provider.dart';
 import 'package:oly/services/recovery_engine_service.dart';
 import 'package:oly/theme/app_theme.dart';
 import 'package:oly/views/breathing/wim_hof_setup_sheet.dart';
+import 'package:oly/views/grip/dynamometer_entry_sheet.dart';
 import 'package:oly/views/injury_tracker_screen.dart';
 import 'package:oly/views/recovery_session_screen.dart';
 import 'package:oly/widgets/motion/oly_entry_reveal.dart';
+import 'package:oly/widgets/motion/oly_pressable.dart';
 import 'package:provider/provider.dart';
 
 /// The dedicated RECOVER domain view for physiological readiness,
@@ -25,6 +29,10 @@ class RecoverScreen extends StatelessWidget {
     final RecoveryProvider recovery = Provider.of<RecoveryProvider>(context);
     final InjuryProvider injuries = Provider.of<InjuryProvider>(context);
     final BreathingProvider breathing = Provider.of<BreathingProvider>(context);
+    GripHangProvider? grip;
+    try {
+      grip = Provider.of<GripHangProvider>(context);
+    } catch (_) {}
     final LiftProvider lifts = Provider.of<LiftProvider>(context);
     final ProgramProvider program = Provider.of<ProgramProvider>(context);
 
@@ -93,6 +101,15 @@ class RecoverScreen extends StatelessWidget {
               );
             },
           ),
+          if (grip != null)
+            IconButton(
+              icon: const Icon(
+                Icons.pan_tool_outlined,
+                color: AppTheme.primaryAmber,
+              ),
+              tooltip: 'Home Grip Dynamometer',
+              onPressed: () => DynamometerEntrySheet.show(context),
+            ),
           IconButton(
             icon: const Icon(
               Icons.air_rounded,
@@ -127,9 +144,18 @@ class RecoverScreen extends StatelessWidget {
             ),
             const SizedBox(height: 16),
 
+            // 1B. CNS Dynamometer Readiness Card
+            if (grip != null) ...<Widget>[
+              OlyEntryReveal(
+                index: 1,
+                child: _buildCnsGripReadinessCard(context, grip),
+              ),
+              const SizedBox(height: 16),
+            ],
+
             // 2. Active Dynamic Mobility Protocol Hero Card
             OlyEntryReveal(
-              index: 1,
+              index: 2,
               child: _buildMobilityHeroCard(context, mobilityRoutine),
             ),
             const SizedBox(height: 16),
@@ -764,6 +790,112 @@ class RecoverScreen extends StatelessWidget {
                 );
               }).toList(),
             ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCnsGripReadinessCard(
+    BuildContext context,
+    GripHangProvider grip,
+  ) {
+    final DynamometerEntry? latest = grip.latestDynamometerEntry;
+    final int score = grip.cnsReadinessPercent;
+    final Color statusColor = score >= 95
+        ? AppTheme.successGreen
+        : (score >= 88 ? AppTheme.primaryAmber : Colors.redAccent);
+
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceCard,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: statusColor.withValues(alpha: 0.35), width: 1.2),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              Row(
+                children: <Widget>[
+                  Icon(Icons.pan_tool_outlined, color: statusColor, size: 20),
+                  const SizedBox(width: 10),
+                  Text(
+                    'CNS GRIP READINESS',
+                    style: GoogleFonts.outfit(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.1,
+                      color: AppTheme.textPrimary,
+                    ),
+                  ),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: statusColor.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  '$score% CNS OUTPUT',
+                  style: GoogleFonts.outfit(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: statusColor,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            latest != null
+                ? '${latest.rightHandKg.toStringAsFixed(1)} kg R • ${latest.leftHandKg.toStringAsFixed(1)} kg L (${latest.asymmetryPercent.toStringAsFixed(1)}% asym • ${latest.dominantHand} dominant)'
+                : 'No home grip measurement logged yet today.',
+            style: GoogleFonts.outfit(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: AppTheme.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            latest != null
+                ? grip.cnsStatusText
+                : 'Test peak isometric squeeze at home to detect central nervous system fatigue before heavy barbell lifts.',
+            style: GoogleFonts.outfit(
+              fontSize: 12,
+              color: AppTheme.textSecondary,
+              height: 1.3,
+            ),
+          ),
+          const SizedBox(height: 14),
+          OlyPressable(
+            onPressed: () => DynamometerEntrySheet.show(context),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              decoration: BoxDecoration(
+                color: AppTheme.surfaceElevated,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppTheme.primaryAmber.withValues(alpha: 0.5)),
+              ),
+              child: Center(
+                child: Text(
+                  latest != null ? 'UPDATE SQUEEZE TEST' : 'LOG HOME GRIP TEST',
+                  style: GoogleFonts.outfit(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.8,
+                    color: AppTheme.primaryAmber,
+                  ),
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );

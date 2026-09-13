@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:oly/models/goal_model.dart';
 import 'package:oly/models/program_model.dart';
 import 'package:oly/models/workout_session.dart';
+import 'package:oly/providers/c25k_provider.dart';
+import 'package:oly/providers/goal_provider.dart';
+import 'package:oly/providers/grip_hang_provider.dart';
 import 'package:oly/providers/lift_provider.dart';
 import 'package:oly/providers/program_provider.dart';
 import 'package:oly/providers/recovery_provider.dart';
@@ -10,6 +14,9 @@ import 'package:oly/services/recovery_engine_service.dart';
 import 'package:oly/theme/app_theme.dart';
 import 'package:oly/views/analytics_screen.dart';
 import 'package:oly/views/breathing/wim_hof_setup_sheet.dart';
+import 'package:oly/views/c25k/c25k_program_detail_screen.dart';
+import 'package:oly/views/grip/dynamometer_entry_sheet.dart';
+import 'package:oly/views/grip/grip_hang_detail_screen.dart';
 import 'package:oly/views/lifts_screen.dart';
 import 'package:oly/views/nutrition/nutrition_dashboard_screen.dart';
 import 'package:oly/views/nutrition/renpho_scanner_sheet.dart';
@@ -34,6 +41,18 @@ class DashboardScreen extends StatelessWidget {
     final ProgramProvider program = Provider.of<ProgramProvider>(context);
     final LiftProvider lifts = Provider.of<LiftProvider>(context);
     final SettingsProvider settings = Provider.of<SettingsProvider>(context);
+    GoalProvider? goalProvider;
+    try {
+      goalProvider = Provider.of<GoalProvider>(context);
+    } catch (_) {}
+    GripHangProvider? grip;
+    try {
+      grip = Provider.of<GripHangProvider>(context);
+    } catch (_) {}
+    C25kProvider? c25k;
+    try {
+      c25k = Provider.of<C25kProvider>(context);
+    } catch (_) {}
 
     final DayTemplate currentDay = program.currentDayTemplate;
     final double olyTotalKg = lifts.getOlympicTotal();
@@ -92,6 +111,15 @@ class DashboardScreen extends StatelessWidget {
             tooltip: 'Toggle KG / LBS',
             onPressed: settings.toggleUnit,
           ),
+          if (grip != null)
+            IconButton(
+              icon: const Icon(
+                Icons.pan_tool_outlined,
+                color: AppTheme.primaryAmber,
+              ),
+              tooltip: 'Home Grip Dynamometer',
+              onPressed: () => DynamometerEntrySheet.show(context),
+            ),
           IconButton(
             icon: const Icon(
               Icons.settings_outlined,
@@ -144,7 +172,7 @@ class DashboardScreen extends StatelessWidget {
               // Today's Scheduled Workout Card
               OlyEntryReveal(
                 index: 2,
-                child: _buildTodayWorkoutCard(context, program, currentDay),
+                child: _buildTodayWorkoutCard(context, program, currentDay, goalProvider),
               ),
               const SizedBox(height: 16),
 
@@ -319,6 +347,53 @@ class DashboardScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 12),
+
+              // Goals & Extensible Tracks Row (Grip/Hang & C25K Running)
+              if (grip != null && c25k != null) ...<Widget>[
+                OlyEntryReveal(
+                  index: 8,
+                  child: Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: _buildActionCard(
+                          context,
+                          title: 'Grip & Hang Protocol',
+                          subtitle: '${grip.bestTwoHandSeconds > 0 ? (grip.bestTwoHandSeconds ~/ 60).toString() : '0'}m PR • 5m/2m Goals',
+                          icon: Icons.pan_tool_outlined,
+                          accentColor: AppTheme.primaryAmber,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute<void>(
+                                builder: (_) => const GripHangDetailScreen(),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildActionCard(
+                          context,
+                          title: 'C25K Running Engine',
+                          subtitle: 'Week ${c25k.currentWeek} Day ${c25k.currentDay} Up Next',
+                          icon: Icons.directions_run,
+                          accentColor: AppTheme.secondaryCyan,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute<void>(
+                                builder: (_) => const C25kProgramDetailScreen(),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
 
               // Routine Explorer
               OlyEntryReveal(
@@ -732,6 +807,7 @@ class DashboardScreen extends StatelessWidget {
     BuildContext context,
     ProgramProvider program,
     DayTemplate day,
+    GoalProvider? goalProvider,
   ) {
     return Container(
       width: double.infinity,
@@ -849,6 +925,59 @@ class DashboardScreen extends StatelessWidget {
             ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 10),
+          // Composed Goal Track Indicators
+          Builder(
+            builder: (context) {
+              if (goalProvider == null) {
+                return Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: <Widget>[
+                    _buildGoalTrackChip(
+                      icon: Icons.fitness_center,
+                      label: 'Olympic Lifting',
+                      color: AppTheme.primaryAmber,
+                    ),
+                  ],
+                );
+              }
+
+              final DailySessionPlan dailyPlan = goalProvider.getDailyPlanForDate(
+                date: DateTime.now(),
+                currentOlyDay: day,
+              );
+
+              if (dailyPlan.blocks.isEmpty) {
+                return _buildGoalTrackChip(
+                  icon: Icons.hotel,
+                  label: 'Rest & Recovery Day',
+                  color: AppTheme.textSecondary,
+                );
+              }
+
+              return Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                children: dailyPlan.blocks.map((block) {
+                  IconData icon = Icons.fitness_center;
+                  Color color = AppTheme.primaryAmber;
+                  if (block.type == SessionBlockType.hang) {
+                    icon = Icons.pan_tool_outlined;
+                    color = AppTheme.primaryAmber;
+                  } else if (block.type == SessionBlockType.c25k) {
+                    icon = Icons.directions_run;
+                    color = AppTheme.secondaryCyan;
+                  }
+                  return _buildGoalTrackChip(
+                    icon: icon,
+                    label: block.title,
+                    color: color,
+                  );
+                }).toList(),
+              );
+            },
           ),
           const SizedBox(height: 16),
           Row(
@@ -971,6 +1100,36 @@ class DashboardScreen extends StatelessWidget {
                 ),
               ),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGoalTrackChip({
+    required IconData icon,
+    required String label,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          Icon(icon, size: 13, color: color),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: GoogleFonts.outfit(
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
           ),
         ],
       ),

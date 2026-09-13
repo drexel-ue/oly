@@ -100,6 +100,11 @@ class _KettlebellMileCardState extends State<KettlebellMileCard> {
     } else {
       setState(() => _isTimerRunning = true);
       _stopwatchTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+        if (!mounted) {
+          timer.cancel();
+          _stopwatchTimer = null;
+          return;
+        }
         setState(() {
           _elapsedSeconds++;
           _minutesController.text = (_elapsedSeconds ~/ 60).toString();

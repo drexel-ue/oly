@@ -18,7 +18,9 @@ import 'package:oly/models/wod_definition.dart';
 import 'package:oly/models/workout_session.dart';
 import 'package:oly/providers/active_session_provider.dart';
 import 'package:oly/providers/body_comp_provider.dart';
+import 'package:oly/providers/c25k_provider.dart';
 import 'package:oly/providers/fasting_provider.dart';
+import 'package:oly/providers/grip_hang_provider.dart';
 import 'package:oly/providers/injury_provider.dart';
 import 'package:oly/providers/lift_provider.dart';
 import 'package:oly/providers/nutrition_provider.dart';
@@ -27,11 +29,13 @@ import 'package:oly/providers/recovery_provider.dart';
 import 'package:oly/providers/settings_provider.dart';
 import 'package:oly/services/fasting_engine_service.dart';
 import 'package:oly/theme/app_theme.dart';
+import 'package:oly/views/c25k/c25k_session_block_widget.dart';
 import 'package:oly/views/cindy_wod_screen.dart';
 import 'package:oly/views/death_by_burpees_screen.dart';
 import 'package:oly/views/dt_wod_screen.dart';
 import 'package:oly/views/fran_wod_screen.dart';
 import 'package:oly/views/grace_wod_screen.dart';
+import 'package:oly/views/grip/hang_session_block_widget.dart';
 import 'package:oly/views/helen_wod_screen.dart';
 import 'package:oly/views/jackie_wod_screen.dart';
 import 'package:oly/views/warmup_session_screen.dart';
@@ -1026,6 +1030,14 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     final LiftProvider liftProvider = Provider.of<LiftProvider>(context);
     final ProgramProvider programProvider = Provider.of<ProgramProvider>(context);
     final FastingProvider? fastingProvider = Provider.of<FastingProvider?>(context);
+    GripHangProvider? gripHangProvider;
+    try {
+      gripHangProvider = Provider.of<GripHangProvider>(context);
+    } catch (_) {}
+    C25kProvider? c25kProvider;
+    try {
+      c25kProvider = Provider.of<C25kProvider>(context);
+    } catch (_) {}
 
     final int week = widget.previewWeek ??
         widget.initialDraft?.weekNumber ??
@@ -1400,7 +1412,25 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                         ),
                       ),
 
-                      const SizedBox(height: 16),
+                      // Composed Goal Track: Active Hang Protocol Block
+                      if (gripHangProvider != null) ...<Widget>[
+                        const SizedBox(height: 16),
+                        OlyEntryReveal(
+                          index: widget.dayTemplate.phases.length + 1,
+                          child: const HangSessionBlockWidget(isEmbeddedInWorkout: true),
+                        ),
+                      ],
+
+                      // Composed Goal Track: C25K Running Engine Block
+                      if (c25kProvider != null) ...<Widget>[
+                        const SizedBox(height: 16),
+                        OlyEntryReveal(
+                          index: widget.dayTemplate.phases.length + 2,
+                          child: const C25kSessionBlockWidget(),
+                        ),
+                      ],
+
+                      const SizedBox(height: 20),
 
                       // Session Notes input
                       OlyEntryReveal(

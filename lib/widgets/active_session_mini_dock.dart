@@ -8,6 +8,8 @@ import 'package:oly/providers/active_session_provider.dart';
 import 'package:oly/providers/program_provider.dart';
 import 'package:oly/theme/app_theme.dart';
 import 'package:oly/views/breathing/wim_hof_session_screen.dart';
+import 'package:oly/views/c25k/c25k_active_run_screen.dart';
+import 'package:oly/views/grip/grip_hang_detail_screen.dart';
 import 'package:oly/views/recovery_session_screen.dart';
 import 'package:oly/views/workout_session_screen.dart';
 import 'package:oly/widgets/motion/pulsing_glow.dart';
@@ -43,6 +45,8 @@ class ActiveSessionMiniDock extends StatelessWidget {
 
         final bool isMobility = session.sessionType == SessionType.mobility;
         final bool isBreathwork = session.sessionType == SessionType.breathwork;
+        final bool isHang = session.sessionType == SessionType.hang;
+        final bool isC25k = session.sessionType == SessionType.c25k;
         final bool isPreview = session.isPreviewMode;
         final bool isResting = session.isRestTimerRunning;
 
@@ -52,13 +56,23 @@ class ActiveSessionMiniDock extends StatelessWidget {
                 ? AppTheme.secondaryCyan
                 : (isMobility
                     ? AppTheme.secondaryCyan
-                    : (isPreview ? AppTheme.secondaryCyan : AppTheme.primaryAmber)));
+                    : (isC25k
+                        ? AppTheme.secondaryCyan
+                        : (isHang
+                            ? AppTheme.primaryAmber
+                            : (isPreview
+                                ? AppTheme.secondaryCyan
+                                : AppTheme.primaryAmber)))));
 
         final String defaultTitle = isBreathwork
             ? 'Wim Hof Breathwork'
             : (isMobility
                 ? 'Active Recovery Routine'
-                : (program.activeDraft?.dayTitle ?? 'Active Workout'));
+                : (isHang
+                    ? 'Active Hang Protocol'
+                    : (isC25k
+                        ? 'C25K Run Session'
+                        : (program.activeDraft?.dayTitle ?? 'Active Workout'))));
 
         final String titleText = session.currentExercise.isNotEmpty
             ? session.currentExercise
@@ -76,9 +90,13 @@ class ActiveSessionMiniDock extends StatelessWidget {
                         ? 'BREATHWORK IN PROGRESS'
                         : (isMobility
                             ? 'MOBILITY FLOW IN PROGRESS'
-                            : (isPreview
-                                ? 'PREVIEW EXPLORATION'
-                                : 'SESSION IN PROGRESS')))));
+                            : (isHang
+                                ? 'HANG IN PROGRESS'
+                                : (isC25k
+                                    ? 'RUN INTERVAL IN PROGRESS'
+                                    : (isPreview
+                                        ? 'PREVIEW EXPLORATION'
+                                        : 'SESSION IN PROGRESS')))))));
 
         return PulsingGlow(
           glowColor: accentColor,
@@ -132,6 +150,8 @@ class ActiveSessionMiniDock extends StatelessWidget {
                             isResting: isResting,
                             isMobility: isMobility,
                             isBreathwork: isBreathwork,
+                            isHang: isHang,
+                            isC25k: isC25k,
                             accentColor: accentColor,
                           ),
                           const SizedBox(width: 12),
@@ -357,6 +377,8 @@ class ActiveSessionMiniDock extends StatelessWidget {
     required bool isMobility,
     required Color accentColor,
     bool isBreathwork = false,
+    bool isHang = false,
+    bool isC25k = false,
   }) {
     final IconData icon = isResting
         ? Icons.timer_rounded
@@ -364,7 +386,11 @@ class ActiveSessionMiniDock extends StatelessWidget {
             ? Icons.air_rounded
             : (isMobility
                 ? Icons.self_improvement_rounded
-                : Icons.fitness_center_rounded));
+                : (isHang
+                    ? Icons.accessibility_new
+                    : (isC25k
+                        ? Icons.directions_run
+                        : Icons.fitness_center_rounded))));
 
     return Container(
       width: 32,
@@ -399,6 +425,31 @@ class ActiveSessionMiniDock extends StatelessWidget {
 
     session.maximizeSession();
 
+    // Priority 1: If there is an active draft or active workout session, ALWAYS return to the workout session
+    if (session.sessionType == SessionType.workout ||
+        program.hasActiveDraft ||
+        session.dayNumber != null) {
+      final ActiveWorkoutDraft? draft = program.activeDraft;
+      final DayTemplate matchingDay = draft != null
+          ? program.days.firstWhere(
+              (d) => d.dayNumber == draft.dayNumber,
+              orElse: () => program.currentDayTemplate,
+            )
+          : program.currentDayTemplate;
+
+      Navigator.push(
+        context,
+        MaterialPageRoute<void>(
+          builder: (_) => WorkoutSessionScreen(
+            dayTemplate: matchingDay,
+            initialDraft: draft,
+            isPreviewMode: session.isPreviewMode,
+          ),
+        ),
+      );
+      return;
+    }
+
     if (session.sessionType == SessionType.breathwork) {
       Navigator.push(
         context,
@@ -407,6 +458,26 @@ class ActiveSessionMiniDock extends StatelessWidget {
             config: session.activeBreathingConfig ?? const WimHofConfig(),
             initialRound: session.breathingRound,
           ),
+        ),
+      );
+      return;
+    }
+
+    if (session.sessionType == SessionType.c25k) {
+      Navigator.push(
+        context,
+        MaterialPageRoute<void>(
+          builder: (_) => const C25kActiveRunScreen(),
+        ),
+      );
+      return;
+    }
+
+    if (session.sessionType == SessionType.hang) {
+      Navigator.push(
+        context,
+        MaterialPageRoute<void>(
+          builder: (_) => const GripHangDetailScreen(),
         ),
       );
       return;
@@ -478,9 +549,13 @@ class ActiveSessionMiniDock extends StatelessWidget {
           session.sessionType == SessionType.breathwork
               ? 'Are you sure you want to stop this breathwork session?'
               : (session.sessionType == SessionType.mobility
-                  ? 'Are you sure you want to stop this mobility routine? Your progress will not be saved.'
-                  : 'Are you sure you want to dismiss the active workout dock? Any logged sets remain safely stored in your draft.'),
-          style: GoogleFonts.inter(color: AppTheme.textSecondary),
+                  ? 'Are you sure you want to stop this active recovery routine?'
+                  : (session.sessionType == SessionType.c25k
+                      ? 'Are you sure you want to stop this C25K running session?'
+                      : (session.sessionType == SessionType.hang
+                          ? 'Are you sure you want to stop this active hang session?'
+                          : 'Are you sure you want to end this active workout session?'))),
+          style: GoogleFonts.outfit(color: AppTheme.textSecondary),
         ),
         actions: <Widget>[
           TextButton(
