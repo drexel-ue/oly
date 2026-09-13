@@ -33,6 +33,7 @@ import 'package:oly/views/warmup_session_screen.dart';
 import 'package:oly/views/workout_session_screen.dart';
 import 'package:oly/widgets/active_session_mini_dock.dart';
 import 'package:oly/widgets/motion/glass_container.dart';
+import 'package:oly/widgets/motion/oly_entry_reveal.dart';
 import 'package:provider/provider.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
@@ -193,6 +194,8 @@ class MainNavigationContainer extends StatefulWidget {
 
 class _MainNavigationContainerState extends State<MainNavigationContainer> {
   late int _currentIndex;
+  int _direction = 0;
+  double _horizontalVelocity = 32;
   int _analyticsInitialTab = 0;
 
   @override
@@ -203,7 +206,12 @@ class _MainNavigationContainerState extends State<MainNavigationContainer> {
 
   void _switchTab(int index, [int? subIndex]) {
     if (index >= 0 && index < 4) {
+      if (index == _currentIndex && subIndex == null) return;
       setState(() {
+        final int distance = (index - _currentIndex).abs();
+        _direction = index > _currentIndex ? 1 : (index < _currentIndex ? -1 : 0);
+        // Distance scaling: 32px for 1-tab hop, up to 52px for 3-tab leap
+        _horizontalVelocity = 32.0 + (distance - 1).clamp(0, 3) * 10.0;
         _currentIndex = index;
         if (index == 3 && subIndex != null) {
           _analyticsInitialTab = subIndex;
@@ -257,9 +265,13 @@ class _MainNavigationContainerState extends State<MainNavigationContainer> {
                 return MediaQuery(
                   data: adjustedMedia,
                   child: isTest
-                      ? IndexedStack(index: _currentIndex, children: screens)
+                      ? TabDirectionScope(
+                          direction: _direction,
+                          horizontalOffset: _horizontalVelocity,
+                          child: IndexedStack(index: _currentIndex, children: screens),
+                        )
                       : AnimatedSwitcher(
-                          duration: const Duration(milliseconds: 220),
+                          duration: const Duration(milliseconds: 260),
                           switchInCurve: Curves.easeOutCubic,
                           switchOutCurve: Curves.easeInCubic,
                           transitionBuilder: (child, animation) {
@@ -268,8 +280,10 @@ class _MainNavigationContainerState extends State<MainNavigationContainer> {
                               child: child,
                             );
                           },
-                          child: KeyedSubtree(
+                          child: TabDirectionScope(
                             key: ValueKey<int>(_currentIndex),
+                            direction: _direction,
+                            horizontalOffset: _horizontalVelocity,
                             child: screens[_currentIndex],
                           ),
                         ),
@@ -326,7 +340,7 @@ class _MainNavigationContainerState extends State<MainNavigationContainer> {
                             currentIndex: _currentIndex,
                             onTap: (index) {
                               HapticFeedback.selectionClick();
-                              setState(() => _currentIndex = index);
+                              _switchTab(index);
                             },
                             type: BottomNavigationBarType.fixed,
                             backgroundColor: Colors.transparent,

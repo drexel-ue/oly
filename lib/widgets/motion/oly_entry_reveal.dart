@@ -1,9 +1,43 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 
+/// An inherited widget that propagates directional velocity and horizontal displacement
+/// from tab-to-tab navigation down to cascading [OlyEntryReveal] cards.
+class TabDirectionScope extends InheritedWidget {
+  const new({
+    required super.child,
+    super.key,
+    this.direction = 0,
+    this.horizontalOffset = 32,
+  });
+
+  /// The horizontal direction of travel:
+  /// +1 when moving right (e.g. Train -> Recover -> Fuel -> Insights)
+  /// -1 when moving left (e.g. Insights -> Fuel -> Recover -> Train)
+  /// 0 for initial load or stationary route transitions.
+  final int direction;
+
+  /// The horizontal pixel distance to slide from.
+  final double horizontalOffset;
+
+  /// Look up the nearest [TabDirectionScope] in the widget tree.
+  static TabDirectionScope? of(BuildContext context) {
+    return context.dependOnInheritedWidgetOfExactType<TabDirectionScope>();
+  }
+
+  @override
+  bool updateShouldNotify(TabDirectionScope oldWidget) {
+    return direction != oldWidget.direction ||
+        horizontalOffset != oldWidget.horizontalOffset;
+  }
+}
+
 /// A staggered slide and fade reveal animation widget for screen entry cascades.
-/// Translates children by a fixed physical pixel distance ([slidePixels]) and fades
-/// them in with athletic spring deceleration.
+/// Translates children by a physical displacement vector ([slidePixels], [horizontalSlidePixels])
+/// and fades them in with athletic spring deceleration.
+///
+/// Automatically synchronizes with [TabDirectionScope] to impart directional horizontal
+/// inertia when traveling across navigation tabs.
 ///
 /// Can coordinate with the enclosing [ModalRoute] to wait for incoming page transitions
 /// to complete before cascading, and smoothly reverse the cascade upon exit/pop.
@@ -18,6 +52,7 @@ class OlyEntryReveal extends StatefulWidget {
     this.duration = const Duration(milliseconds: 380),
     this.reverseDuration = const Duration(milliseconds: 200),
     this.slidePixels = 28,
+    this.horizontalSlidePixels,
     this.curve = Curves.easeOutCubic,
     this.reverseCurve = Curves.easeInCubic,
     this.fade = true,
@@ -45,6 +80,10 @@ class OlyEntryReveal extends StatefulWidget {
 
   /// Vertical pixels to slide from.
   final double slidePixels;
+
+  /// Optional horizontal pixels to slide from. If null, derives directional
+  /// velocity automatically from ambient [TabDirectionScope].
+  final double? horizontalSlidePixels;
 
   /// Easing curve for the reveal.
   final Curve curve;
@@ -207,15 +246,22 @@ class _OlyEntryRevealState extends State<OlyEntryReveal>
       return widget.child;
     }
 
+    final TabDirectionScope? tabScope = TabDirectionScope.of(context);
+    final double horizontalOffset = widget.horizontalSlidePixels ??
+        ((tabScope != null && tabScope.direction != 0)
+            ? (tabScope.direction * tabScope.horizontalOffset)
+            : 0.0);
+
     return AnimatedBuilder(
       animation: _curvedAnimation,
       builder: (context, child) {
         final double progress = _curvedAnimation.value;
+        final double dx = (1 - progress) * horizontalOffset;
         final double dy = (1 - progress) * widget.slidePixels;
         final double opacity = widget.fade ? progress.clamp(0, 1) : 1;
 
         return Transform.translate(
-          offset: Offset(0, dy),
+          offset: Offset(dx, dy),
           child: Opacity(
             opacity: opacity,
             child: child,

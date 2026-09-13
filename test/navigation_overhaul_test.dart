@@ -23,6 +23,7 @@ import 'package:oly/views/recovery_session_screen.dart';
 import 'package:oly/views/workout_session_screen.dart';
 import 'package:oly/widgets/active_session_mini_dock.dart';
 import 'package:oly/widgets/athlete_summary_overview_card.dart';
+import 'package:oly/widgets/motion/oly_entry_reveal.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -346,6 +347,41 @@ void main() {
 
       final BuildContext finalContext = tester.element(find.byType(DashboardScreen));
       expect(MediaQuery.paddingOf(finalContext).bottom, equals(84.0));
+    });
+
+    testWidgets('TabDirectionScope calculates directional velocity when navigating across tabs', (
+      tester,
+    ) async {
+      await tester.pumpWidget(createTestApp());
+      await tester.pumpAndSettle();
+
+      // Initially on Train (tab 0), direction is 0
+      TabDirectionScope initialScope = tester.widget(find.byType(TabDirectionScope));
+      expect(initialScope.direction, equals(0));
+
+      // Navigate Right: Train (0) -> Fuel (2)
+      await tester.tap(find.byIcon(Icons.restaurant_outlined));
+      await tester.pumpAndSettle();
+
+      TabDirectionScope rightScope = tester.widget(find.byType(TabDirectionScope));
+      expect(rightScope.direction, equals(1));
+      expect(rightScope.horizontalOffset, equals(42.0)); // 32 + (2-1)*10 = 42
+
+      // Navigate Right: Fuel (2) -> Insights (3)
+      await tester.tap(find.byIcon(Icons.insights_outlined));
+      await tester.pumpAndSettle();
+
+      TabDirectionScope rightHopScope = tester.widget(find.byType(TabDirectionScope));
+      expect(rightHopScope.direction, equals(1));
+      expect(rightHopScope.horizontalOffset, equals(32.0)); // 32 + (1-1)*10 = 32
+
+      // Navigate Left: Insights (3) -> Train (0)
+      await tester.tap(find.byIcon(Icons.fitness_center_outlined));
+      await tester.pumpAndSettle();
+
+      TabDirectionScope leftLeapScope = tester.widget(find.byType(TabDirectionScope));
+      expect(leftLeapScope.direction, equals(-1));
+      expect(leftLeapScope.horizontalOffset, equals(52.0)); // 32 + (3-1)*10 = 52
     });
 
     testWidgets('AthleteSummaryOverviewCard renders daily briefing details', (
