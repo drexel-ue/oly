@@ -18,6 +18,7 @@ import 'package:oly/providers/settings_provider.dart';
 import 'package:oly/services/recovery_engine_service.dart';
 import 'package:oly/services/storage_service.dart';
 import 'package:oly/views/breathing/wim_hof_session_screen.dart';
+import 'package:oly/views/dashboard_screen.dart';
 import 'package:oly/views/recovery_session_screen.dart';
 import 'package:oly/views/workout_session_screen.dart';
 import 'package:oly/widgets/active_session_mini_dock.dart';
@@ -311,6 +312,40 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Snatch'), findsNothing);
+    });
+
+    testWidgets('MainNavigationContainer dynamically adjusts MediaQuery bottom padding based on minidock presence', (
+      tester,
+    ) async {
+      final ActiveSessionProvider sessionProvider = ActiveSessionProvider();
+
+      await tester.pumpWidget(createTestApp(sessionProvider: sessionProvider));
+      await tester.pumpAndSettle();
+
+      // Find the BuildContext of a screen inside MainNavigationContainer (e.g. DashboardScreen)
+      final BuildContext dashboardContext = tester.element(find.byType(DashboardScreen));
+      final double inactiveBottomPadding = MediaQuery.paddingOf(dashboardContext).bottom;
+      expect(inactiveBottomPadding, equals(80.0));
+
+      // Start an active session (minidock becomes visible)
+      sessionProvider.startSession(
+        sessionTitle: 'Squat Cycle',
+        currentExercise: 'Back Squat',
+        currentSetInfo: 'Set 1 of 5',
+      );
+      await tester.pumpAndSettle();
+
+      final BuildContext activeContext = tester.element(find.byType(DashboardScreen));
+      final double activeBottomPadding = MediaQuery.paddingOf(activeContext).bottom;
+      expect(activeBottomPadding, equals(144.0));
+      expect(activeBottomPadding - inactiveBottomPadding, equals(64.0));
+
+      // End session (minidock disappears)
+      sessionProvider.endSession();
+      await tester.pumpAndSettle();
+
+      final BuildContext finalContext = tester.element(find.byType(DashboardScreen));
+      expect(MediaQuery.paddingOf(finalContext).bottom, equals(80.0));
     });
 
     testWidgets('AthleteSummaryOverviewCard renders daily briefing details', (

@@ -231,23 +231,49 @@ class _MainNavigationContainerState extends State<MainNavigationContainer> {
       body: Stack(
         children: <Widget>[
           Positioned.fill(
-            child: isTest
-                ? IndexedStack(index: _currentIndex, children: screens)
-                : AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 220),
-                    switchInCurve: Curves.easeOutCubic,
-                    switchOutCurve: Curves.easeInCubic,
-                    transitionBuilder: (child, animation) {
-                      return FadeTransition(
-                        opacity: animation,
-                        child: child,
-                      );
-                    },
-                    child: KeyedSubtree(
-                      key: ValueKey<int>(_currentIndex),
-                      child: screens[_currentIndex],
-                    ),
+            child: Consumer2<ActiveSessionProvider, ProgramProvider>(
+              builder: (context, session, program, _) {
+                final bool hasMiniDock = session.isActive ||
+                    (program.hasActiveDraft && session.isRestTimerRunning);
+
+                final MediaQueryData ambientMedia = MediaQuery.of(context);
+                final double dockHeight = hasMiniDock ? 144.0 : 80.0;
+                final double adjustedBottomPadding =
+                    ambientMedia.padding.bottom + dockHeight;
+                final double adjustedBottomViewPadding =
+                    ambientMedia.viewPadding.bottom + dockHeight;
+
+                final MediaQueryData adjustedMedia = ambientMedia.copyWith(
+                  padding: ambientMedia.padding.copyWith(
+                    bottom: adjustedBottomPadding,
                   ),
+                  viewPadding: ambientMedia.viewPadding.copyWith(
+                    bottom: adjustedBottomViewPadding,
+                  ),
+                );
+
+                return MediaQuery(
+                  data: adjustedMedia,
+                  child: isTest
+                      ? IndexedStack(index: _currentIndex, children: screens)
+                      : AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 220),
+                          switchInCurve: Curves.easeOutCubic,
+                          switchOutCurve: Curves.easeInCubic,
+                          transitionBuilder: (child, animation) {
+                            return FadeTransition(
+                              opacity: animation,
+                              child: child,
+                            );
+                          },
+                          child: KeyedSubtree(
+                            key: ValueKey<int>(_currentIndex),
+                            child: screens[_currentIndex],
+                          ),
+                        ),
+                );
+              },
+            ),
           ),
           Positioned(
             left: 0,

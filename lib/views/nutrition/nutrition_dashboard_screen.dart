@@ -1357,7 +1357,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
 
 /// Floating action button location positioned gracefully above the floating capsule dock.
 class DockClearanceFabLocation extends FloatingActionButtonLocation {
-  const new({this.bottomOffset = 84.0});
+  const new({this.bottomOffset = 16.0});
 
   final double bottomOffset;
 
