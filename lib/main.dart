@@ -195,7 +195,7 @@ class MainNavigationContainer extends StatefulWidget {
 class _MainNavigationContainerState extends State<MainNavigationContainer> {
   late int _currentIndex;
   int _direction = 0;
-  double _horizontalVelocity = 32;
+  double _horizontalVelocity = 38;
   int _analyticsInitialTab = 0;
 
   @override
@@ -210,8 +210,8 @@ class _MainNavigationContainerState extends State<MainNavigationContainer> {
       setState(() {
         final int distance = (index - _currentIndex).abs();
         _direction = index > _currentIndex ? 1 : (index < _currentIndex ? -1 : 0);
-        // Distance scaling: 32px for 1-tab hop, up to 52px for 3-tab leap
-        _horizontalVelocity = 32.0 + (distance - 1).clamp(0, 3) * 10.0;
+        // Distance scaling: 38px for 1-tab hop, up to 62px for 3-tab leap
+        _horizontalVelocity = 38.0 + (distance - 1).clamp(0, 3) * 12.0;
         _currentIndex = index;
         if (index == 3 && subIndex != null) {
           _analyticsInitialTab = subIndex;
@@ -271,7 +271,7 @@ class _MainNavigationContainerState extends State<MainNavigationContainer> {
                           child: IndexedStack(index: _currentIndex, children: screens),
                         )
                       : AnimatedSwitcher(
-                          duration: const Duration(milliseconds: 260),
+                          duration: const Duration(milliseconds: 340),
                           switchInCurve: Curves.easeOutCubic,
                           switchOutCurve: Curves.easeInCubic,
                           transitionBuilder: (child, animation) {

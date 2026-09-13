@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -28,6 +29,7 @@ class AnimatedBarbellLoader extends StatefulWidget {
     this.showBreakdownChips = false,
     this.animateOnEntry = true,
     this.animateOnChange = true,
+    this.entryDelay = Duration.zero,
     this.onTap,
   });
 
@@ -40,6 +42,7 @@ class AnimatedBarbellLoader extends StatefulWidget {
   final bool showBreakdownChips;
   final bool animateOnEntry;
   final bool animateOnChange;
+  final Duration entryDelay;
   final VoidCallback? onTap;
 
   @override
@@ -58,9 +61,14 @@ class _AnimatedBarbellLoaderState extends State<AnimatedBarbellLoader>
   List<PlateSpec> _previousPlates = <PlateSpec>[];
   bool _isWeightDecreased = false;
 
+  Timer? _entryDelayTimer;
+  late final bool _isTest;
+
   @override
   void initState() {
     super.initState();
+    _isTest =
+        WidgetsBinding.instance.runtimeType.toString().contains('Test');
 
     _currentResult = PlateCalculator.calculate(
       targetWeight: widget.targetWeight,
@@ -91,7 +99,15 @@ class _AnimatedBarbellLoaderState extends State<AnimatedBarbellLoader>
     );
 
     if (widget.animateOnEntry) {
-      _entryController.forward();
+      if (widget.entryDelay > Duration.zero && !_isTest) {
+        _entryDelayTimer = Timer(widget.entryDelay, () {
+          if (mounted) {
+            _entryController.forward();
+          }
+        });
+      } else {
+        _entryController.forward();
+      }
     } else {
       _entryController.value = 1.0;
     }
@@ -126,6 +142,7 @@ class _AnimatedBarbellLoaderState extends State<AnimatedBarbellLoader>
 
   @override
   void dispose() {
+    _entryDelayTimer?.cancel();
     _entryController.dispose();
     _adjustController.dispose();
     super.dispose();

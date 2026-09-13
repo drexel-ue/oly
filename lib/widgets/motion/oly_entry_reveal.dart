@@ -8,7 +8,7 @@ class TabDirectionScope extends InheritedWidget {
     required super.child,
     super.key,
     this.direction = 0,
-    this.horizontalOffset = 32,
+    this.horizontalOffset = 38,
   });
 
   /// The horizontal direction of travel:
@@ -49,8 +49,8 @@ class OlyEntryReveal extends StatefulWidget {
     this.index = 0,
     this.delay,
     this.reverseDelay,
-    this.duration = const Duration(milliseconds: 380),
-    this.reverseDuration = const Duration(milliseconds: 200),
+    this.duration = const Duration(milliseconds: 480),
+    this.reverseDuration = const Duration(milliseconds: 220),
     this.slidePixels = 28,
     this.horizontalSlidePixels,
     this.curve = Curves.easeOutCubic,
@@ -184,7 +184,7 @@ class _OlyEntryRevealState extends State<OlyEntryReveal>
     _exitTimer = null;
 
     final Duration delayDuration = widget.delay ??
-        Duration(milliseconds: widget.index.clamp(0, 15) * 55);
+        Duration(milliseconds: widget.index.clamp(0, 15) * 60);
 
     if (delayDuration == Duration.zero) {
       _controller.forward();

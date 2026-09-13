@@ -356,32 +356,32 @@ void main() {
       await tester.pumpAndSettle();
 
       // Initially on Train (tab 0), direction is 0
-      TabDirectionScope initialScope = tester.widget(find.byType(TabDirectionScope));
+      final TabDirectionScope initialScope = tester.widget(find.byType(TabDirectionScope));
       expect(initialScope.direction, equals(0));
 
       // Navigate Right: Train (0) -> Fuel (2)
       await tester.tap(find.byIcon(Icons.restaurant_outlined));
       await tester.pumpAndSettle();
 
-      TabDirectionScope rightScope = tester.widget(find.byType(TabDirectionScope));
+      final TabDirectionScope rightScope = tester.widget(find.byType(TabDirectionScope));
       expect(rightScope.direction, equals(1));
-      expect(rightScope.horizontalOffset, equals(42.0)); // 32 + (2-1)*10 = 42
+      expect(rightScope.horizontalOffset, equals(50.0)); // 38 + (2-1)*12 = 50
 
       // Navigate Right: Fuel (2) -> Insights (3)
       await tester.tap(find.byIcon(Icons.insights_outlined));
       await tester.pumpAndSettle();
 
-      TabDirectionScope rightHopScope = tester.widget(find.byType(TabDirectionScope));
+      final TabDirectionScope rightHopScope = tester.widget(find.byType(TabDirectionScope));
       expect(rightHopScope.direction, equals(1));
-      expect(rightHopScope.horizontalOffset, equals(32.0)); // 32 + (1-1)*10 = 32
+      expect(rightHopScope.horizontalOffset, equals(38.0)); // 38 + (1-1)*12 = 38
 
       // Navigate Left: Insights (3) -> Train (0)
       await tester.tap(find.byIcon(Icons.fitness_center_outlined));
       await tester.pumpAndSettle();
 
-      TabDirectionScope leftLeapScope = tester.widget(find.byType(TabDirectionScope));
+      final TabDirectionScope leftLeapScope = tester.widget(find.byType(TabDirectionScope));
       expect(leftLeapScope.direction, equals(-1));
-      expect(leftLeapScope.horizontalOffset, equals(52.0)); // 32 + (3-1)*10 = 52
+      expect(leftLeapScope.horizontalOffset, equals(62.0)); // 38 + (3-1)*12 = 62
     });
 
     testWidgets('AthleteSummaryOverviewCard renders daily briefing details', (

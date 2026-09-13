@@ -330,13 +330,14 @@ class AthleteSummaryOverviewCard extends StatelessWidget {
                             ],
                           ),
                           const SizedBox(height: 6),
-                            AnimatedBarbellLoader(
+                          AnimatedBarbellLoader(
                             targetWeight: settings.toDisplayWeight(peakLoadKg),
                             barWeight: settings.barWeight,
                             collarWeight: settings.collarWeight,
                             isLbs: settings.isLbs,
                             height: 90,
                             showBreakdownChips: true,
+                            entryDelay: const Duration(milliseconds: 480),
                           ),
                         ],
                       ),
