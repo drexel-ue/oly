@@ -129,6 +129,7 @@ class RecoverScreen extends StatelessWidget {
         ],
       ),
       body: SafeArea(
+        bottom: false,
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 110),
           children: <Widget>[

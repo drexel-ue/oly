@@ -115,6 +115,7 @@ class AnalyticsScreen extends StatelessWidget {
           ),
         ),
         body: SafeArea(
+          bottom: false,
           child: TabBarView(
             children: tabViews,
           ),

@@ -122,6 +122,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
         ],
       ),
       body: SafeArea(
+        bottom: false,
         child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 110),
           child: Column(
@@ -241,6 +242,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
           ),
         ),
       ),
+      floatingActionButtonLocation: const DockClearanceFabLocation(),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           showModalBottomSheet<void>(
@@ -1350,5 +1352,24 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
       case MealCategory.postWorkout:
         return Icons.fitness_center_outlined;
     }
+  }
+}
+
+/// Floating action button location positioned gracefully above the floating capsule dock.
+class DockClearanceFabLocation extends FloatingActionButtonLocation {
+  const new({this.bottomOffset = 84.0});
+
+  final double bottomOffset;
+
+  @override
+  Offset getOffset(ScaffoldPrelayoutGeometry scaffoldGeometry) {
+    final double fabX = scaffoldGeometry.scaffoldSize.width -
+        scaffoldGeometry.floatingActionButtonSize.width -
+        16.0;
+    final double fabY = scaffoldGeometry.scaffoldSize.height -
+        scaffoldGeometry.floatingActionButtonSize.height -
+        scaffoldGeometry.minViewPadding.bottom -
+        bottomOffset;
+    return Offset(fabX, fabY);
   }
 }

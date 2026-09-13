@@ -140,6 +140,7 @@ class DashboardScreen extends StatelessWidget {
         ],
       ),
       body: SafeArea(
+        bottom: false,
         child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 110),
           child: Column(

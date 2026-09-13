@@ -302,7 +302,7 @@ void main() {
 
       final Finder scrollable = find.byType(Scrollable);
       if (scrollable.evaluate().isNotEmpty) {
-        await tester.drag(scrollable.first, const Offset(0, -380));
+        await tester.drag(scrollable.first, const Offset(0, -650));
         await captureScreen(tester, '00_main_app_capsule_dock_scrolled');
       }
 

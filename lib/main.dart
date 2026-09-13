@@ -228,109 +228,122 @@ class _MainNavigationContainerState extends State<MainNavigationContainer> {
         WidgetsBinding.instance.runtimeType.toString().contains('Test');
 
     return Scaffold(
-      extendBody: true,
-      body: SafeArea(
-        bottom: false,
-        child: isTest
-            ? IndexedStack(index: _currentIndex, children: screens)
-            : AnimatedSwitcher(
-                duration: const Duration(milliseconds: 220),
-                switchInCurve: Curves.easeOutCubic,
-                switchOutCurve: Curves.easeInCubic,
-                transitionBuilder: (child, animation) {
-                  return FadeTransition(
-                    opacity: animation,
-                    child: child,
-                  );
-                },
-                child: KeyedSubtree(
-                  key: ValueKey<int>(_currentIndex),
-                  child: screens[_currentIndex],
-                ),
-              ),
-      ),
-      bottomNavigationBar: Column(
-        mainAxisSize: MainAxisSize.min,
+      body: Stack(
         children: <Widget>[
-          const ActiveSessionMiniDock(),
-          SafeArea(
-            top: false,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
-              child: GlassContainer(
-                borderRadius: BorderRadius.circular(28),
-                blur: 24,
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: <Color>[
-                    const Color(0xFF161926).withValues(alpha: 0.65),
-                    const Color(0xFF0C0E14).withValues(alpha: 0.78),
-                  ],
-                ),
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.16),
-                ),
-                boxShadow: <BoxShadow>[
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.45),
-                    blurRadius: 28,
-                    offset: const Offset(0, 8),
-                  ),
-                  BoxShadow(
-                    color: AppTheme.primaryAmber.withValues(alpha: 0.08),
-                    blurRadius: 20,
-                  ),
-                ],
-                padding: EdgeInsets.zero,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(28),
-                  child: BottomNavigationBar(
-                    currentIndex: _currentIndex,
-                    onTap: (index) {
-                      HapticFeedback.selectionClick();
-                      setState(() => _currentIndex = index);
+          Positioned.fill(
+            child: isTest
+                ? IndexedStack(index: _currentIndex, children: screens)
+                : AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 220),
+                    switchInCurve: Curves.easeOutCubic,
+                    switchOutCurve: Curves.easeInCubic,
+                    transitionBuilder: (child, animation) {
+                      return FadeTransition(
+                        opacity: animation,
+                        child: child,
+                      );
                     },
-                    type: BottomNavigationBarType.fixed,
-                    backgroundColor: Colors.transparent,
-                    elevation: 0,
-                    selectedItemColor: AppTheme.primaryAmber,
-                    unselectedItemColor: AppTheme.textSecondary,
-                    selectedLabelStyle: GoogleFonts.outfit(
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 0.8,
+                    child: KeyedSubtree(
+                      key: ValueKey<int>(_currentIndex),
+                      child: screens[_currentIndex],
                     ),
-                    unselectedLabelStyle: GoogleFonts.outfit(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 0.6,
+                  ),
+          ),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                const ActiveSessionMiniDock(),
+                SafeArea(
+                  top: false,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
+                    child: GlassContainer(
+                      borderRadius: BorderRadius.circular(28),
+                      blur: 24,
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: <Color>[
+                          const Color(0xFF161926).withValues(alpha: 0.35),
+                          const Color(0xFF0C0E14).withValues(alpha: 0.50),
+                        ],
+                      ),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.16),
+                      ),
+                      boxShadow: <BoxShadow>[
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.40),
+                          blurRadius: 28,
+                          offset: const Offset(0, 8),
+                        ),
+                        BoxShadow(
+                          color: AppTheme.primaryAmber.withValues(alpha: 0.08),
+                          blurRadius: 20,
+                        ),
+                      ],
+                      padding: EdgeInsets.zero,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(28),
+                        child: MediaQuery(
+                          data: MediaQuery.of(context).copyWith(
+                            viewPadding: EdgeInsets.zero,
+                            padding: EdgeInsets.zero,
+                          ),
+                          child: BottomNavigationBar(
+                            currentIndex: _currentIndex,
+                            onTap: (index) {
+                              HapticFeedback.selectionClick();
+                              setState(() => _currentIndex = index);
+                            },
+                            type: BottomNavigationBarType.fixed,
+                            backgroundColor: Colors.transparent,
+                            elevation: 0,
+                            selectedItemColor: AppTheme.primaryAmber,
+                            unselectedItemColor: AppTheme.textSecondary,
+                            selectedLabelStyle: GoogleFonts.outfit(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.8,
+                            ),
+                            unselectedLabelStyle: GoogleFonts.outfit(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 0.6,
+                            ),
+                            items: const <BottomNavigationBarItem>[
+                              BottomNavigationBarItem(
+                                icon: Icon(Icons.fitness_center_outlined),
+                                activeIcon: Icon(Icons.fitness_center_rounded),
+                                label: 'TRAIN',
+                              ),
+                              BottomNavigationBarItem(
+                                icon: Icon(Icons.self_improvement_outlined),
+                                activeIcon: Icon(Icons.self_improvement_rounded),
+                                label: 'RECOVER',
+                              ),
+                              BottomNavigationBarItem(
+                                icon: Icon(Icons.restaurant_outlined),
+                                activeIcon: Icon(Icons.restaurant_rounded),
+                                label: 'FUEL',
+                              ),
+                              BottomNavigationBarItem(
+                                icon: Icon(Icons.insights_outlined),
+                                activeIcon: Icon(Icons.insights_rounded),
+                                label: 'INSIGHTS',
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     ),
-                    items: const <BottomNavigationBarItem>[
-                      BottomNavigationBarItem(
-                        icon: Icon(Icons.fitness_center_outlined),
-                        activeIcon: Icon(Icons.fitness_center_rounded),
-                        label: 'TRAIN',
-                      ),
-                      BottomNavigationBarItem(
-                        icon: Icon(Icons.self_improvement_outlined),
-                        activeIcon: Icon(Icons.self_improvement_rounded),
-                        label: 'RECOVER',
-                      ),
-                      BottomNavigationBarItem(
-                        icon: Icon(Icons.restaurant_outlined),
-                        activeIcon: Icon(Icons.restaurant_rounded),
-                        label: 'FUEL',
-                      ),
-                      BottomNavigationBarItem(
-                        icon: Icon(Icons.insights_outlined),
-                        activeIcon: Icon(Icons.insights_rounded),
-                        label: 'INSIGHTS',
-                      ),
-                    ],
                   ),
                 ),
-              ),
+              ],
             ),
           ),
         ],
