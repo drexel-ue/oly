@@ -33,6 +33,7 @@ class FastingProvider extends ChangeNotifier {
   // Cached fuel context for adaptive hydration calculations
   double? _cachedFuelWaterOz;
   bool _cachedIsTrainingDay = false;
+  int? _cachedFuelWaterLoggedMl;
 
   // Getters
   FastingSession? get activeSession => _activeSession;
@@ -45,6 +46,7 @@ class FastingProvider extends ChangeNotifier {
       List<FastingBiomarkerEntry>.unmodifiable(_biomarkers);
   double? get cachedFuelWaterOz => _cachedFuelWaterOz;
   bool get cachedIsTrainingDay => _cachedIsTrainingDay;
+  int? get cachedFuelWaterLoggedMl => _cachedFuelWaterLoggedMl;
 
   /// Returns the research-backed fasting & biomarker hydration adjustment
   FastingHydrationAdjustment get currentHydrationAdjustment {
@@ -260,7 +262,7 @@ class FastingProvider extends ChangeNotifier {
       await _storage.saveActiveFastingSession(_activeSession);
     }
     if (onLogToFuel != null) {
-      final double oz = ml / 29.5735;
+      final double oz = ml / 29.5735296;
       onLogToFuel(oz);
     }
     notifyListeners();
@@ -346,19 +348,56 @@ class FastingProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Synchronizes dynamic target with active Fuel tab / nutrition state
+  /// Synchronizes dynamic target and water logged with active Fuel tab / nutrition state
   void syncFuelContext({
     required double fuelWaterOz,
     required bool isTrainingDay,
+    int? loggedWaterMl,
   }) {
-    final bool changed = _cachedFuelWaterOz != fuelWaterOz ||
+    bool changed = _cachedFuelWaterOz != fuelWaterOz ||
         _cachedIsTrainingDay != isTrainingDay;
     _cachedFuelWaterOz = fuelWaterOz;
     _cachedIsTrainingDay = isTrainingDay;
+
+    if (loggedWaterMl != null) {
+      if (_cachedFuelWaterLoggedMl != loggedWaterMl) {
+        _cachedFuelWaterLoggedMl = loggedWaterMl;
+        changed = true;
+      }
+      if (_activeSession != null &&
+          _activeSession!.waterLoggedMl < loggedWaterMl) {
+        _activeSession!.waterLoggedMl = loggedWaterMl;
+        _storage.saveActiveFastingSession(_activeSession);
+        changed = true;
+      }
+    }
+
     if (changed) {
       _syncNotificationSchedules();
       notifyListeners();
     }
+  }
+
+  /// Synchronizes water logged in the Fuel tab with the active fasting session
+  Future<void> syncWaterFromFuel(int dailyWaterMl) async {
+    _cachedFuelWaterLoggedMl = dailyWaterMl;
+    if (_activeSession != null) {
+      if (_activeSession!.waterLoggedMl < dailyWaterMl) {
+        _activeSession!.waterLoggedMl = dailyWaterMl;
+        await _storage.saveActiveFastingSession(_activeSession);
+      }
+    }
+    notifyListeners();
+  }
+
+  /// Sets the exact water amount from the Fuel tab (e.g. Set Total action)
+  Future<void> setWaterFromFuel(int dailyWaterMl) async {
+    _cachedFuelWaterLoggedMl = dailyWaterMl;
+    if (_activeSession != null) {
+      _activeSession!.waterLoggedMl = dailyWaterMl;
+      await _storage.saveActiveFastingSession(_activeSession);
+    }
+    notifyListeners();
   }
 
   /// Update athlete circadian preferences

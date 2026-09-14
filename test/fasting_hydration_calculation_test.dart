@@ -188,5 +188,30 @@ void main() {
       expect(provider.activeSession!.waterLoggedMl, equals(500));
       expect(loggedFuelOz, closeTo(16.9, 0.1));
     });
+
+    test('Synchronizes water logged from Fuel tab into active fasting session', () async {
+      final FastingProvider provider = FastingProvider(storage);
+      await provider.startFast(protocol: FastingProtocol.intermittent16_8);
+      expect(provider.activeSession!.waterLoggedMl, equals(0));
+
+      // Athlete logs 739 mL (e.g. paced notification portion) in Fuel tab
+      provider.syncFuelContext(
+        fuelWaterOz: 120,
+        isTrainingDay: false,
+        loggedWaterMl: 739,
+      );
+
+      expect(provider.cachedFuelWaterLoggedMl, equals(739));
+      expect(provider.activeSession!.waterLoggedMl, equals(739));
+
+      // Athlete adds another 500 mL in Fuel tab (total 1239 mL)
+      await provider.syncWaterFromFuel(1239);
+      expect(provider.cachedFuelWaterLoggedMl, equals(1239));
+      expect(provider.activeSession!.waterLoggedMl, equals(1239));
+
+      // Athlete corrects/sets total in Fuel tab
+      await provider.setWaterFromFuel(1000);
+      expect(provider.activeSession!.waterLoggedMl, equals(1000));
+    });
   });
 }

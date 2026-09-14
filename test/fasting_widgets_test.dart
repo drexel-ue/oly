@@ -239,4 +239,45 @@ void main() {
     await tester.pumpAndSettle();
     expect(fastingProvider.circadianConfig.coffeeRemindersEnabled, isFalse);
   });
+
+  testWidgets('Active fasting view shows synchronized water logged from NutritionProvider',
+      (tester) async {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final StorageService storage = StorageService(prefs);
+    final NutritionProvider nutrition = NutritionProvider(storage);
+    final FastingProvider fasting = FastingProvider(storage);
+    final BodyCompProvider bodyComp = BodyCompProvider(storage);
+
+    // Start an active fast
+    await fasting.startFast(protocol: FastingProtocol.intermittent16_8);
+
+    // Athlete logs 739 mL in Fuel tab
+    await nutrition.addWaterMl(739);
+
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider<NutritionProvider>.value(value: nutrition),
+          ChangeNotifierProvider<BodyCompProvider>.value(value: bodyComp),
+          ChangeNotifierProvider<FastingProvider>.value(value: fasting),
+        ],
+        child: const MaterialApp(
+          home: NutritionDashboardScreen(),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    // Switch to Fasting tab
+    await tester.tap(find.text('Fasting'));
+    await tester.pumpAndSettle();
+
+    // Verify WATER LOGGED displays 739 mL
+    expect(find.text('WATER LOGGED'), findsOneWidget);
+    expect(find.text('739 mL'), findsOneWidget);
+
+    await fasting.cancelFast();
+  });
 }

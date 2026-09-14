@@ -876,21 +876,21 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
                   const SizedBox(width: 4),
                 ],
                 if (isMl) ...<Widget>[
-                  _buildWaterAddButton(nutrition, 8.4535, '+250mL'),
+                  _buildWaterAddButton(context, nutrition, 8.4535, '+250mL'),
                   const SizedBox(width: 4),
-                  _buildWaterAddButton(nutrition, 16.907, '+500mL'),
+                  _buildWaterAddButton(context, nutrition, 16.907, '+500mL'),
                   const SizedBox(width: 4),
-                  _buildWaterAddButton(nutrition, 25.3605, '+750mL'),
+                  _buildWaterAddButton(context, nutrition, 25.3605, '+750mL'),
                   const SizedBox(width: 4),
-                  _buildWaterAddButton(nutrition, 33.814, '+1000mL'),
+                  _buildWaterAddButton(context, nutrition, 33.814, '+1000mL'),
                 ] else ...<Widget>[
-                  _buildWaterAddButton(nutrition, 8, '+8oz'),
+                  _buildWaterAddButton(context, nutrition, 8, '+8oz'),
                   const SizedBox(width: 4),
-                  _buildWaterAddButton(nutrition, 16, '+16oz'),
+                  _buildWaterAddButton(context, nutrition, 16, '+16oz'),
                   const SizedBox(width: 4),
-                  _buildWaterAddButton(nutrition, 24, '+24oz'),
+                  _buildWaterAddButton(context, nutrition, 24, '+24oz'),
                   const SizedBox(width: 4),
-                  _buildWaterAddButton(nutrition, 32, '+32oz'),
+                  _buildWaterAddButton(context, nutrition, 32, '+32oz'),
                 ],
                 const SizedBox(width: 4),
                 _buildCustomWaterButton(context),
@@ -933,6 +933,10 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
         } else {
           nutrition.addWater(amount);
         }
+        try {
+          final FastingProvider fasting = context.read<FastingProvider>();
+          fasting.syncWaterFromFuel(nutrition.currentDayLog.waterMl.round());
+        } catch (_) {}
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             backgroundColor: const Color(0xFF0D2538),
@@ -1012,6 +1016,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
   }
 
   Widget _buildWaterAddButton(
+    BuildContext context,
     NutritionProvider nutrition,
     double oz,
     String label,
@@ -1020,6 +1025,10 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
       onTap: () {
         HapticFeedback.lightImpact();
         nutrition.addWater(oz);
+        try {
+          final FastingProvider fasting = context.read<FastingProvider>();
+          fasting.syncWaterFromFuel(nutrition.currentDayLog.waterMl.round());
+        } catch (_) {}
       },
       borderRadius: BorderRadius.circular(8),
       child: Container(

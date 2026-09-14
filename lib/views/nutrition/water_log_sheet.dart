@@ -137,10 +137,21 @@ class _WaterLogSheetState extends State<WaterLogSheet> {
     if (val <= 0) return;
     unawaited(HapticFeedback.mediumImpact());
 
+    final FastingProvider? fasting = () {
+      try {
+        return Provider.of<FastingProvider>(context, listen: false);
+      } catch (_) {
+        return null;
+      }
+    }();
+
     if (_isMl) {
       await nutrition.addWaterMl(val);
     } else {
       await nutrition.addWater(val);
+    }
+    if (fasting != null) {
+      await fasting.syncWaterFromFuel(nutrition.currentDayLog.waterMl.round());
     }
 
     if (mounted) {
@@ -178,10 +189,24 @@ class _WaterLogSheetState extends State<WaterLogSheet> {
     if (val < 0) return;
     unawaited(HapticFeedback.mediumImpact());
 
+    final FastingProvider? fasting = () {
+      try {
+        return Provider.of<FastingProvider>(context, listen: false);
+      } catch (_) {
+        return null;
+      }
+    }();
+
     if (_isMl) {
       await nutrition.setWaterMl(val);
+      if (fasting != null) {
+        await fasting.setWaterFromFuel(val.round());
+      }
     } else {
       await nutrition.setWaterOz(val);
+      if (fasting != null) {
+        await fasting.setWaterFromFuel(DailyNutritionLog.ozToMl(val).round());
+      }
     }
 
     if (mounted) {

@@ -39,12 +39,15 @@ class _FastingCircadianSheetState extends State<FastingCircadianSheet> {
     if (nutrition != null) {
       final double targetWaterOz = nutrition.currentDayLog.targetWaterOz;
       final bool isTraining = nutrition.currentDayLog.isTrainingDay;
+      final int loggedWaterMl = nutrition.currentDayLog.waterMl.round();
       if (fasting.cachedFuelWaterOz != targetWaterOz ||
-          fasting.cachedIsTrainingDay != isTraining) {
+          fasting.cachedIsTrainingDay != isTraining ||
+          fasting.cachedFuelWaterLoggedMl != loggedWaterMl) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           fasting.syncFuelContext(
             fuelWaterOz: targetWaterOz,
             isTrainingDay: isTraining,
+            loggedWaterMl: loggedWaterMl,
           );
         });
       }

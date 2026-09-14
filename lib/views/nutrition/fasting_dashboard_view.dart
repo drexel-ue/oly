@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -12,6 +13,7 @@ import 'package:oly/views/nutrition/fasting_circadian_sheet.dart';
 import 'package:oly/views/nutrition/fasting_refeed_guide_sheet.dart';
 import 'package:oly/views/nutrition/fasting_science_explainer_screen.dart';
 import 'package:oly/views/nutrition/fasting_setup_sheet.dart';
+import 'package:oly/views/nutrition/water_log_sheet.dart';
 import 'package:oly/widgets/motion/oly_entry_reveal.dart';
 import 'package:oly/widgets/motion/oly_pressable.dart';
 import 'package:oly/widgets/nutrition/fasting_cellular_card.dart';
@@ -28,28 +30,32 @@ class FastingDashboardView extends StatelessWidget {
     final FastingProvider fasting = Provider.of<FastingProvider>(context);
     final NutritionProvider? nutrition =
         Provider.of<NutritionProvider?>(context);
+    final FastingSession? active = fasting.activeSession;
 
     if (nutrition != null) {
       final double targetWaterOz = nutrition.currentDayLog.targetWaterOz;
       final bool isTraining = nutrition.currentDayLog.isTrainingDay;
+      final int loggedWaterMl = nutrition.currentDayLog.waterMl.round();
+
       if (fasting.cachedFuelWaterOz != targetWaterOz ||
-          fasting.cachedIsTrainingDay != isTraining) {
+          fasting.cachedIsTrainingDay != isTraining ||
+          fasting.cachedFuelWaterLoggedMl != loggedWaterMl ||
+          (active != null && active.waterLoggedMl < loggedWaterMl)) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           fasting.syncFuelContext(
             fuelWaterOz: targetWaterOz,
             isTrainingDay: isTraining,
+            loggedWaterMl: loggedWaterMl,
           );
         });
       }
     }
 
-    final FastingSession? active = fasting.activeSession;
-
     if (active == null) {
       return _buildInactiveView(context, fasting);
     }
 
-    return _buildActiveView(context, fasting, active);
+    return _buildActiveView(context, fasting, active, nutrition);
   }
 
   Widget _buildInactiveView(BuildContext context, FastingProvider fasting) {
@@ -175,7 +181,10 @@ class FastingDashboardView extends StatelessWidget {
   }
 
   Widget _buildActiveView(
-      BuildContext context, FastingProvider fasting, FastingSession session) {
+      BuildContext context,
+      FastingProvider fasting,
+      FastingSession session,
+      NutritionProvider? nutrition) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
@@ -195,7 +204,7 @@ class FastingDashboardView extends StatelessWidget {
         // Electrolyte & Hydration Station
         OlyEntryReveal(
           index: 2,
-          child: _buildElectrolyteStation(context, fasting, session),
+          child: _buildElectrolyteStation(context, fasting, session, nutrition),
         ),
         const SizedBox(height: 16),
 
@@ -272,7 +281,16 @@ class FastingDashboardView extends StatelessWidget {
   }
 
   Widget _buildElectrolyteStation(
-      BuildContext context, FastingProvider fasting, FastingSession session) {
+    BuildContext context,
+    FastingProvider fasting,
+    FastingSession session,
+    NutritionProvider? nutrition,
+  ) {
+    final int fuelLoggedMl = nutrition?.currentDayLog.waterMl.round() ?? 0;
+    final int displayWaterMl = session.waterLoggedMl > 0
+        ? math.max(session.waterLoggedMl, fuelLoggedMl)
+        : fuelLoggedMl;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -407,28 +425,42 @@ class FastingDashboardView extends StatelessWidget {
               ),
               const SizedBox(width: 10),
               Expanded(
-                child: Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF16161C),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Text('WATER LOGGED',
-                          style: GoogleFonts.inter(
-                              fontSize: 9, color: AppTheme.textSecondary)),
-                      const SizedBox(height: 2),
-                      Text(
-                        '${session.waterLoggedMl} mL',
-                        style: GoogleFonts.outfit(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.cyanAccent,
-                        ),
+                child: InkWell(
+                  onTap: () => WaterLogSheet.show(context),
+                  borderRadius: BorderRadius.circular(10),
+                  child: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF16161C),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: Colors.cyanAccent.withValues(alpha: 0.25),
                       ),
-                    ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: <Widget>[
+                            Text('WATER LOGGED',
+                                style: GoogleFonts.inter(
+                                    fontSize: 9, color: AppTheme.textSecondary)),
+                            const Icon(Icons.touch_app_outlined,
+                                size: 10, color: Colors.cyanAccent),
+                          ],
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          '$displayWaterMl mL',
+                          style: GoogleFonts.outfit(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.cyanAccent,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -439,6 +471,7 @@ class FastingDashboardView extends StatelessWidget {
           // 1-Tap Quick Log Chips
           Wrap(
             spacing: 8,
+            runSpacing: 8,
             children: <Widget>[
               ActionChip(
                 backgroundColor: const Color(0xFF22222C),
@@ -474,6 +507,30 @@ class FastingDashboardView extends StatelessWidget {
                     onLogToFuel: nutrition.addWater,
                   );
                 },
+              ),
+              if (fasting.scheduledPortionMl != 250 &&
+                  fasting.scheduledPortionMl != 500 &&
+                  fasting.scheduledPortionMl > 0)
+                ActionChip(
+                  backgroundColor: const Color(0xFF22222C),
+                  avatar: const Icon(Icons.water_drop, size: 14, color: Colors.cyanAccent),
+                  label: Text('+${fasting.scheduledPortionMl}mL (Paced)',
+                      style: GoogleFonts.inter(fontSize: 11, color: Colors.cyanAccent)),
+                  onPressed: () {
+                    final NutritionProvider nutrition =
+                        Provider.of<NutritionProvider>(context, listen: false);
+                    fasting.logWater(
+                      fasting.scheduledPortionMl,
+                      onLogToFuel: nutrition.addWater,
+                    );
+                  },
+                ),
+              ActionChip(
+                backgroundColor: const Color(0xFF22222C),
+                avatar: const Icon(Icons.edit_note, size: 14, color: Colors.white70),
+                label: Text('Custom',
+                    style: GoogleFonts.inter(fontSize: 11, color: Colors.white)),
+                onPressed: () => WaterLogSheet.show(context),
               ),
             ],
           ),
