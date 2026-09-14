@@ -98,6 +98,24 @@ void main() {
       await service.playTimerBeepSound();
     });
 
+    test('playPlatformChime executes without throwing', () async {
+      final NotificationService service = NotificationService();
+      await service.init();
+      await service.playPlatformChime();
+    });
+
+    test('playChronoPulse executes without throwing', () async {
+      final NotificationService service = NotificationService();
+      await service.init();
+      await service.playChronoPulse();
+    });
+
+    test('playIronGong executes without throwing', () async {
+      final NotificationService service = NotificationService();
+      await service.init();
+      await service.playIronGong();
+    });
+
     test('scheduleTimerNotification schedules or cancels safely', () async {
       final NotificationService service = NotificationService();
       await service.scheduleTimerNotification(

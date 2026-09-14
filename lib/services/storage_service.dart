@@ -37,6 +37,7 @@ class StorageService {
   static const String _keyCollarWeight = 'oly_collar_weight_v1';
   static const String _keyRecoveryLogs = 'oly_recovery_logs_v1';
   static const String _keySoundAlerts = 'oly_sound_alerts_v1';
+  static const String _keySoundTone = 'oly_sound_tone_v1';
   static const String _keyHapticsEnabled = 'oly_haptics_enabled_v1';
   static const String _keyActiveDraft = 'oly_active_draft_v1';
   static const String _keyAccessoryLogs = 'oly_accessory_logs_v1';
@@ -204,6 +205,10 @@ class StorageService {
   bool loadSoundAlerts() => _prefs.getBool(_keySoundAlerts) ?? true;
   Future<void> saveSoundAlerts(bool value) =>
       _prefs.setBool(_keySoundAlerts, value);
+
+  String loadSoundTone() => _prefs.getString(_keySoundTone) ?? 'platform_chime';
+  Future<void> saveSoundTone(String value) =>
+      _prefs.setString(_keySoundTone, value);
 
   bool loadHapticsEnabled() => _prefs.getBool(_keyHapticsEnabled) ?? true;
   Future<void> saveHapticsEnabled(bool value) =>

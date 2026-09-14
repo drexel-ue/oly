@@ -9,6 +9,59 @@ import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
+/// Distinctive notification and alert sound profiles engineered for OLY
+enum OlySoundTone {
+  platformChime(
+    'oly_platform_chime',
+    'sounds/oly_platform_chime.wav',
+    'oly_platform_chime.caf',
+    'Platform Chime',
+    'Barbell metallic attack + ascending fifth (587Hz -> 880Hz)',
+  ),
+  chronoPulse(
+    'oly_chrono_pulse',
+    'sounds/oly_chrono_pulse.wav',
+    'oly_chrono_pulse.caf',
+    'Arena Pulse',
+    'High-octane dual pulse (784Hz -> 1046Hz) for WODs and intervals',
+  ),
+  ironGong(
+    'oly_iron_gong',
+    'sounds/oly_iron_gong.wav',
+    'oly_iron_gong.caf',
+    'Iron Gong',
+    'Deep competition bumper steel resonance (330Hz) with warm decay',
+  ),
+  legacyBeep(
+    'timer_beep',
+    'sounds/timer_beep.wav',
+    'default',
+    'Classic Beep',
+    'Original electronic rest timer tone',
+  );
+
+  new(
+    this.id,
+    this.assetPath,
+    this.iosSound,
+    this.label,
+    this.description,
+  );
+
+  final String id;
+  final String assetPath;
+  final String iosSound;
+  final String label;
+  final String description;
+
+  static OlySoundTone fromId(String? id) {
+    return OlySoundTone.values.firstWhere(
+      (e) => e.id == id,
+      orElse: () => OlySoundTone.platformChime,
+    );
+  }
+}
+
 class NotificationService {
   factory() => _instance;
   new _internal();
@@ -94,7 +147,22 @@ class NotificationService {
 
   /// Play high-volume double-beep audio alert safely while pausing external audio
   /// and automatically resuming it at full original volume once playback completes.
-  Future<void> playTimerBeepSound() async {
+  /// Play signature Olympic Platform Chime (Rest timer 0s, platform approach)
+  Future<void> playPlatformChime() => playSound(OlySoundTone.platformChime);
+
+  /// Play Chrono Arena Pulse (WOD intervals, C25K pace shifts, and countdowns)
+  Future<void> playChronoPulse() => playSound(OlySoundTone.chronoPulse);
+
+  /// Play Iron Plate Gong (Breath retention, hydration, and fasting milestones)
+  Future<void> playIronGong() => playSound(OlySoundTone.ironGong);
+
+  /// Play audio alert safely while pausing external audio and resuming it.
+  Future<void> playTimerBeepSound({OlySoundTone tone = OlySoundTone.platformChime}) async {
+    await playSound(tone);
+  }
+
+  /// Play any [OlySoundTone] safely with audio session ducking
+  Future<void> playSound(OlySoundTone tone) async {
     try {
       _sessionDeactivationTimer?.cancel();
       await _playerCompleteSubscription?.cancel();
@@ -113,7 +181,9 @@ class NotificationService {
         await _audioPlayer!.setAudioContext(
           ap.AudioContext(
             iOS: ap.AudioContextIOS(
-              
+              options: const <ap.AVAudioSessionOptions>{
+                ap.AVAudioSessionOptions.duckOthers,
+              },
             ),
             android: const ap.AudioContextAndroid(
               usageType: ap.AndroidUsageType.alarm,
@@ -133,8 +203,8 @@ class NotificationService {
         }
       });
 
-      // Safety timeout in case onPlayerComplete is delayed or dropped (timer_beep.wav is 1.2s)
-      _sessionDeactivationTimer = Timer(const Duration(milliseconds: 1800), () {
+      // Safety timeout in case onPlayerComplete is delayed or dropped (all files < 1.8s)
+      _sessionDeactivationTimer = Timer(const Duration(milliseconds: 2200), () {
         if (!completer.isCompleted) {
           completer.complete();
         }
@@ -146,7 +216,7 @@ class NotificationService {
         }),
       );
 
-      await _audioPlayer!.play(ap.AssetSource('sounds/timer_beep.wav'));
+      await _audioPlayer!.play(ap.AssetSource(tone.assetPath));
     } catch (e) {
       debugPrint('Audio playback error: $e');
       await _deactivateAudioSession();
@@ -307,12 +377,14 @@ class NotificationService {
       'oly_hydration_channel',
       'Hydration Reminders',
       channelDescription: 'Paced hydration reminders to hit daily water goal',
+      sound: RawResourceAndroidNotificationSound('oly_iron_gong'),
     );
 
     const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
       presentAlert: true,
       presentSound: true,
       presentBadge: false,
+      sound: 'oly_iron_gong.caf',
     );
 
     const NotificationDetails details = NotificationDetails(
@@ -401,12 +473,14 @@ class NotificationService {
       'oly_coffee_channel',
       'Fasting Coffee Alerts',
       channelDescription: 'Strategic coffee timing to assist fasting & athletic sleep',
+      sound: RawResourceAndroidNotificationSound('oly_iron_gong'),
     );
 
     const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
       presentAlert: true,
       presentSound: true,
       presentBadge: false,
+      sound: 'oly_iron_gong.caf',
     );
 
     const NotificationDetails details = NotificationDetails(

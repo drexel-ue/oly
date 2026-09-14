@@ -117,10 +117,10 @@ class _DtWodCardState extends State<DtWodCard> {
       final SettingsProvider settings =
           Provider.of<SettingsProvider>(context, listen: false);
       if (settings.soundAlertsEnabled) {
-        NotificationService().playTimerBeepSound();
+        NotificationService().playChronoPulse();
       }
     } catch (_) {
-      NotificationService().playTimerBeepSound();
+      NotificationService().playChronoPulse();
     }
   }
 

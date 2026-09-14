@@ -89,7 +89,7 @@ flutter:
   assets:
     - assets/icon/icon.jpg
     - assets/icon/splash.jpg
-    - assets/sounds/timer_beep.wav
+    - assets/sounds/
     - assets/data/staple_foods.json
     - assets/data/restaurant_foods.json
     - assets/data/usda_foods.db

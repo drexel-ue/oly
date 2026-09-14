@@ -7,6 +7,7 @@ class SettingsProvider extends ChangeNotifier {
     _barWeight = _storage.loadBarWeight();
     _collarWeight = _storage.loadCollarWeight();
     _soundAlertsEnabled = _storage.loadSoundAlerts();
+    _soundTone = _storage.loadSoundTone();
     _hapticsEnabled = _storage.loadHapticsEnabled();
     _cindyEmomBeepEnabled = _storage.loadCindyEmomBeep();
   }
@@ -16,6 +17,7 @@ class SettingsProvider extends ChangeNotifier {
   double _barWeight = 20;
   double _collarWeight = 2.5;
   bool _soundAlertsEnabled = true;
+  String _soundTone = 'platform_chime';
   bool _hapticsEnabled = true;
   bool _cindyEmomBeepEnabled = false;
 
@@ -45,6 +47,7 @@ class SettingsProvider extends ChangeNotifier {
   }
 
   bool get soundAlertsEnabled => _soundAlertsEnabled;
+  String get soundTone => _soundTone;
   bool get hapticsEnabled => _hapticsEnabled;
   bool get cindyEmomBeepEnabled => _cindyEmomBeepEnabled;
   String get unitLabel => _isLbs ? 'lbs' : 'kg';
@@ -131,6 +134,12 @@ class SettingsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setSoundTone(String tone) {
+    _soundTone = tone;
+    _storage.saveSoundTone(tone);
+    notifyListeners();
+  }
+
   void toggleSoundAlerts() {
     _soundAlertsEnabled = !_soundAlertsEnabled;
     _storage.saveSoundAlerts(_soundAlertsEnabled);
@@ -164,6 +173,7 @@ class SettingsProvider extends ChangeNotifier {
       _barWeight = _storage.loadBarWeight();
       _collarWeight = _storage.loadCollarWeight();
       _soundAlertsEnabled = _storage.loadSoundAlerts();
+      _soundTone = _storage.loadSoundTone();
       _hapticsEnabled = _storage.loadHapticsEnabled();
       _cindyEmomBeepEnabled = _storage.loadCindyEmomBeep();
       notifyListeners();

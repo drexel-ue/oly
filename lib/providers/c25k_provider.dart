@@ -123,7 +123,7 @@ class C25kProvider extends ChangeNotifier {
 
     _ticker?.cancel();
     HapticFeedback.mediumImpact();
-    _notificationService.playTimerBeepSound(); // Initial alert
+    _notificationService.playChronoPulse(); // Initial alert
 
     _ticker = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (!_isPaused) {
@@ -232,7 +232,7 @@ class C25kProvider extends ChangeNotifier {
     }
 
     unawaited(HapticFeedback.vibrate());
-    unawaited(_notificationService.playTimerBeepSound());
+    unawaited(_notificationService.playIronGong());
     notifyListeners();
     return log;
   }

@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:oly/providers/lift_provider.dart';
 import 'package:oly/providers/program_provider.dart';
 import 'package:oly/providers/settings_provider.dart';
+import 'package:oly/services/notification_service.dart';
 import 'package:oly/theme/app_theme.dart';
 import 'package:oly/views/diagnostics/crash_report_screen.dart';
 import 'package:provider/provider.dart';
@@ -219,7 +220,7 @@ class _SettingsModalState extends State<SettingsModal> {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          'Plays system audio pulse when rest timer reaches 0s',
+                          'Plays audio chime when rest timer reaches 0s',
                           style: GoogleFonts.inter(
                             fontSize: 12,
                             color: AppTheme.textSecondary,
@@ -236,6 +237,76 @@ class _SettingsModalState extends State<SettingsModal> {
                   ),
                 ],
               ),
+              if (settings.soundAlertsEnabled) ...[
+                const SizedBox(height: 12),
+                // Sound Tone Selection Chips with Preview
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      'Rest Alert Tone',
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.textSecondary,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: OlySoundTone.values.map((tone) {
+                        final bool isSelected = settings.soundTone == tone.id;
+                        return InkWell(
+                          onTap: () {
+                            HapticFeedback.selectionClick();
+                            settings.setSoundTone(tone.id);
+                            NotificationService().playSound(tone);
+                          },
+                          borderRadius: BorderRadius.circular(20),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: isSelected
+                                  ? AppTheme.primaryAmber.withValues(alpha: 0.18)
+                                  : AppTheme.surfaceCard,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: isSelected
+                                    ? AppTheme.primaryAmber
+                                    : AppTheme.borderColor,
+                                width: isSelected ? 1.5 : 1.0,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: <Widget>[
+                                Icon(
+                                  isSelected ? Icons.volume_up_rounded : Icons.play_arrow_rounded,
+                                  size: 14,
+                                  color: isSelected
+                                      ? AppTheme.primaryAmber
+                                      : AppTheme.textSecondary,
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  tone.label,
+                                  style: GoogleFonts.inter(
+                                    fontSize: 12,
+                                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                                    color: isSelected ? Colors.white : AppTheme.textSecondary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ],
+                ),
+              ],
               const SizedBox(height: 12),
               const Divider(color: AppTheme.borderColor),
               const SizedBox(height: 8),

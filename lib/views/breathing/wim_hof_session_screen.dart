@@ -231,7 +231,7 @@ class _WimHofSessionScreenState extends State<WimHofSessionScreen>
       HapticFeedback.heavyImpact();
     }
     if (widget.config.soundEnabled) {
-      NotificationService().playTimerBeepSound();
+      NotificationService().playIronGong();
     }
 
     _retentionTimer?.cancel();
@@ -258,7 +258,7 @@ class _WimHofSessionScreenState extends State<WimHofSessionScreen>
       HapticFeedback.heavyImpact();
     }
     if (widget.config.soundEnabled) {
-      NotificationService().playTimerBeepSound();
+      NotificationService().playPlatformChime();
     }
 
     _recoveryTimer?.cancel();
@@ -303,7 +303,7 @@ class _WimHofSessionScreenState extends State<WimHofSessionScreen>
       HapticFeedback.heavyImpact();
     }
     if (widget.config.soundEnabled) {
-      NotificationService().playTimerBeepSound();
+      NotificationService().playIronGong();
     }
 
     try {
