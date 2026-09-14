@@ -81,6 +81,12 @@ class FastingProvider extends ChangeNotifier {
     return totalTargetMl.clamp(1500, 6000);
   }
 
+  /// Paced notification water portion in mL (divided into 6 daily reminders)
+  int get scheduledPortionMl => (effectiveDailyWaterTargetMl / 6).round();
+
+  /// Paced notification water portion in oz
+  double get scheduledPortionOz => scheduledPortionMl / 29.5735296;
+
   /// 7-Day forward projection schedule based on current protocol
   List<FastingScheduleDay> get projectionSchedule {
     final FastingProtocol protocol =

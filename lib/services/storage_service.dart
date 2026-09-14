@@ -71,6 +71,7 @@ class StorageService {
   static const String _keyHangSessionLogs = 'oly_hang_session_logs_v1';
   static const String _keyC25kSessionLogs = 'oly_c25k_session_logs_v1';
   static const String _keyC25kCurrentProgress = 'oly_c25k_current_progress_v1';
+  static const String _keyWaterUnitPreference = 'oly_water_unit_preference_v1';
 
   final SharedPreferences _prefs;
 
@@ -1126,6 +1127,14 @@ class StorageService {
     );
     final String jsonStr = jsonEncode(map);
     await _prefs.setString(_keyNutritionLogs, jsonStr);
+  }
+
+  String loadWaterUnitPreference() {
+    return _prefs.getString(_keyWaterUnitPreference) ?? 'oz';
+  }
+
+  Future<void> saveWaterUnitPreference(String unit) async {
+    await _prefs.setString(_keyWaterUnitPreference, unit);
   }
 
   // --- NUTRITION GOAL STORAGE ---

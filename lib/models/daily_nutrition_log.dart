@@ -111,11 +111,19 @@ class DailyNutritionLog {
   bool get hasWodActivity =>
       activities.any((a) => a.activityType == 'workout_wod');
 
+  static const double mlPerOz = 29.5735296;
+
+  static double ozToMl(double oz) => oz * mlPerOz;
+  static double mlToOz(double ml) => ml / mlPerOz;
+
   int get remainingCalories => targetCalories - totalCalories;
   double get remainingProtein => targetProteinGrams - totalProtein;
   double get remainingCarbs => targetCarbsGrams - totalCarbs;
   double get remainingFat => targetFatGrams - totalFat;
   double get remainingWaterOz => targetWaterOz - waterOz;
+  double get waterMl => waterOz * mlPerOz;
+  double get targetWaterMl => targetWaterOz * mlPerOz;
+  double get remainingWaterMl => remainingWaterOz * mlPerOz;
 
   double get calorieProgress => targetCalories > 0
       ? (totalCalories / targetCalories).clamp(0.0, 1.5)

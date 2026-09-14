@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:oly/models/body_composition_entry.dart';
@@ -18,6 +19,7 @@ import 'package:oly/views/nutrition/metabolic_science_explainer_screen.dart';
 import 'package:oly/views/nutrition/nutrition_settings_screen.dart';
 import 'package:oly/views/nutrition/quick_macro_log_sheet.dart';
 import 'package:oly/views/nutrition/renpho_scanner_sheet.dart';
+import 'package:oly/views/nutrition/water_log_sheet.dart';
 import 'package:oly/widgets/motion/oly_entry_reveal.dart';
 import 'package:oly/widgets/nutrition/energy_balance_card.dart';
 import 'package:oly/widgets/nutrition/fasting_active_card.dart';
@@ -708,9 +710,27 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
     NutritionProvider nutrition,
     DailyNutritionLog log,
   ) {
+    final FastingProvider? fasting = () {
+      try {
+        return context.watch<FastingProvider>();
+      } catch (_) {
+        return null;
+      }
+    }();
     final double progress = log.waterProgress;
     final bool isGoalMet =
         log.waterOz >= log.targetWaterOz && log.targetWaterOz > 0;
+    final bool isMl = nutrition.isWaterUnitMl;
+    final int scheduledPortionMl = fasting?.scheduledPortionMl ?? 0;
+    final double scheduledPortionOz = fasting?.scheduledPortionOz ?? 0.0;
+
+    final String progressText = isMl
+        ? '${log.waterMl.round()} mL / ${log.targetWaterMl.round()} mL (${(progress * 100).toStringAsFixed(0)}%)'
+        : '${log.waterOz.toStringAsFixed(0)} oz / ${log.targetWaterOz.toStringAsFixed(0)} oz (${(progress * 100).toStringAsFixed(0)}%)';
+
+    final String alternateUnitText = isMl
+        ? '${log.waterOz.toStringAsFixed(0)} oz'
+        : '${log.waterMl.round()} mL';
 
     return Container(
       padding: const EdgeInsets.all(14),
@@ -726,113 +746,267 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: <Widget>[
-              Expanded(
-                child: Row(
-                  children: <Widget>[
-                    Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF00D2FF).withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(8),
+          InkWell(
+            onTap: () => WaterLogSheet.show(context),
+            borderRadius: BorderRadius.circular(10),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                Expanded(
+                  child: Row(
+                    children: <Widget>[
+                      Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF00D2FF).withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(
+                          Icons.water_drop,
+                          color: Color(0xFF00D2FF),
+                          size: 16,
+                        ),
                       ),
-                      child: const Icon(
-                        Icons.water_drop,
-                        color: Color(0xFF00D2FF),
-                        size: 16,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          Wrap(
-                            crossAxisAlignment: WrapCrossAlignment.center,
-                            spacing: 6,
-                            runSpacing: 2,
-                            children: <Widget>[
-                              Text(
-                                'Daily Hydration',
-                                style: GoogleFonts.inter(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppTheme.textPrimary,
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Wrap(
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              spacing: 6,
+                              runSpacing: 2,
+                              children: <Widget>[
+                                Text(
+                                  'Daily Hydration',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppTheme.textPrimary,
+                                  ),
                                 ),
-                              ),
-                              if (log.isTrainingDay)
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 5,
-                                    vertical: 1,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFF00D2FF)
-                                        .withValues(alpha: 0.2),
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: Text(
-                                    '+24oz Training',
-                                    style: GoogleFonts.inter(
-                                      fontSize: 9,
-                                      fontWeight: FontWeight.bold,
-                                      color: const Color(0xFF00D2FF),
+                                if (log.isTrainingDay)
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 5,
+                                      vertical: 1,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF00D2FF)
+                                          .withValues(alpha: 0.2),
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: Text(
+                                      '+24oz Training',
+                                      style: GoogleFonts.inter(
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.bold,
+                                        color: const Color(0xFF00D2FF),
+                                      ),
                                     ),
                                   ),
-                                ),
-                            ],
-                          ),
-                          Text(
-                            '${log.waterOz.toStringAsFixed(0)} oz / ${log.targetWaterOz.toStringAsFixed(0)} oz (${(progress * 100).toStringAsFixed(0)}%)',
-                            style: GoogleFonts.inter(
-                              fontSize: 11,
-                              color: isGoalMet
-                                  ? const Color(0xFF00E5FF)
-                                  : AppTheme.textSecondary,
-                              fontWeight: isGoalMet
-                                  ? FontWeight.bold
-                                  : FontWeight.normal,
+                              ],
                             ),
-                          ),
-                        ],
+                            Text(
+                              '$progressText · $alternateUnitText',
+                              style: GoogleFonts.inter(
+                                fontSize: 11,
+                                color: isGoalMet
+                                    ? const Color(0xFF00E5FF)
+                                    : AppTheme.textSecondary,
+                                fontWeight: isGoalMet
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                // Unit Switcher Chip
+                InkWell(
+                  onTap: () {
+                    HapticFeedback.selectionClick();
+                    nutrition.toggleWaterUnit();
+                  },
+                  borderRadius: BorderRadius.circular(6),
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppTheme.surfaceElevated,
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(
+                        color: const Color(0xFF00D2FF).withValues(alpha: 0.4),
                       ),
                     ),
-                  ],
+                    child: Text(
+                      isMl ? 'mL' : 'oz',
+                      style: GoogleFonts.outfit(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFF00E5FF),
+                      ),
+                    ),
+                  ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    _buildWaterAddButton(nutrition, 8, '+8oz'),
-                    const SizedBox(width: 4),
-                    _buildWaterAddButton(nutrition, 16, '+16oz'),
-                    const SizedBox(width: 4),
-                    _buildWaterAddButton(nutrition, 24, '+24oz'),
-                    const SizedBox(width: 4),
-                    _buildWaterAddButton(nutrition, 32, '+32oz'),
-                  ],
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
-          const SizedBox(height: 12),
-          ClipRRect(
+          const SizedBox(height: 10),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                // Notification Scheduled Dose Button (e.g. +739 mL)
+                if (scheduledPortionMl > 0) ...<Widget>[
+                  _buildScheduledWaterButton(
+                    context,
+                    nutrition,
+                    isMl ? scheduledPortionMl.toDouble() : scheduledPortionOz,
+                    isMl
+                        ? '+$scheduledPortionMl mL ⚡'
+                        : '+${scheduledPortionOz.toStringAsFixed(0)} oz ⚡',
+                    isMl,
+                  ),
+                  const SizedBox(width: 4),
+                ],
+                if (isMl) ...<Widget>[
+                  _buildWaterAddButton(nutrition, 8.4535, '+250mL'),
+                  const SizedBox(width: 4),
+                  _buildWaterAddButton(nutrition, 16.907, '+500mL'),
+                  const SizedBox(width: 4),
+                  _buildWaterAddButton(nutrition, 25.3605, '+750mL'),
+                  const SizedBox(width: 4),
+                  _buildWaterAddButton(nutrition, 33.814, '+1000mL'),
+                ] else ...<Widget>[
+                  _buildWaterAddButton(nutrition, 8, '+8oz'),
+                  const SizedBox(width: 4),
+                  _buildWaterAddButton(nutrition, 16, '+16oz'),
+                  const SizedBox(width: 4),
+                  _buildWaterAddButton(nutrition, 24, '+24oz'),
+                  const SizedBox(width: 4),
+                  _buildWaterAddButton(nutrition, 32, '+32oz'),
+                ],
+                const SizedBox(width: 4),
+                _buildCustomWaterButton(context),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+          InkWell(
+            onTap: () => WaterLogSheet.show(context),
             borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(
-              value: progress.clamp(0.0, 1.0),
-              backgroundColor: AppTheme.surfaceElevated,
-              valueColor: AlwaysStoppedAnimation<Color>(
-                isGoalMet ? const Color(0xFF00E5FF) : const Color(0xFF00D2FF),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: LinearProgressIndicator(
+                value: progress.clamp(0.0, 1.0),
+                backgroundColor: AppTheme.surfaceElevated,
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  isGoalMet ? const Color(0xFF00E5FF) : const Color(0xFF00D2FF),
+                ),
+                minHeight: 6,
               ),
-              minHeight: 6,
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildScheduledWaterButton(
+    BuildContext context,
+    NutritionProvider nutrition,
+    double amount,
+    String label,
+    bool isMl,
+  ) {
+    return InkWell(
+      onTap: () {
+        HapticFeedback.lightImpact();
+        if (isMl) {
+          nutrition.addWaterMl(amount);
+        } else {
+          nutrition.addWater(amount);
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: const Color(0xFF0D2538),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+              side: const BorderSide(color: Color(0xFF00D2FF), width: 0.8),
+            ),
+            content: Row(
+              children: <Widget>[
+                const Icon(Icons.water_drop, color: Color(0xFF00E5FF), size: 18),
+                const SizedBox(width: 8),
+                Text(
+                  'Added $label',
+                  style: GoogleFonts.inter(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                  ),
+                ),
+              ],
+            ),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      },
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 6),
+        decoration: BoxDecoration(
+          color: const Color(0xFF00D2FF).withValues(alpha: 0.22),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: const Color(0xFF00E5FF).withValues(alpha: 0.6),
+          ),
+        ),
+        child: Text(
+          label,
+          style: GoogleFonts.inter(
+            fontSize: 11,
+            fontWeight: FontWeight.bold,
+            color: const Color(0xFF00E5FF),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCustomWaterButton(BuildContext context) {
+    return InkWell(
+      onTap: () => WaterLogSheet.show(context),
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        decoration: BoxDecoration(
+          color: AppTheme.surfaceElevated,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.white24),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            const Icon(Icons.tune, color: Colors.white70, size: 12),
+            const SizedBox(width: 4),
+            Text(
+              'Custom',
+              style: GoogleFonts.inter(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: Colors.white70,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -843,7 +1017,10 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
     String label,
   ) {
     return InkWell(
-      onTap: () => nutrition.addWater(oz),
+      onTap: () {
+        HapticFeedback.lightImpact();
+        nutrition.addWater(oz);
+      },
       borderRadius: BorderRadius.circular(8),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 6),

@@ -19,6 +19,7 @@ class NutritionProvider extends ChangeNotifier {
   Map<String, DailyNutritionLog> _logs = <String, DailyNutritionLog>{};
   NutritionGoalModel _goal = const NutritionGoalModel();
   List<NutritionEntry> _templates = <NutritionEntry>[];
+  String _waterUnitPreference = 'oz';
 
   DateTime get selectedDate => _selectedDate;
   String get selectedDateKey => DateFormat('yyyy-MM-dd').format(_selectedDate);
@@ -26,11 +27,14 @@ class NutritionProvider extends ChangeNotifier {
   List<NutritionEntry> get templates => List.unmodifiable(_templates);
   Map<String, DailyNutritionLog> get allLogs => Map.unmodifiable(_logs);
   StorageService get storage => _storage;
+  String get waterUnitPreference => _waterUnitPreference;
+  bool get isWaterUnitMl => _waterUnitPreference == 'ml';
 
   void _loadData() {
     _logs = _storage.loadDailyNutritionLogs();
     _goal = _storage.loadNutritionGoal();
     _templates = _storage.loadMealTemplates();
+    _waterUnitPreference = _storage.loadWaterUnitPreference();
 
     if (_templates.isEmpty) {
       // Seed default quick templates for lifters
@@ -245,6 +249,19 @@ class NutritionProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> setWaterUnitPreference(String unit) async {
+    if (unit != 'oz' && unit != 'ml') {
+      return;
+    }
+    _waterUnitPreference = unit;
+    await _storage.saveWaterUnitPreference(unit);
+    notifyListeners();
+  }
+
+  Future<void> toggleWaterUnit() async {
+    await setWaterUnitPreference(_waterUnitPreference == 'oz' ? 'ml' : 'oz');
+  }
+
   Future<void> addWater(double oz) async {
     final String key = selectedDateKey;
     final DailyNutritionLog current = getDayLog(key);
@@ -253,6 +270,24 @@ class NutritionProvider extends ChangeNotifier {
     );
     await _storage.saveDailyNutritionLogs(_logs);
     notifyListeners();
+  }
+
+  Future<void> addWaterMl(double ml) async {
+    await addWater(DailyNutritionLog.mlToOz(ml));
+  }
+
+  Future<void> setWaterOz(double oz) async {
+    final String key = selectedDateKey;
+    final DailyNutritionLog current = getDayLog(key);
+    _logs[key] = current.copyWith(
+      waterOz: oz.clamp(0.0, 400.0),
+    );
+    await _storage.saveDailyNutritionLogs(_logs);
+    notifyListeners();
+  }
+
+  Future<void> setWaterMl(double ml) async {
+    await setWaterOz(DailyNutritionLog.mlToOz(ml));
   }
 
   Future<void> toggleTrainingDay(

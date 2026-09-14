@@ -73,6 +73,39 @@ void main() {
       final DailyNutritionLog log = nutritionProvider.currentDayLog;
       expect(log.totalCalories, equals(300));
       expect(log.waterOz, equals(16.0));
+      expect(log.waterMl, closeTo(473.18, 0.1));
+    });
+
+    test('Flexible water logging in mL and oz (including 739 mL notification dose)', () async {
+      expect(nutritionProvider.waterUnitPreference, equals('oz'));
+      expect(nutritionProvider.isWaterUnitMl, isFalse);
+
+      // Toggle unit preference
+      await nutritionProvider.toggleWaterUnit();
+      expect(nutritionProvider.waterUnitPreference, equals('ml'));
+      expect(nutritionProvider.isWaterUnitMl, isTrue);
+
+      // Add exact 739 mL
+      await nutritionProvider.addWaterMl(739);
+      DailyNutritionLog log = nutritionProvider.currentDayLog;
+      expect(log.waterMl, closeTo(739.0, 0.01));
+      expect(log.waterOz, closeTo(24.988, 0.01));
+
+      // Add another 250 mL
+      await nutritionProvider.addWaterMl(250);
+      log = nutritionProvider.currentDayLog;
+      expect(log.waterMl, closeTo(989.0, 0.01));
+
+      // Directly set total to 2000 mL
+      await nutritionProvider.setWaterMl(2000);
+      log = nutritionProvider.currentDayLog;
+      expect(log.waterMl, closeTo(2000.0, 0.01));
+
+      // Directly set total to 64 oz
+      await nutritionProvider.setWaterOz(64);
+      log = nutritionProvider.currentDayLog;
+      expect(log.waterOz, equals(64.0));
+      expect(log.waterMl, closeTo(1892.7, 0.1));
     });
 
     test('Deletes and restores food entry correctly (Undo)', () async {
