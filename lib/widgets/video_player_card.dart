@@ -271,8 +271,7 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
     }
 
     if (!launched) {
-      final String query =
-          '${widget.exercise.name} Catalyst Athletics weightlifting tutorial';
+      final String query = widget.exercise.name.trim();
       final Uri searchUri = Uri.parse(
         'https://www.youtube.com/results?search_query=${Uri.encodeComponent(query)}',
       );

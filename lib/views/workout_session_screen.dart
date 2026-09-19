@@ -412,8 +412,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
   }
 
   Future<void> _launchExerciseVideo(String exerciseName) async {
-    final String query =
-        '$exerciseName Catalyst Athletics weightlifting tutorial';
+    final String query = exerciseName.trim();
     final Uri searchUri = Uri.parse(
       'https://www.youtube.com/results?search_query=${Uri.encodeComponent(query)}',
     );

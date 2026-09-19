@@ -159,5 +159,34 @@ void main() {
       expect(program.isMobilityTrack, isTrue);
       expect(program.days.length, equals(7));
     });
+
+    test('YouTube search URLs query strictly the movement name without extra tutorial strings', () {
+      final List<MobilityExerciseModel> exercises =
+          MobilityExerciseModel.defaultExercises();
+
+      // Check exercises with generated YouTube search URLs
+      final MobilityExerciseModel ergRow =
+          exercises.firstWhere((e) => e.id == 'zone2_cardio_row');
+      expect(ergRow.videoUrl, equals('https://www.youtube.com/results?search_query=${Uri.encodeComponent('Concept2 Ergometer Rowing')}'));
+
+      final MobilityExerciseModel cindy =
+          exercises.firstWhere((e) => e.id == 'cindy_wod');
+      expect(cindy.videoUrl, equals('https://www.youtube.com/results?search_query=${Uri.encodeComponent('Crossfit Cindy')}'));
+
+      final MobilityExerciseModel cableCurl =
+          exercises.firstWhere((e) => e.id == 'bayesian_cable_curl');
+      expect(cableCurl.videoUrl, equals('https://www.youtube.com/results?search_query=${Uri.encodeComponent('Bayesian Cable Curl')}'));
+
+      // Ensure no exercise search query contains Catalyst Athletics or weightlifting tutorial
+      for (final MobilityExerciseModel ex in exercises) {
+        expect(ex.videoUrl.contains('Catalyst+Athletics'), isFalse,
+            reason: 'Exercise ${ex.name} should not append Catalyst Athletics');
+        expect(ex.videoUrl.contains('weightlifting+tutorial'), isFalse,
+            reason: 'Exercise ${ex.name} should not append weightlifting tutorial');
+        expect(ex.videoUrl.contains('exercise+tutorial'), isFalse,
+            reason: 'Exercise ${ex.name} should not append exercise tutorial');
+      }
+    });
   });
 }
+

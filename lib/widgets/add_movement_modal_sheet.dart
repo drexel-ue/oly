@@ -1181,13 +1181,13 @@ class _AddMovementModalSheetState extends State<AddMovementModalSheet> {
                     const SizedBox(height: 10),
                     _buildProtocolCard(
                       title: 'Technique & Video Tutorial',
-                      desc: 'Watch the official video demonstration from Catalyst Athletics for movement standards and cues.',
+                      desc: 'Watch the video demonstration for movement standards and cues.',
                       icon: Icons.play_circle_outline,
                     ),
                     const SizedBox(height: 12),
                     OutlinedButton.icon(
                       onPressed: () async {
-                        final String query = '$name Catalyst Athletics weightlifting tutorial';
+                        final String query = name.trim();
                         final Uri uri = Uri.parse('https://www.youtube.com/results?search_query=${Uri.encodeComponent(query)}');
                         try {
                           if (await canLaunchUrl(uri)) {
@@ -1978,7 +1978,7 @@ class _AddMovementModalSheetState extends State<AddMovementModalSheet> {
                         const SizedBox(height: 12),
                         OutlinedButton.icon(
                           onPressed: () async {
-                            final String query = '${exercise.name} exercise tutorial';
+                            final String query = exercise.name.trim();
                             final Uri uri = Uri.parse(
                               'https://www.youtube.com/results?search_query=${Uri.encodeComponent(query)}',
                             );
