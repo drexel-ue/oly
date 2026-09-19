@@ -9,6 +9,7 @@ import 'package:oly/models/program_model.dart';
 import 'package:oly/providers/active_session_provider.dart';
 import 'package:oly/providers/body_comp_provider.dart';
 import 'package:oly/providers/breathing_provider.dart';
+import 'package:oly/providers/fasting_provider.dart';
 import 'package:oly/providers/injury_provider.dart';
 import 'package:oly/providers/lift_provider.dart';
 import 'package:oly/providers/nutrition_provider.dart';
@@ -215,6 +216,9 @@ void main() {
           ChangeNotifierProvider<NutritionProvider>(
             create: (_) => NutritionProvider(storage),
           ),
+          ChangeNotifierProvider<FastingProvider>(
+            create: (_) => FastingProvider(storage),
+          ),
           ChangeNotifierProvider<InjuryProvider>(
             create: (_) => InjuryProvider(storage),
           ),
@@ -357,22 +361,28 @@ void main() {
       await tester.pumpAndSettle();
 
       // Initially on Train (tab 0), direction is 0
-      final TabDirectionScope initialScope = tester.widget(find.byType(TabDirectionScope));
+      final TabDirectionScope initialScope = tester.widget(find.byType(TabDirectionScope).first);
       expect(initialScope.direction, equals(0));
 
       // Navigate Right: Train (0) -> Fuel (2)
       await tester.tap(find.byIcon(Icons.restaurant_outlined));
       await tester.pumpAndSettle();
 
-      final TabDirectionScope rightScope = tester.widget(find.byType(TabDirectionScope));
+      final TabDirectionScope rightScope = tester.widget(find.byType(TabDirectionScope).first);
       expect(rightScope.direction, equals(1));
       expect(rightScope.horizontalOffset, equals(50.0)); // 38 + (2-1)*12 = 50
+
+      // Inner Fuel screen scope inherits outer direction initially
+      final TabDirectionScope initialFuelScope =
+          tester.widget(find.byType(TabDirectionScope).last);
+      expect(initialFuelScope.direction, equals(1));
+      expect(initialFuelScope.horizontalOffset, equals(50.0));
 
       // Navigate Right: Fuel (2) -> Insights (3)
       await tester.tap(find.byIcon(Icons.insights_outlined));
       await tester.pumpAndSettle();
 
-      final TabDirectionScope rightHopScope = tester.widget(find.byType(TabDirectionScope));
+      final TabDirectionScope rightHopScope = tester.widget(find.byType(TabDirectionScope).first);
       expect(rightHopScope.direction, equals(1));
       expect(rightHopScope.horizontalOffset, equals(38.0)); // 38 + (1-1)*12 = 38
 
@@ -380,9 +390,64 @@ void main() {
       await tester.tap(find.byIcon(Icons.fitness_center_outlined));
       await tester.pumpAndSettle();
 
-      final TabDirectionScope leftLeapScope = tester.widget(find.byType(TabDirectionScope));
+      final TabDirectionScope leftLeapScope = tester.widget(find.byType(TabDirectionScope).first);
       expect(leftLeapScope.direction, equals(-1));
       expect(leftLeapScope.horizontalOffset, equals(62.0)); // 38 + (3-1)*12 = 62
+    });
+
+    testWidgets('Fuel screen updates inner TabDirectionScope when switching between internal tabs', (
+      tester,
+    ) async {
+      await tester.pumpWidget(createTestApp());
+      await tester.pumpAndSettle();
+
+      // Navigate from Insights (3) -> Fuel (2) so outer direction is -1
+      await tester.tap(find.descendant(
+        of: find.byType(BottomNavigationBar),
+        matching: find.byIcon(Icons.insights_outlined),
+      ));
+      await tester.pumpAndSettle();
+      await tester.tap(find.descendant(
+        of: find.byType(BottomNavigationBar),
+        matching: find.byIcon(Icons.restaurant_outlined),
+      ));
+      await tester.pumpAndSettle();
+
+      // Initially on Fuel, outer direction is -1, and inner scope inherits it
+      final TabDirectionScope outerScope =
+          tester.widget(find.byType(TabDirectionScope).first);
+      expect(outerScope.direction, equals(-1));
+      final TabDirectionScope initialInnerScope =
+          tester.widget(find.byType(TabDirectionScope).last);
+      expect(initialInnerScope.direction, equals(-1));
+
+      // Switch inner tab to Fasting (tab 0 -> tab 2, moving right, direction +1)
+      await tester.tap(find.text('Fasting'));
+      await tester.pumpAndSettle();
+
+      // Outer scope remains -1, but inner scope is now +1 (following tab navigation direction)
+      final TabDirectionScope fastingInnerScope =
+          tester.widget(find.byType(TabDirectionScope).last);
+      expect(fastingInnerScope.direction, equals(1));
+      expect(fastingInnerScope.horizontalOffset, equals(50.0));
+
+      // Switch inner tab back to Energy In vs Out (tab 2 -> tab 0, moving left, direction -1)
+      await tester.tap(find.text('Energy In vs Out'));
+      await tester.pumpAndSettle();
+
+      final TabDirectionScope energyInnerScope =
+          tester.widget(find.byType(TabDirectionScope).last);
+      expect(energyInnerScope.direction, equals(-1));
+      expect(energyInnerScope.horizontalOffset, equals(50.0));
+
+      // Switch inner tab to Macro Targets (tab 0 -> tab 1, moving right, direction +1)
+      await tester.tap(find.text('Macro Targets'));
+      await tester.pumpAndSettle();
+
+      final TabDirectionScope macroInnerScope =
+          tester.widget(find.byType(TabDirectionScope).last);
+      expect(macroInnerScope.direction, equals(1));
+      expect(macroInnerScope.horizontalOffset, equals(38.0));
     });
 
     testWidgets('AnalyticsScreen renders cascading OlyEntryReveal animated cards', (

@@ -37,6 +37,30 @@ class NutritionDashboardScreen extends StatefulWidget {
 class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
   int _selectedViewIndex =
       0; // 0 = Energy Balance (In vs Out), 1 = Macro Targets (P/C/F)
+  int? _tabDirection;
+  double _horizontalVelocity = 38;
+  int? _lastAmbientDirection;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final TabDirectionScope? ambientScope = TabDirectionScope.of(context);
+    final int? currentAmbientDirection = ambientScope?.direction;
+    if (currentAmbientDirection != _lastAmbientDirection) {
+      _lastAmbientDirection = currentAmbientDirection;
+      _tabDirection = null; // Reset to inherit new outer navigation direction
+    }
+  }
+
+  void _selectView(int newIndex) {
+    if (newIndex == _selectedViewIndex) return;
+    setState(() {
+      final int distance = (newIndex - _selectedViewIndex).abs();
+      _tabDirection = newIndex > _selectedViewIndex ? 1 : -1;
+      _horizontalVelocity = 38.0 + (distance - 1).clamp(0, 2) * 12.0;
+      _selectedViewIndex = newIndex;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -52,6 +76,13 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
       nutrition.selectedDateKey,
       latestBodyComp: bodyComp.latestEntry,
     );
+
+    final TabDirectionScope? ambientScope = TabDirectionScope.of(context);
+    final int effectiveDirection =
+        _tabDirection ?? (ambientScope?.direction ?? 0);
+    final double effectiveVelocity = _tabDirection != null
+        ? _horizontalVelocity
+        : (ambientScope?.horizontalOffset ?? 38.0);
 
     return Scaffold(
       backgroundColor: AppTheme.darkBackground,
@@ -125,127 +156,147 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
       ),
       body: SafeArea(
         bottom: false,
-        child: SingleChildScrollView(
-          padding: EdgeInsets.fromLTRB(
-            16,
-            12,
-            16,
-            MediaQuery.paddingOf(context).bottom + 16,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              // Date Switcher Bar
-              _buildDateSwitcher(context, nutrition),
-              const SizedBox(height: 12),
-
-              // View Selector Segment (Energy Balance vs Macro Targets vs Guided Fasting)
-              _buildViewSelector(fasting),
-              const SizedBox(height: 12),
-
-              // Active Fasting Glance Banner (when outside fasting view)
-              if (_selectedViewIndex != 2 && (fasting?.isFastingActive ?? false)) ...<Widget>[
-                FastingActiveCard(
-                  session: fasting!.activeSession!,
-                  onTap: () => setState(() => _selectedViewIndex = 2),
-                ),
+        child: TabDirectionScope(
+          direction: effectiveDirection,
+          horizontalOffset: effectiveVelocity,
+          child: SingleChildScrollView(
+            padding: EdgeInsets.fromLTRB(
+              16,
+              12,
+              16,
+              MediaQuery.paddingOf(context).bottom + 16,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                // Date Switcher Bar
+                _buildDateSwitcher(context, nutrition),
                 const SizedBox(height: 12),
-              ],
 
-              // View Routing
-              if (_selectedViewIndex == 2)
-                const FastingDashboardView()
-              else ...<Widget>[
-                // Hero View (Energy Balance or Macro Ring)
-                OlyEntryReveal(
-                  child: _selectedViewIndex == 0
-                      ? EnergyBalanceCard(
-                          log: currentLog,
-                          latestBodyComp: bodyComp.latestEntry,
-                          goal: nutrition.goal,
-                          onLogActivityTap: () => _openActivityLogSheet(context),
-                        )
-                      : MacroRingCard(
-                          log: currentLog,
-                          onToggleTrainingDay: () {
-                            nutrition.toggleTrainingDay(
-                              !currentLog.isTrainingDay,
-                              latestBodyComp: bodyComp.latestEntry,
-                            );
-                          },
+                // View Selector Segment (Energy Balance vs Macro Targets vs Guided Fasting)
+                _buildViewSelector(fasting),
+                const SizedBox(height: 12),
+
+                // Active Fasting Glance Banner (when outside fasting view)
+                if (_selectedViewIndex != 2 && (fasting?.isFastingActive ?? false)) ...<Widget>[
+                  FastingActiveCard(
+                    session: fasting!.activeSession!,
+                    onTap: () => _selectView(2),
+                  ),
+                  const SizedBox(height: 12),
+                ],
+
+                // View Routing
+                if (_selectedViewIndex == 2)
+                  const FastingDashboardView(key: ValueKey<int>(2))
+                else
+                  KeyedSubtree(
+                    key: ValueKey<int>(_selectedViewIndex),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        // Hero View (Energy Balance or Macro Ring)
+                        OlyEntryReveal(
+                          child: _selectedViewIndex == 0
+                            ? EnergyBalanceCard(
+                                log: currentLog,
+                                latestBodyComp: bodyComp.latestEntry,
+                                goal: nutrition.goal,
+                                onLogActivityTap: () => _openActivityLogSheet(context),
+                              )
+                            : MacroRingCard(
+                                log: currentLog,
+                                onToggleTrainingDay: () {
+                                  nutrition.toggleTrainingDay(
+                                    !currentLog.isTrainingDay,
+                                    latestBodyComp: bodyComp.latestEntry,
+                                  );
+                                },
+                              ),
                         ),
-                ),
 
-                const SizedBox(height: 14),
+                        const SizedBox(height: 14),
 
-                // Renpho Biometrics Glance Card
-                OlyEntryReveal(
-                  index: 1,
-                  child: _buildRenphoGlanceCard(context, bodyComp),
-                ),
-                const SizedBox(height: 14),
-
-                // Water Tracker Strip
-                OlyEntryReveal(
-                  index: 2,
-                  child: _buildWaterTracker(context, nutrition, currentLog),
-                ),
-                const SizedBox(height: 16),
-
-                // Daily Activities & Workout Energy Section
-                OlyEntryReveal(
-                  index: 3,
-                  child: _buildActivitiesSection(context, nutrition, currentLog, bodyComp),
-                ),
-                const SizedBox(height: 16),
-
-                // Meal Category Sections
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    Text(
-                      'DAILY MEALS & FOOD LOG',
-                      style: GoogleFonts.inter(
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1,
-                        color: AppTheme.textSecondary,
-                      ),
-                    ),
-                    TextButton.icon(
-                      onPressed: () =>
-                          _openFoodSearchSheet(context, MealCategory.lunch),
-                      icon: const Icon(
-                        Icons.search,
-                        size: 14,
-                        color: AppTheme.primaryAmber,
-                      ),
-                      label: Text(
-                        'Search / Barcode',
-                        style: GoogleFonts.inter(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.primaryAmber,
+                        // Renpho Biometrics Glance Card
+                        OlyEntryReveal(
+                          index: 1,
+                          child: _buildRenphoGlanceCard(context, bodyComp),
                         ),
-                      ),
+                        const SizedBox(height: 14),
+
+                        // Water Tracker Strip
+                        OlyEntryReveal(
+                          index: 2,
+                          child: _buildWaterTracker(context, nutrition, currentLog),
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Daily Activities & Workout Energy Section
+                        OlyEntryReveal(
+                          index: 3,
+                          child: _buildActivitiesSection(context, nutrition, currentLog, bodyComp),
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Meal Category Sections
+                        OlyEntryReveal(
+                          index: 4,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: <Widget>[
+                              Text(
+                                'DAILY MEALS & FOOD LOG',
+                                style: GoogleFonts.inter(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 1,
+                                  color: AppTheme.textSecondary,
+                                ),
+                              ),
+                              TextButton.icon(
+                                onPressed: () =>
+                                    _openFoodSearchSheet(context, MealCategory.lunch),
+                                icon: const Icon(
+                                  Icons.search,
+                                  size: 14,
+                                  color: AppTheme.primaryAmber,
+                                ),
+                                label: Text(
+                                  'Search / Barcode',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppTheme.primaryAmber,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+
+                        ...MealCategory.values.indexed.map((record) {
+                          final int idx = record.$1;
+                          final MealCategory category = record.$2;
+                          return OlyEntryReveal(
+                            index: (idx + 5).clamp(0, 10),
+                            child: _buildMealCategorySection(
+                              context,
+                              nutrition,
+                              currentLog,
+                              category,
+                              bodyComp,
+                            ),
+                          );
+                        }),
+                      ],
                     ),
-                  ],
-                ),
-                const SizedBox(height: 8),
+                  ),
 
-                ...MealCategory.values.map((category) {
-                  return _buildMealCategorySection(
-                    context,
-                    nutrition,
-                    currentLog,
-                    category,
-                    bodyComp,
-                  );
-                }),
+                const SizedBox(height: 80), // Padding for FAB
               ],
-
-              const SizedBox(height: 80), // Padding for FAB
-            ],
+            ),
           ),
         ),
       ),
@@ -283,7 +334,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
           // 0: Energy Balance
           Expanded(
             child: InkWell(
-              onTap: () => setState(() => _selectedViewIndex = 0),
+              onTap: () => _selectView(0),
               borderRadius: const BorderRadius.horizontal(
                 left: Radius.circular(12),
               ),
@@ -331,7 +382,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
           // 1: Macro Targets
           Expanded(
             child: InkWell(
-              onTap: () => setState(() => _selectedViewIndex = 1),
+              onTap: () => _selectView(1),
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 decoration: BoxDecoration(
@@ -373,7 +424,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
           // 2: Guided Fasting
           Expanded(
             child: InkWell(
-              onTap: () => setState(() => _selectedViewIndex = 2),
+              onTap: () => _selectView(2),
               borderRadius: const BorderRadius.horizontal(
                 right: Radius.circular(12),
               ),
