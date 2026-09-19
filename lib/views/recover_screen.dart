@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:oly/models/breathing_session_model.dart';
 import 'package:oly/models/grip_hang_model.dart';
+import 'package:oly/models/illness_model.dart';
 import 'package:oly/models/injury_model.dart';
 import 'package:oly/providers/breathing_provider.dart';
 import 'package:oly/providers/grip_hang_provider.dart';
+import 'package:oly/providers/illness_provider.dart';
 import 'package:oly/providers/injury_provider.dart';
 import 'package:oly/providers/lift_provider.dart';
 import 'package:oly/providers/program_provider.dart';
@@ -15,8 +17,10 @@ import 'package:oly/views/breathing/wim_hof_setup_sheet.dart';
 import 'package:oly/views/grip/dynamometer_entry_sheet.dart';
 import 'package:oly/views/injury_tracker_screen.dart';
 import 'package:oly/views/recovery_session_screen.dart';
+import 'package:oly/widgets/illness_checkin_sheet.dart';
 import 'package:oly/widgets/motion/oly_entry_reveal.dart';
 import 'package:oly/widgets/motion/oly_pressable.dart';
+import 'package:oly/widgets/sickness_shield_banner.dart';
 import 'package:provider/provider.dart';
 
 /// The dedicated RECOVER domain view for physiological readiness,
@@ -35,6 +39,10 @@ class RecoverScreen extends StatelessWidget {
     } catch (_) {}
     final LiftProvider lifts = Provider.of<LiftProvider>(context);
     final ProgramProvider program = Provider.of<ProgramProvider>(context);
+    IllnessProvider? illness;
+    try {
+      illness = Provider.of<IllnessProvider>(context);
+    } catch (_) {}
 
     final List<InjuryRecord> activeInjuries = injuries.activeInjuries;
     final WimHofConfig breathConfig = breathing.config;
@@ -47,15 +55,19 @@ class RecoverScreen extends StatelessWidget {
       lastSession: program.sessions.isNotEmpty ? program.sessions.first : null,
     );
 
-    // Compute holistic readiness (100 base minus fatigue and injury severity)
+    // Compute holistic readiness (100 base minus fatigue, injury severity, and systemic illness)
     int readinessScore = 95;
     if (activeInjuries.isNotEmpty) {
       final int injuryDeduction = activeInjuries.fold<int>(
         0,
         (sum, i) => sum + (i.painScale * 4),
       );
-      readinessScore = (readinessScore - injuryDeduction).clamp(30, 100);
+      readinessScore -= injuryDeduction;
     }
+    if (illness != null) {
+      readinessScore -= illness.effectiveReadinessDeduction;
+    }
+    readinessScore = readinessScore.clamp(15, 100);
 
     final Color readinessColor = readinessScore >= 85
         ? AppTheme.successGreen
@@ -101,6 +113,25 @@ class RecoverScreen extends StatelessWidget {
               );
             },
           ),
+          IconButton(
+            icon: Icon(
+              Icons.sick_outlined,
+              color: illness != null && illness.hasActiveIllness
+                  ? Colors.redAccent
+                  : (illness != null && illness.isConvalescing
+                      ? AppTheme.secondaryCyan
+                      : AppTheme.primaryAmber),
+            ),
+            tooltip: 'Sickness Check-In',
+            onPressed: () => IllnessCheckInSheet.show(
+              context,
+              existingRecord: illness?.hasActiveIllness == true
+                  ? illness?.activeRecord
+                  : (illness?.isConvalescing == true
+                      ? illness?.convalescingRecord
+                      : null),
+            ),
+          ),
           if (grip != null)
             IconButton(
               icon: const Icon(
@@ -138,6 +169,15 @@ class RecoverScreen extends StatelessWidget {
             MediaQuery.paddingOf(context).bottom + 16,
           ),
           children: <Widget>[
+            // Sickness Shield Banner if illness or re-entry ramp is active
+            if (illness != null &&
+                (illness.hasActiveIllness || illness.isConvalescing)) ...<Widget>[
+              const OlyEntryReveal(
+                child: SicknessShieldBanner(),
+              ),
+              const SizedBox(height: 16),
+            ],
+
             // 1. Holistic Daily Readiness Score Card
             OlyEntryReveal(
               child: _buildReadinessCard(
@@ -146,6 +186,7 @@ class RecoverScreen extends StatelessWidget {
                 readinessColor,
                 activeInjuries,
                 todayBreathingRounds,
+                illness: illness,
               ),
             ),
             const SizedBox(height: 16),
@@ -174,6 +215,8 @@ class RecoverScreen extends StatelessWidget {
                 breathConfig,
                 todayBreathingRounds,
                 bestRetentionSecs,
+                isWimHofContraindicated:
+                    illness != null && illness.isWimHofContraindicated,
               ),
             ),
             const SizedBox(height: 16),
@@ -195,17 +238,31 @@ class RecoverScreen extends StatelessWidget {
     int score,
     Color color,
     List<InjuryRecord> injuries,
-    int breathingRounds,
-  ) {
-    final String statusLabel = score >= 85
+    int breathingRounds, {
+    IllnessProvider? illness,
+  }) {
+    String statusLabel = score >= 85
         ? 'OPTIMAL STATE'
         : (score >= 65 ? 'MODERATE FATIGUE' : 'REST & RECHARGE');
 
-    final String recommendation = score >= 85
+    String recommendation = score >= 85
         ? 'CNS and joint health cleared for peak load training today.'
         : (injuries.isNotEmpty
             ? '${injuries.length} active strain flag${injuries.length > 1 ? 's' : ''} logged. Prioritize pre-lift mobilization.'
             : 'Slight fatigue detected. Engage dynamic warmup and post-session down-regulation.');
+
+    if (illness != null && illness.hasActiveIllness) {
+      final IllnessRecord record = illness.activeRecord!;
+      final bool isSevere =
+          record.hasFever || record.severity != IllnessSeverity.mildAboveNeck;
+      statusLabel = isSevere ? 'SYSTEMIC ILLNESS • REST' : 'HEAD COLD • DELOAD';
+      recommendation = record.severity.clinicalGuidance;
+    } else if (illness != null && illness.isConvalescing) {
+      final IllnessRecord record = illness.convalescingRecord!;
+      statusLabel =
+          'RE-ENTRY (${record.reEntryStage.shortLabel.toUpperCase()})';
+      recommendation = record.reEntryStage.prescription;
+    }
 
     return Container(
       padding: const EdgeInsets.all(18),
@@ -506,8 +563,9 @@ class RecoverScreen extends StatelessWidget {
     BuildContext context,
     WimHofConfig config,
     int todayRounds,
-    int bestRetentionSecs,
-  ) {
+    int bestRetentionSecs, {
+    bool isWimHofContraindicated = false,
+  }) {
     final String bestRetentionFormatted =
         '${bestRetentionSecs ~/ 60}m ${(bestRetentionSecs % 60).toString().padLeft(2, '0')}s';
 
@@ -601,6 +659,39 @@ class RecoverScreen extends StatelessWidget {
               color: AppTheme.textSecondary,
             ),
           ),
+          if (isWimHofContraindicated) ...<Widget>[
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.redAccent.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: Colors.redAccent.withValues(alpha: 0.35),
+                ),
+              ),
+              child: Row(
+                children: <Widget>[
+                  const Icon(
+                    Icons.warning_amber_rounded,
+                    color: Colors.redAccent,
+                    size: 16,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Precaution: Hyperventilation contraindicated with fever or deep respiratory illness. Consider gentle 4-7-8 parasympathetic cadence.',
+                      style: GoogleFonts.outfit(
+                        fontSize: 11,
+                        color: Colors.redAccent,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
           const SizedBox(height: 16),
           Row(
             children: <Widget>[

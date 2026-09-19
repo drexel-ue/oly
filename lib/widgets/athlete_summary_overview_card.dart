@@ -5,6 +5,7 @@ import 'package:oly/models/injury_model.dart';
 import 'package:oly/models/program_model.dart';
 import 'package:oly/models/workout_session.dart';
 import 'package:oly/providers/breathing_provider.dart';
+import 'package:oly/providers/illness_provider.dart';
 import 'package:oly/providers/injury_provider.dart';
 import 'package:oly/providers/lift_provider.dart';
 import 'package:oly/providers/nutrition_provider.dart';
@@ -18,6 +19,7 @@ import 'package:oly/widgets/motion/glass_container.dart';
 import 'package:oly/widgets/motion/oly_pressable.dart';
 import 'package:oly/widgets/motion/pulsing_glow.dart';
 import 'package:oly/widgets/plate_modal.dart';
+import 'package:oly/widgets/sickness_shield_banner.dart';
 import 'package:provider/provider.dart';
 
 /// The high-level Athlete Daily Briefing / Summary Overview Card that sits
@@ -41,18 +43,26 @@ class AthleteSummaryOverviewCard extends StatelessWidget {
     final BreathingProvider breathing = Provider.of<BreathingProvider>(context);
     final LiftProvider lifts = Provider.of<LiftProvider>(context);
     final SettingsProvider settings = Provider.of<SettingsProvider>(context);
+    IllnessProvider? illness;
+    try {
+      illness = Provider.of<IllnessProvider>(context);
+    } catch (_) {}
 
     final List<InjuryRecord> activeInjuries = injuries.activeInjuries;
 
-    // Calculate holistic readiness
+    // Calculate holistic readiness factoring in both active orthopedic injuries and systemic illness
     int readinessScore = 95;
     if (activeInjuries.isNotEmpty) {
       final int deduction = activeInjuries.fold<int>(
         0,
         (sum, i) => sum + (i.painScale * 4),
       );
-      readinessScore = (readinessScore - deduction).clamp(35, 100);
+      readinessScore -= deduction;
     }
+    if (illness != null) {
+      readinessScore -= illness.effectiveReadinessDeduction;
+    }
+    readinessScore = readinessScore.clamp(15, 100);
 
     final Color readinessColor = readinessScore >= 85
         ? AppTheme.successGreen
@@ -172,6 +182,14 @@ class AthleteSummaryOverviewCard extends StatelessWidget {
             ),
 
             const Divider(height: 1, color: AppTheme.borderColor),
+
+            // Sickness Shield Banner if illness or re-entry ramp is active
+            if (illness != null &&
+                (illness.hasActiveIllness || illness.isConvalescing))
+              const Padding(
+                padding: EdgeInsets.fromLTRB(18, 14, 18, 2),
+                child: SicknessShieldBanner(),
+              ),
 
           // Main Training Mission Content
           Padding(

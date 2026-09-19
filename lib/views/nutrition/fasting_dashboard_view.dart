@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:oly/models/fasting_biomarker_entry.dart';
 import 'package:oly/models/fasting_session_model.dart';
 import 'package:oly/providers/fasting_provider.dart';
+import 'package:oly/providers/illness_provider.dart';
 import 'package:oly/providers/nutrition_provider.dart';
 import 'package:oly/theme/app_theme.dart';
 import 'package:oly/views/nutrition/fasting_biomarker_history_sheet.dart';
@@ -30,6 +31,10 @@ class FastingDashboardView extends StatelessWidget {
     final FastingProvider fasting = Provider.of<FastingProvider>(context);
     final NutritionProvider? nutrition =
         Provider.of<NutritionProvider?>(context);
+    IllnessProvider? illness;
+    try {
+      illness = Provider.of<IllnessProvider>(context);
+    } catch (_) {}
     final FastingSession? active = fasting.activeSession;
 
     if (nutrition != null) {
@@ -52,13 +57,17 @@ class FastingDashboardView extends StatelessWidget {
     }
 
     if (active == null) {
-      return _buildInactiveView(context, fasting);
+      return _buildInactiveView(context, fasting, illness);
     }
 
-    return _buildActiveView(context, fasting, active, nutrition);
+    return _buildActiveView(context, fasting, active, nutrition, illness);
   }
 
-  Widget _buildInactiveView(BuildContext context, FastingProvider fasting) {
+  Widget _buildInactiveView(
+    BuildContext context,
+    FastingProvider fasting,
+    IllnessProvider? illness,
+  ) {
     final List<FastingSession> history = fasting.history;
 
     return Column(
@@ -108,6 +117,39 @@ class FastingDashboardView extends StatelessWidget {
                     color: AppTheme.textSecondary,
                   ),
                 ),
+                if (illness != null && illness.isFastingContraindicated) ...<Widget>[
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.redAccent.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: Colors.redAccent.withValues(alpha: 0.4),
+                      ),
+                    ),
+                    child: Row(
+                      children: <Widget>[
+                        const Icon(
+                          Icons.warning_amber_rounded,
+                          color: Colors.redAccent,
+                          size: 16,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Active systemic infection/fever: Fasting contraindicated. Prioritize immune recovery.',
+                            style: GoogleFonts.outfit(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.redAccent,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 18),
                 SizedBox(
                   width: double.infinity,
@@ -181,13 +223,90 @@ class FastingDashboardView extends StatelessWidget {
   }
 
   Widget _buildActiveView(
-      BuildContext context,
-      FastingProvider fasting,
-      FastingSession session,
-      NutritionProvider? nutrition) {
+    BuildContext context,
+    FastingProvider fasting,
+    FastingSession session,
+    NutritionProvider? nutrition,
+    IllnessProvider? illness,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
+        // Systemic Illness Fasting Precaution Banner
+        if (illness != null && illness.isFastingContraindicated) ...<Widget>[
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(14),
+            margin: const EdgeInsets.only(bottom: 16),
+            decoration: BoxDecoration(
+              color: Colors.redAccent.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: Colors.redAccent.withValues(alpha: 0.5),
+                width: 1.2,
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Row(
+                  children: <Widget>[
+                    const Icon(
+                      Icons.warning_amber_rounded,
+                      color: Colors.redAccent,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'IMMUNE ADVISORY: FASTING CONTRAINDICATED',
+                      style: GoogleFonts.outfit(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.redAccent,
+                        letterSpacing: 0.6,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Your immune system requires glucose, amino acids, and minerals to mount an effective defense against systemic infection. Prolonged fasting during acute illness or fever is contraindicated.',
+                  style: GoogleFonts.outfit(
+                    fontSize: 12,
+                    color: AppTheme.textPrimary,
+                    height: 1.3,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.redAccent,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 8,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    onPressed: () => _confirmCancelFast(context, fasting),
+                    child: Text(
+                      'Safely Break Fast for Recovery',
+                      style: GoogleFonts.outfit(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+
         // Hero Radial Dial
         OlyEntryReveal(
           child: FastingRadialGauge(session: session, size: 260),

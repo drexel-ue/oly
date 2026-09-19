@@ -12,6 +12,7 @@ import 'package:oly/providers/c25k_provider.dart';
 import 'package:oly/providers/fasting_provider.dart';
 import 'package:oly/providers/goal_provider.dart';
 import 'package:oly/providers/grip_hang_provider.dart';
+import 'package:oly/providers/illness_provider.dart';
 import 'package:oly/providers/injury_provider.dart';
 import 'package:oly/providers/lift_provider.dart';
 import 'package:oly/providers/nutrition_provider.dart';
@@ -110,6 +111,9 @@ void main() async {
         ),
         ChangeNotifierProvider<InjuryProvider>(
           create: (_) => InjuryProvider(storageService),
+        ),
+        ChangeNotifierProvider<IllnessProvider>(
+          create: (_) => IllnessProvider(storageService),
         ),
         ChangeNotifierProvider<BreathingProvider>(
           create: (_) => BreathingProvider(storageService),

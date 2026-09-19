@@ -17,6 +17,7 @@ import 'package:oly/models/goal_model.dart';
 import 'package:oly/models/grace_workout_log.dart';
 import 'package:oly/models/grip_hang_model.dart';
 import 'package:oly/models/helen_workout_log.dart';
+import 'package:oly/models/illness_model.dart';
 import 'package:oly/models/injury_model.dart';
 import 'package:oly/models/jackie_workout_log.dart';
 import 'package:oly/models/kettlebell_mile_log.dart';
@@ -73,6 +74,7 @@ class StorageService {
   static const String _keyC25kSessionLogs = 'oly_c25k_session_logs_v1';
   static const String _keyC25kCurrentProgress = 'oly_c25k_current_progress_v1';
   static const String _keyWaterUnitPreference = 'oly_water_unit_preference_v1';
+  static const String _keyIllnessRecords = 'oly_illness_records_v1';
 
   final SharedPreferences _prefs;
 
@@ -1260,6 +1262,29 @@ class StorageService {
       injuries.map((e) => e.toJson()).toList(),
     );
     await _prefs.setString(_keyInjuries, jsonStr);
+  }
+
+  // --- ILLNESS / SICKNESS STORAGE ---
+  List<IllnessRecord> loadIllnessRecords() {
+    final String? jsonStr = _prefs.getString(_keyIllnessRecords);
+    if (jsonStr == null || jsonStr.isEmpty) {
+      return <IllnessRecord>[];
+    }
+    try {
+      final List<dynamic> list = jsonDecode(jsonStr) as List<dynamic>;
+      return list
+          .map((dynamic e) => IllnessRecord.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } catch (_) {
+      return <IllnessRecord>[];
+    }
+  }
+
+  Future<void> saveIllnessRecords(List<IllnessRecord> records) async {
+    final String jsonStr = jsonEncode(
+      records.map((e) => e.toJson()).toList(),
+    );
+    await _prefs.setString(_keyIllnessRecords, jsonStr);
   }
 
   // --- BREATHING / WIM HOF STORAGE ---

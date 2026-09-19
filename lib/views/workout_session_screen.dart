@@ -10,6 +10,7 @@ import 'package:oly/models/fasting_session_model.dart';
 import 'package:oly/models/fran_workout_log.dart';
 import 'package:oly/models/grace_workout_log.dart';
 import 'package:oly/models/helen_workout_log.dart';
+import 'package:oly/models/illness_model.dart';
 import 'package:oly/models/jackie_workout_log.dart';
 import 'package:oly/models/lift_model.dart';
 import 'package:oly/models/plate_calc.dart';
@@ -21,6 +22,7 @@ import 'package:oly/providers/body_comp_provider.dart';
 import 'package:oly/providers/c25k_provider.dart';
 import 'package:oly/providers/fasting_provider.dart';
 import 'package:oly/providers/grip_hang_provider.dart';
+import 'package:oly/providers/illness_provider.dart';
 import 'package:oly/providers/injury_provider.dart';
 import 'package:oly/providers/lift_provider.dart';
 import 'package:oly/providers/nutrition_provider.dart';
@@ -1040,6 +1042,10 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     try {
       c25kProvider = Provider.of<C25kProvider>(context);
     } catch (_) {}
+    IllnessProvider? illnessProvider;
+    try {
+      illnessProvider = Provider.of<IllnessProvider>(context);
+    } catch (_) {}
 
     final int week = widget.previewWeek ??
         widget.initialDraft?.weekNumber ??
@@ -1312,6 +1318,19 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
+                      // Active Sickness / Clinical Health Warning & Auto-Deload Banner
+                      if (illnessProvider != null &&
+                          (illnessProvider.hasActiveIllness ||
+                              illnessProvider.isConvalescing)) ...<Widget>[
+                        OlyEntryReveal(
+                          child: _buildIllnessWorkoutBanner(
+                            context,
+                            illnessProvider,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                      ],
+
                       // Active Fasting Training HUD & Safety Advisory
                       if (fastingProvider != null &&
                           fastingProvider.isFastingActive) ...<Widget>[
@@ -3181,6 +3200,209 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildIllnessWorkoutBanner(
+    BuildContext context,
+    IllnessProvider illnessProvider,
+  ) {
+    final IllnessRecord? record = illnessProvider.hasActiveIllness
+        ? illnessProvider.activeRecord
+        : illnessProvider.convalescingRecord;
+    if (record == null) return const SizedBox.shrink();
+
+    final bool isConvalescing = illnessProvider.isConvalescing;
+    final bool isSevere = !isConvalescing &&
+        (record.hasFever || record.severity != IllnessSeverity.mildAboveNeck);
+
+    final Color primaryColor = isConvalescing
+        ? AppTheme.secondaryCyan
+        : (isSevere ? Colors.redAccent : AppTheme.primaryAmber);
+
+    final IconData icon = isConvalescing
+        ? Icons.trending_up_rounded
+        : (isSevere ? Icons.warning_amber_rounded : Icons.sick_outlined);
+
+    final String title = isConvalescing
+        ? 'RETURN-TO-PLAY ACTIVE: ${record.reEntryStage.shortLabel.toUpperCase()}'
+        : (isSevere
+            ? 'CLINICAL HEALTH ALERT: SYSTEMIC ILLNESS'
+            : 'NECK RULE ACTIVE: HEAD COLD');
+
+    final String subtitle = isConvalescing
+        ? 'Target load cap: ${(record.suggestedLoadScale * 100).toInt()}%. Focus on movement quality & technique.'
+        : (isSevere
+            ? 'Exertion with systemic viral illness carries cardiac strain and prolonged recovery risks. Full rest is advised.'
+            : 'Mild above-the-neck symptoms. Auto-Deload (-30%) recommended. Avoid maximal ballistic complexes.');
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceCard,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: primaryColor.withValues(alpha: 0.6),
+          width: 1.2,
+        ),
+        boxShadow: <BoxShadow>[
+          BoxShadow(
+            color: primaryColor.withValues(alpha: 0.1),
+            blurRadius: 12,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: primaryColor.withValues(alpha: 0.18),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, color: primaryColor, size: 18),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      title,
+                      style: GoogleFonts.outfit(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.6,
+                        color: primaryColor,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: GoogleFonts.outfit(
+                        fontSize: 11,
+                        color: AppTheme.textSecondary,
+                        height: 1.25,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: <Widget>[
+              if (isSevere)
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.redAccent.withValues(alpha: 0.2),
+                    foregroundColor: Colors.redAccent,
+                    elevation: 0,
+                    side: const BorderSide(color: Colors.redAccent),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  onPressed: () async {
+                    await HapticFeedback.heavyImpact();
+                    if (!context.mounted) return;
+                    try {
+                      final ActiveSessionProvider activeSession =
+                          Provider.of<ActiveSessionProvider>(
+                        context,
+                        listen: false,
+                      );
+                      activeSession.endSession();
+                    } catch (_) {}
+                    if (!context.mounted) return;
+                    final ProgramProvider programProvider =
+                        Provider.of<ProgramProvider>(
+                      context,
+                      listen: false,
+                    );
+                    await programProvider.clearActiveDraft();
+                    if (context.mounted) {
+                      Navigator.pop(context);
+                    }
+                  },
+                  icon: const Icon(Icons.hotel_rounded, size: 16),
+                  label: Text(
+                    'Cancel & Take Sick Day',
+                    style: GoogleFonts.outfit(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                )
+              else
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: primaryColor.withValues(alpha: 0.2),
+                    foregroundColor: primaryColor,
+                    elevation: 0,
+                    side: BorderSide(color: primaryColor),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  onPressed: () {
+                    HapticFeedback.mediumImpact();
+                    _applyDeloadScale(record.suggestedLoadScale);
+                  },
+                  icon: const Icon(Icons.auto_fix_high_rounded, size: 16),
+                  label: Text(
+                    isConvalescing
+                        ? 'Apply ${(record.suggestedLoadScale * 100).toInt()}% Re-Entry Cap'
+                        : 'Apply -30% Deload',
+                    style: GoogleFonts.outfit(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _applyDeloadScale(double scale) {
+    if (scale <= 0.0 || scale >= 1.0) return;
+    setState(() {
+      for (final TextEditingController controller in _weightControllers.values) {
+        final double? currentWt = double.tryParse(controller.text.trim());
+        if (currentWt != null && currentWt > 0) {
+          final double scaled = (currentWt * scale).roundToDouble();
+          controller.text = scaled.toStringAsFixed(1);
+        }
+      }
+    });
+    _persistDraft();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Scaled all active working sets to ${(scale * 100).toInt()}% load.',
+          style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
+        ),
+        backgroundColor: AppTheme.primaryAmber,
+        behavior: SnackBarBehavior.floating,
       ),
     );
   }
