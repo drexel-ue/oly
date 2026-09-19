@@ -50,6 +50,7 @@ import 'package:oly/views/grip/grip_hang_detail_screen.dart';
 import 'package:oly/views/injury_tracker_screen.dart';
 import 'package:oly/views/lifts_screen.dart';
 import 'package:oly/views/max_test_screen.dart';
+import 'package:oly/views/mobility/mobility_routine_screen.dart';
 import 'package:oly/views/nutrition/edit_food_entry_sheet.dart';
 import 'package:oly/views/nutrition/fasting_biomarker_history_sheet.dart';
 import 'package:oly/views/nutrition/fasting_biomarker_sheet.dart';
@@ -1476,6 +1477,43 @@ void main() {
         );
         await captureScreen(tester, '44_c25k_active_run_screen');
         expect(find.text('WEEK 1 DAY 1'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      '45 Renders Mobility & Hypertrophy Standards Screen',
+      (tester) async {
+        tester.view.physicalSize = const Size(1170, 2532);
+        tester.view.devicePixelRatio = 2.0;
+        addTearDown(() => tester.view.resetPhysicalSize());
+
+        await tester.pumpWidget(
+          buildTestScreen(
+            const MobilityRoutineScreen(),
+          ),
+        );
+        await captureScreen(tester, '45_mobility_routine_screen');
+        expect(find.text('Mobility & Hypertrophy'), findsWidgets);
+      },
+    );
+
+    testWidgets(
+      '46 Renders Mobility & Hypertrophy Weekly Curriculum Screen',
+      (tester) async {
+        tester.view.physicalSize = const Size(1170, 2532);
+        tester.view.devicePixelRatio = 2.0;
+        addTearDown(() => tester.view.resetPhysicalSize());
+
+        await tester.pumpWidget(
+          buildTestScreen(
+            const MobilityRoutineScreen(),
+          ),
+        );
+        await tester.tap(find.text('Weekly Curriculum'));
+        await tester.pumpAndSettle();
+
+        await captureScreen(tester, '46_mobility_curriculum_screen');
+        expect(find.text('EXERCISE PROTOCOLS'), findsOneWidget);
       },
     );
   });

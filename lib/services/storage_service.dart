@@ -1455,9 +1455,16 @@ class StorageService {
     }
     try {
       final List<dynamic> list = jsonDecode(jsonStr) as List<dynamic>;
-      return list
+      final List<GoalTrack> loaded = list
           .map((dynamic e) => GoalTrack.fromJson(e as Map<String, dynamic>))
           .toList();
+      final List<GoalTrack> defaults = GoalTrack.getDefaultGoals();
+      for (final GoalTrack d in defaults) {
+        if (!loaded.any((g) => g.id == d.id)) {
+          loaded.add(d);
+        }
+      }
+      return loaded;
     } catch (_) {
       return GoalTrack.getDefaultGoals();
     }

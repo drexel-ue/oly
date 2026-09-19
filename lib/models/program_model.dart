@@ -1,3 +1,8 @@
+enum TrainingTrack {
+  olympic,
+  mobility,
+}
+
 class ExerciseTemplate {
   new({
     required this.name,
@@ -6,6 +11,7 @@ class ExerciseTemplate {
     this.weekPercentages,
     this.anchorLiftId,
     this.fixedPercentage,
+    this.fixedWeightKg,
     this.weeklyWeightIncrementKg,
     this.notes,
   });
@@ -20,6 +26,7 @@ class ExerciseTemplate {
       ),
       anchorLiftId: json['anchorLiftId'] as String?,
       fixedPercentage: (json['fixedPercentage'] as num?)?.toDouble(),
+      fixedWeightKg: (json['fixedWeightKg'] as num?)?.toDouble(),
       weeklyWeightIncrementKg: (json['weeklyWeightIncrementKg'] as num?)
           ?.toDouble(),
       notes: json['notes'] as String?,
@@ -33,6 +40,8 @@ class ExerciseTemplate {
   final double?
   fixedPercentage; // Fixed percentage for all weeks (e.g. 90% for Snatch Pull)
   final double?
+  fixedWeightKg; // Explicit fixed weight (e.g. 0.0 for bodyweight, 20.0 for light bar)
+  final double?
   weeklyWeightIncrementKg; // Weekly progressive load (e.g. 2.5kg / ~5-10lbs)
   final String? notes;
 
@@ -41,6 +50,10 @@ class ExerciseTemplate {
     required int week,
     required Map<String, double> currentMaxes,
   }) {
+    if (fixedWeightKg != null) {
+      return fixedWeightKg!;
+    }
+
     final String refLiftId = anchorLiftId ?? liftId;
     final double base1RM = currentMaxes[refLiftId] ?? 100.0;
 
@@ -72,6 +85,7 @@ class ExerciseTemplate {
       ),
       'anchorLiftId': anchorLiftId,
       'fixedPercentage': fixedPercentage,
+      'fixedWeightKg': fixedWeightKg,
       'weeklyWeightIncrementKg': weeklyWeightIncrementKg,
       'notes': notes,
     };
@@ -210,6 +224,7 @@ class ProgramCycle {
     this.currentCycle = 1,
     this.currentWeek = 1,
     this.currentDay = 1,
+    this.activeTrack = TrainingTrack.mobility,
     List<String>? completedSessionIds,
   }) : completedSessionIds = completedSessionIds ?? <String>[];
 
@@ -218,6 +233,9 @@ class ProgramCycle {
       currentCycle: json['currentCycle'] as int? ?? 1,
       currentWeek: json['currentWeek'] as int? ?? 1,
       currentDay: json['currentDay'] as int? ?? 1,
+      activeTrack: json['activeTrack'] == 'olympic'
+          ? TrainingTrack.olympic
+          : TrainingTrack.mobility,
       completedSessionIds:
           (json['completedSessionIds'] as List<dynamic>?)
               ?.map((dynamic e) => e as String)
@@ -227,7 +245,8 @@ class ProgramCycle {
   }
   int currentCycle;
   int currentWeek; // 1..4 = training weeks, 5 = 1RM Retest Week
-  int currentDay; // 1..4
+  int currentDay; // 1..4 (Olympic) or 1..7 (Mobility)
+  TrainingTrack activeTrack;
   List<String> completedSessionIds;
 
   Map<String, dynamic> toJson() {
@@ -235,8 +254,338 @@ class ProgramCycle {
       'currentCycle': currentCycle,
       'currentWeek': currentWeek,
       'currentDay': currentDay,
+      'activeTrack': activeTrack.name,
       'completedSessionIds': completedSessionIds,
     };
+  }
+
+  static List<DayTemplate> getMobilityProgram() {
+    return <DayTemplate>[
+      // Day 1 (Mon): Lower Hypertrophy + ATG Knee/Ankle
+      DayTemplate(
+        dayNumber: 1,
+        title: 'Day 1: Lower Hypertrophy + ATG Knee/Ankle',
+        subtitle: 'Slant Board, Tibialis Raises, Pause Squats, ATG Split Squats, Couch Stretch',
+        phases: <PhaseTemplate>[
+          PhaseTemplate(
+            name: 'Phase 1 - Ankle & Knee Bulletproofing',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Slant Board Calf Stretch',
+                liftId: 'slant_board_calf_stretch',
+                setScheme: '3 Sets of 60 Reps',
+                fixedWeightKg: 0,
+                notes: 'Drive knee forward over toes without heel lifting; expand dorsiflexion.',
+              ),
+              ExerciseTemplate(
+                name: 'Tibialis Anterior Raises',
+                liftId: 'tibialis_raise',
+                setScheme: '3 Sets of 25 Reps',
+                fixedWeightKg: 0,
+                notes: 'Full dorsiflexion squeeze against wall or tib bar.',
+              ),
+            ],
+          ),
+          PhaseTemplate(
+            name: 'Phase 2 - Deep Squat & VMO Hypertrophy',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Pause Back Squats (Dane Miller)',
+                liftId: 'back_squat',
+                setScheme: '4 Sets of 6 Reps',
+                fixedPercentage: 65,
+                anchorLiftId: 'back_squat',
+                notes: '3-second isometric pause in deep hole. Sit between hips, tall chest.',
+              ),
+              ExerciseTemplate(
+                name: 'ATG Split Squats (Ben Patrick)',
+                liftId: 'atg_split_squat',
+                setScheme: '4 Sets of 8 Reps',
+                fixedWeightKg: 0,
+                notes: 'Front hamstring covers calf completely; back leg straight with glute locked.',
+              ),
+            ],
+          ),
+          PhaseTemplate(
+            name: 'Phase 3 - Hip Flexor Restoration',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Wall Couch Stretch',
+                liftId: 'couch_stretch',
+                setScheme: '2 Sets of 90 Reps',
+                fixedWeightKg: 0,
+                notes: 'Shin flush to wall; squeeze glute to drive hip forward with tall spine.',
+              ),
+            ],
+          ),
+        ],
+      ),
+
+      // Day 2 (Tue): Upper Hypertrophy & Thoracic Mobility
+      DayTemplate(
+        dayNumber: 2,
+        title: 'Day 2: Upper Hypertrophy & Thoracic Mobility',
+        subtitle: 'Miracle Grow Pullovers, Incline Trap-3 Raises, Seated DB External Rotation',
+        phases: <PhaseTemplate>[
+          PhaseTemplate(
+            name: 'Phase 1 - Overhead Lat & Triceps Hypertrophy',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Miracle Grow (Pullover into Tricep Ext)',
+                liftId: 'miracle_grow',
+                setScheme: '4 Sets of 12 Reps',
+                fixedWeightKg: 20,
+                notes: 'Full lat stretch behind head across bench; fire long head triceps to lockout.',
+              ),
+            ],
+          ),
+          PhaseTemplate(
+            name: 'Phase 2 - Scapular Armor & Rotator Cuff',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Incline Trap-3 Raise',
+                liftId: 'incline_trap_3_raise',
+                setScheme: '3 Sets of 10 Reps',
+                fixedWeightKg: 5,
+                notes: 'Prone on 45° bench, thumbs up at 45°; 2-second hold at peak.',
+              ),
+              ExerciseTemplate(
+                name: 'Seated DB External Rotation',
+                liftId: 'seated_db_external_rotation',
+                setScheme: '3 Sets of 8 Reps',
+                fixedWeightKg: 6,
+                notes: 'Elbow on knee, 3s eccentric descent; strict infraspinatus isolation.',
+              ),
+            ],
+          ),
+        ],
+      ),
+
+      // Day 3 (Wed): Restorative Posterior Chain & Hip Capsule Flow
+      DayTemplate(
+        dayNumber: 3,
+        title: 'Day 3: Posterior Chain & Hip Capsule Flow',
+        subtitle: 'Elephant Walk, Jefferson Curls, Seated Good Mornings, 90/90 Switches, Butterfly',
+        phases: <PhaseTemplate>[
+          PhaseTemplate(
+            name: 'Phase 1 - Spinal & Hamstring Decompression',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'ATG Elephant Walk',
+                liftId: 'elephant_walk',
+                setScheme: '2 Sets of 45 Reps',
+                fixedWeightKg: 0,
+                notes: 'Hands flat on floor or box; alternate knee extensions smoothly.',
+              ),
+              ExerciseTemplate(
+                name: 'Jefferson Curls',
+                liftId: 'jefferson_curl',
+                setScheme: '4 Sets of 8 Reps',
+                fixedWeightKg: 20,
+                notes: 'Chin to chest, roll down bone-by-bone below toes with light load.',
+              ),
+            ],
+          ),
+          PhaseTemplate(
+            name: 'Phase 2 - Loaded Adductor & Hip Hinge',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Seated Good Mornings',
+                liftId: 'seated_good_morning',
+                setScheme: '4 Sets of 10 Reps',
+                fixedWeightKg: 20,
+                notes: 'Wide straddle on bench, flat back, hinge abdomen down between knees.',
+              ),
+            ],
+          ),
+          PhaseTemplate(
+            name: 'Phase 3 - Dedicated Capsule Separation Work',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: '90/90 Hip Switches & Rotations',
+                liftId: 'hip_90_90_switch',
+                setScheme: '4 Sets of 5 Reps',
+                fixedWeightKg: 0,
+                notes: 'Dedicated capsule work; open back knee first, 5s end-range hold per side.',
+              ),
+              ExerciseTemplate(
+                name: 'Seated Butterfly & PNF Adductor Stretch',
+                liftId: 'seated_butterfly',
+                setScheme: '3 Sets of 60 Reps',
+                fixedWeightKg: 0,
+                notes: 'Soles together, drive knees down, active 5s isometric groin contraction.',
+              ),
+            ],
+          ),
+        ],
+      ),
+
+      // Day 4 (Thu): Lower Body Depth Hypertrophy
+      DayTemplate(
+        dayNumber: 4,
+        title: 'Day 4: Lower Body Depth Hypertrophy',
+        subtitle: 'Curtsy Lunges, Heel-Elevated Squats, Wall Couch Stretch',
+        phases: <PhaseTemplate>[
+          PhaseTemplate(
+            name: 'Phase 1 - Unilateral Hip Stability',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Curtsy Lunges (Dane Miller)',
+                liftId: 'curtsy_lunge',
+                setScheme: '3 Sets of 10 Reps',
+                fixedWeightKg: 10,
+                notes: 'Cross trailing leg behind; strengthens glute medius and hip stabilizers.',
+              ),
+            ],
+          ),
+          PhaseTemplate(
+            name: 'Phase 2 - Vertical Quad Hypertrophy',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Heel-Elevated Front / Goblet Squats',
+                liftId: 'front_squat',
+                setScheme: '4 Sets of 8 Reps',
+                fixedPercentage: 55,
+                anchorLiftId: 'clean_and_jerk',
+                notes: 'Torso completely vertical, 2s bottom pause, constant quad tension.',
+              ),
+            ],
+          ),
+          PhaseTemplate(
+            name: 'Phase 3 - Hip Extension Restorative Hold',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Wall Couch Stretch',
+                liftId: 'couch_stretch',
+                setScheme: '2 Sets of 120 Reps',
+                fixedWeightKg: 0,
+                notes: 'Long restorative hold; squeeze glute to unlock anterior hip.',
+              ),
+            ],
+          ),
+        ],
+      ),
+
+      // Day 5 (Fri): Upper Hypertrophy & Scapular Armor
+      DayTemplate(
+        dayNumber: 5,
+        title: 'Day 5: Upper Hypertrophy & Scapular Armor',
+        subtitle: 'Overhead / Z-Press, Powell Raises, Dumbbell Pullovers',
+        phases: <PhaseTemplate>[
+          PhaseTemplate(
+            name: 'Phase 1 - Vertical Overhead Strength',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Overhead Press / Z-Press',
+                liftId: 'strict_press',
+                setScheme: '4 Sets of 8 Reps',
+                fixedPercentage: 50,
+                anchorLiftId: 'clean_and_jerk',
+                notes: 'Press overhead from seated floor position; pure shoulder drive without leg bounce.',
+              ),
+            ],
+          ),
+          PhaseTemplate(
+            name: 'Phase 2 - Rear Delt & Scapular Armor',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Powell Raises',
+                liftId: 'powell_raise',
+                setScheme: '3 Sets of 10 Reps',
+                fixedWeightKg: 5,
+                notes: 'Side-lying straight-arm raise to 90°; targets rear deltoid and mid-traps.',
+              ),
+            ],
+          ),
+          PhaseTemplate(
+            name: 'Phase 3 - Thoracic Expansion & Lat Hypertrophy',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Dumbbell Pullovers',
+                liftId: 'dumbbell_pullover',
+                setScheme: '3 Sets of 12 Reps',
+                fixedWeightKg: 15,
+                notes: 'Deep stretch across bench with ribcage expansion; keep lower back neutral.',
+              ),
+            ],
+          ),
+        ],
+      ),
+
+      // Day 6 (Sat): Loaded Oly Mobility Flow
+      DayTemplate(
+        dayNumber: 6,
+        title: 'Day 6: Loaded Oly Mobility Flow',
+        subtitle: 'Close-Grip Snatch Balance, Loaded Cossack Squats, Deep Squat KB Pry',
+        phases: <PhaseTemplate>[
+          PhaseTemplate(
+            name: 'Phase 1 - Extreme Overhead Snatch Mobility',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Close-Grip Snatch Balance / OHS',
+                liftId: 'close_grip_snatch',
+                setScheme: '4 Sets of 5 Reps',
+                fixedWeightKg: 20,
+                notes: 'Clean or narrow grip; forces extreme thoracic extension and shoulder flexibility.',
+              ),
+            ],
+          ),
+          PhaseTemplate(
+            name: 'Phase 2 - Multi-Planar Adductor Strength',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Loaded Cossack Squats',
+                liftId: 'cossack_squat',
+                setScheme: '3 Sets of 8 Reps',
+                fixedWeightKg: 12,
+                notes: 'Kettlebell held at chest; sink deep into lateral adductor stretch.',
+              ),
+            ],
+          ),
+          PhaseTemplate(
+            name: 'Phase 3 - Bottom Position Isometric Stability',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Deep Squat Pry with Kettlebell',
+                liftId: 'deep_squat_pry',
+                setScheme: '3 Sets of 45 Reps',
+                fixedWeightKg: 16,
+                notes: 'Use elbows inside knees to pry hips open while maintaining upright posture.',
+              ),
+            ],
+          ),
+        ],
+      ),
+
+      // Day 7 (Sun): Active Restoration & Fasting
+      DayTemplate(
+        dayNumber: 7,
+        title: 'Day 7: Active Restoration & Fasting',
+        subtitle: 'Restorative Walking, Circadian Reset & Wim Hof Breathwork',
+        isActiveRecovery: true,
+        phases: <PhaseTemplate>[
+          PhaseTemplate(
+            name: 'Restoration & Cellular Recovery',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Restorative Outdoor Walk',
+                liftId: 'walking',
+                setScheme: '1 Set of 30 Reps',
+                fixedWeightKg: 0,
+                notes: 'Gentle zone 1 aerobic recovery; nasal breathing.',
+              ),
+              ExerciseTemplate(
+                name: 'Wim Hof Guided Breathwork',
+                liftId: 'breathwork',
+                setScheme: '3 Sets of 30 Reps',
+                fixedWeightKg: 0,
+                notes: 'Circadian and autonomic nervous system reset.',
+              ),
+            ],
+          ),
+        ],
+      ),
+    ];
   }
 
   static List<DayTemplate> getBuiltInProgram({int week = 1}) {

@@ -195,6 +195,7 @@ class MockDataHelper {
 
   static ProgramCycle getMockProgramCycle() {
     return ProgramCycle(
+      activeTrack: TrainingTrack.olympic,
       currentWeek: 2, // Heavy loading week (70%)
       completedSessionIds: <String>[
         'sess_w1_d1',

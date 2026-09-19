@@ -6,7 +6,13 @@ import 'package:oly/services/storage_service.dart';
 class ProgramProvider extends ChangeNotifier {
   new(this._storage) {
     _cycle = _storage.loadProgramCycle();
-    _days = ProgramCycle.getBuiltInProgram(week: _cycle.currentWeek);
+    if (_cycle.activeTrack == TrainingTrack.mobility) {
+      final int todayWeekday = DateTime.now().weekday;
+      _cycle.currentDay = todayWeekday.clamp(1, 7);
+    }
+    _days = _cycle.activeTrack == TrainingTrack.mobility
+        ? ProgramCycle.getMobilityProgram()
+        : ProgramCycle.getBuiltInProgram(week: _cycle.currentWeek);
     _sessions = _storage.loadWorkoutSessions();
     _activeDraft = _storage.loadActiveWorkoutDraft();
   }
@@ -18,8 +24,12 @@ class ProgramProvider extends ChangeNotifier {
   ActiveWorkoutDraft? _activeDraft;
 
   ProgramCycle get cycle => _cycle;
-  List<DayTemplate> get days =>
-      ProgramCycle.getBuiltInProgram(week: _cycle.currentWeek);
+  TrainingTrack get activeTrack => _cycle.activeTrack;
+  bool get isMobilityTrack => _cycle.activeTrack == TrainingTrack.mobility;
+
+  List<DayTemplate> get days => isMobilityTrack
+      ? ProgramCycle.getMobilityProgram()
+      : ProgramCycle.getBuiltInProgram(week: _cycle.currentWeek);
   List<WorkoutSession> get sessions => List.unmodifiable(_sessions);
   ActiveWorkoutDraft? get activeDraft => _activeDraft;
   bool get hasActiveDraft => _activeDraft != null;
@@ -27,7 +37,7 @@ class ProgramProvider extends ChangeNotifier {
   int get currentWeek => _cycle.currentWeek;
   int get currentDay => _cycle.currentDay;
   int get currentCycle => _cycle.currentCycle;
-  bool get isRetestWeek => _cycle.currentWeek == 5;
+  bool get isRetestWeek => !isMobilityTrack && _cycle.currentWeek == 5;
 
   double get totalVolumeKg => _sessions.fold(
     0,
@@ -65,8 +75,22 @@ class ProgramProvider extends ChangeNotifier {
     );
   }
 
+  void setTrainingTrack(TrainingTrack track) {
+    _cycle.activeTrack = track;
+    if (track == TrainingTrack.mobility) {
+      final int todayWeekday = DateTime.now().weekday;
+      _cycle.currentDay = todayWeekday.clamp(1, 7);
+    } else {
+      _cycle.currentDay = 1;
+    }
+    _days = days;
+    _storage.saveProgramCycle(_cycle);
+    notifyListeners();
+  }
+
   void selectDay(int dayNumber) {
-    if (dayNumber >= 1 && dayNumber <= _days.length) {
+    final int maxDays = days.length;
+    if (dayNumber >= 1 && dayNumber <= maxDays) {
       _cycle.currentDay = dayNumber;
       _storage.saveProgramCycle(_cycle);
       notifyListeners();
@@ -76,7 +100,7 @@ class ProgramProvider extends ChangeNotifier {
   void selectWeek(int weekNumber) {
     if (weekNumber >= 1 && weekNumber <= 5) {
       _cycle.currentWeek = weekNumber;
-      _days = ProgramCycle.getBuiltInProgram(week: _cycle.currentWeek);
+      _days = days;
       _storage.saveProgramCycle(_cycle);
       notifyListeners();
     }

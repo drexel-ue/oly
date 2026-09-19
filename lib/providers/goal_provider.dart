@@ -211,11 +211,70 @@ class GoalProvider extends ChangeNotifier {
       );
     }
 
+    // Check Mobility & Hypertrophy Goal
+    final GoalTrack? mobilityGoal = getGoal('goal_mobility_hypertrophy');
+    if (mobilityGoal != null &&
+        mobilityGoal.scheduleConfig.isScheduledForWeekday(weekday)) {
+      String title = 'Mobility & Hypertrophy Protocol';
+      String subtitle = 'ATG Standards & Garage Strength Loaded Mobility';
+      int minutes = 20;
+
+      switch (weekday) {
+        case DateTime.monday:
+          title = 'ATG Knee & Ankle Mobility';
+          subtitle = 'Slant Calf, Tibialis, ATG Split Squats & Couch Stretch';
+          minutes = 20;
+        case DateTime.tuesday:
+          title = 'Overhead Thoracic & Shoulders';
+          subtitle = 'Miracle Grow, Incline Trap-3 & DB External Rotations';
+          minutes = 20;
+        case DateTime.wednesday:
+          title = 'Spinal Segmentation & Hip Capsule';
+          subtitle = 'Elephant Walk, Jefferson Curl, Seated Good Morning, 90/90 & Butterfly';
+          minutes = 25;
+        case DateTime.thursday:
+          title = 'Lower Chain & Adductor Settle';
+          subtitle = 'Curtsy Lunges, Pause Squats, Couch Stretch & Adductor Settle';
+          minutes = 20;
+        case DateTime.friday:
+          title = 'Scapular Armor & Rotator Cuff';
+          subtitle = 'Powell Raises, DB Pullovers & Face Pulls';
+          minutes = 20;
+        case DateTime.saturday:
+          title = 'Loaded Oly Range & Ankle Freedom';
+          subtitle = 'Close-Grip Snatch Drills, Cossack Squats & Deep Squat Pry';
+          minutes = 20;
+        case DateTime.sunday:
+          title = 'Passive Spinal Decompression';
+          subtitle = 'Passive Bar Hangs & Diaphragmatic Breathing';
+          minutes = 15;
+      }
+
+      blocks.add(
+        ComposedSessionBlock(
+          id: 'block_mobility_day_$weekday',
+          goalId: mobilityGoal.id,
+          type: SessionBlockType.mobility,
+          title: title,
+          subtitle: subtitle,
+          estimatedMinutes: minutes,
+          data: <String, dynamic>{'weekday': weekday},
+        ),
+      );
+    }
+
     final DailySessionPlan newPlan =
         DailySessionPlan(date: date, blocks: blocks);
     _plans.add(newPlan);
     _storageService.saveDailySessionPlans(_plans);
     return newPlan;
+  }
+
+  Future<void> updateMobilityMilestone(
+    String milestoneId,
+    double value,
+  ) async {
+    await updateMilestoneProgress('goal_mobility_hypertrophy', milestoneId, value);
   }
 
   Future<void> markBlockCompleted(

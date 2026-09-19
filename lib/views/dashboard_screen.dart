@@ -18,6 +18,7 @@ import 'package:oly/views/c25k/c25k_program_detail_screen.dart';
 import 'package:oly/views/grip/dynamometer_entry_sheet.dart';
 import 'package:oly/views/grip/grip_hang_detail_screen.dart';
 import 'package:oly/views/lifts_screen.dart';
+import 'package:oly/views/mobility/mobility_routine_screen.dart';
 import 'package:oly/views/nutrition/nutrition_dashboard_screen.dart';
 import 'package:oly/views/nutrition/renpho_scanner_sheet.dart';
 import 'package:oly/views/recovery_session_screen.dart';
@@ -400,6 +401,25 @@ class DashboardScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 12),
+                OlyEntryReveal(
+                  index: 9,
+                  child: _buildActionCard(
+                    context,
+                    title: 'Mobility & Hypertrophy Routine',
+                    subtitle: 'ATG Standards, 90/90, Butterfly & Garage Strength',
+                    icon: Icons.accessibility_new,
+                    accentColor: AppTheme.accentEmerald,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute<void>(
+                          builder: (_) => const MobilityRoutineScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 12),
               ],
 
               // Routine Explorer
@@ -430,38 +450,121 @@ class DashboardScreen extends StatelessWidget {
   }
 
   Widget _buildCycleCard(BuildContext context, ProgramProvider program) {
-    final bool isRetest = program.isRetestWeek;
-    final String weekTitle = isRetest
-        ? 'Week 5: 1RM RETEST WEEK'
-        : 'Week ${program.currentWeek} of 4: ${program.currentWeek == 4
-              ? "Deload & Prep"
-              : program.currentWeek == 3
-              ? "Peak Loading"
-              : "Base Loading"}';
+    final bool isMobility = program.isMobilityTrack;
+    final bool isRetest = !isMobility && program.isRetestWeek;
+    final String weekTitle = isMobility
+        ? 'Dane Miller & ATG Joint Armor'
+        : (isRetest
+            ? 'Week 5: 1RM RETEST WEEK'
+            : 'Week ${program.currentWeek} of 4: ${program.currentWeek == 4 ? "Deload & Prep" : program.currentWeek == 3 ? "Peak Loading" : "Base Loading"}');
+
+    final Color glowColor = isMobility
+        ? AppTheme.accentEmerald
+        : (isRetest ? Colors.redAccent : AppTheme.primaryAmber);
 
     return GlassContainer(
       padding: const EdgeInsets.all(18),
-      ambientGlowColor: isRetest ? Colors.redAccent : AppTheme.primaryAmber,
+      ambientGlowColor: glowColor,
       gradient: LinearGradient(
-        colors: isRetest
-            ? <Color>[const Color(0xFF5A0000), const Color(0xFF1E0000)]
-            : <Color>[AppTheme.surfaceElevated, AppTheme.surfaceCard],
+        colors: isMobility
+            ? <Color>[const Color(0xFF0F291E), const Color(0xFF131318)]
+            : (isRetest
+                ? <Color>[const Color(0xFF5A0000), const Color(0xFF1E0000)]
+                : <Color>[AppTheme.surfaceElevated, AppTheme.surfaceCard]),
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
+          // Track Switcher Segment (Olympic vs Mobility)
+          Container(
+            padding: const EdgeInsets.all(3),
+            decoration: BoxDecoration(
+              color: AppTheme.darkBackground.withValues(alpha: 0.7),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppTheme.borderColor),
+            ),
+            child: Row(
+              children: <Widget>[
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      if (program.isMobilityTrack) {
+                        program.setTrainingTrack(TrainingTrack.olympic);
+                      }
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 6),
+                      decoration: BoxDecoration(
+                        color: !program.isMobilityTrack
+                            ? AppTheme.primaryAmber
+                            : Colors.transparent,
+                        borderRadius: BorderRadius.circular(9),
+                      ),
+                      child: Center(
+                        child: Text(
+                          '🏋️ Olympic Lifts',
+                          style: GoogleFonts.outfit(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: !program.isMobilityTrack
+                                ? Colors.black
+                                : AppTheme.textSecondary,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      if (!program.isMobilityTrack) {
+                        program.setTrainingTrack(TrainingTrack.mobility);
+                      }
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 6),
+                      decoration: BoxDecoration(
+                        color: program.isMobilityTrack
+                            ? AppTheme.accentEmerald
+                            : Colors.transparent,
+                        borderRadius: BorderRadius.circular(9),
+                      ),
+                      child: Center(
+                        child: Text(
+                          '🧘 Mobility & Hypertrophy',
+                          style: GoogleFonts.outfit(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: program.isMobilityTrack
+                                ? Colors.black
+                                : AppTheme.textSecondary,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 14),
+
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
               Text(
-                'CYCLE ${program.currentCycle} PERIODIZATION',
+                isMobility
+                    ? 'ACTIVE FOCUS: MOBILITY & HYPERTROPHY'
+                    : 'CYCLE ${program.currentCycle} PERIODIZATION',
                 style: GoogleFonts.outfit(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 1.2,
-                  color: isRetest ? Colors.redAccent : AppTheme.primaryAmber,
+                  color: glowColor,
                 ),
               ),
               Container(
@@ -470,15 +573,20 @@ class DashboardScreen extends StatelessWidget {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: isRetest ? Colors.redAccent : AppTheme.primaryAmber,
+                  color: glowColor.withValues(alpha: isMobility ? 0.2 : 1.0),
                   borderRadius: BorderRadius.circular(12),
+                  border: isMobility
+                      ? Border.all(color: glowColor.withValues(alpha: 0.5))
+                      : null,
                 ),
                 child: Text(
-                  isRetest ? 'RETEST ACTIVE' : 'W${program.currentWeek}',
+                  isMobility
+                      ? 'ACTIVE FOCUS'
+                      : (isRetest ? 'RETEST ACTIVE' : 'W${program.currentWeek}'),
                   style: GoogleFonts.outfit(
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                    color: isMobility ? glowColor : Colors.black,
                   ),
                 ),
               ),
@@ -495,91 +603,190 @@ class DashboardScreen extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            isRetest
-                ? 'Retest 1RM baselines to reset your training percentages'
-                : (program.currentWeek % 2 != 0
-                    ? 'Snatch Emphasis (2:1 Alternating Focus)'
-                    : 'Clean & Jerk Emphasis (1:2 Alternating Focus)'),
+            isMobility
+                ? 'Olympic lifts deprioritized • Weekly loaded mobility & joint hypertrophy'
+                : (isRetest
+                    ? 'Retest 1RM baselines to reset your training percentages'
+                    : (program.currentWeek % 2 != 0
+                        ? 'Snatch Emphasis (2:1 Alternating Focus)'
+                        : 'Clean & Jerk Emphasis (1:2 Alternating Focus)')),
             style: GoogleFonts.inter(
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: isRetest ? Colors.redAccent : AppTheme.primaryAmber,
+              color: glowColor,
             ),
           ),
           const SizedBox(height: 12),
-          // Week selection pills (Week 1..4 + Week 5 Retest)
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: List.generate(5, (index) {
-              final int w = index + 1;
-              final bool isSelected = program.currentWeek == w;
-              final String label = w == 5 ? 'Retest' : 'W$w';
 
-              return OlyPressable(
-                onPressed: () => program.selectWeek(w),
-                borderRadius: BorderRadius.circular(10),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isSelected
-                        ? (w == 5 ? Colors.redAccent : AppTheme.primaryAmber)
-                        : AppTheme.surfaceCard,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: isSelected ? Colors.white : AppTheme.borderColor,
-                    ),
-                  ),
-                  child: Text(
-                    label,
-                    style: GoogleFonts.outfit(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: isSelected ? Colors.black : AppTheme.textSecondary,
-                    ),
-                  ),
-                ),
-              );
-            }),
-          ),
-          const SizedBox(height: 14),
-          OlyPressable(
-            onPressed: () => _showRoutineExplorerSheet(context, program),
-            borderRadius: BorderRadius.circular(12),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: AppTheme.secondaryCyan.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: AppTheme.secondaryCyan.withValues(alpha: 0.5),
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  const Icon(
-                    Icons.explore,
-                    color: AppTheme.secondaryCyan,
-                    size: 18,
-                  ),
-                  const SizedBox(width: 8),
-                  Flexible(
-                    child: Text(
-                      'Explore Any Week or Routine (Preview Mode)',
-                      style: GoogleFonts.outfit(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        color: AppTheme.secondaryCyan,
+          if (isMobility) ...<Widget>[
+            // 7 Days of the week selector pills (Mon..Sun)
+            Row(
+              children: List.generate(7, (index) {
+                final int dNum = index + 1;
+                final bool isSelected = program.currentDay == dNum;
+                const List<String> dayLabels = <String>[
+                  'Mon',
+                  'Tue',
+                  'Wed',
+                  'Thu',
+                  'Fri',
+                  'Sat',
+                  'Sun',
+                ];
+
+                return Expanded(
+                  child: Container(
+                    margin: const EdgeInsets.only(right: 4),
+                    child: OlyPressable(
+                      onPressed: () => program.selectDay(dNum),
+                      borderRadius: BorderRadius.circular(8),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 6),
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? AppTheme.accentEmerald
+                              : AppTheme.surfaceCard,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: isSelected ? Colors.white : AppTheme.borderColor,
+                          ),
+                        ),
+                        child: Center(
+                          child: Text(
+                            dayLabels[index],
+                            style: GoogleFonts.outfit(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: isSelected
+                                  ? Colors.black
+                                  : AppTheme.textSecondary,
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   ),
-                ],
+                );
+              }),
+            ),
+            const SizedBox(height: 14),
+            OlyPressable(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute<void>(
+                    builder: (_) => const MobilityRoutineScreen(),
+                  ),
+                );
+              },
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: AppTheme.accentEmerald.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: AppTheme.accentEmerald.withValues(alpha: 0.5),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    const Icon(
+                      Icons.accessibility_new,
+                      color: AppTheme.accentEmerald,
+                      size: 18,
+                    ),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        'View Mobility Standards & Inspiration Videos',
+                        style: GoogleFonts.outfit(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.accentEmerald,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
+          ] else ...<Widget>[
+            // Week selection pills (Week 1..4 + Week 5 Retest)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: List.generate(5, (index) {
+                final int w = index + 1;
+                final bool isSelected = program.currentWeek == w;
+                final String label = w == 5 ? 'Retest' : 'W$w';
+
+                return OlyPressable(
+                  onPressed: () => program.selectWeek(w),
+                  borderRadius: BorderRadius.circular(10),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? (w == 5 ? Colors.redAccent : AppTheme.primaryAmber)
+                          : AppTheme.surfaceCard,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: isSelected ? Colors.white : AppTheme.borderColor,
+                      ),
+                    ),
+                    child: Text(
+                      label,
+                      style: GoogleFonts.outfit(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: isSelected ? Colors.black : AppTheme.textSecondary,
+                      ),
+                    ),
+                  ),
+                );
+              }),
+            ),
+            const SizedBox(height: 14),
+            OlyPressable(
+              onPressed: () => _showRoutineExplorerSheet(context, program),
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: AppTheme.secondaryCyan.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: AppTheme.secondaryCyan.withValues(alpha: 0.5),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    const Icon(
+                      Icons.explore,
+                      color: AppTheme.secondaryCyan,
+                      size: 18,
+                    ),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        'Explore Any Week or Routine (Preview Mode)',
+                        style: GoogleFonts.outfit(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.secondaryCyan,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -809,11 +1016,16 @@ class DashboardScreen extends StatelessWidget {
     DayTemplate day,
     GoalProvider? goalProvider,
   ) {
+    final bool isMobility = program.isMobilityTrack;
+    final Color trackAccent = isMobility
+        ? AppTheme.accentEmerald
+        : (day.isActiveRecovery
+            ? AppTheme.secondaryCyan
+            : AppTheme.primaryAmber);
+
     return GlassContainer(
       padding: const EdgeInsets.all(18),
-      ambientGlowColor: day.isActiveRecovery
-          ? AppTheme.secondaryCyan
-          : AppTheme.primaryAmber,
+      ambientGlowColor: trackAccent,
       ambientGlowRadius: 1,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -822,12 +1034,14 @@ class DashboardScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
               Text(
-                "TODAY'S WORKOUT",
+                isMobility
+                    ? "TODAY'S MOBILITY & HYPERTROPHY"
+                    : "TODAY'S WORKOUT",
                 style: GoogleFonts.outfit(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 1,
-                  color: AppTheme.textSecondary,
+                  color: isMobility ? AppTheme.accentEmerald : AppTheme.textSecondary,
                 ),
               ),
               if (day.isActiveRecovery)
@@ -857,18 +1071,33 @@ class DashboardScreen extends StatelessWidget {
             children: program.days.map((d) {
               final bool isSelected = program.currentDay == d.dayNumber;
               String label;
-              if (d.dayNumber == 1) {
-                label = 'Day 1';
-              } else if (d.dayNumber == 2) {
-                label = 'Recovery';
-              } else if (d.dayNumber == 3) {
-                label = 'Day 2';
-              } else if (d.dayNumber == 4) {
-                label = 'Recovery';
-              } else if (d.dayNumber == 5) {
-                label = 'Day 3';
+              if (isMobility) {
+                const List<String> weekdayLabels = <String>[
+                  'Mon',
+                  'Tue',
+                  'Wed',
+                  'Thu',
+                  'Fri',
+                  'Sat',
+                  'Sun',
+                ];
+                label = (d.dayNumber >= 1 && d.dayNumber <= 7)
+                    ? weekdayLabels[d.dayNumber - 1]
+                    : 'D${d.dayNumber}';
               } else {
-                label = 'Recovery';
+                if (d.dayNumber == 1) {
+                  label = 'Day 1';
+                } else if (d.dayNumber == 2) {
+                  label = 'Recovery';
+                } else if (d.dayNumber == 3) {
+                  label = 'Day 2';
+                } else if (d.dayNumber == 4) {
+                  label = 'Recovery';
+                } else if (d.dayNumber == 5) {
+                  label = 'Day 3';
+                } else {
+                  label = 'Recovery';
+                }
               }
 
               return Expanded(
@@ -879,9 +1108,7 @@ class DashboardScreen extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(vertical: 6),
                     decoration: BoxDecoration(
                       color: isSelected
-                          ? (d.isActiveRecovery
-                                ? AppTheme.secondaryCyan
-                                : AppTheme.primaryAmber)
+                          ? trackAccent
                           : AppTheme.surfaceElevated,
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
@@ -934,9 +1161,9 @@ class DashboardScreen extends StatelessWidget {
                   runSpacing: 6,
                   children: <Widget>[
                     _buildGoalTrackChip(
-                      icon: Icons.fitness_center,
-                      label: 'Olympic Lifting',
-                      color: AppTheme.primaryAmber,
+                      icon: isMobility ? Icons.accessibility_new : Icons.fitness_center,
+                      label: isMobility ? 'Mobility & Hypertrophy' : 'Olympic Lifting',
+                      color: trackAccent,
                     ),
                   ],
                 );
@@ -967,6 +1194,9 @@ class DashboardScreen extends StatelessWidget {
                   } else if (block.type == SessionBlockType.c25k) {
                     icon = Icons.directions_run;
                     color = AppTheme.secondaryCyan;
+                  } else if (block.type == SessionBlockType.mobility) {
+                    icon = Icons.accessibility_new;
+                    color = AppTheme.accentEmerald;
                   }
                   return _buildGoalTrackChip(
                     icon: icon,
@@ -1017,9 +1247,9 @@ class DashboardScreen extends StatelessWidget {
                       );
                     }
                   },
-                  icon: const Icon(
+                  icon: Icon(
                     Icons.explore,
-                    color: AppTheme.secondaryCyan,
+                    color: isMobility ? AppTheme.accentEmerald : AppTheme.secondaryCyan,
                     size: 18,
                   ),
                   label: Text(
@@ -1027,12 +1257,14 @@ class DashboardScreen extends StatelessWidget {
                     style: GoogleFonts.outfit(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
-                      color: AppTheme.secondaryCyan,
+                      color: isMobility ? AppTheme.accentEmerald : AppTheme.secondaryCyan,
                     ),
                   ),
                   style: OutlinedButton.styleFrom(
                     minimumSize: const Size(0, 46),
-                    side: const BorderSide(color: AppTheme.secondaryCyan),
+                    side: BorderSide(
+                      color: isMobility ? AppTheme.accentEmerald : AppTheme.secondaryCyan,
+                    ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -1087,9 +1319,7 @@ class DashboardScreen extends StatelessWidget {
                   ),
                   style: ElevatedButton.styleFrom(
                     minimumSize: const Size(0, 46),
-                    backgroundColor: day.isActiveRecovery
-                        ? AppTheme.secondaryCyan
-                        : AppTheme.primaryAmber,
+                    backgroundColor: trackAccent,
                     foregroundColor: Colors.black,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),

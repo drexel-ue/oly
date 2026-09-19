@@ -65,6 +65,15 @@
 
 ---
 
+### 🧘 Mobility & Hypertrophy Routine Engine (Dane Miller & Ben Patrick ATG)
+
+| Mobility Standards & Progression | 7-Day Weekly Curriculum Explorer |
+| :---: | :---: |
+| <img src="screenshots/45_mobility_routine_screen.png" width="360" alt="Mobility Standards Screen" /> | <img src="screenshots/46_mobility_curriculum_screen.png" width="360" alt="Mobility Curriculum Screen" /> |
+| *Level progression gauge (Foundation / Athlete / Elite Oly Ready), 9 separated standards (including distinct 90/90 Hip Switches & Butterfly Stretches), and modal target loggers* | *Day-by-day weekly curriculum integrating Dane Miller loaded athletic mobility with Ben Patrick ATG joint bulletproofing and YouTube tutorial deep-links* |
+
+---
+
 ### 🌬️ Guided Wim Hof Breathwork & Retention Analytics
 
 | Breathwork Setup & PRs | Live Guided Breathing (Pulsing Orb) |
@@ -462,9 +471,15 @@ OLY reorganizes athletic development into an extensible, multi-goal architecture
 - **Live Interval Runner UI**: High-contrast outdoor display with radial countdown timer, interval step pills, countdown chimes, and automatic step transitions.
 - **Net Energy Expenditure**: Uses Compendium of Physical Activities Algorithm B (Net MET = Gross MET - 1.0) to accurately isolate running calories from baseline metabolic rate.
 
+### 4. Mobility & Hypertrophy Foundation Engine (Dane Miller & Ben Patrick ATG)
+- **3-Tier Progression Hierarchy**: Evaluates athlete across 9 quantitative benchmarks (Level 1 Foundation $\rightarrow$ Level 2 Athlete $\rightarrow$ Level 3 Elite Oly Ready).
+- **Dedicated Hip Capsule Separation**: 90/90 Hip Switches & Rotations (capsule internal/external rotation) and Seated Butterfly & PNF Holds (adductor/groin length) are maintained as two completely separate movements with independent milestone logging and dedicated time blocks.
+- **Weekly Blueprint Integration**: Seamlessly composes daily mobility blocks into the athlete's schedule alongside Olympic lifts, C25K running intervals, and grip hangs.
+- **Inspiration Video Tutorials**: Interactive deep-links to Dane Miller (Garage Strength) and Ben Patrick (ATG) video instruction.
+
 ---
 
-## 📄 Testing Suite (380+ Passing Tests)
+## 📄 Testing Suite (420+ Passing Tests)
 
 Run the full suite of unit, widget, domain engine, and screenshot rendering tests:
 ```bash
@@ -472,6 +487,8 @@ flutter test
 ```
 
 Test coverage includes:
+- `mobility_routine_test.dart`: Separate 90/90 and Butterfly movements, mobility milestones, level tier computation, and `MobilityRoutineScreen` tab rendering.
+- `mobility_exercise_swap_test.dart`: Mobility exercise swap modal, focus area categorization, video player swap button, and live session exercise swaps.
 - `hang_session_minimize_expand_test.dart`: Multi-goal session minimization routing, active draft context preservation, and timer lifecycle disposal.
 - `goal_provider_test.dart`: Goal scheduling, multi-track composition (Mon/Tue/Wed/Sun), milestone synchronization, and daily block completion persistence.
 - `grip_hang_provider_test.dart`: Handheld dynamometer bilateral asymmetry %, 14-day rolling baseline, CNS fatigue readiness, and hang PR milestone detection.
