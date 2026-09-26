@@ -598,6 +598,24 @@ class _MobilityRoutineScreenState extends State<MobilityRoutineScreen>
             'cues': 'Elbow on knee; isolate infraspinatus and rotator cuff with strict tempo.',
             'video': 'https://www.youtube.com/watch?v=omuAtS7zOa0',
           },
+          {
+            'name': 'Dumbbell Hammer Curls',
+            'setsReps': '3-4 sets x 10-12 reps (neutral grip)',
+            'cues': 'Palms facing each other; targets brachialis & brachioradialis while offloading medial epicondyle.',
+            'video': 'https://www.youtube.com/results?search_query=Dumbbell+Hammer+Curls',
+          },
+          {
+            'name': 'Dumbbell Wrist Curls (Flexion & Extension)',
+            'setsReps': '3 sets x 15-20 reps (slow eccentric)',
+            'cues': 'Forearms flat on bench; full wrist extension into flexion squeeze; flip over for reverse extensor curls.',
+            'video': 'https://www.youtube.com/results?search_query=Dumbbell+Wrist+Curls',
+          },
+          {
+            'name': "Pull-Up Isometric Hold (Golfer's Elbow Rehab)",
+            'setsReps': '3-4 sets x 20-30s hold (at 90° elbow flexion)',
+            'cues': 'Hold 90° elbow bend with neutral or chin-up grip; active scapular depression; isometric tendon loading relieves medial epicondyle pain.',
+            'video': 'https://www.youtube.com/results?search_query=Pull+Up+Isometric+Hold',
+          },
         ];
 
       case DateTime.wednesday:
@@ -699,6 +717,24 @@ class _MobilityRoutineScreenState extends State<MobilityRoutineScreen>
             'setsReps': '1 max-effort attempt (towards 5:00 goal)',
             'cues': 'Lock in grip with thumb wrapped; breathe calmly.',
             'video': '',
+          },
+          {
+            'name': 'Dumbbell Hammer Curls',
+            'setsReps': '3 sets x 10-12 reps',
+            'cues': 'Strict neutral grip; reinforces brachialis and lateral forearm stability.',
+            'video': 'https://www.youtube.com/results?search_query=Dumbbell+Hammer+Curls',
+          },
+          {
+            'name': 'Dumbbell Wrist Curls (Flexion & Extension)',
+            'setsReps': '3 sets x 15-20 reps',
+            'cues': 'Rest forearms on knees/bench; slow 3-second eccentric lower.',
+            'video': 'https://www.youtube.com/results?search_query=Dumbbell+Wrist+Curls',
+          },
+          {
+            'name': "Pull-Up Isometric Hold (Golfer's Elbow Iso)",
+            'setsReps': '3 sets x 25-30s hold',
+            'cues': 'Static tension at 90° elbow flexion without swinging or jerky transitions.',
+            'video': 'https://www.youtube.com/results?search_query=Pull+Up+Isometric+Hold',
           },
         ];
 

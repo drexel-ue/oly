@@ -325,7 +325,7 @@ class ProgramCycle {
       DayTemplate(
         dayNumber: 2,
         title: 'Day 2: Upper Hypertrophy & Thoracic Mobility',
-        subtitle: 'Miracle Grow Pullovers, Incline Trap-3 Raises, Seated DB External Rotation',
+        subtitle: 'Miracle Grow, Trap-3 Raises, Seated External Rotation, Hammer Curls, Wrist Curls & Pull-Up Isos',
         phases: <PhaseTemplate>[
           PhaseTemplate(
             name: 'Phase 1 - Overhead Lat & Triceps Hypertrophy',
@@ -355,6 +355,32 @@ class ProgramCycle {
                 setScheme: '3 Sets of 8 Reps',
                 fixedWeightKg: 6,
                 notes: 'Elbow on knee, 3s eccentric descent; strict infraspinatus isolation.',
+              ),
+            ],
+          ),
+          PhaseTemplate(
+            name: "Phase 3 - Forearm Armor & Golfer's Elbow Rehab",
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Dumbbell Hammer Curls',
+                liftId: 'hammer_curls',
+                setScheme: '3 Sets of 12 Reps',
+                fixedWeightKg: 12,
+                notes: 'Neutral grip targets brachialis & brachioradialis while offloading medial epicondyle.',
+              ),
+              ExerciseTemplate(
+                name: 'Dumbbell Wrist Curls (Flexion & Extension)',
+                liftId: 'dumbbell_wrist_curls',
+                setScheme: '3 Sets of 15 Reps',
+                fixedWeightKg: 8,
+                notes: 'Forearms rested on bench/knees; controlled flexor & extensor curls rebuild tendon integrity.',
+              ),
+              ExerciseTemplate(
+                name: "Pull-Up Isometric Hold (Golfer's Elbow Iso)",
+                liftId: 'pullup_isometric_hold',
+                setScheme: '3 Sets of 30 Reps',
+                fixedWeightKg: 0,
+                notes: '90° elbow flexion or chin-over-bar hold; isometric loading stimulates analgesic tendon remodeling.',
               ),
             ],
           ),
@@ -470,7 +496,7 @@ class ProgramCycle {
       DayTemplate(
         dayNumber: 5,
         title: 'Day 5: Upper Hypertrophy & Scapular Armor',
-        subtitle: 'Overhead / Z-Press, Powell Raises, Dumbbell Pullovers',
+        subtitle: 'Overhead / Z-Press, Powell Raises, Dumbbell Pullovers, Hammer Curls & Pull-Up Isos',
         phases: <PhaseTemplate>[
           PhaseTemplate(
             name: 'Phase 1 - Vertical Overhead Strength',
@@ -506,6 +532,32 @@ class ProgramCycle {
                 setScheme: '3 Sets of 12 Reps',
                 fixedWeightKg: 15,
                 notes: 'Deep stretch across bench with ribcage expansion; keep lower back neutral.',
+              ),
+            ],
+          ),
+          PhaseTemplate(
+            name: 'Phase 4 - Forearm Armor & Tendon Density',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Dumbbell Hammer Curls',
+                liftId: 'hammer_curls',
+                setScheme: '3 Sets of 12 Reps',
+                fixedWeightKg: 12,
+                notes: 'Brachialis & forearm thickness; strict neutral grip.',
+              ),
+              ExerciseTemplate(
+                name: 'Dumbbell Wrist Curls (Flexion & Extension)',
+                liftId: 'dumbbell_wrist_curls',
+                setScheme: '3 Sets of 15 Reps',
+                fixedWeightKg: 8,
+                notes: 'Controlled wrist flexion and reverse extension curls.',
+              ),
+              ExerciseTemplate(
+                name: "Pull-Up Isometric Hold (Golfer's Elbow Iso)",
+                liftId: 'pullup_isometric_hold',
+                setScheme: '3 Sets of 30 Reps',
+                fixedWeightKg: 0,
+                notes: 'Static 90° or top position hold for medial epicondyle tendon adaptation.',
               ),
             ],
           ),

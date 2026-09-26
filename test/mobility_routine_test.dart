@@ -187,6 +187,57 @@ void main() {
             reason: 'Exercise ${ex.name} should not append exercise tutorial');
       }
     });
+
+    test('Forearm work and pull-up iso holds are present in exercises, curriculum, and goals', () {
+      final List<MobilityExerciseModel> exercises =
+          MobilityExerciseModel.defaultExercises();
+
+      final MobilityExerciseModel hammer =
+          exercises.firstWhere((e) => e.id == 'hammer_curls');
+      expect(hammer.name, contains('Hammer Curls'));
+      expect(hammer.videoUrl, contains(Uri.encodeComponent('Dumbbell Hammer Curls')));
+
+      final MobilityExerciseModel wristCurls =
+          exercises.firstWhere((e) => e.id == 'dumbbell_wrist_curls');
+      expect(wristCurls.name, contains('Wrist Curls'));
+      expect(wristCurls.focusArea, equals(MobilityFocusArea.gripStrength));
+      expect(wristCurls.videoUrl, contains(Uri.encodeComponent('Dumbbell Wrist Curls')));
+
+      final MobilityExerciseModel pullupIso =
+          exercises.firstWhere((e) => e.id == 'pullup_isometric_hold');
+      expect(pullupIso.name, contains('Pull-Up Isometric Hold'));
+      expect(pullupIso.description, contains("golfer's elbow"));
+      expect(pullupIso.videoUrl, contains(Uri.encodeComponent('Pull Up Isometric Hold')));
+
+      // Check Milestones in GoalTrack
+      final GoalTrack? mobilityGoal =
+          goalProvider.getGoal('goal_mobility_hypertrophy');
+      expect(mobilityGoal, isNotNull);
+      final List<String> milestoneIds =
+          mobilityGoal!.milestones.map((m) => m.id).toList();
+      expect(milestoneIds, contains('hammer_curls_35'));
+      expect(milestoneIds, contains('wrist_curls_25'));
+      expect(milestoneIds, contains('pullup_iso_hold_30s'));
+
+      // Check Curriculum Day 2 and Day 5
+      final List<DayTemplate> mobilityDays = ProgramCycle.getMobilityProgram();
+      final DayTemplate day2 = mobilityDays[1];
+      final List<String> day2Lifts = day2.phases
+          .expand((p) => p.exercises)
+          .map((e) => e.liftId)
+          .toList();
+      expect(day2Lifts, contains('hammer_curls'));
+      expect(day2Lifts, contains('dumbbell_wrist_curls'));
+      expect(day2Lifts, contains('pullup_isometric_hold'));
+
+      final DayTemplate day5 = mobilityDays[4];
+      final List<String> day5Lifts = day5.phases
+          .expand((p) => p.exercises)
+          .map((e) => e.liftId)
+          .toList();
+      expect(day5Lifts, contains('hammer_curls'));
+      expect(day5Lifts, contains('dumbbell_wrist_curls'));
+      expect(day5Lifts, contains('pullup_isometric_hold'));
+    });
   });
 }
-
