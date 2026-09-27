@@ -263,6 +263,58 @@ class GoalProvider extends ChangeNotifier {
       );
     }
 
+    // Check Bodybuilding (Trainer Winny 19 Exercises) Goal
+    final GoalTrack? bbGoal = getGoal('goal_bodybuilding');
+    if (bbGoal != null &&
+        bbGoal.scheduleConfig.isScheduledForWeekday(weekday)) {
+      String title = 'Bodybuilding (Trainer Winny)';
+      String subtitle = '9 Bodyparts • 19 Exercises System';
+      int minutes = 45;
+
+      switch (weekday) {
+        case DateTime.monday:
+          title = 'Push Focus (Chest, Delts & Triceps)';
+          subtitle = 'Bench Press, Incline DB, OHP, Lateral Raises & Tricep Pushdowns';
+          minutes = 45;
+        case DateTime.tuesday:
+          title = 'Pull Focus (Back, Rear Delts, Arms & Abs)';
+          subtitle = 'Lat Pulldown, Rows, Face Pulls, Curls & Cable Crunch';
+          minutes = 45;
+        case DateTime.wednesday:
+          title = 'Legs & Calves (Quads, Hamstrings & Calves)';
+          subtitle = 'Squat, RDL, Leg Extensions, Leg Curls & Calf Raises';
+          minutes = 50;
+        case DateTime.thursday:
+          title = 'Upper Hypertrophy & Long Head Triceps';
+          subtitle = 'Incline DB Press, Cable Rows, DB Pullover & Arms';
+          minutes = 45;
+        case DateTime.friday:
+          title = 'Lower Body & Core Hypertrophy';
+          subtitle = 'Hack Squats, DB RDL, Seated Leg Curls & Calves';
+          minutes = 45;
+        case DateTime.saturday:
+          title = 'Arms & Shoulder Specialization';
+          subtitle = 'Barbell Curls, Hammer Curls, Tricep Pushdown & Lateral Delts';
+          minutes = 40;
+        case DateTime.sunday:
+          title = 'Active Restoration & Fasting';
+          subtitle = 'Zone 1 Walking & Wim Hof Guided Breathwork';
+          minutes = 30;
+      }
+
+      blocks.add(
+        ComposedSessionBlock(
+          id: 'block_bodybuilding_day_$weekday',
+          goalId: bbGoal.id,
+          type: SessionBlockType.bodybuilding,
+          title: title,
+          subtitle: subtitle,
+          estimatedMinutes: minutes,
+          data: <String, dynamic>{'weekday': weekday},
+        ),
+      );
+    }
+
     final DailySessionPlan newPlan =
         DailySessionPlan(date: date, blocks: blocks);
     _plans.add(newPlan);
@@ -275,6 +327,13 @@ class GoalProvider extends ChangeNotifier {
     double value,
   ) async {
     await updateMilestoneProgress('goal_mobility_hypertrophy', milestoneId, value);
+  }
+
+  Future<void> updateBodybuildingMilestone(
+    String milestoneId,
+    double value,
+  ) async {
+    await updateMilestoneProgress('goal_bodybuilding', milestoneId, value);
   }
 
   Future<void> markBlockCompleted(

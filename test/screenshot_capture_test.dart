@@ -36,6 +36,7 @@ import 'package:oly/services/recovery_engine_service.dart';
 import 'package:oly/services/storage_service.dart';
 import 'package:oly/theme/app_theme.dart';
 import 'package:oly/views/analytics_screen.dart';
+import 'package:oly/views/bodybuilding/bodybuilding_routine_screen.dart';
 import 'package:oly/views/breathing/breathing_analytics_tab.dart';
 import 'package:oly/views/breathing/wim_hof_session_screen.dart';
 import 'package:oly/views/breathing/wim_hof_setup_sheet.dart';
@@ -1514,6 +1515,63 @@ void main() {
 
         await captureScreen(tester, '46_mobility_curriculum_screen');
         expect(find.text('EXERCISE PROTOCOLS'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      '47 Renders Bodybuilding 19 Exercises Guide Screen',
+      (tester) async {
+        tester.view.physicalSize = const Size(1170, 2532);
+        tester.view.devicePixelRatio = 2.0;
+        addTearDown(() => tester.view.resetPhysicalSize());
+
+        await tester.pumpWidget(
+          buildTestScreen(
+            const BodybuildingRoutineScreen(),
+          ),
+        );
+        await captureScreen(tester, '47_bodybuilding_exercises_screen');
+        expect(find.text('Bodybuilding (19 Exercises)'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      '48 Renders Bodybuilding Hypertrophy Standards Screen',
+      (tester) async {
+        tester.view.physicalSize = const Size(1170, 2532);
+        tester.view.devicePixelRatio = 2.0;
+        addTearDown(() => tester.view.resetPhysicalSize());
+
+        await tester.pumpWidget(
+          buildTestScreen(
+            const BodybuildingRoutineScreen(),
+          ),
+        );
+        await tester.tap(find.text('Hypertrophy Standards'));
+        await tester.pumpAndSettle();
+
+        await captureScreen(tester, '48_bodybuilding_standards_screen');
+        expect(find.textContaining('PHYSIQUE PROGRESSION TIER'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      '49 Renders Bodybuilding Weekly Curriculum Screen',
+      (tester) async {
+        tester.view.physicalSize = const Size(1170, 2532);
+        tester.view.devicePixelRatio = 2.0;
+        addTearDown(() => tester.view.resetPhysicalSize());
+
+        await tester.pumpWidget(
+          buildTestScreen(
+            const BodybuildingRoutineScreen(),
+          ),
+        );
+        await tester.tap(find.text('Weekly Curriculum'));
+        await tester.pumpAndSettle();
+
+        await captureScreen(tester, '49_bodybuilding_curriculum_screen');
+        expect(find.text('Start Live Workout Session'), findsOneWidget);
       },
     );
   });

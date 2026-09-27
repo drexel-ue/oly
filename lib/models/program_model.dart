@@ -1,6 +1,7 @@
 enum TrainingTrack {
   olympic,
   mobility,
+  bodybuilding,
 }
 
 class ExerciseTemplate {
@@ -235,7 +236,9 @@ class ProgramCycle {
       currentDay: json['currentDay'] as int? ?? 1,
       activeTrack: json['activeTrack'] == 'olympic'
           ? TrainingTrack.olympic
-          : TrainingTrack.mobility,
+          : (json['activeTrack'] == 'bodybuilding'
+              ? TrainingTrack.bodybuilding
+              : TrainingTrack.mobility),
       completedSessionIds:
           (json['completedSessionIds'] as List<dynamic>?)
               ?.map((dynamic e) => e as String)
@@ -653,6 +656,419 @@ class ProgramCycle {
                 setScheme: '3 Sets of 30 Reps',
                 fixedWeightKg: 0,
                 notes: 'Circadian and autonomic nervous system reset.',
+              ),
+            ],
+          ),
+        ],
+      ),
+    ];
+  }
+
+  static List<DayTemplate> getBodybuildingProgram() {
+    return <DayTemplate>[
+      // Day 1 (Mon): Upper A (Chest, Lats, Overhead Press, Arms & Forearm Armor)
+      DayTemplate(
+        dayNumber: 1,
+        title: 'Day 1: Upper A (Heavy Horizontal, Shoulders & Forearm Armor)',
+        subtitle:
+            'Flat Bench Press, Lat Pulldown, Standing OHP, Barbell Curls, Cable Pushdowns, Barbell Wrist Curls',
+        phases: <PhaseTemplate>[
+          PhaseTemplate(
+            name: 'Phase 1 - Chest & Lat Compound Synergy',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Barbell Flat Bench Press',
+                liftId: 'bench_press',
+                setScheme: '4 Sets of 8 Reps',
+                fixedWeightKg: 80,
+                notes:
+                    'Plant feet, retract scapulae, lower with 2-3s control to lower sternum.',
+              ),
+              ExerciseTemplate(
+                name: 'Wide-Grip Lat Pulldown',
+                liftId: 'lat_pulldown',
+                setScheme: '4 Sets of 10 Reps',
+                fixedWeightKg: 65,
+                notes:
+                    'Depress scapula before pull; drive elbows straight to hip pockets for lat width.',
+              ),
+            ],
+          ),
+          PhaseTemplate(
+            name: 'Phase 2 - Overhead Press & Direct Arms',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Standing Overhead Barbell Press',
+                liftId: 'overhead_press',
+                setScheme: '3 Sets of 8 Reps',
+                fixedWeightKg: 50,
+                notes:
+                    'Strict vertical pressing path; brace glutes and core hard.',
+              ),
+              ExerciseTemplate(
+                name: 'Standing Barbell Bicep Curl',
+                liftId: 'barbell_curl',
+                setScheme: '3 Sets of 10 Reps',
+                fixedWeightKg: 35,
+                notes:
+                    'Supinated grip loading both heads of biceps; strict form without swing.',
+              ),
+              ExerciseTemplate(
+                name: 'Cable Triceps Pushdown',
+                liftId: 'tricep_pushdown',
+                setScheme: '3 Sets of 12 Reps',
+                fixedWeightKg: 30,
+                notes:
+                    'Pin elbows to ribs; full lateral head lockout contraction.',
+              ),
+            ],
+          ),
+          PhaseTemplate(
+            name: 'Phase 3 - Forearm & Tendon Armor',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Barbell Wrist Curls (Flexion & Extension)',
+                liftId: 'bb_barbell_wrist_curls',
+                setScheme: '3 Sets of 15 Reps',
+                fixedWeightKg: 15,
+                notes:
+                    "Controlled wrist curls over bench; builds forearm flexor thickness and resolves golfer's elbow.",
+              ),
+            ],
+          ),
+        ],
+      ),
+
+      // Day 2 (Tue): Lower A - Squat Focus (Hip Primer, Squat, Hinge, Calves & Decompression)
+      DayTemplate(
+        dayNumber: 2,
+        title: 'Day 2: Lower A - Squat Focus (Primer, Squat, Hinge & Decompression)',
+        subtitle:
+            'Banded Hip Rotations, Back Squat, Romanian Deadlift, Leg Extension, Calf Raise, Cable Crunch, Elephant Walks',
+        phases: <PhaseTemplate>[
+          PhaseTemplate(
+            name: 'Phase 1 - Hip Capsule Primer & Heavy Squat',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Banded Internal Hip Rotations',
+                liftId: 'bb_banded_hip_rotations',
+                setScheme: '2 Sets of 15 Reps',
+                fixedWeightKg: 0,
+                notes:
+                    'Anchor band to rig at knee height; rotate femur internally to prime hip capsule.',
+              ),
+              ExerciseTemplate(
+                name: 'Barbell Back Squat',
+                liftId: 'back_squat',
+                setScheme: '4 Sets of 8 Reps',
+                fixedWeightKg: 100,
+                notes:
+                    'Deep knee flexion, upright chest, full quadriceps sweep.',
+              ),
+            ],
+          ),
+          PhaseTemplate(
+            name: 'Phase 2 - Posterior Hinge & Quad Isolation',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Romanian Deadlift (RDL)',
+                liftId: 'romanian_deadlift',
+                setScheme: '3 Sets of 8 Reps',
+                fixedWeightKg: 90,
+                notes:
+                    'Push hips backward into deep hamstring stretch, soft knees, flat back.',
+              ),
+              ExerciseTemplate(
+                name: 'Seated Leg Extension',
+                liftId: 'leg_extensions',
+                setScheme: '3 Sets of 15 Reps',
+                fixedWeightKg: 50,
+                notes:
+                    'Full rectus femoris lockout squeeze; pause for 1s at top.',
+              ),
+            ],
+          ),
+          PhaseTemplate(
+            name: 'Phase 3 - Calves, Core & Dynamic Decompression',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Standing Calf Raise',
+                liftId: 'calf_raises',
+                setScheme: '4 Sets of 20 Reps',
+                fixedWeightKg: 70,
+                notes:
+                    'Deep ankle dorsiflexion stretch, 2s pause at bottom and top squeeze.',
+              ),
+              ExerciseTemplate(
+                name: 'Kneeling Cable Crunch',
+                liftId: 'cable_crunches',
+                setScheme: '3 Sets of 15 Reps',
+                fixedWeightKg: 40,
+                notes:
+                    'Curl ribcage down into pelvis like a scroll; full rectus abdominis crunch.',
+              ),
+              ExerciseTemplate(
+                name: 'Elephant Walks',
+                liftId: 'bb_elephant_walks',
+                setScheme: '2 Sets of 30 Reps',
+                fixedWeightKg: 0,
+                notes:
+                    'Palms on floor or block; alternate knee lockouts to dynamically floss hamstrings and calves.',
+              ),
+            ],
+          ),
+        ],
+      ),
+
+      // Day 3 (Wed): Mid-Week Restoration & Tendon Recovery
+      DayTemplate(
+        dayNumber: 3,
+        title: 'Day 3: Mid-Week Restoration & Tendon Recovery',
+        subtitle: 'Active Recovery, Joint Flossing, Hydration & Zone 1 Walking',
+        isActiveRecovery: true,
+        phases: <PhaseTemplate>[
+          PhaseTemplate(
+            name: 'Restoration & Cellular Recovery',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Restorative Outdoor Walk',
+                liftId: 'walking',
+                setScheme: '1 Set of 45 Reps',
+                fixedWeightKg: 0,
+                notes:
+                    'Gentle zone 1 aerobic recovery, blood flow, and lymphatic drainage.',
+              ),
+              ExerciseTemplate(
+                name: 'Couch Stretch (Quad & Hip Flexor)',
+                liftId: 'bb_couch_stretch',
+                setScheme: '2 Sets of 90s Hold',
+                fixedWeightKg: 0,
+                notes:
+                    'Restorative hold against wall; restores hip extension after heavy squatting.',
+              ),
+              ExerciseTemplate(
+                name: 'Wim Hof Guided Breathwork',
+                liftId: 'breathwork',
+                setScheme: '3 Sets of 30 Reps',
+                fixedWeightKg: 0,
+                notes:
+                    'Circadian and autonomic nervous system reset.',
+              ),
+            ],
+          ),
+        ],
+      ),
+
+      // Day 4 (Thu): Upper B (Incline Upper Chest, Mid-Back, 3D Delts & Arms)
+      DayTemplate(
+        dayNumber: 4,
+        title: 'Day 4: Upper B (Incline Upper Chest, Mid-Back & 3D Delts)',
+        subtitle:
+            'Incline DB Press, Chest-Supported Row, DB Lateral Raises, DB Hammer Curls, Overhead Triceps, Face Pulls',
+        phases: <PhaseTemplate>[
+          PhaseTemplate(
+            name: 'Phase 1 - Incline Chest & Horizontal Back',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Incline Dumbbell Bench Press',
+                liftId: 'incline_dumbbell_press',
+                setScheme: '4 Sets of 10 Reps',
+                fixedWeightKg: 32,
+                notes:
+                    '30° to 45° bench angle targeting upper clavicular pectoralis.',
+              ),
+              ExerciseTemplate(
+                name: 'Chest-Supported Row / Barbell Row',
+                liftId: 'barbell_row',
+                setScheme: '4 Sets of 10 Reps',
+                fixedWeightKg: 60,
+                notes:
+                    'Horizontal pull targeting mid traps, rhomboids, and back thickness.',
+              ),
+            ],
+          ),
+          PhaseTemplate(
+            name: 'Phase 2 - 3D Delts & Long Head Arms',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Dumbbell Lateral Raises',
+                liftId: 'lateral_raises',
+                setScheme: '4 Sets of 15 Reps',
+                fixedWeightKg: 12,
+                notes:
+                    'Lead with elbows, pinkies slightly elevated; 2s eccentric descent.',
+              ),
+              ExerciseTemplate(
+                name: 'Neutral-Grip Dumbbell Hammer Curl',
+                liftId: 'hammer_curls',
+                setScheme: '3 Sets of 12 Reps',
+                fixedWeightKg: 16,
+                notes:
+                    'Neutral wrist orientation targeting brachialis and arm thickness.',
+              ),
+              ExerciseTemplate(
+                name: 'Overhead Cable Triceps Extension',
+                liftId: 'overhead_tricep_extension',
+                setScheme: '3 Sets of 12 Reps',
+                fixedWeightKg: 25,
+                notes:
+                    'Deep overhead stretch targeting long head of triceps; flare rope apart.',
+              ),
+            ],
+          ),
+          PhaseTemplate(
+            name: 'Phase 3 - Rear Delt & Scapular Posture',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Cable Face Pulls / Reverse Pec Deck',
+                liftId: 'face_pulls',
+                setScheme: '3 Sets of 15 Reps',
+                fixedWeightKg: 25,
+                notes:
+                    'Pull toward eyes with external shoulder rotation; rear delt capping.',
+              ),
+            ],
+          ),
+        ],
+      ),
+
+      // Day 5 (Fri): Lower B - Hinge Focus (Hack Squat, Posterior Chain, Jefferson Curls)
+      DayTemplate(
+        dayNumber: 5,
+        title: 'Day 5: Lower B - Hinge Focus (Hack Squat, Hamstrings & Jefferson Curls)',
+        subtitle:
+            'Hack Squat, Lying Hamstring Curl, Barbell Hip Thrust, Seated Calf Raise, Jefferson Curls, Couch Stretch, Hanging Leg Raise',
+        phases: <PhaseTemplate>[
+          PhaseTemplate(
+            name: 'Phase 1 - Knee Extension & Hip Thrust Overload',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Hack Squat or Front Squat',
+                liftId: 'hack_squat',
+                setScheme: '4 Sets of 10 Reps',
+                fixedWeightKg: 90,
+                notes:
+                    'Constant quad tension; reverse smoothly right at parallel.',
+              ),
+              ExerciseTemplate(
+                name: 'Barbell Hip Thrust',
+                liftId: 'hip_thrust',
+                setScheme: '3 Sets of 10 Reps',
+                fixedWeightKg: 110,
+                notes:
+                    'Tuck chin, drive through heels, 2s peak glute lockout squeeze.',
+              ),
+            ],
+          ),
+          PhaseTemplate(
+            name: 'Phase 2 - Hamstring Flexion & Calves',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Lying or Seated Hamstring Curl',
+                liftId: 'hamstring_curl',
+                setScheme: '3 Sets of 12 Reps',
+                fixedWeightKg: 45,
+                notes:
+                    'Knee flexion isolation; 3s eccentric cadence on negative.',
+              ),
+              ExerciseTemplate(
+                name: 'Seated Machine Calf Raise',
+                liftId: 'seated_calf_raise',
+                setScheme: '4 Sets of 15 Reps',
+                fixedWeightKg: 45,
+                notes:
+                    'Targets soleus muscle with 90° knee angle; slow 2s stretch.',
+              ),
+            ],
+          ),
+          PhaseTemplate(
+            name: 'Phase 3 - Loaded Spinal Flexion, Hip Flexor Length & Core',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Jefferson Curls',
+                liftId: 'bb_jefferson_curls',
+                setScheme: '3 Sets of 8 Reps',
+                fixedWeightKg: 20,
+                notes:
+                    'Stand on box; roll spine down vertebra by vertebra into deep hamstring stretch with barbell.',
+              ),
+              ExerciseTemplate(
+                name: 'Couch Stretch (Quad & Hip Flexor)',
+                liftId: 'bb_couch_stretch',
+                setScheme: '2 Sets of 90s Hold',
+                fixedWeightKg: 0,
+                notes:
+                    'Back shin flush to wall; squeeze glute to unlock anterior hip flexor and rectus femoris.',
+              ),
+              ExerciseTemplate(
+                name: 'Hanging Knee / Leg Raise',
+                liftId: 'hanging_leg_raise',
+                setScheme: '3 Sets of 15 Reps',
+                fixedWeightKg: 0,
+                notes:
+                    'Posterior pelvic tilt to engage lower rectus abdominis.',
+              ),
+            ],
+          ),
+        ],
+      ),
+
+      // Day 6 (Sat): Aerobic Endurance & Standalone C25K Run
+      DayTemplate(
+        dayNumber: 6,
+        title: 'Day 6: Aerobic Endurance & Standalone C25K Run',
+        subtitle: 'C25K Run 3, Lower Body Joint Flossing & Hip Mobility Flow',
+        isActiveRecovery: true,
+        phases: <PhaseTemplate>[
+          PhaseTemplate(
+            name: 'Aerobic Run & Joint Flossing',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'C25K Standalone Run',
+                liftId: 'running',
+                setScheme: '1 Set of 30 Reps',
+                fixedWeightKg: 0,
+                notes:
+                    'Low-stress aerobic endurance running without upper body fatigue.',
+              ),
+              ExerciseTemplate(
+                name: 'Restorative Outdoor Walk',
+                liftId: 'walking',
+                setScheme: '1 Set of 30 Reps',
+                fixedWeightKg: 0,
+                notes:
+                    'Cool down and lymphatic clearance.',
+              ),
+            ],
+          ),
+        ],
+      ),
+
+      // Day 7 (Sun): Active Restoration & Circadian Reset
+      DayTemplate(
+        dayNumber: 7,
+        title: 'Day 7: Active Restoration & Fasting',
+        subtitle: 'Restorative Walking, Circadian Sun & Wim Hof Breathwork',
+        isActiveRecovery: true,
+        phases: <PhaseTemplate>[
+          PhaseTemplate(
+            name: 'Restoration & Cellular Recovery',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Restorative Outdoor Walk',
+                liftId: 'walking',
+                setScheme: '1 Set of 45 Reps',
+                fixedWeightKg: 0,
+                notes:
+                    'Gentle zone 1 aerobic recovery, blood flow, and lymphatic drainage.',
+              ),
+              ExerciseTemplate(
+                name: 'Wim Hof Guided Breathwork',
+                liftId: 'breathwork',
+                setScheme: '3 Sets of 30 Reps',
+                fixedWeightKg: 0,
+                notes:
+                    'Circadian and autonomic nervous system reset.',
               ),
             ],
           ),

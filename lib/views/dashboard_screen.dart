@@ -13,6 +13,7 @@ import 'package:oly/providers/settings_provider.dart';
 import 'package:oly/services/recovery_engine_service.dart';
 import 'package:oly/theme/app_theme.dart';
 import 'package:oly/views/analytics_screen.dart';
+import 'package:oly/views/bodybuilding/bodybuilding_routine_screen.dart';
 import 'package:oly/views/breathing/wim_hof_setup_sheet.dart';
 import 'package:oly/views/c25k/c25k_program_detail_screen.dart';
 import 'package:oly/views/grip/dynamometer_entry_sheet.dart';
@@ -420,6 +421,25 @@ class DashboardScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 12),
+                OlyEntryReveal(
+                  index: 9,
+                  child: _buildActionCard(
+                    context,
+                    title: 'Bodybuilding (19 Exercises)',
+                    subtitle: 'Trainer Winny System • 9 Muscle Groups • Hypertrophy',
+                    icon: Icons.fitness_center,
+                    accentColor: const Color(0xFFA855F7),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute<void>(
+                          builder: (_) => const BodybuildingRoutineScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 12),
               ],
 
               // Routine Explorer
@@ -451,33 +471,40 @@ class DashboardScreen extends StatelessWidget {
 
   Widget _buildCycleCard(BuildContext context, ProgramProvider program) {
     final bool isMobility = program.isMobilityTrack;
-    final bool isRetest = !isMobility && program.isRetestWeek;
-    final String weekTitle = isMobility
-        ? 'Dane Miller & ATG Joint Armor'
-        : (isRetest
-            ? 'Week 5: 1RM RETEST WEEK'
-            : 'Week ${program.currentWeek} of 4: ${program.currentWeek == 4 ? "Deload & Prep" : program.currentWeek == 3 ? "Peak Loading" : "Base Loading"}');
+    final bool isBodybuilding = program.isBodybuildingTrack;
+    final bool isRetest = !isMobility && !isBodybuilding && program.isRetestWeek;
+    final String weekTitle = isBodybuilding
+        ? 'Trainer Winny: 9 Bodyparts, 19 Exercises'
+        : (isMobility
+            ? 'Dane Miller & ATG Joint Armor'
+            : (isRetest
+                ? 'Week 5: 1RM RETEST WEEK'
+                : 'Week ${program.currentWeek} of 4: ${program.currentWeek == 4 ? "Deload & Prep" : program.currentWeek == 3 ? "Peak Loading" : "Base Loading"}'));
 
-    final Color glowColor = isMobility
-        ? AppTheme.accentEmerald
-        : (isRetest ? Colors.redAccent : AppTheme.primaryAmber);
+    final Color glowColor = isBodybuilding
+        ? const Color(0xFFA855F7)
+        : (isMobility
+            ? AppTheme.accentEmerald
+            : (isRetest ? Colors.redAccent : AppTheme.primaryAmber));
 
     return GlassContainer(
       padding: const EdgeInsets.all(18),
       ambientGlowColor: glowColor,
       gradient: LinearGradient(
-        colors: isMobility
-            ? <Color>[const Color(0xFF0F291E), const Color(0xFF131318)]
-            : (isRetest
-                ? <Color>[const Color(0xFF5A0000), const Color(0xFF1E0000)]
-                : <Color>[AppTheme.surfaceElevated, AppTheme.surfaceCard]),
+        colors: isBodybuilding
+            ? <Color>[const Color(0xFF28113B), const Color(0xFF131318)]
+            : (isMobility
+                ? <Color>[const Color(0xFF0F291E), const Color(0xFF131318)]
+                : (isRetest
+                    ? <Color>[const Color(0xFF5A0000), const Color(0xFF1E0000)]
+                    : <Color>[AppTheme.surfaceElevated, AppTheme.surfaceCard])),
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          // Track Switcher Segment (Olympic vs Mobility)
+          // Track Switcher Segment (Olympic vs Mobility vs Bodybuilding)
           Container(
             padding: const EdgeInsets.all(3),
             decoration: BoxDecoration(
@@ -489,26 +516,27 @@ class DashboardScreen extends StatelessWidget {
               children: <Widget>[
                 Expanded(
                   child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
                     onTap: () {
-                      if (program.isMobilityTrack) {
+                      if (program.activeTrack != TrainingTrack.olympic) {
                         program.setTrainingTrack(TrainingTrack.olympic);
                       }
                     },
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 6),
                       decoration: BoxDecoration(
-                        color: !program.isMobilityTrack
+                        color: program.activeTrack == TrainingTrack.olympic
                             ? AppTheme.primaryAmber
                             : Colors.transparent,
                         borderRadius: BorderRadius.circular(9),
                       ),
                       child: Center(
                         child: Text(
-                          '🏋️ Olympic Lifts',
+                          '🏋️ Olympic',
                           style: GoogleFonts.outfit(
-                            fontSize: 12,
+                            fontSize: 11,
                             fontWeight: FontWeight.bold,
-                            color: !program.isMobilityTrack
+                            color: program.activeTrack == TrainingTrack.olympic
                                 ? Colors.black
                                 : AppTheme.textSecondary,
                           ),
@@ -520,27 +548,60 @@ class DashboardScreen extends StatelessWidget {
                 const SizedBox(width: 4),
                 Expanded(
                   child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
                     onTap: () {
-                      if (!program.isMobilityTrack) {
+                      if (program.activeTrack != TrainingTrack.mobility) {
                         program.setTrainingTrack(TrainingTrack.mobility);
                       }
                     },
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 6),
                       decoration: BoxDecoration(
-                        color: program.isMobilityTrack
+                        color: program.activeTrack == TrainingTrack.mobility
                             ? AppTheme.accentEmerald
                             : Colors.transparent,
                         borderRadius: BorderRadius.circular(9),
                       ),
                       child: Center(
                         child: Text(
-                          '🧘 Mobility & Hypertrophy',
+                          '🧘 Mobility',
                           style: GoogleFonts.outfit(
-                            fontSize: 12,
+                            fontSize: 11,
                             fontWeight: FontWeight.bold,
-                            color: program.isMobilityTrack
+                            color: program.activeTrack == TrainingTrack.mobility
                                 ? Colors.black
+                                : AppTheme.textSecondary,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () {
+                      if (program.activeTrack != TrainingTrack.bodybuilding) {
+                        program.setTrainingTrack(TrainingTrack.bodybuilding);
+                      }
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 6),
+                      decoration: BoxDecoration(
+                        color: program.activeTrack == TrainingTrack.bodybuilding
+                            ? const Color(0xFFA855F7)
+                            : Colors.transparent,
+                        borderRadius: BorderRadius.circular(9),
+                      ),
+                      child: Center(
+                        child: Text(
+                          '💪 Bodybuilding',
+                          style: GoogleFonts.outfit(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: program.activeTrack == TrainingTrack.bodybuilding
+                                ? Colors.white
                                 : AppTheme.textSecondary,
                           ),
                         ),
@@ -557,9 +618,11 @@ class DashboardScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
               Text(
-                isMobility
-                    ? 'ACTIVE FOCUS: MOBILITY & HYPERTROPHY'
-                    : 'CYCLE ${program.currentCycle} PERIODIZATION',
+                isBodybuilding
+                    ? 'ACTIVE FOCUS: BODYBUILDING (19 EXERCISES)'
+                    : (isMobility
+                        ? 'ACTIVE FOCUS: MOBILITY & HYPERTROPHY'
+                        : 'CYCLE ${program.currentCycle} PERIODIZATION'),
                 style: GoogleFonts.outfit(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
@@ -573,20 +636,22 @@ class DashboardScreen extends StatelessWidget {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: glowColor.withValues(alpha: isMobility ? 0.2 : 1.0),
+                  color: glowColor.withValues(alpha: (isMobility || isBodybuilding) ? 0.2 : 1.0),
                   borderRadius: BorderRadius.circular(12),
-                  border: isMobility
+                  border: (isMobility || isBodybuilding)
                       ? Border.all(color: glowColor.withValues(alpha: 0.5))
                       : null,
                 ),
                 child: Text(
-                  isMobility
-                      ? 'ACTIVE FOCUS'
-                      : (isRetest ? 'RETEST ACTIVE' : 'W${program.currentWeek}'),
+                  isBodybuilding
+                      ? 'BODYBUILDING'
+                      : (isMobility
+                          ? 'ACTIVE FOCUS'
+                          : (isRetest ? 'RETEST ACTIVE' : 'W${program.currentWeek}')),
                   style: GoogleFonts.outfit(
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
-                    color: isMobility ? glowColor : Colors.black,
+                    color: (isMobility || isBodybuilding) ? glowColor : Colors.black,
                   ),
                 ),
               ),
@@ -603,13 +668,15 @@ class DashboardScreen extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            isMobility
-                ? 'Olympic lifts deprioritized • Weekly loaded mobility & joint hypertrophy'
-                : (isRetest
-                    ? 'Retest 1RM baselines to reset your training percentages'
-                    : (program.currentWeek % 2 != 0
-                        ? 'Snatch Emphasis (2:1 Alternating Focus)'
-                        : 'Clean & Jerk Emphasis (1:2 Alternating Focus)')),
+            isBodybuilding
+                ? 'Trainer Winny System • 9 Muscle Groups • Maximum Gains'
+                : (isMobility
+                    ? 'Olympic lifts deprioritized • Weekly loaded mobility & joint hypertrophy'
+                    : (isRetest
+                        ? 'Retest 1RM baselines to reset your training percentages'
+                        : (program.currentWeek % 2 != 0
+                            ? 'Snatch Emphasis (2:1 Alternating Focus)'
+                            : 'Clean & Jerk Emphasis (1:2 Alternating Focus)'))),
             style: GoogleFonts.inter(
               fontSize: 12,
               fontWeight: FontWeight.w600,
@@ -618,7 +685,7 @@ class DashboardScreen extends StatelessWidget {
           ),
           const SizedBox(height: 12),
 
-          if (isMobility) ...<Widget>[
+          if (isMobility || isBodybuilding) ...<Widget>[
             // 7 Days of the week selector pills (Mon..Sun)
             Row(
               children: List.generate(7, (index) {
@@ -658,7 +725,7 @@ class DashboardScreen extends StatelessWidget {
                               fontSize: 11,
                               fontWeight: FontWeight.bold,
                               color: isSelected
-                                  ? Colors.black
+                                  ? (isBodybuilding ? Colors.white : Colors.black)
                                   : AppTheme.textSecondary,
                             ),
                           ),
@@ -675,7 +742,9 @@ class DashboardScreen extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute<void>(
-                    builder: (_) => const MobilityRoutineScreen(),
+                    builder: (_) => isBodybuilding
+                        ? const BodybuildingRoutineScreen()
+                        : const MobilityRoutineScreen(),
                   ),
                 );
               },
@@ -683,28 +752,30 @@ class DashboardScreen extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
-                  color: AppTheme.accentEmerald.withValues(alpha: 0.15),
+                  color: glowColor.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: AppTheme.accentEmerald.withValues(alpha: 0.5),
+                    color: glowColor.withValues(alpha: 0.5),
                   ),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
-                    const Icon(
-                      Icons.accessibility_new,
-                      color: AppTheme.accentEmerald,
+                    Icon(
+                      isBodybuilding ? Icons.fitness_center : Icons.accessibility_new,
+                      color: glowColor,
                       size: 18,
                     ),
                     const SizedBox(width: 8),
                     Flexible(
                       child: Text(
-                        'View Mobility Standards & Inspiration Videos',
+                        isBodybuilding
+                            ? 'View 19 Exercises Guide & Inspo Video'
+                            : 'View Mobility Standards & Inspiration Videos',
                         style: GoogleFonts.outfit(
                           fontSize: 13,
                           fontWeight: FontWeight.bold,
-                          color: AppTheme.accentEmerald,
+                          color: glowColor,
                         ),
                       ),
                     ),
@@ -1017,11 +1088,14 @@ class DashboardScreen extends StatelessWidget {
     GoalProvider? goalProvider,
   ) {
     final bool isMobility = program.isMobilityTrack;
-    final Color trackAccent = isMobility
-        ? AppTheme.accentEmerald
-        : (day.isActiveRecovery
-            ? AppTheme.secondaryCyan
-            : AppTheme.primaryAmber);
+    final bool isBodybuilding = program.isBodybuildingTrack;
+    final Color trackAccent = isBodybuilding
+        ? const Color(0xFFA855F7)
+        : (isMobility
+            ? AppTheme.accentEmerald
+            : (day.isActiveRecovery
+                ? AppTheme.secondaryCyan
+                : AppTheme.primaryAmber));
 
     return GlassContainer(
       padding: const EdgeInsets.all(18),
@@ -1034,14 +1108,18 @@ class DashboardScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
               Text(
-                isMobility
-                    ? "TODAY'S MOBILITY & HYPERTROPHY"
-                    : "TODAY'S WORKOUT",
+                isBodybuilding
+                    ? "TODAY'S BODYBUILDING SESSION"
+                    : (isMobility
+                        ? "TODAY'S MOBILITY & HYPERTROPHY"
+                        : "TODAY'S WORKOUT"),
                 style: GoogleFonts.outfit(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 1,
-                  color: isMobility ? AppTheme.accentEmerald : AppTheme.textSecondary,
+                  color: isBodybuilding
+                      ? const Color(0xFFA855F7)
+                      : (isMobility ? AppTheme.accentEmerald : AppTheme.textSecondary),
                 ),
               ),
               if (day.isActiveRecovery)
@@ -1071,7 +1149,7 @@ class DashboardScreen extends StatelessWidget {
             children: program.days.map((d) {
               final bool isSelected = program.currentDay == d.dayNumber;
               String label;
-              if (isMobility) {
+              if (isMobility || isBodybuilding) {
                 const List<String> weekdayLabels = <String>[
                   'Mon',
                   'Tue',
@@ -1161,8 +1239,12 @@ class DashboardScreen extends StatelessWidget {
                   runSpacing: 6,
                   children: <Widget>[
                     _buildGoalTrackChip(
-                      icon: isMobility ? Icons.accessibility_new : Icons.fitness_center,
-                      label: isMobility ? 'Mobility & Hypertrophy' : 'Olympic Lifting',
+                      icon: isBodybuilding
+                          ? Icons.fitness_center
+                          : (isMobility ? Icons.accessibility_new : Icons.fitness_center),
+                      label: isBodybuilding
+                          ? 'Bodybuilding (19 Exercises)'
+                          : (isMobility ? 'Mobility & Hypertrophy' : 'Olympic Lifting'),
                       color: trackAccent,
                     ),
                   ],
@@ -1197,6 +1279,9 @@ class DashboardScreen extends StatelessWidget {
                   } else if (block.type == SessionBlockType.mobility) {
                     icon = Icons.accessibility_new;
                     color = AppTheme.accentEmerald;
+                  } else if (block.type == SessionBlockType.bodybuilding) {
+                    icon = Icons.fitness_center;
+                    color = const Color(0xFFA855F7);
                   }
                   return _buildGoalTrackChip(
                     icon: icon,
@@ -1249,7 +1334,7 @@ class DashboardScreen extends StatelessWidget {
                   },
                   icon: Icon(
                     Icons.explore,
-                    color: isMobility ? AppTheme.accentEmerald : AppTheme.secondaryCyan,
+                    color: trackAccent,
                     size: 18,
                   ),
                   label: Text(
@@ -1257,13 +1342,13 @@ class DashboardScreen extends StatelessWidget {
                     style: GoogleFonts.outfit(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
-                      color: isMobility ? AppTheme.accentEmerald : AppTheme.secondaryCyan,
+                      color: trackAccent,
                     ),
                   ),
                   style: OutlinedButton.styleFrom(
                     minimumSize: const Size(0, 46),
                     side: BorderSide(
-                      color: isMobility ? AppTheme.accentEmerald : AppTheme.secondaryCyan,
+                      color: trackAccent,
                     ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -1320,7 +1405,7 @@ class DashboardScreen extends StatelessWidget {
                   style: ElevatedButton.styleFrom(
                     minimumSize: const Size(0, 46),
                     backgroundColor: trackAccent,
-                    foregroundColor: Colors.black,
+                    foregroundColor: isBodybuilding ? Colors.white : Colors.black,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),

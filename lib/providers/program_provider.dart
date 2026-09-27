@@ -6,13 +6,16 @@ import 'package:oly/services/storage_service.dart';
 class ProgramProvider extends ChangeNotifier {
   new(this._storage) {
     _cycle = _storage.loadProgramCycle();
-    if (_cycle.activeTrack == TrainingTrack.mobility) {
+    if (_cycle.activeTrack == TrainingTrack.mobility ||
+        _cycle.activeTrack == TrainingTrack.bodybuilding) {
       final int todayWeekday = DateTime.now().weekday;
       _cycle.currentDay = todayWeekday.clamp(1, 7);
     }
-    _days = _cycle.activeTrack == TrainingTrack.mobility
-        ? ProgramCycle.getMobilityProgram()
-        : ProgramCycle.getBuiltInProgram(week: _cycle.currentWeek);
+    _days = _cycle.activeTrack == TrainingTrack.bodybuilding
+        ? ProgramCycle.getBodybuildingProgram()
+        : (_cycle.activeTrack == TrainingTrack.mobility
+            ? ProgramCycle.getMobilityProgram()
+            : ProgramCycle.getBuiltInProgram(week: _cycle.currentWeek));
     _sessions = _storage.loadWorkoutSessions();
     _activeDraft = _storage.loadActiveWorkoutDraft();
   }
@@ -26,10 +29,18 @@ class ProgramProvider extends ChangeNotifier {
   ProgramCycle get cycle => _cycle;
   TrainingTrack get activeTrack => _cycle.activeTrack;
   bool get isMobilityTrack => _cycle.activeTrack == TrainingTrack.mobility;
+  bool get isBodybuildingTrack =>
+      _cycle.activeTrack == TrainingTrack.bodybuilding;
 
-  List<DayTemplate> get days => isMobilityTrack
-      ? ProgramCycle.getMobilityProgram()
-      : ProgramCycle.getBuiltInProgram(week: _cycle.currentWeek);
+  List<DayTemplate> get days {
+    if (isBodybuildingTrack) {
+      return ProgramCycle.getBodybuildingProgram();
+    } else if (isMobilityTrack) {
+      return ProgramCycle.getMobilityProgram();
+    } else {
+      return ProgramCycle.getBuiltInProgram(week: _cycle.currentWeek);
+    }
+  }
   List<WorkoutSession> get sessions => List.unmodifiable(_sessions);
   ActiveWorkoutDraft? get activeDraft => _activeDraft;
   bool get hasActiveDraft => _activeDraft != null;
@@ -37,7 +48,8 @@ class ProgramProvider extends ChangeNotifier {
   int get currentWeek => _cycle.currentWeek;
   int get currentDay => _cycle.currentDay;
   int get currentCycle => _cycle.currentCycle;
-  bool get isRetestWeek => !isMobilityTrack && _cycle.currentWeek == 5;
+  bool get isRetestWeek =>
+      !isMobilityTrack && !isBodybuildingTrack && _cycle.currentWeek == 5;
 
   double get totalVolumeKg => _sessions.fold(
     0,
@@ -77,7 +89,8 @@ class ProgramProvider extends ChangeNotifier {
 
   void setTrainingTrack(TrainingTrack track) {
     _cycle.activeTrack = track;
-    if (track == TrainingTrack.mobility) {
+    if (track == TrainingTrack.mobility ||
+        track == TrainingTrack.bodybuilding) {
       final int todayWeekday = DateTime.now().weekday;
       _cycle.currentDay = todayWeekday.clamp(1, 7);
     } else {

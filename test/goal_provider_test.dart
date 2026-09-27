@@ -19,36 +19,39 @@ void main() {
       goalProvider = GoalProvider(storage);
     });
 
-    test('Initializes with default 4 goals if storage is empty', () {
-      expect(goalProvider.goals.length, equals(4));
-      expect(goalProvider.activeGoals.length, equals(4));
+    test('Initializes with default 5 goals if storage is empty', () {
+      expect(goalProvider.goals.length, equals(5));
+      expect(goalProvider.activeGoals.length, equals(5));
 
       final GoalTrack? olyGoal = goalProvider.getGoal('goal_oly_lifting');
       final GoalTrack? gripGoal = goalProvider.getGoal('goal_grip_hang');
       final GoalTrack? c25kGoal = goalProvider.getGoal('goal_c25k');
       final GoalTrack? mobilityGoal = goalProvider.getGoal('goal_mobility_hypertrophy');
+      final GoalTrack? bbGoal = goalProvider.getGoal('goal_bodybuilding');
 
       expect(olyGoal, isNotNull);
       expect(gripGoal, isNotNull);
       expect(c25kGoal, isNotNull);
       expect(mobilityGoal, isNotNull);
+      expect(bbGoal, isNotNull);
 
       expect(olyGoal!.type, equals(GoalType.olympicLifting));
       expect(gripGoal!.type, equals(GoalType.gripAndHang));
       expect(c25kGoal!.type, equals(GoalType.c25kRunning));
       expect(mobilityGoal!.type, equals(GoalType.mobilityAndHypertrophy));
+      expect(bbGoal!.type, equals(GoalType.bodybuilding));
     });
 
     test('Can toggle goal enable/disable status and persists', () async {
       await goalProvider.toggleGoal('goal_c25k', false);
 
       expect(goalProvider.getGoal('goal_c25k')!.isEnabled, isFalse);
-      expect(goalProvider.activeGoals.length, equals(3));
+      expect(goalProvider.activeGoals.length, equals(4));
 
       // Check persistence with fresh instance
       final GoalProvider reloaded = GoalProvider(storage);
       expect(reloaded.getGoal('goal_c25k')!.isEnabled, isFalse);
-      expect(reloaded.activeGoals.length, equals(3));
+      expect(reloaded.activeGoals.length, equals(4));
     });
 
     test('Updates goal schedule weekdays and persists', () async {
@@ -89,10 +92,16 @@ void main() {
       final GoalTrack mobilityGoal = goalProvider.getGoal('goal_mobility_hypertrophy')!;
       final GoalMilestone couchMilestone = mobilityGoal.milestones.firstWhere((m) => m.id == 'couch_stretch_120s');
       expect(couchMilestone.currentValue, equals(90.0));
+
+      // Test bodybuilding milestone update
+      await goalProvider.updateBodybuildingMilestone('bb_bench_press_100', 85);
+      final GoalTrack bbGoal = goalProvider.getGoal('goal_bodybuilding')!;
+      final GoalMilestone benchMilestone = bbGoal.milestones.firstWhere((m) => m.id == 'bb_bench_press_100');
+      expect(benchMilestone.currentValue, equals(85.0));
     });
 
     test('Composes daily session plan based on scheduled weekdays', () async {
-      // Monday: default Oly (1,2,4,5,6), Grip (1,3,5), and Mobility (1-6) are scheduled.
+      // Monday: default Oly (1,2,4,5,6), Grip (1,3,5), Mobility (1-6), and Bodybuilding (1-6) are scheduled.
       final DateTime monday = DateTime(2026, 9, 14); // 2026-09-14 is Monday
       expect(monday.weekday, equals(DateTime.monday));
 
@@ -108,13 +117,14 @@ void main() {
         currentOlyDay: olyDay,
       );
 
-      // On Monday: Oly Lifting + Grip Hang + Mobility
-      expect(mondayPlan.blocks.length, equals(3));
+      // On Monday: Oly Lifting + Grip Hang + Mobility + Bodybuilding
+      expect(mondayPlan.blocks.length, equals(4));
       expect(mondayPlan.blocks[0].type, equals(SessionBlockType.lifting));
       expect(mondayPlan.blocks[1].type, equals(SessionBlockType.hang));
       expect(mondayPlan.blocks[2].type, equals(SessionBlockType.mobility));
+      expect(mondayPlan.blocks[3].type, equals(SessionBlockType.bodybuilding));
 
-      // Tuesday: Oly (1,2,4,5,6) + C25K (2,4,6) + Mobility (1-6)
+      // Tuesday: Oly (1,2,4,5,6) + C25K (2,4,6) + Mobility (1-6) + Bodybuilding (1-6)
       final DateTime tuesday = DateTime(2026, 9, 15); // Tuesday
       expect(tuesday.weekday, equals(DateTime.tuesday));
 
@@ -123,12 +133,13 @@ void main() {
         currentOlyDay: olyDay,
       );
 
-      expect(tuesdayPlan.blocks.length, equals(3));
+      expect(tuesdayPlan.blocks.length, equals(4));
       expect(tuesdayPlan.blocks[0].type, equals(SessionBlockType.lifting));
       expect(tuesdayPlan.blocks[1].type, equals(SessionBlockType.c25k));
       expect(tuesdayPlan.blocks[2].type, equals(SessionBlockType.mobility));
+      expect(tuesdayPlan.blocks[3].type, equals(SessionBlockType.bodybuilding));
 
-      // Wednesday: Grip & Hang (1,3,5) + Mobility (1-6)
+      // Wednesday: Grip & Hang (1,3,5) + Mobility (1-6) [Bodybuilding is Rest on Wed]
       final DateTime wednesday = DateTime(2026, 9, 16); // Wednesday
       expect(wednesday.weekday, equals(DateTime.wednesday));
 
