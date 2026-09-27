@@ -74,8 +74,53 @@ class WorkoutWeightHelper {
     return null;
   }
 
-  /// Extracts the target reps count from setScheme (e.g. '4 Sets of 2 Reps' -> 2)
+  /// Determines if an exercise is an isometric hold or timed duration exercise.
+  static bool isTimedExercise(String name, [String? setScheme]) {
+    final String nameLower = name.toLowerCase();
+    final String schemeLower = (setScheme ?? '').toLowerCase();
+
+    // If scheme explicitly specifies "Reps" without any "Hold" or "sec", it's reps-based
+    if (schemeLower.contains('reps') &&
+        !schemeLower.contains('hold') &&
+        !schemeLower.contains('sec')) {
+      return false;
+    }
+
+    if (nameLower.contains('hold') ||
+        nameLower.contains('hang') ||
+        nameLower.contains('couch stretch') ||
+        nameLower.contains('calf stretch') ||
+        nameLower.contains('butterfly') ||
+        nameLower.contains('pry') ||
+        nameLower.contains('isometric') ||
+        nameLower.contains('plank') ||
+        nameLower.contains('wall sit') ||
+        nameLower.contains('pails') ||
+        nameLower.contains('rails')) {
+      return true;
+    }
+
+    if (schemeLower.contains('hold') ||
+        schemeLower.contains('sec') ||
+        RegExp(r'\b\d+\s*s\b', caseSensitive: false).hasMatch(schemeLower)) {
+      return true;
+    }
+
+    return false;
+  }
+
+  /// Extracts the target reps or hold seconds count from setScheme (e.g. '4 Sets of 2 Reps' -> 2, '3 Sets of 30s Hold' -> 30)
   static int extractRepsCount(String setScheme) {
+    // 1. Check for hold / seconds duration first (e.g. "30s Hold", "90s", "45s", "60 sec")
+    final RegExpMatch? timeMatch = RegExp(
+      r'(\d+)\s*(?:s\b|sec|seconds|\s*s\s+Hold)',
+      caseSensitive: false,
+    ).firstMatch(setScheme);
+    if (timeMatch != null) {
+      return int.tryParse(timeMatch.group(1)!) ?? 1;
+    }
+
+    // 2. Check for standard reps (e.g. "8 Reps")
     final RegExpMatch? repMatch = RegExp(
       r'(\d+)\s+Reps',
       caseSensitive: false,

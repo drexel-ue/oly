@@ -265,15 +265,15 @@ class ProgramCycle {
       DayTemplate(
         dayNumber: 1,
         title: 'Day 1: Lower Hypertrophy + ATG Knee/Ankle',
-        subtitle: 'Slant Board, Tibialis Raises, Pause Squats, ATG Split Squats, Couch Stretch',
+        subtitle: 'Slant Board, Tibialis Raises, Hip IR Squeeze, Pause Squats, ATG Split Squats, Couch Stretch',
         phases: <PhaseTemplate>[
           PhaseTemplate(
-            name: 'Phase 1 - Ankle & Knee Bulletproofing',
+            name: 'Phase 1 - Ankle & Knee Bulletproofing + Hip IR Primer',
             exercises: <ExerciseTemplate>[
               ExerciseTemplate(
                 name: 'Slant Board Calf Stretch',
                 liftId: 'slant_board_calf_stretch',
-                setScheme: '3 Sets of 60 Reps',
+                setScheme: '3 Sets of 60s Hold',
                 fixedWeightKg: 0,
                 notes: 'Drive knee forward over toes without heel lifting; expand dorsiflexion.',
               ),
@@ -283,6 +283,13 @@ class ProgramCycle {
                 setScheme: '3 Sets of 25 Reps',
                 fixedWeightKg: 0,
                 notes: 'Full dorsiflexion squeeze against wall or tib bar.',
+              ),
+              ExerciseTemplate(
+                name: 'Banded Hip Internal Rotation',
+                liftId: 'banded_hip_internal_rotation',
+                setScheme: '2 Sets of 12 Reps',
+                fixedWeightKg: 0,
+                notes: 'Anchor band laterally to ankle; flare foot outward against resistance with 2s peak squeeze; primes deep squat capsule.',
               ),
             ],
           ),
@@ -312,7 +319,7 @@ class ProgramCycle {
               ExerciseTemplate(
                 name: 'Wall Couch Stretch',
                 liftId: 'couch_stretch',
-                setScheme: '2 Sets of 90 Reps',
+                setScheme: '2 Sets of 90s Hold',
                 fixedWeightKg: 0,
                 notes: 'Shin flush to wall; squeeze glute to drive hip forward with tall spine.',
               ),
@@ -378,7 +385,7 @@ class ProgramCycle {
               ExerciseTemplate(
                 name: "Pull-Up Isometric Hold (Golfer's Elbow Iso)",
                 liftId: 'pullup_isometric_hold',
-                setScheme: '3 Sets of 30 Reps',
+                setScheme: '3 Sets of 30s Hold',
                 fixedWeightKg: 0,
                 notes: '90° elbow flexion or chin-over-bar hold; isometric loading stimulates analgesic tendon remodeling.',
               ),
@@ -391,7 +398,7 @@ class ProgramCycle {
       DayTemplate(
         dayNumber: 3,
         title: 'Day 3: Posterior Chain & Hip Capsule Flow',
-        subtitle: 'Elephant Walk, Jefferson Curls, Seated Good Mornings, 90/90 Switches, Butterfly',
+        subtitle: 'Elephant Walk, Jefferson Curls, Seated Good Mornings, 90/90 Switches, Rear-Leg IR Holds & Butterfly',
         phases: <PhaseTemplate>[
           PhaseTemplate(
             name: 'Phase 1 - Spinal & Hamstring Decompression',
@@ -435,9 +442,16 @@ class ProgramCycle {
                 notes: 'Dedicated capsule work; open back knee first, 5s end-range hold per side.',
               ),
               ExerciseTemplate(
+                name: '90/90 Rear-Leg Hip IR PAILs/RAILs',
+                liftId: 'hip_90_90_internal_rotation',
+                setScheme: '3 Sets of 60s Hold',
+                fixedWeightKg: 0,
+                notes: 'Torso rotated squarely toward rear knee; 60s passive stretch, 10s PAILs push, 5s active lift-off hold.',
+              ),
+              ExerciseTemplate(
                 name: 'Seated Butterfly & PNF Adductor Stretch',
                 liftId: 'seated_butterfly',
-                setScheme: '3 Sets of 60 Reps',
+                setScheme: '3 Sets of 60s Hold',
                 fixedWeightKg: 0,
                 notes: 'Soles together, drive knees down, active 5s isometric groin contraction.',
               ),
@@ -450,10 +464,10 @@ class ProgramCycle {
       DayTemplate(
         dayNumber: 4,
         title: 'Day 4: Lower Body Depth Hypertrophy',
-        subtitle: 'Curtsy Lunges, Heel-Elevated Squats, Wall Couch Stretch',
+        subtitle: 'Curtsy Lunges, Seated Hip IR, Heel-Elevated Squats, Wall Couch Stretch',
         phases: <PhaseTemplate>[
           PhaseTemplate(
-            name: 'Phase 1 - Unilateral Hip Stability',
+            name: 'Phase 1 - Unilateral Hip Stability & Capsule Clearance',
             exercises: <ExerciseTemplate>[
               ExerciseTemplate(
                 name: 'Curtsy Lunges (Dane Miller)',
@@ -461,6 +475,13 @@ class ProgramCycle {
                 setScheme: '3 Sets of 10 Reps',
                 fixedWeightKg: 10,
                 notes: 'Cross trailing leg behind; strengthens glute medius and hip stabilizers.',
+              ),
+              ExerciseTemplate(
+                name: 'Banded Hip Internal Rotation',
+                liftId: 'banded_hip_internal_rotation',
+                setScheme: '3 Sets of 12 Reps',
+                fixedWeightKg: 0,
+                notes: 'Anchor band laterally; flare ankle outward into deep IR against band tension; clears capsule before vertical squats.',
               ),
             ],
           ),
@@ -483,7 +504,7 @@ class ProgramCycle {
               ExerciseTemplate(
                 name: 'Wall Couch Stretch',
                 liftId: 'couch_stretch',
-                setScheme: '2 Sets of 120 Reps',
+                setScheme: '2 Sets of 120s Hold',
                 fixedWeightKg: 0,
                 notes: 'Long restorative hold; squeeze glute to unlock anterior hip.',
               ),
@@ -555,7 +576,7 @@ class ProgramCycle {
               ExerciseTemplate(
                 name: "Pull-Up Isometric Hold (Golfer's Elbow Iso)",
                 liftId: 'pullup_isometric_hold',
-                setScheme: '3 Sets of 30 Reps',
+                setScheme: '3 Sets of 30s Hold',
                 fixedWeightKg: 0,
                 notes: 'Static 90° or top position hold for medial epicondyle tendon adaptation.',
               ),
@@ -600,7 +621,7 @@ class ProgramCycle {
               ExerciseTemplate(
                 name: 'Deep Squat Pry with Kettlebell',
                 liftId: 'deep_squat_pry',
-                setScheme: '3 Sets of 45 Reps',
+                setScheme: '3 Sets of 45s Hold',
                 fixedWeightKg: 16,
                 notes: 'Use elbows inside knees to pry hips open while maintaining upright posture.',
               ),

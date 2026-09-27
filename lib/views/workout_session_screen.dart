@@ -44,6 +44,7 @@ import 'package:oly/views/warmup_session_screen.dart';
 import 'package:oly/widgets/add_movement_modal_sheet.dart';
 import 'package:oly/widgets/empty_add_movement_card.dart';
 import 'package:oly/widgets/exercise_swap_modal.dart';
+import 'package:oly/widgets/hold_stopwatch_card.dart';
 import 'package:oly/widgets/motion/animated_barbell_loader.dart';
 import 'package:oly/widgets/motion/glass_container.dart';
 import 'package:oly/widgets/motion/oly_entry_reveal.dart';
@@ -151,12 +152,9 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
           if (match != null) {
             setNum = int.tryParse(match.group(1)!) ?? 3;
           }
-          int reps = 8;
-          final RegExpMatch? repMatch =
-              RegExp(r'(\d+)\s+Reps').firstMatch(scheme);
-          if (repMatch != null) {
-            reps = int.tryParse(repMatch.group(1)!) ?? 8;
-          }
+          final int reps = scheme.isNotEmpty
+              ? WorkoutWeightHelper.extractRepsCount(scheme)
+              : 8;
           _exerciseSets[item.name] = List.generate(
             setNum,
             (i) => CompletedSet(
@@ -191,12 +189,9 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
             setNum = int.tryParse(match.group(1)!) ?? 3;
           }
 
-          int reps = 5;
-          final RegExpMatch? repMatch = RegExp(r'(\d+)\s+Reps')
-              .firstMatch(exercise.setScheme);
-          if (repMatch != null) {
-            reps = int.tryParse(repMatch.group(1)!) ?? 5;
-          }
+          final int reps = exercise.setScheme.isNotEmpty
+              ? WorkoutWeightHelper.extractRepsCount(exercise.setScheme)
+              : 5;
 
           _exerciseSets[exercise.name] = List.generate(
             setNum,
@@ -669,6 +664,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     final CompletedSet currentSet = sets[setIndex];
     final String displayName =
         _swappedExerciseNames[exerciseName] ?? exerciseName;
+    final bool isTimedHold = WorkoutWeightHelper.isTimedExercise(displayName);
 
     showModalBottomSheet<void>(
       context: context,
@@ -680,6 +676,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
           exerciseName: displayName,
           currentSet: currentSet,
           totalSets: sets.length,
+          isTimedHold: isTimedHold,
           onSaveSet: ({
             required newWeightKg,
             required newReps,
@@ -719,10 +716,13 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
             _persistDraft();
 
             if (mounted) {
+              final String setSummary = isTimedHold
+                  ? '${newWeightKg > 0 ? '${settings.formatWeight(newWeightKg)} × ' : ''}${newReps}s hold'
+                  : '${settings.formatWeight(newWeightKg)} × $newReps reps';
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(
-                    'Set ${currentSet.setIndex} updated: ${settings.formatWeight(newWeightKg)} × $newReps reps (${isCompleted ? 'Completed' : 'Pending'})',
+                    'Set ${currentSet.setIndex} updated: $setSummary (${isCompleted ? 'Completed' : 'Pending'})',
                   ),
                   backgroundColor: AppTheme.secondaryCyan,
                   duration: const Duration(seconds: 2),
@@ -1662,6 +1662,16 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
             final int targetReps = sets.isNotEmpty
                 ? sets.first.reps
                 : WorkoutWeightHelper.extractRepsCount(exercise.setScheme);
+            final bool isTimedHold = WorkoutWeightHelper.isTimedExercise(
+              displayName,
+              exercise.setScheme,
+            );
+            final int activeSetIndex = sets.indexWhere((s) => !s.isCompleted);
+            final int currentActiveIndex = activeSetIndex != -1
+                ? activeSetIndex
+                : (sets.isNotEmpty ? sets.length - 1 : 0);
+            final bool isAllCompleted =
+                sets.isNotEmpty && sets.every((s) => s.isCompleted);
 
             return GlassContainer(
               margin: const EdgeInsets.only(bottom: 14),
@@ -1873,7 +1883,11 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                             ),
                           ),
                           Text(
-                            '${settings.formatWeight(double.tryParse(weightCtrl?.text ?? '0') ?? 0.0)} × $targetReps ${targetReps == 1 ? 'rep' : 'reps'}',
+                            isTimedHold
+                                ? ((double.tryParse(weightCtrl?.text ?? '0') ?? 0.0) > 0
+                                    ? '${settings.formatWeight(double.tryParse(weightCtrl?.text ?? '0') ?? 0.0)} × ${targetReps}s Hold'
+                                    : '${targetReps}s Hold')
+                                : '${settings.formatWeight(double.tryParse(weightCtrl?.text ?? '0') ?? 0.0)} × $targetReps ${targetReps == 1 ? 'rep' : 'reps'}',
                             style: GoogleFonts.outfit(
                               fontSize: 13,
                               fontWeight: FontWeight.bold,
@@ -1948,6 +1962,61 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                   ),
                   const SizedBox(height: 10),
 
+                  // Interactive Stopwatch & Time Input for Isometric Holds
+                  if (isTimedHold && sets.isNotEmpty) ...<Widget>[
+                    HoldStopwatchCard(
+                      exerciseName: displayName,
+                      targetSeconds: targetReps,
+                      activeSetIndex: currentActiveIndex,
+                      totalSets: sets.length,
+                      isAllCompleted: isAllCompleted,
+                      onCompleteHold: ({
+                        required setIndex,
+                        required elapsedSeconds,
+                      }) {
+                        if (setIndex >= 0 && setIndex < sets.length) {
+                          final CompletedSet cur = sets[setIndex];
+                          setState(() {
+                            sets[setIndex] = CompletedSet(
+                              setIndex: cur.setIndex,
+                              weight: cur.weight,
+                              reps: elapsedSeconds,
+                              rpe: cur.rpe,
+                              completedAt: DateTime.now(),
+                            );
+                          });
+                          _persistDraft();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                'Set ${cur.setIndex} hold completed: ${elapsedSeconds}s! 🔥',
+                              ),
+                              backgroundColor: AppTheme.secondaryCyan,
+                              duration: const Duration(seconds: 2),
+                            ),
+                          );
+                        }
+                      },
+                      onTargetSecondsChanged: (newSecs) {
+                        setState(() {
+                          for (int i = 0; i < sets.length; i++) {
+                            if (!sets[i].isCompleted) {
+                              sets[i] = CompletedSet(
+                                setIndex: sets[i].setIndex,
+                                weight: sets[i].weight,
+                                reps: newSecs,
+                                rpe: sets[i].rpe,
+                                isCompleted: sets[i].isCompleted,
+                                completedAt: sets[i].completedAt,
+                              );
+                            }
+                          }
+                        });
+                        _persistDraft();
+                      },
+                    ),
+                  ],
+
                   // Set checkboxes row with active glow state
                   Wrap(
                     spacing: 8,
@@ -1979,7 +2048,11 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                                     )
                                   : null),
                           label: Text(
-                            'Set ${setItem.setIndex}: ${settings.formatWeight(setItem.weight, includeUnit: false)} × ${setItem.reps}',
+                            isTimedHold
+                                ? (setItem.weight > 0
+                                    ? 'Set ${setItem.setIndex}: ${settings.formatWeight(setItem.weight, includeUnit: false)} × ${setItem.reps}s'
+                                    : 'Set ${setItem.setIndex}: ${setItem.reps}s')
+                                : 'Set ${setItem.setIndex}: ${settings.formatWeight(setItem.weight, includeUnit: false)} × ${setItem.reps}',
                             style: GoogleFonts.outfit(
                               fontSize: 13,
                               fontWeight: FontWeight.bold,
@@ -2018,7 +2091,9 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        'Tap to complete • Long-press to edit weight & reps',
+                        isTimedHold
+                            ? 'Tap to complete • Long-press to edit hold duration'
+                            : 'Tap to complete • Long-press to edit weight & reps',
                         style: GoogleFonts.inter(
                           fontSize: 11,
                           color: AppTheme.textSecondary.withValues(alpha: 0.7),
@@ -2061,12 +2136,9 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
           if (match != null) {
             setNum = int.tryParse(match.group(1)!) ?? 3;
           }
-          int reps = 8;
-          final RegExpMatch? repMatch =
-              RegExp(r'(\d+)\s+Reps').firstMatch(scheme);
-          if (repMatch != null) {
-            reps = int.tryParse(repMatch.group(1)!) ?? 8;
-          }
+          final int reps = scheme.isNotEmpty
+              ? WorkoutWeightHelper.extractRepsCount(scheme)
+              : 8;
           _exerciseSets[item.name] = List.generate(
             setNum,
             (i) => CompletedSet(
@@ -2862,7 +2934,19 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     final double targetWeight =
         double.tryParse(weightCtrl?.text ?? '0') ??
             (item.targetWeightKg ?? 0.0);
-    final int targetReps = sets.isNotEmpty ? sets.first.reps : 8;
+    final int targetReps = sets.isNotEmpty
+        ? sets.first.reps
+        : (item.setScheme != null
+            ? WorkoutWeightHelper.extractRepsCount(item.setScheme!)
+            : 8);
+    final bool isTimedDynamic =
+        WorkoutWeightHelper.isTimedExercise(item.name, item.setScheme);
+    final int activeSetIndex = sets.indexWhere((s) => !s.isCompleted);
+    final int currentActiveIndex = activeSetIndex != -1
+        ? activeSetIndex
+        : (sets.isNotEmpty ? sets.length - 1 : 0);
+    final bool isAllCompleted =
+        sets.isNotEmpty && sets.every((s) => s.isCompleted);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -2983,9 +3067,13 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                   ),
                 ),
                 Text(
-                  targetWeight > 0
-                      ? '${settings.formatWeight(targetWeight)} × $targetReps reps'
-                      : 'Bodyweight / Banded',
+                  isTimedDynamic
+                      ? (targetWeight > 0
+                          ? '${settings.formatWeight(targetWeight)} × ${targetReps}s Hold'
+                          : '${targetReps}s Hold')
+                      : (targetWeight > 0
+                          ? '${settings.formatWeight(targetWeight)} × $targetReps reps'
+                          : 'Bodyweight / Banded'),
                   style: GoogleFonts.outfit(
                     fontSize: 13,
                     fontWeight: FontWeight.bold,
@@ -3032,6 +3120,61 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
           ),
           const SizedBox(height: 10),
 
+          // Interactive Stopwatch & Time Input for Dynamic Holds
+          if (isTimedDynamic && sets.isNotEmpty) ...<Widget>[
+            HoldStopwatchCard(
+              exerciseName: item.name,
+              targetSeconds: targetReps,
+              activeSetIndex: currentActiveIndex,
+              totalSets: sets.length,
+              isAllCompleted: isAllCompleted,
+              onCompleteHold: ({
+                required setIndex,
+                required elapsedSeconds,
+              }) {
+                if (setIndex >= 0 && setIndex < sets.length) {
+                  final CompletedSet cur = sets[setIndex];
+                  setState(() {
+                    sets[setIndex] = CompletedSet(
+                      setIndex: cur.setIndex,
+                      weight: cur.weight,
+                      reps: elapsedSeconds,
+                      rpe: cur.rpe,
+                      completedAt: DateTime.now(),
+                    );
+                  });
+                  _persistDraft();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Set ${cur.setIndex} hold completed: ${elapsedSeconds}s! 🔥',
+                      ),
+                      backgroundColor: AppTheme.secondaryCyan,
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                }
+              },
+              onTargetSecondsChanged: (newSecs) {
+                setState(() {
+                  for (int i = 0; i < sets.length; i++) {
+                    if (!sets[i].isCompleted) {
+                      sets[i] = CompletedSet(
+                        setIndex: sets[i].setIndex,
+                        weight: sets[i].weight,
+                        reps: newSecs,
+                        rpe: sets[i].rpe,
+                        isCompleted: sets[i].isCompleted,
+                        completedAt: sets[i].completedAt,
+                      );
+                    }
+                  }
+                });
+                _persistDraft();
+              },
+            ),
+          ],
+
           // Set chips row
           Wrap(
             spacing: 8,
@@ -3050,9 +3193,13 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                         )
                       : null,
                   label: Text(
-                    setItem.weight > 0
-                        ? 'Set ${setItem.setIndex}: ${settings.formatWeight(setItem.weight, includeUnit: false)} × ${setItem.reps}'
-                        : 'Set ${setItem.setIndex}: BW × ${setItem.reps}',
+                    isTimedDynamic
+                        ? (setItem.weight > 0
+                            ? 'Set ${setItem.setIndex}: ${settings.formatWeight(setItem.weight, includeUnit: false)} × ${setItem.reps}s'
+                            : 'Set ${setItem.setIndex}: ${setItem.reps}s')
+                        : (setItem.weight > 0
+                            ? 'Set ${setItem.setIndex}: ${settings.formatWeight(setItem.weight, includeUnit: false)} × ${setItem.reps}'
+                            : 'Set ${setItem.setIndex}: BW × ${setItem.reps}'),
                     style: GoogleFonts.outfit(
                       fontSize: 13,
                       fontWeight: FontWeight.bold,
@@ -3078,7 +3225,9 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
               ),
               const SizedBox(width: 4),
               Text(
-                'Tap to complete • Long-press to edit weight & reps',
+                isTimedDynamic
+                    ? 'Tap set to complete • Long-press to edit hold duration'
+                    : 'Tap to complete • Long-press to edit weight & reps',
                 style: GoogleFonts.inter(
                   fontSize: 11,
                   color: AppTheme.textSecondary.withValues(alpha: 0.7),

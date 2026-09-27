@@ -7,6 +7,8 @@ import 'package:oly/providers/goal_provider.dart';
 import 'package:oly/providers/program_provider.dart';
 import 'package:oly/services/storage_service.dart';
 import 'package:oly/views/mobility/mobility_routine_screen.dart';
+import 'package:oly/widgets/hold_stopwatch_card.dart';
+import 'package:oly/widgets/workout_weight_dialog.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -238,6 +240,152 @@ void main() {
       expect(day5Lifts, contains('hammer_curls'));
       expect(day5Lifts, contains('dumbbell_wrist_curls'));
       expect(day5Lifts, contains('pullup_isometric_hold'));
+    });
+
+    test('WorkoutWeightHelper identifies timed holds and parses duration schemes', () {
+      // Detection
+      expect(WorkoutWeightHelper.isTimedExercise("Pull-Up Isometric Hold (Golfer's Elbow Iso)"), isTrue);
+      expect(WorkoutWeightHelper.isTimedExercise('Wall Couch Stretch'), isTrue);
+      expect(WorkoutWeightHelper.isTimedExercise('Slant Board Calf Stretch'), isTrue);
+      expect(WorkoutWeightHelper.isTimedExercise('Seated Butterfly & PNF Adductor Stretch'), isTrue);
+      expect(WorkoutWeightHelper.isTimedExercise('Deep Squat Pry with Kettlebell'), isTrue);
+      expect(WorkoutWeightHelper.isTimedExercise('Dead Hang'), isTrue);
+      expect(WorkoutWeightHelper.isTimedExercise('Custom Lift', '3 Sets of 30s Hold'), isTrue);
+      expect(WorkoutWeightHelper.isTimedExercise('Bench Press', '3 Sets of 10 Reps'), isFalse);
+
+      // Reps / Seconds extraction
+      expect(WorkoutWeightHelper.extractRepsCount('3 Sets of 30s Hold'), equals(30));
+      expect(WorkoutWeightHelper.extractRepsCount('2 Sets of 90s Hold'), equals(90));
+      expect(WorkoutWeightHelper.extractRepsCount('2 Sets of 120s Hold'), equals(120));
+      expect(WorkoutWeightHelper.extractRepsCount('3 Sets of 60s Hold'), equals(60));
+      expect(WorkoutWeightHelper.extractRepsCount('3 Sets of 45s Hold'), equals(45));
+      expect(WorkoutWeightHelper.extractRepsCount('4 Sets of 8 Reps'), equals(8));
+    });
+
+    testWidgets('HoldStopwatchCard renders and allows adjustment and completion', (tester) async {
+      int completedIndex = -1;
+      int completedElapsed = -1;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: HoldStopwatchCard(
+              exerciseName: "Pull-Up Isometric Hold (Golfer's Elbow Iso)",
+              targetSeconds: 30,
+              activeSetIndex: 0,
+              totalSets: 3,
+              isAllCompleted: false,
+              onCompleteHold: ({required setIndex, required elapsedSeconds}) {
+                completedIndex = setIndex;
+                completedElapsed = elapsedSeconds;
+              },
+            ),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // Verify timer labels and badges
+      expect(find.text('HOLD STOPWATCH'), findsOneWidget);
+      expect(find.text('SET 1 OF 3'), findsOneWidget);
+      expect(find.text('00:30'), findsOneWidget);
+      expect(find.text('Target: 30s hold'), findsOneWidget);
+      expect(find.text('START HOLD'), findsOneWidget);
+
+      // Tap +5s adjustment
+      await tester.tap(find.text('+5s'));
+      await tester.pumpAndSettle();
+      expect(find.text('00:35'), findsOneWidget);
+      expect(find.text('Target: 35s hold'), findsOneWidget);
+
+      // Tap Complete button
+      await tester.tap(find.text('COMPLETE (35s)'));
+      await tester.pumpAndSettle();
+
+      expect(completedIndex, equals(0));
+      expect(completedElapsed, equals(35));
+    });
+
+    test('Hip Internal Rotation protocols are integrated across exercises, curriculum, goals, and timing helpers', () {
+      final List<MobilityExerciseModel> exercises =
+          MobilityExerciseModel.defaultExercises();
+
+      final MobilityExerciseModel hipIR9090 =
+          exercises.firstWhere((e) => e.id == 'hip_90_90_internal_rotation');
+      expect(hipIR9090.name, contains('90/90 Rear-Leg Hip IR PAILs/RAILs'));
+      expect(hipIR9090.focusArea, equals(MobilityFocusArea.hipCapsule));
+      expect(hipIR9090.videoUrl, contains(Uri.encodeComponent('90 90 Hip Internal Rotation PAILs RAILs')));
+
+      final MobilityExerciseModel bandedHipIR =
+          exercises.firstWhere((e) => e.id == 'banded_hip_internal_rotation');
+      expect(bandedHipIR.name, contains('Banded Hip Internal Rotation'));
+      expect(bandedHipIR.focusArea, equals(MobilityFocusArea.hipCapsule));
+      expect(bandedHipIR.videoUrl, contains(Uri.encodeComponent('Banded Hip Internal Rotation')));
+
+      final MobilityExerciseModel seatedHipIR =
+          exercises.firstWhere((e) => e.id == 'seated_hip_internal_rotation');
+      expect(seatedHipIR.name, contains('Seated Hip IR with Block Squeeze'));
+      expect(seatedHipIR.focusArea, equals(MobilityFocusArea.hipCapsule));
+      expect(seatedHipIR.videoUrl, contains(Uri.encodeComponent('Seated Hip Internal Rotation Block Squeeze')));
+
+      // Check Milestones in GoalTrack
+      final GoalTrack? mobilityGoal =
+          goalProvider.getGoal('goal_mobility_hypertrophy');
+      expect(mobilityGoal, isNotNull);
+      final List<String> milestoneIds =
+          mobilityGoal!.milestones.map((m) => m.id).toList();
+      expect(milestoneIds, contains('hip_internal_rotation_35'));
+
+      // Check Program Days 1, 3, 4
+      final List<DayTemplate> mobilityDays = ProgramCycle.getMobilityProgram();
+
+      // Day 1
+      final DayTemplate day1 = mobilityDays[0];
+      final List<String> day1Lifts = day1.phases
+          .expand((p) => p.exercises)
+          .map((e) => e.liftId)
+          .toList();
+      expect(day1Lifts, contains('banded_hip_internal_rotation'));
+
+      // Day 3
+      final DayTemplate day3 = mobilityDays[2];
+      final List<String> day3Lifts = day3.phases
+          .expand((p) => p.exercises)
+          .map((e) => e.liftId)
+          .toList();
+      expect(day3Lifts, contains('hip_90_90_internal_rotation'));
+
+      // Day 4
+      final DayTemplate day4 = mobilityDays[3];
+      final List<String> day4Lifts = day4.phases
+          .expand((p) => p.exercises)
+          .map((e) => e.liftId)
+          .toList();
+      expect(day4Lifts, contains('banded_hip_internal_rotation'));
+
+      // WorkoutWeightHelper timing detection
+      expect(
+        WorkoutWeightHelper.isTimedExercise(
+          '90/90 Rear-Leg Hip IR PAILs/RAILs',
+          '3 Sets of 60s Hold',
+        ),
+        isTrue,
+      );
+      expect(
+        WorkoutWeightHelper.isTimedExercise(
+          'Banded Hip Internal Rotation',
+          '2 Sets of 12 Reps',
+        ),
+        isFalse,
+      );
+      expect(
+        WorkoutWeightHelper.isTimedExercise(
+          'Banded Hip Internal Rotation',
+          '3 Sets of 12 Reps',
+        ),
+        isFalse,
+      );
     });
   });
 }

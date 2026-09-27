@@ -11,12 +11,14 @@ class WorkoutSetEditDialog extends StatefulWidget {
     required this.currentSet,
     required this.totalSets,
     required this.onSaveSet,
+    this.isTimedHold = false,
     super.key,
   });
 
   final String exerciseName;
   final CompletedSet currentSet;
   final int totalSets;
+  final bool isTimedHold;
   final void Function({
     required double newWeightKg,
     required int newReps,
@@ -84,7 +86,8 @@ class _WorkoutSetEditDialogState extends State<WorkoutSetEditDialog> {
 
   void _adjustReps(int delta) {
     final int current = int.tryParse(_repsController.text) ?? _currentReps;
-    final int newReps = (current + delta).clamp(1, 99);
+    final int maxVal = widget.isTimedHold ? 900 : 99;
+    final int newReps = (current + delta).clamp(1, maxVal);
     setState(() {
       _currentReps = newReps;
       _repsController.text = '$_currentReps';
@@ -107,7 +110,10 @@ class _WorkoutSetEditDialogState extends State<WorkoutSetEditDialog> {
     final List<double> steppers = settings.isLbs
         ? <double>[-10, -5, -2.5, 2.5, 5, 10]
         : <double>[-5, -2.5, -1, 1, 2.5, 5];
-    const List<int> repPresets = <int>[1, 2, 3, 5, 8, 10, 12];
+    final List<int> repPresets = widget.isTimedHold
+        ? <int>[15, 20, 30, 45, 60, 90, 120]
+        : <int>[1, 2, 3, 5, 8, 10, 12];
+    const List<int> holdDeltas = <int>[-15, -10, -5, 5, 10, 15, 30];
 
     final bool hasSubsequentSets = widget.currentSet.setIndex < widget.totalSets;
 
@@ -277,9 +283,9 @@ class _WorkoutSetEditDialogState extends State<WorkoutSetEditDialog> {
 
               const SizedBox(height: 16),
 
-              // REPS SECTION
+              // REPS / HOLD DURATION SECTION
               Text(
-                'COMPLETED REPS',
+                widget.isTimedHold ? 'HOLD DURATION (SECONDS)' : 'COMPLETED REPS',
                 style: GoogleFonts.outfit(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
@@ -303,11 +309,11 @@ class _WorkoutSetEditDialogState extends State<WorkoutSetEditDialog> {
                   children: <Widget>[
                     IconButton(
                       icon: const Icon(Icons.remove_circle_outline),
-                      color: _currentReps > 1
+                      color: _currentReps > (widget.isTimedHold ? 5 : 1)
                           ? AppTheme.secondaryCyan
                           : AppTheme.textSecondary.withValues(alpha: 0.3),
-                      onPressed: _currentReps > 1
-                          ? () => _adjustReps(-1)
+                      onPressed: _currentReps > (widget.isTimedHold ? 5 : 1)
+                          ? () => _adjustReps(widget.isTimedHold ? -5 : -1)
                           : null,
                     ),
                     Expanded(
@@ -320,9 +326,9 @@ class _WorkoutSetEditDialogState extends State<WorkoutSetEditDialog> {
                           fontWeight: FontWeight.bold,
                           color: AppTheme.textPrimary,
                         ),
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           border: InputBorder.none,
-                          hintText: '1',
+                          hintText: widget.isTimedHold ? '30' : '1',
                         ),
                         onChanged: (val) {
                           final int? parsed = int.tryParse(val);
@@ -337,11 +343,11 @@ class _WorkoutSetEditDialogState extends State<WorkoutSetEditDialog> {
                     IconButton(
                       icon: const Icon(Icons.add_circle_outline),
                       color: AppTheme.secondaryCyan,
-                      onPressed: () => _adjustReps(1),
+                      onPressed: () => _adjustReps(widget.isTimedHold ? 5 : 1),
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      'REPS',
+                      widget.isTimedHold ? 'SEC' : 'REPS',
                       style: GoogleFonts.outfit(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
@@ -354,7 +360,39 @@ class _WorkoutSetEditDialogState extends State<WorkoutSetEditDialog> {
 
               const SizedBox(height: 10),
 
-              // Rep Presets Row
+              if (widget.isTimedHold) ...<Widget>[
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: holdDeltas.map((delta) {
+                      final bool isPositive = delta > 0;
+                      final String text = isPositive ? '+$delta s' : '$delta s';
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 6),
+                        child: ActionChip(
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          backgroundColor: AppTheme.surfaceElevated,
+                          side: const BorderSide(color: AppTheme.borderColor),
+                          label: Text(
+                            text,
+                            style: GoogleFonts.outfit(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: isPositive
+                                  ? AppTheme.secondaryCyan
+                                  : AppTheme.textSecondary,
+                            ),
+                          ),
+                          onPressed: () => _adjustReps(delta),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+                const SizedBox(height: 8),
+              ],
+
+              // Presets Row
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
@@ -375,7 +413,7 @@ class _WorkoutSetEditDialogState extends State<WorkoutSetEditDialog> {
                               : AppTheme.borderColor,
                         ),
                         label: Text(
-                          '$r ${r == 1 ? 'Rep' : 'Reps'}',
+                          widget.isTimedHold ? '${r}s' : '$r ${r == 1 ? 'Rep' : 'Reps'}',
                           style: GoogleFonts.outfit(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,

@@ -405,6 +405,14 @@ class GoalTrack {
             description: 'Active groin opening with knees flat to floor',
           ),
           GoalMilestone(
+            id: 'hip_internal_rotation_35',
+            title: 'Hip Internal Rotation 35°',
+            targetValue: 35,
+            currentValue: 15,
+            unit: '°',
+            description: '35° passive IR with 5-second active end-range lift-off hold',
+          ),
+          GoalMilestone(
             id: 'miracle_grow_50',
             title: 'Miracle Grow 50 lbs',
             targetValue: 50,

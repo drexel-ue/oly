@@ -551,6 +551,12 @@ class _MobilityRoutineScreenState extends State<MobilityRoutineScreen>
             'video': 'https://www.youtube.com/watch?v=omuAtS7zOa0',
           },
           {
+            'name': 'Banded Hip Internal Rotation',
+            'setsReps': '2 sets x 12 reps per leg (2s peak hold)',
+            'cues': 'Anchor band laterally to ankle, flare foot outward against resistance; active capsule clearance for deep squats.',
+            'video': 'https://www.youtube.com/results?search_query=Banded+Hip+Internal+Rotation',
+          },
+          {
             'name': 'Pause Back Squats (Dane Miller)',
             'setsReps': '4 sets x 6 reps (3-second pause in hole)',
             'cues': 'Sit deep between hips, knees out, tall chest, isometric hole stability.',
@@ -647,6 +653,12 @@ class _MobilityRoutineScreenState extends State<MobilityRoutineScreen>
             'video': 'https://www.youtube.com/watch?v=EJD6Xr5UIOs',
           },
           {
+            'name': '90/90 Rear-Leg Hip IR PAILs/RAILs',
+            'setsReps': '3 sets x 60s hold per side',
+            'cues': 'Rotate torso toward rear knee; 60s passive hold + 10s PAILs push + 5s active lift-off.',
+            'video': 'https://www.youtube.com/results?search_query=90+90+Hip+Internal+Rotation+PAILs+RAILs',
+          },
+          {
             'name': 'Seated Butterfly Stretch & PNF Hold (Separate)',
             'setsReps': '3 sets x 60s active adductor contraction & fold',
             'cues': 'Soles together, drive knees toward floor, hinge forward with flat back.',
@@ -675,6 +687,12 @@ class _MobilityRoutineScreenState extends State<MobilityRoutineScreen>
             'setsReps': '3 sets x 10 reps per leg',
             'cues': 'Cross trailing foot behind; strengthens glute medius and hip stabilizers.',
             'video': 'https://www.youtube.com/watch?v=EJD6Xr5UIOs',
+          },
+          {
+            'name': 'Banded Hip Internal Rotation',
+            'setsReps': '3 sets x 12 reps per leg (2s peak hold)',
+            'cues': 'Flare ankle outward into deep IR against band tension; clears capsule before vertical squats.',
+            'video': 'https://www.youtube.com/results?search_query=Banded+Hip+Internal+Rotation',
           },
           {
             'name': 'Front Squats or Goblet Squats (Heel Elevated)',

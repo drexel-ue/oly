@@ -18,6 +18,7 @@ import 'package:oly/widgets/kettlebell_mile_card.dart';
 import 'package:oly/widgets/mobility_exercise_swap_modal.dart';
 import 'package:oly/widgets/rest_timer_widget.dart';
 import 'package:oly/widgets/workout_set_edit_dialog.dart';
+import 'package:oly/widgets/workout_weight_dialog.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -198,6 +199,7 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
           exerciseName: ex.name,
           currentSet: currentSet,
           totalSets: ex.defaultSets,
+          isTimedHold: WorkoutWeightHelper.isTimedExercise(ex.name),
           onSaveSet: ({
             required newWeightKg,
             required newReps,
@@ -1016,7 +1018,9 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
                   Text(
-                    '${ex.defaultSets} Sets × $_targetReps Reps',
+                    WorkoutWeightHelper.isTimedExercise(ex.name)
+                        ? '${ex.defaultSets} Sets × ${_targetReps}s Hold'
+                        : '${ex.defaultSets} Sets × $_targetReps Reps',
                     style: GoogleFonts.inter(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
@@ -1176,7 +1180,9 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      'Target Reps:',
+                      WorkoutWeightHelper.isTimedExercise(ex.name)
+                          ? 'Target Duration:'
+                          : 'Target Reps:',
                       style: GoogleFonts.inter(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
@@ -1186,7 +1192,9 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        '$_targetReps ${_targetReps == 1 ? 'rep' : 'reps'}',
+                        WorkoutWeightHelper.isTimedExercise(ex.name)
+                            ? '$_targetReps seconds'
+                            : '$_targetReps ${_targetReps == 1 ? 'rep' : 'reps'}',
                         style: GoogleFonts.outfit(
                           fontSize: 15,
                           fontWeight: FontWeight.bold,
@@ -1329,7 +1337,9 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
                         ),
                         const SizedBox(width: 6),
                         Text(
-                          'Set ${index + 1}: $weightText × $setReps',
+                          WorkoutWeightHelper.isTimedExercise(ex.name)
+                              ? (setWeight > 0 ? 'Set ${index + 1}: $weightText × ${setReps}s' : 'Set ${index + 1}: ${setReps}s')
+                              : 'Set ${index + 1}: $weightText × $setReps',
                           style: GoogleFonts.outfit(
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
