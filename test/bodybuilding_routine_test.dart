@@ -64,8 +64,8 @@ void main() {
       final List<BodybuildingExercise> exercises =
           BodybuildingExercise.get19Exercises();
 
-      // 19 core movements + 1 bonus glute + 5 mobility/armor bonus = 25 total
-      expect(exercises.length, equals(25));
+      // 19 core movements + 1 bonus glute + 8 mobility/armor bonus = 28 total
+      expect(exercises.length, equals(28));
 
       final List<BodybuildingExercise> core19 =
           exercises.where((e) => !e.isBonus).toList();
@@ -144,16 +144,19 @@ void main() {
       expect(glutes.length, equals(1));
       expect(glutes.first.isBonus, isTrue);
 
-      // Mobility & Armor (5 exercises)
+      // Mobility & Armor (8 exercises)
       final List<BodybuildingExercise> armor = exercises
           .where((e) => e.bodypart == BodypartCategory.mobilityArmor)
           .toList();
-      expect(armor.length, equals(5));
+      expect(armor.length, equals(8));
       expect(armor.any((e) => e.name.contains('Wrist Curls')), isTrue);
       expect(armor.any((e) => e.name.contains('Hip Rotations')), isTrue);
       expect(armor.any((e) => e.name.contains('Elephant Walks')), isTrue);
       expect(armor.any((e) => e.name.contains('Jefferson Curls')), isTrue);
       expect(armor.any((e) => e.name.contains('Couch Stretch')), isTrue);
+      expect(armor.any((e) => e.name.contains('Landmine Rotations')), isTrue);
+      expect(armor.any((e) => e.name.contains('Pallof Press')), isTrue);
+      expect(armor.any((e) => e.name.contains('Ab Wheel Rollouts')), isTrue);
     });
 
     test('ProgramCycle getBodybuildingProgram delivers 7 days of weekly hypertrophy', () {
@@ -206,11 +209,11 @@ void main() {
       expect(programProvider.currentDayTemplate.title, contains('Lower A'));
     });
 
-    test('GoalTrack has goal_bodybuilding with 20 milestones', () {
+    test('GoalTrack has goal_bodybuilding with 23 milestones', () {
       final GoalTrack? bbGoal = goalProvider.getGoal('goal_bodybuilding');
       expect(bbGoal, isNotNull);
       expect(bbGoal!.type, equals(GoalType.bodybuilding));
-      expect(bbGoal.milestones.length, equals(20));
+      expect(bbGoal.milestones.length, equals(23));
 
       final List<String> milestoneIds =
           bbGoal.milestones.map((m) => m.id).toList();
@@ -234,6 +237,9 @@ void main() {
       expect(milestoneIds, contains('bb_elephant_walks_45'));
       expect(milestoneIds, contains('bb_jefferson_curls_40'));
       expect(milestoneIds, contains('bb_couch_stretch_90s'));
+      expect(milestoneIds, contains('bb_landmine_rotations_25'));
+      expect(milestoneIds, contains('bb_pallof_press_25'));
+      expect(milestoneIds, contains('bb_ab_wheel_rollout_15'));
     });
 
     test('GoalProvider updateBodybuildingMilestone updates progress', () async {

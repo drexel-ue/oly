@@ -669,9 +669,9 @@ class ProgramCycle {
       // Day 1 (Mon): Upper A (Chest, Lats, Overhead Press, Arms & Forearm Armor)
       DayTemplate(
         dayNumber: 1,
-        title: 'Day 1: Upper A (Heavy Horizontal, Shoulders & Forearm Armor)',
+        title: 'Day 1: Upper A (Heavy Horizontal, Shoulders, Forearms & Rotation)',
         subtitle:
-            'Flat Bench Press, Lat Pulldown, Standing OHP, Barbell Curls, Cable Pushdowns, Barbell Wrist Curls',
+            'Flat Bench Press, Lat Pulldown, Standing OHP, Barbell Curls, Cable Pushdowns, Wrist Curls, Landmine Rotations',
         phases: <PhaseTemplate>[
           PhaseTemplate(
             name: 'Phase 1 - Chest & Lat Compound Synergy',
@@ -724,7 +724,7 @@ class ProgramCycle {
             ],
           ),
           PhaseTemplate(
-            name: 'Phase 3 - Forearm & Tendon Armor',
+            name: 'Phase 3 - Forearm Armor & Rotational Power',
             exercises: <ExerciseTemplate>[
               ExerciseTemplate(
                 name: 'Barbell Wrist Curls (Flexion & Extension)',
@@ -734,6 +734,14 @@ class ProgramCycle {
                 notes:
                     "Controlled wrist curls over bench; builds forearm flexor thickness and resolves golfer's elbow.",
               ),
+              ExerciseTemplate(
+                name: 'Landmine Rotations (Rainbows)',
+                liftId: 'bb_landmine_rotations',
+                setScheme: '3 Sets of 10 Reps',
+                fixedWeightKg: 15,
+                notes:
+                    'Pivot back hip and arc barbell across torso; explosive oblique rotation and rotary deceleration.',
+              ),
             ],
           ),
         ],
@@ -742,9 +750,9 @@ class ProgramCycle {
       // Day 2 (Tue): Lower A - Squat Focus (Hip Primer, Squat, Hinge, Calves & Decompression)
       DayTemplate(
         dayNumber: 2,
-        title: 'Day 2: Lower A - Squat Focus (Primer, Squat, Hinge & Decompression)',
+        title: 'Day 2: Lower A - Squat Focus (Primer, Squat, Hinge & Anti-Rotation)',
         subtitle:
-            'Banded Hip Rotations, Back Squat, Romanian Deadlift, Leg Extension, Calf Raise, Cable Crunch, Elephant Walks',
+            'Banded Hip Rotations, Back Squat, Romanian Deadlift, Leg Extension, Calf Raise, Pallof Press, Elephant Walks',
         phases: <PhaseTemplate>[
           PhaseTemplate(
             name: 'Phase 1 - Hip Capsule Primer & Heavy Squat',
@@ -789,7 +797,7 @@ class ProgramCycle {
             ],
           ),
           PhaseTemplate(
-            name: 'Phase 3 - Calves, Core & Dynamic Decompression',
+            name: 'Phase 3 - Calves, Anti-Rotation & Dynamic Decompression',
             exercises: <ExerciseTemplate>[
               ExerciseTemplate(
                 name: 'Standing Calf Raise',
@@ -800,12 +808,12 @@ class ProgramCycle {
                     'Deep ankle dorsiflexion stretch, 2s pause at bottom and top squeeze.',
               ),
               ExerciseTemplate(
-                name: 'Kneeling Cable Crunch',
-                liftId: 'cable_crunches',
-                setScheme: '3 Sets of 15 Reps',
-                fixedWeightKg: 40,
+                name: 'Standing Cable Pallof Press',
+                liftId: 'bb_pallof_press',
+                setScheme: '3 Sets of 12 Reps',
+                fixedWeightKg: 15,
                 notes:
-                    'Curl ribcage down into pelvis like a scroll; full rectus abdominis crunch.',
+                    'Perpendicular to cable; press straight out and hold 2s lockout to resist rotational shear.',
               ),
               ExerciseTemplate(
                 name: 'Elephant Walks',
@@ -862,9 +870,9 @@ class ProgramCycle {
       // Day 4 (Thu): Upper B (Incline Upper Chest, Mid-Back, 3D Delts & Arms)
       DayTemplate(
         dayNumber: 4,
-        title: 'Day 4: Upper B (Incline Upper Chest, Mid-Back & 3D Delts)',
+        title: 'Day 4: Upper B (Incline Upper Chest, Mid-Back & Anti-Extension)',
         subtitle:
-            'Incline DB Press, Chest-Supported Row, DB Lateral Raises, DB Hammer Curls, Overhead Triceps, Face Pulls',
+            'Incline DB Press, Chest-Supported Row, DB Lateral Raises, DB Hammer Curls, Overhead Triceps, Face Pulls, Ab Wheel',
         phases: <PhaseTemplate>[
           PhaseTemplate(
             name: 'Phase 1 - Incline Chest & Horizontal Back',
@@ -917,7 +925,7 @@ class ProgramCycle {
             ],
           ),
           PhaseTemplate(
-            name: 'Phase 3 - Rear Delt & Scapular Posture',
+            name: 'Phase 3 - Rear Delts, Scapular Posture & Anti-Extension Core',
             exercises: <ExerciseTemplate>[
               ExerciseTemplate(
                 name: 'Cable Face Pulls / Reverse Pec Deck',
@@ -926,6 +934,14 @@ class ProgramCycle {
                 fixedWeightKg: 25,
                 notes:
                     'Pull toward eyes with external shoulder rotation; rear delt capping.',
+              ),
+              ExerciseTemplate(
+                name: 'Ab Wheel Rollouts',
+                liftId: 'bb_ab_wheel_rollout',
+                setScheme: '3 Sets of 10 Reps',
+                fixedWeightKg: 0,
+                notes:
+                    'Kneel on pad, brace abs and tuck pelvis; roll forward slowly, resisting lumbar hyperextension.',
               ),
             ],
           ),

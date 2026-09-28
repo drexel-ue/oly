@@ -555,6 +555,60 @@ class BodybuildingExercise {
         ],
         isBonus: true,
       ),
+
+      BodybuildingExercise(
+        id: 'bb_landmine_rotations',
+        name: 'Landmine Rotations (Rainbows)',
+        bodypart: BodypartCategory.mobilityArmor,
+        role: 'Rotational Power & Transverse Deceleration',
+        targetMuscles: 'Internal Obliques, External Obliques, Transverse Abdominis, Hips',
+        setsReps: '3 Sets of 10-12 Reps per side',
+        whyItWorks:
+            'Transfers dynamic rotational torque from the pivoting rear hip through the obliques into the barbell, while building elite eccentric rotary braking strength to protect the lower back during athletics and running.',
+        cues: <String>[
+          'Anchor barbell in landmine or corner, clasping end of collar with interlaced grip',
+          'Extend arms overhead with soft elbows and athletic shoulder-width stance',
+          'Arc barbell down toward outside hip while pivoting rear foot and engaging core',
+          'Brake barbell deceleration with obliques before hip level, then explosively drive back up to center',
+        ],
+        isBonus: true,
+      ),
+
+      BodybuildingExercise(
+        id: 'bb_pallof_press',
+        name: 'Standing Cable Pallof Press',
+        bodypart: BodypartCategory.mobilityArmor,
+        role: 'Anti-Rotation Core & Pelvic Anti-Shift',
+        targetMuscles: 'Transverse Abdominis, Internal & External Obliques, Quadratus Lumborum',
+        setsReps: '3 Sets of 10-12 Reps (2s Lockout Hold) per side',
+        whyItWorks:
+            'Prevents rotational shear and lateral hip shifting during heavy squats and deadlifts. Builds a rigid transverse cylinder that stabilizes the pelvis under asymmetric ground strikes in C25K running.',
+        cues: <String>[
+          'Stand athletic and perpendicular to cable pulley set at chest height holding D-handle at sternum',
+          'Drop hips, screw feet into floor, and brace abdominal wall tight',
+          'Press handle straight out in front of chest without letting torso rotate toward stack',
+          'Lock out arms and hold for 2 full seconds against rotational pull before returning slowly',
+        ],
+        isBonus: true,
+      ),
+
+      BodybuildingExercise(
+        id: 'bb_ab_wheel_rollout',
+        name: 'Ab Wheel Rollouts',
+        bodypart: BodypartCategory.mobilityArmor,
+        role: 'Anti-Extension Core & Anterior Wall Stiffness',
+        targetMuscles: 'Rectus Abdominis, Transverse Abdominis, Serratus Anterior, Lats',
+        setsReps: '3 Sets of 8-10 Controlled Reps',
+        whyItWorks:
+            'The premier exercise to prevent lumbar hyperextension under overhead pressing and heavy spinal loads. Enforces ribcage-to-pelvis lock, eliminating swayback posture and protecting the spine during high-impact running.',
+        cues: <String>[
+          'Kneel on padded mat with knees hip-width apart and hands on ab wheel handles',
+          'Tuck pelvis into posterior tilt, squeeze glutes, and round upper back slightly into hollow body',
+          'Roll wheel forward slowly as far as possible without letting lumbar spine arch or sag',
+          'Pull through lats and contract abs to pull wheel back to starting position',
+        ],
+        isBonus: true,
+      ),
     ];
   }
 }
