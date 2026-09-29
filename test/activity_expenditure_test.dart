@@ -138,6 +138,7 @@ void main() {
         double totalDur,
         double totalTonnage,
         Map<String, int> breakdown,
+        double sessionMet,
       ) = ActivityExpenditureService.calculateSessionExpenditure(
         session: session,
         bodyComp: bodyComp,
@@ -147,6 +148,7 @@ void main() {
       expect(totalTonnage, greaterThan(2000.0)); // >2,000 kg tonnage
       expect(breakdown.containsKey('Snatch'), isTrue);
       expect(breakdown.containsKey('Back Squat'), isTrue);
+      expect(sessionMet, greaterThan(5.5));
 
       final DailyActivityEntry wodEntry =
           ActivityExpenditureService.createWodActivityEntry(
@@ -157,6 +159,118 @@ void main() {
       expect(wodEntry.activityType, equals('workout_wod'));
       expect(wodEntry.sessionId, equals('session_test_1'));
       expect(wodEntry.caloriesBurned, equals(totalCal));
+      expect(wodEntry.name, equals('Olympic Lifting (Day 1, Wk 1)'));
+    });
+
+    test('Calculates Bodybuilding session expenditure with accurate Compendium MET (~5.0) and naming', () {
+      final BodyCompositionEntry bodyComp = BodyCompositionEntry.create(
+        weightLb: 264.8,
+        bodyFatPct: 21.2,
+        fatFreeMassLb: 208.6,
+        bmrKcal: 2394,
+      );
+
+      // Verify individual lift Compendium mappings
+      expect(
+        ActivityExpenditureService.getMetForLift('lat_pulldown', 'Wide-Grip Lat Pulldown'),
+        equals(5.0),
+      );
+      expect(
+        ActivityExpenditureService.getMetForLift('bench_press', 'Barbell Flat Bench Press'),
+        equals(5.0),
+      );
+      expect(
+        ActivityExpenditureService.getMetForLift('barbell_curl', 'Standing Barbell Bicep Curl'),
+        equals(4.5),
+      );
+      expect(
+        ActivityExpenditureService.getMetForLift('tricep_pushdown', 'Cable Triceps Pushdown'),
+        equals(4.5),
+      );
+      expect(
+        ActivityExpenditureService.getMetForLift('bb_landmine_rotations', 'Landmine Rotations'),
+        equals(4.5),
+      );
+
+      final WorkoutSession bbSession = WorkoutSession(
+        id: 'bb_session_day1',
+        date: DateTime(2026, 9, 29),
+        dayNumber: 1,
+        weekNumber: 1,
+        cycleNumber: 1,
+        durationSeconds: 3000, // 50 min
+        track: 'bodybuilding',
+        sessionTitle: 'Day 1: Upper A (Heavy Horizontal, Shoulders, Forearms & Rotation)',
+        logs: <ExerciseLog>[
+          ExerciseLog(
+            exerciseName: 'Barbell Flat Bench Press',
+            liftId: 'bench_press',
+            sets: <CompletedSet>[
+              CompletedSet(setIndex: 0, weight: 80, reps: 8),
+              CompletedSet(setIndex: 1, weight: 80, reps: 8),
+              CompletedSet(setIndex: 2, weight: 80, reps: 8),
+              CompletedSet(setIndex: 3, weight: 80, reps: 8),
+            ],
+          ),
+          ExerciseLog(
+            exerciseName: 'Wide-Grip Lat Pulldown',
+            liftId: 'lat_pulldown',
+            sets: <CompletedSet>[
+              CompletedSet(setIndex: 0, weight: 65, reps: 10),
+              CompletedSet(setIndex: 1, weight: 65, reps: 10),
+              CompletedSet(setIndex: 2, weight: 65, reps: 10),
+              CompletedSet(setIndex: 3, weight: 65, reps: 10),
+            ],
+          ),
+          ExerciseLog(
+            exerciseName: 'Standing Barbell Bicep Curl',
+            liftId: 'barbell_curl',
+            sets: <CompletedSet>[
+              CompletedSet(setIndex: 0, weight: 35, reps: 10),
+              CompletedSet(setIndex: 1, weight: 35, reps: 10),
+              CompletedSet(setIndex: 2, weight: 35, reps: 10),
+            ],
+          ),
+          ExerciseLog(
+            exerciseName: 'Cable Triceps Pushdown',
+            liftId: 'tricep_pushdown',
+            sets: <CompletedSet>[
+              CompletedSet(setIndex: 0, weight: 30, reps: 12),
+              CompletedSet(setIndex: 1, weight: 30, reps: 12),
+              CompletedSet(setIndex: 2, weight: 30, reps: 12),
+            ],
+          ),
+        ],
+      );
+
+      final (
+        int totalCal,
+        double totalDur,
+        double totalTonnage,
+        Map<String, int> breakdown,
+        double sessionMet,
+      ) = ActivityExpenditureService.calculateSessionExpenditure(
+        session: bbSession,
+        bodyComp: bodyComp,
+      );
+
+      // Compendium 02054: Bodybuilding hypertrophy yields ~4.8 - 5.0 MET, not 6.2
+      expect(sessionMet, closeTo(4.9, 0.4));
+      expect(sessionMet, isNot(equals(6.2)));
+      expect(totalCal, greaterThan(180));
+      expect(totalTonnage, greaterThan(3000.0));
+
+      final DailyActivityEntry entry =
+          ActivityExpenditureService.createWodActivityEntry(
+            session: bbSession,
+            bodyComp: bodyComp,
+          );
+
+      expect(entry.name, equals('Bodybuilding (Day 1: Upper A)'));
+      expect(entry.metValue, equals(sessionMet));
+      expect(entry.metValue, closeTo(4.9, 0.4));
+      expect(entry.caloriesBurned, equals(totalCal));
+      expect(entry.metadata?['track'], equals('bodybuilding'));
     });
   });
 }

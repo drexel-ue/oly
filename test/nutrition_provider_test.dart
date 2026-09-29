@@ -1,7 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oly/models/body_composition_entry.dart';
+import 'package:oly/models/daily_activity_entry.dart';
 import 'package:oly/models/daily_nutrition_log.dart';
 import 'package:oly/models/nutrition_entry.dart';
+import 'package:oly/models/workout_session.dart';
 import 'package:oly/providers/body_comp_provider.dart';
 import 'package:oly/providers/nutrition_provider.dart';
 import 'package:oly/services/storage_service.dart';
@@ -230,6 +232,108 @@ void main() {
         bodyCompProvider.leanMassDeltaVsPrevious,
         greaterThan(0),
       ); // Lean mass preserved/increased!
+    });
+
+    test('Syncs completed bodybuilding session with accurate MET and Bodybuilding name', () async {
+      final WorkoutSession bbSession = WorkoutSession(
+        id: 'bb_session_today',
+        date: DateTime.now(),
+        dayNumber: 1,
+        weekNumber: 1,
+        cycleNumber: 1,
+        durationSeconds: 2700,
+        track: 'bodybuilding',
+        sessionTitle: 'Day 1: Upper A (Heavy Horizontal, Shoulders, Forearms & Rotation)',
+        logs: <ExerciseLog>[
+          ExerciseLog(
+            exerciseName: 'Barbell Flat Bench Press',
+            liftId: 'bench_press',
+            sets: <CompletedSet>[
+              CompletedSet(setIndex: 0, weight: 80, reps: 8),
+              CompletedSet(setIndex: 1, weight: 80, reps: 8),
+            ],
+          ),
+          ExerciseLog(
+            exerciseName: 'Wide-Grip Lat Pulldown',
+            liftId: 'lat_pulldown',
+            sets: <CompletedSet>[
+              CompletedSet(setIndex: 0, weight: 65, reps: 10),
+            ],
+          ),
+        ],
+      );
+
+      await nutritionProvider.syncWorkoutSession(
+        bbSession,
+        bodyCompProvider.latestEntry,
+      );
+
+      final DailyActivityEntry? wodAct = nutritionProvider.currentDayLog.activities
+          .where((a) => a.activityType == 'workout_wod')
+          .firstOrNull;
+
+      expect(wodAct, isNotNull);
+      expect(wodAct!.name, equals('Bodybuilding (Day 1: Upper A)'));
+      expect(wodAct.metValue, closeTo(5.0, 0.2));
+      expect(wodAct.metValue, isNot(equals(6.2)));
+    });
+
+    test('Reconciles legacy Olympic Lifting entry to Bodybuilding when session was bodybuilding', () async {
+      final DateTime now = DateTime.now();
+      final String dateKey =
+          "${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
+
+      final WorkoutSession session = WorkoutSession(
+        id: 'session_legacy_1',
+        date: now,
+        dayNumber: 1,
+        weekNumber: 1,
+        cycleNumber: 1,
+        durationSeconds: 2700,
+        track: 'bodybuilding',
+        sessionTitle: 'Day 1: Upper A',
+        logs: <ExerciseLog>[
+          ExerciseLog(
+            exerciseName: 'Barbell Flat Bench Press',
+            liftId: 'bench_press',
+            sets: <CompletedSet>[
+              CompletedSet(setIndex: 0, weight: 80, reps: 8),
+            ],
+          ),
+        ],
+      );
+      await storage.saveWorkoutSessions(<WorkoutSession>[session]);
+
+      // Seed a legacy entry that previously had 'Olympic Lifting' and 6.2 MET
+      final DailyActivityEntry legacyEntry = DailyActivityEntry(
+        id: 'wod_session_legacy_1',
+        timestamp: now,
+        date: dateKey,
+        activityType: 'workout_wod',
+        name: 'Olympic Lifting (Day 1, Wk 1)',
+        durationMinutes: 45,
+        metValue: 6.2,
+        caloriesBurned: 350,
+        source: 'wod_auto_sync',
+        sessionId: 'session_legacy_1',
+      );
+
+      final DailyNutritionLog logWithLegacy = nutritionProvider.currentDayLog.copyWith(
+        activities: <DailyActivityEntry>[legacyEntry],
+      );
+      await storage.saveDailyNutritionLogs(<String, DailyNutritionLog>{
+        dateKey: logWithLegacy,
+      });
+
+      // Reload or trigger reconcile
+      nutritionProvider.reconcileWorkoutSessions();
+
+      final DailyActivityEntry reconciled = nutritionProvider.currentDayLog.activities
+          .firstWhere((a) => a.sessionId == 'session_legacy_1');
+
+      expect(reconciled.name, equals('Bodybuilding (Day 1: Upper A)'));
+      expect(reconciled.metValue, closeTo(5.0, 0.2));
+      expect(reconciled.metValue, isNot(equals(6.2)));
     });
   });
 }

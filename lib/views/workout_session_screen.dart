@@ -980,6 +980,19 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
       }
     }
 
+    final String trackName;
+    if (widget.dayTemplate.phases.any(
+          (p) => p.exercises.any((e) => e.liftId.startsWith('bb_')),
+        ) ||
+        programProvider.activeTrack == TrainingTrack.bodybuilding) {
+      trackName = TrainingTrack.bodybuilding.name;
+    } else if (programProvider.activeTrack == TrainingTrack.mobility ||
+        widget.dayTemplate.isActiveRecovery) {
+      trackName = TrainingTrack.mobility.name;
+    } else {
+      trackName = programProvider.activeTrack.name;
+    }
+
     final WorkoutSession session = WorkoutSession(
       id: _uuid.v4(),
       date: DateTime.now(),
@@ -991,6 +1004,8 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
       sessionRpe: _selectedRpe,
       jointStrainTags: _selectedJointStrains.toList(),
       logs: logs,
+      track: trackName,
+      sessionTitle: widget.dayTemplate.title,
     );
 
     await programProvider.saveWorkoutSession(session);

@@ -1,3 +1,4 @@
+import 'package:oly/models/program_model.dart';
 import 'package:uuid/uuid.dart';
 
 class CompletedSet {
@@ -92,6 +93,8 @@ class WorkoutSession {
     this.notes,
     this.sessionRpe,
     this.jointStrainTags,
+    this.track,
+    this.sessionTitle,
   });
 
   factory fromJson(Map<String, dynamic> json) {
@@ -110,6 +113,8 @@ class WorkoutSession {
       logs: (json['logs'] as List<dynamic>)
           .map((dynamic e) => ExerciseLog.fromJson(e as Map<String, dynamic>))
           .toList(),
+      track: json['track'] as String?,
+      sessionTitle: json['sessionTitle'] as String?,
     );
   }
   final String id;
@@ -122,6 +127,8 @@ class WorkoutSession {
   final int? sessionRpe;
   final List<String>? jointStrainTags;
   final List<ExerciseLog> logs;
+  final String? track;
+  final String? sessionTitle;
 
   double get totalVolumeKg =>
       logs.fold(0, (sum, l) => sum + l.totalVolumeKg);
@@ -131,6 +138,143 @@ class WorkoutSession {
       logs.fold(0, (sum, l) => sum + l.totalSets);
   int get totalReps =>
       logs.fold(0, (sum, l) => sum + l.totalReps);
+
+  TrainingTrack get inferredTrack {
+    if (track != null && track!.trim().isNotEmpty) {
+      final String t = track!.toLowerCase().trim();
+      if (t == 'bodybuilding' || t.contains('bodybuild')) {
+        return TrainingTrack.bodybuilding;
+      }
+      if (t == 'mobility') {
+        return TrainingTrack.mobility;
+      }
+      if (t == 'olympic' || t.contains('oly')) {
+        return TrainingTrack.olympic;
+      }
+    }
+
+    // Check notes / title hints
+    final String combinedText =
+        '${sessionTitle ?? ''} ${notes ?? ''}'.toLowerCase();
+    if (combinedText.contains('bodybuilding') ||
+        combinedText.contains('upper a') ||
+        combinedText.contains('upper b') ||
+        combinedText.contains('lower a') ||
+        combinedText.contains('lower b') ||
+        combinedText.contains('arm & shoulder') ||
+        combinedText.contains('full body flush')) {
+      return TrainingTrack.bodybuilding;
+    }
+    if (combinedText.contains('mobility') ||
+        combinedText.contains('curriculum') ||
+        combinedText.contains('hip capsule') ||
+        combinedText.contains('active recovery')) {
+      return TrainingTrack.mobility;
+    }
+
+    // Inspect logs for exercise liftId and exerciseName
+    int bbScore = 0;
+    int olyScore = 0;
+    int mobilityScore = 0;
+
+    for (final ExerciseLog log in logs) {
+      final String id = log.liftId.toLowerCase();
+      final String name = log.exerciseName.toLowerCase();
+
+      if (id.startsWith('bb_') ||
+          id.contains('curl') ||
+          id.contains('pushdown') ||
+          id.contains('pulldown') ||
+          id.contains('bench_press') ||
+          id.contains('leg_extension') ||
+          id.contains('hamstring_curl') ||
+          id.contains('calf_raise') ||
+          id.contains('lateral_raise') ||
+          id.contains('landmine') ||
+          id.contains('single_leg_rdl') ||
+          id.contains('romanian_deadlift') ||
+          id.contains('hip_thrust') ||
+          name.contains('lat pulldown') ||
+          name.contains('bench press') ||
+          name.contains('bicep curl') ||
+          name.contains('pushdown') ||
+          name.contains('leg extension') ||
+          name.contains('hamstring curl') ||
+          name.contains('calf raise') ||
+          name.contains('lateral raise') ||
+          name.contains('wrist curl')) {
+        bbScore++;
+      }
+
+      if (id.contains('snatch') ||
+          id.contains('clean') ||
+          id.contains('jerk') ||
+          name.contains('snatch') ||
+          name.contains('clean') ||
+          name.contains('jerk')) {
+        olyScore += 2;
+      }
+
+      if (id.contains('stretch') ||
+          id.contains('flow') ||
+          id.contains('elephant_walk') ||
+          name.contains('stretch') ||
+          name.contains('mobility')) {
+        mobilityScore++;
+      }
+    }
+
+    if (olyScore > 0 && olyScore >= bbScore) {
+      return TrainingTrack.olympic;
+    }
+    if (bbScore > 0 && bbScore >= mobilityScore) {
+      return TrainingTrack.bodybuilding;
+    }
+    if (mobilityScore > 0 && bbScore == 0 && olyScore == 0) {
+      return TrainingTrack.mobility;
+    }
+
+    return TrainingTrack.olympic;
+  }
+
+  String get displayTitle {
+    if (sessionTitle != null && sessionTitle!.trim().isNotEmpty) {
+      final String title = sessionTitle!.trim();
+      if (title.contains('(')) {
+        final String mainPart = title.split('(').first.trim();
+        if (mainPart.isNotEmpty) {
+          return mainPart;
+        }
+      }
+      return title;
+    }
+
+    switch (inferredTrack) {
+      case TrainingTrack.bodybuilding:
+        switch (dayNumber) {
+          case 1:
+            return 'Day 1: Upper A';
+          case 2:
+            return 'Day 2: Lower A';
+          case 3:
+            return 'Day 3: Active Armor';
+          case 4:
+            return 'Day 4: Upper B';
+          case 5:
+            return 'Day 5: Lower B';
+          case 6:
+            return 'Day 6: Arm & Shoulder Specialization';
+          case 7:
+            return 'Day 7: Full Body Flush';
+          default:
+            return 'Day $dayNumber: Bodybuilding';
+        }
+      case TrainingTrack.mobility:
+        return 'Day $dayNumber: Mobility Flow';
+      case TrainingTrack.olympic:
+        return 'Day $dayNumber, Wk $weekNumber';
+    }
+  }
 
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
@@ -144,6 +288,8 @@ class WorkoutSession {
       'sessionRpe': sessionRpe,
       'jointStrainTags': jointStrainTags,
       'logs': logs.map((e) => e.toJson()).toList(),
+      if (track != null) 'track': track,
+      if (sessionTitle != null) 'sessionTitle': sessionTitle,
     };
   }
 }

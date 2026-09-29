@@ -5,6 +5,7 @@ import 'package:oly/models/daily_activity_entry.dart';
 import 'package:oly/models/daily_nutrition_log.dart';
 import 'package:oly/models/nutrition_entry.dart';
 import 'package:oly/models/nutrition_goal_model.dart';
+import 'package:oly/models/program_model.dart';
 import 'package:oly/models/workout_session.dart';
 import 'package:oly/services/activity_expenditure_service.dart';
 import 'package:oly/services/storage_service.dart';
@@ -77,6 +78,7 @@ class NutritionProvider extends ChangeNotifier {
       ];
       _storage.saveMealTemplates(_templates);
     }
+    _reconcileWorkoutSessions();
     notifyListeners();
   }
 
@@ -491,6 +493,87 @@ class NutritionProvider extends ChangeNotifier {
     // Auto-mark day as training day if not already
     if (!current.isTrainingDay) {
       await toggleTrainingDay(true, latestBodyComp: bodyComp);
+    }
+  }
+
+  /// Reconciles stored workout sessions with daily nutrition logs to guarantee
+  /// accurate activity entry names (e.g. Bodybuilding vs Olympic) and Compendium MET values.
+  void reconcileWorkoutSessions({BodyCompositionEntry? latestBodyComp}) {
+    _reconcileWorkoutSessions(forcedBodyComp: latestBodyComp);
+    notifyListeners();
+  }
+
+  void _reconcileWorkoutSessions({BodyCompositionEntry? forcedBodyComp}) {
+    try {
+      _logs = _storage.loadDailyNutritionLogs();
+      final List<WorkoutSession> sessions = _storage.loadWorkoutSessions();
+      if (sessions.isEmpty) {
+        return;
+      }
+
+      BodyCompositionEntry? bodyComp = forcedBodyComp;
+      if (bodyComp == null) {
+        final List<BodyCompositionEntry> bodyComps =
+            _storage.loadBodyCompEntries();
+        if (bodyComps.isNotEmpty) {
+          bodyComps.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+          bodyComp = bodyComps.first;
+        }
+      }
+
+      bool hasChanges = false;
+      for (final WorkoutSession session in sessions) {
+        final String dateKey =
+            "${session.date.year.toString().padLeft(4, '0')}-${session.date.month.toString().padLeft(2, '0')}-${session.date.day.toString().padLeft(2, '0')}";
+
+        final DailyNutritionLog? dayLog = _logs[dateKey];
+        if (dayLog == null) {
+          continue;
+        }
+
+        final int actIndex = dayLog.activities.indexWhere(
+          (a) =>
+              a.sessionId == session.id ||
+              a.id == 'wod_${session.id}' ||
+              (a.activityType == 'workout_wod' && a.date == dateKey),
+        );
+
+        if (actIndex != -1) {
+          final DailyActivityEntry currentAct = dayLog.activities[actIndex];
+          final String expectedName =
+              ActivityExpenditureService.formatSessionActivityName(session);
+
+          final bool isBodybuildingMismatch =
+              session.inferredTrack == TrainingTrack.bodybuilding &&
+              (currentAct.name.startsWith('Olympic') ||
+                  currentAct.metValue == 6.2);
+          final bool isMobilityMismatch =
+              session.inferredTrack == TrainingTrack.mobility &&
+              (currentAct.name.startsWith('Olympic') ||
+                  currentAct.metValue == 6.2);
+          final bool nameMismatch = currentAct.name != expectedName;
+
+          if (isBodybuildingMismatch || isMobilityMismatch || nameMismatch) {
+            final DailyActivityEntry updatedAct =
+                ActivityExpenditureService.createWodActivityEntry(
+                  session: session,
+                  bodyComp: bodyComp,
+                  existingEntry: currentAct,
+                );
+            final List<DailyActivityEntry> updatedActivities =
+                List<DailyActivityEntry>.from(dayLog.activities);
+            updatedActivities[actIndex] = updatedAct;
+            _logs[dateKey] = dayLog.copyWith(activities: updatedActivities);
+            hasChanges = true;
+          }
+        }
+      }
+
+      if (hasChanges) {
+        _storage.saveDailyNutritionLogs(_logs);
+      }
+    } catch (e) {
+      debugPrint('[NUTRITION] Reconcile error: $e');
     }
   }
 }
