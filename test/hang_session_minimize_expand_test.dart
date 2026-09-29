@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oly/models/grip_hang_model.dart';
 import 'package:oly/providers/active_session_provider.dart';
@@ -101,6 +102,19 @@ void main() {
       expect(gripHang.isHangTimerRunning, isFalse);
       expect(activeSession.isActive, isFalse);
       expect(activeSession.isRestTimerRunning, isFalse);
+    });
+
+    test('ActiveSessionProvider syncFromBackground clears expired rest timer without throwing', () {
+      activeSession.startRestTimer(seconds: 1);
+      expect(activeSession.isRestTimerRunning, isTrue);
+
+      // Simulate app resuming after timer has expired in background
+      activeSession.didChangeAppLifecycleState(AppLifecycleState.paused);
+      activeSession.adjustRestTimer(-5); // Force expiration in past
+      activeSession.didChangeAppLifecycleState(AppLifecycleState.resumed);
+
+      expect(activeSession.isRestTimerRunning, isFalse);
+      expect(activeSession.restSecondsRemaining, equals(0));
     });
   });
 }

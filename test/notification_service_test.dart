@@ -139,5 +139,23 @@ void main() {
       final NotificationService service = NotificationService();
       await service.triggerIntenseVibration();
     });
+
+    test('OlySoundTone has valid iOS custom sounds and asset paths', () {
+      expect(OlySoundTone.platformChime.iosSound, equals('oly_platform_chime.caf'));
+      expect(OlySoundTone.chronoPulse.iosSound, equals('oly_chrono_pulse.caf'));
+      expect(OlySoundTone.ironGong.iosSound, equals('oly_iron_gong.caf'));
+      expect(OlySoundTone.legacyBeep.iosSound, equals('default'));
+    });
+
+    test('scheduleTimerNotification accepts custom sound tones', () async {
+      final NotificationService service = NotificationService();
+      await service.scheduleTimerNotification(
+        secondsRemaining: 45,
+        title: 'Platform Approach',
+        body: 'Barbell loaded and chalked',
+        tone: OlySoundTone.platformChime,
+      );
+      await service.cancelTimerNotification();
+    });
   });
 }

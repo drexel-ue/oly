@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
@@ -123,9 +124,7 @@ class NotificationService {
     const AndroidInitializationSettings androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
     const DarwinInitializationSettings iosSettings =
-        DarwinInitializationSettings(
-          
-        );
+        DarwinInitializationSettings();
 
     const InitializationSettings initSettings = InitializationSettings(
       android: androidSettings,
@@ -247,6 +246,7 @@ class NotificationService {
     required int secondsRemaining,
     required String title,
     required String body,
+    OlySoundTone? tone,
   }) async {
     await init();
     await cancelTimerNotification();
@@ -255,27 +255,38 @@ class NotificationService {
       return;
     }
 
+    OlySoundTone resolvedTone = tone ?? OlySoundTone.platformChime;
+    if (tone == null) {
+      try {
+        final SharedPreferences prefs = await SharedPreferences.getInstance();
+        final String? savedId = prefs.getString('oly_sound_tone_v1');
+        resolvedTone = OlySoundTone.fromId(savedId);
+      } catch (_) {}
+    }
+
     try {
       final tz.TZDateTime scheduledDate = tz.TZDateTime.now(tz.local)
           .add(Duration(seconds: secondsRemaining));
 
-      const AndroidNotificationDetails androidDetails =
+      final AndroidNotificationDetails androidDetails =
           AndroidNotificationDetails(
             'oly_rest_timer',
             'Rest Timer Alerts',
             channelDescription: 'Alarm alerts when rest timer reaches 0s',
             importance: Importance.max,
             priority: Priority.high,
+            sound: RawResourceAndroidNotificationSound(resolvedTone.id),
           );
 
-      const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
+      final DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
         presentAlert: true,
         presentSound: true,
         presentBadge: true,
-        sound: 'default',
+        sound: resolvedTone.iosSound,
+        interruptionLevel: InterruptionLevel.timeSensitive,
       );
 
-      const NotificationDetails details = NotificationDetails(
+      final NotificationDetails details = NotificationDetails(
         android: androidDetails,
         iOS: iosDetails,
       );

@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:oly/models/breathing_session_model.dart';
 import 'package:oly/services/notification_service.dart';
 import 'package:oly/services/recovery_engine_service.dart';
@@ -9,11 +9,24 @@ enum SessionType { workout, mobility, breathwork, hang, c25k }
 
 /// Manages global active session state, including active exercise, set details,
 /// and the real-time rest timer that persists across all app navigation tabs.
-class ActiveSessionProvider extends ChangeNotifier {
+class ActiveSessionProvider extends ChangeNotifier with WidgetsBindingObserver {
   new({NotificationService? notificationService})
-      : _notificationService = notificationService ?? NotificationService();
+      : _notificationService = notificationService ?? NotificationService() {
+    try {
+      WidgetsBinding.instance.addObserver(this);
+    } catch (_) {}
+  }
 
   final NotificationService _notificationService;
+  bool _isAppInForeground = true;
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _isAppInForeground = (state == AppLifecycleState.resumed);
+    if (state == AppLifecycleState.resumed) {
+      syncFromBackground();
+    }
+  }
 
   bool _isActive = false;
   bool _isMinimized = false;
@@ -308,8 +321,10 @@ class ActiveSessionProvider extends ChangeNotifier {
         _isRestTimerRunning = false;
         _restTargetEndTime = null;
         _notificationService.cancelTimerNotification();
-        _notificationService.triggerIntenseVibration();
-        _notificationService.playTimerBeepSound();
+        if (_isAppInForeground) {
+          _notificationService.triggerIntenseVibration();
+          _notificationService.playTimerBeepSound();
+        }
         notifyListeners();
       }
     });
@@ -378,13 +393,15 @@ class ActiveSessionProvider extends ChangeNotifier {
       if (diff > 0) {
         _restSecondsRemaining = diff;
       } else {
+        // The timer expired while the app was in the background or locked.
+        // The native local notification already alerted the athlete with the custom sound.
+        // Clean up the timer state without re-triggering sound on app open.
         _timer?.cancel();
         _timer = null;
         _restSecondsRemaining = 0;
         _isRestTimerRunning = false;
         _restTargetEndTime = null;
-        _notificationService.triggerIntenseVibration();
-        _notificationService.playTimerBeepSound();
+        _notificationService.cancelTimerNotification();
       }
       notifyListeners();
     }
@@ -392,6 +409,9 @@ class ActiveSessionProvider extends ChangeNotifier {
 
   @override
   void dispose() {
+    try {
+      WidgetsBinding.instance.removeObserver(this);
+    } catch (_) {}
     _timer?.cancel();
     _timer = null;
     _notificationService.cancelTimerNotification();

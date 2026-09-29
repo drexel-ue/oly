@@ -46,6 +46,7 @@ class _RestTimerWidgetState extends State<RestTimerWidget>
   late int _secondsRemaining;
   DateTime? _targetEndTime;
   bool _isRunning = false;
+  bool _isAppInForeground = true;
   late bool _isMinimized;
 
   @override
@@ -105,6 +106,7 @@ class _RestTimerWidgetState extends State<RestTimerWidget>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    _isAppInForeground = (state == AppLifecycleState.resumed);
     if (state == AppLifecycleState.resumed &&
         _isRunning &&
         _targetEndTime != null) {
@@ -115,6 +117,7 @@ class _RestTimerWidgetState extends State<RestTimerWidget>
         } else {
           _secondsRemaining = 0;
           _isRunning = false;
+          _targetEndTime = null;
           _timer?.cancel();
           _timer = null;
           _triggerFinishAlerts(isForeground: false);
@@ -188,11 +191,12 @@ class _RestTimerWidgetState extends State<RestTimerWidget>
       } else {
         t.cancel();
         _timer = null;
+        _targetEndTime = null;
         setState(() {
           _secondsRemaining = 0;
           _isRunning = false;
         });
-        _triggerFinishAlerts();
+        _triggerFinishAlerts(isForeground: _isAppInForeground);
         widget.onFinished?.call();
       }
     });
