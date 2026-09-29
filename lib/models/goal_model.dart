@@ -655,6 +655,22 @@ class GoalTrack {
             unit: 'reps',
             description: 'Full-range kneeling rollout with zero lumbar hyperextension',
           ),
+          GoalMilestone(
+            id: 'bb_bulgarian_split_squat_30',
+            title: 'Bulgarian Split Squat 30 kg',
+            targetValue: 30,
+            currentValue: 18,
+            unit: 'kg',
+            description: 'Rear foot elevated dumbbells 8-10 strict reps per leg',
+          ),
+          GoalMilestone(
+            id: 'bb_single_leg_rdl_24',
+            title: 'Free Single-Leg RDL 24 kg',
+            targetValue: 24,
+            currentValue: 14,
+            unit: 'kg',
+            description: 'Suspended pendulum single-leg hinge with square pelvis per leg',
+          ),
         ],
       ),
     ];

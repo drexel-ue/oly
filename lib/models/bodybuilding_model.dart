@@ -609,6 +609,42 @@ class BodybuildingExercise {
         ],
         isBonus: true,
       ),
+
+      BodybuildingExercise(
+        id: 'bb_bulgarian_split_squat',
+        name: 'Bulgarian Split Squats (Rear-Foot Elevated)',
+        bodypart: BodypartCategory.mobilityArmor,
+        role: 'Unilateral Knee Extension & Pelvic Stability',
+        targetMuscles: 'Quadriceps, Gluteus Maximus, Gluteus Medius, Adductors',
+        setsReps: '3 Sets of 8-10 Reps per leg',
+        whyItWorks:
+            'Unilateral knee flexion creates massive quadriceps and glute hypertrophy while training the gluteus medius and adductors to eliminate pelvic drop during running gait.',
+        cues: <String>[
+          'Elevate rear foot on bench or low box with laces down',
+          'Step front foot forward into comfortable lunge distance',
+          'Descend under control until front thigh is parallel to floor',
+          'Drive through front mid-foot and heel to return to tall lockout without hyperextending knee',
+        ],
+        isBonus: true,
+      ),
+
+      BodybuildingExercise(
+        id: 'bb_single_leg_rdl',
+        name: 'Free Single-Leg Romanian Deadlift',
+        bodypart: BodypartCategory.mobilityArmor,
+        role: 'Unilateral Hip Hinge, Hamstring Length & Ankle Proprioception',
+        targetMuscles: 'Hamstrings, Gluteus Maximus, Gluteus Medius, Foot & Ankle Stabilizers',
+        setsReps: '3 Sets of 8-10 Reps per leg',
+        whyItWorks:
+            'Suspends the rear leg in free air to challenge the foot arch, ankle evertors, and hip stabilizers, while delivering deep eccentric hamstring loading to bulletproof the posterior chain against sprinting and running strain.',
+        cues: <String>[
+          'Stand on one leg with soft knee, holding dumbbells at sides or in opposite hand',
+          'Hinge at the hip, extending non-working leg straight behind like a pendulum',
+          'Keep hips and shoulders square to floor, resisting rotation toward the open side',
+          'Descend until deep stretch in front hamstring, then drive front hip forward to tall stance',
+        ],
+        isBonus: true,
+      ),
     ];
   }
 }

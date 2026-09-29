@@ -948,23 +948,36 @@ class ProgramCycle {
         ],
       ),
 
-      // Day 5 (Fri): Lower B - Hinge Focus (Hack Squat, Posterior Chain, Jefferson Curls)
+      // Day 5 (Fri): Lower B - Unilateral & Hinge Focus (Bulgarian Squat, Single-Leg RDL, Hip Thrust)
       DayTemplate(
         dayNumber: 5,
-        title: 'Day 5: Lower B - Hinge Focus (Hack Squat, Hamstrings & Jefferson Curls)',
+        title: 'Day 5: Lower B - Unilateral & Hinge Focus (Bulgarian Squat, Single-Leg RDL, Hip Thrust)',
         subtitle:
-            'Hack Squat, Lying Hamstring Curl, Barbell Hip Thrust, Seated Calf Raise, Jefferson Curls, Couch Stretch, Hanging Leg Raise',
+            'Bulgarian Split Squats, Free Single-Leg RDL, Barbell Hip Thrust, Seated Calf Raise, Jefferson Curls, Couch Stretch, Hanging Leg Raise',
         phases: <PhaseTemplate>[
           PhaseTemplate(
-            name: 'Phase 1 - Knee Extension & Hip Thrust Overload',
+            name: 'Phase 1 - Unilateral Knee Overload & Quad Stretch',
             exercises: <ExerciseTemplate>[
               ExerciseTemplate(
-                name: 'Hack Squat or Front Squat',
-                liftId: 'hack_squat',
-                setScheme: '4 Sets of 10 Reps',
-                fixedWeightKg: 90,
+                name: 'Bulgarian Split Squats (Rear-Foot Elevated)',
+                liftId: 'bb_bulgarian_split_squat',
+                setScheme: '3 Sets of 8 Reps per leg',
+                fixedWeightKg: 18,
                 notes:
-                    'Constant quad tension; reverse smoothly right at parallel.',
+                    'Rear foot on bench laces down; deep knee flexion, upright torso, full glute and quad stretch.',
+              ),
+            ],
+          ),
+          PhaseTemplate(
+            name: 'Phase 2 - Posterior Chain & Peak Glute Overload',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Free Single-Leg Romanian Deadlift',
+                liftId: 'bb_single_leg_rdl',
+                setScheme: '3 Sets of 8 Reps per leg',
+                fixedWeightKg: 16,
+                notes:
+                    'Rear leg suspended like a pendulum; hinge deep into working hamstring with square hips and level pelvis.',
               ),
               ExerciseTemplate(
                 name: 'Barbell Hip Thrust',
@@ -973,19 +986,6 @@ class ProgramCycle {
                 fixedWeightKg: 110,
                 notes:
                     'Tuck chin, drive through heels, 2s peak glute lockout squeeze.',
-              ),
-            ],
-          ),
-          PhaseTemplate(
-            name: 'Phase 2 - Hamstring Flexion & Calves',
-            exercises: <ExerciseTemplate>[
-              ExerciseTemplate(
-                name: 'Lying or Seated Hamstring Curl',
-                liftId: 'hamstring_curl',
-                setScheme: '3 Sets of 12 Reps',
-                fixedWeightKg: 45,
-                notes:
-                    'Knee flexion isolation; 3s eccentric cadence on negative.',
               ),
               ExerciseTemplate(
                 name: 'Seated Machine Calf Raise',
