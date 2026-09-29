@@ -68,6 +68,7 @@ void main() {
       gripHang.startHangTimer(
         mode: HangMode.singleHandRight,
         style: HangStyle.passiveDecompression,
+        prepSeconds: 0,
         onTick: (secs) {
           tickCount = secs;
         },
@@ -91,7 +92,7 @@ void main() {
         cleanupInvoked = true;
       });
 
-      gripHang.startHangTimer();
+      gripHang.startHangTimer(prepSeconds: 0);
       expect(gripHang.isHangTimerRunning, isTrue);
 
       activeSession.registerEndSessionCallback(gripHang.resetHangTimer);

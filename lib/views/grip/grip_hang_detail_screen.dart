@@ -25,7 +25,7 @@ class GripHangDetailScreen extends StatelessWidget {
     } catch (_) {}
 
     return PopScope(
-      canPop: !grip.isHangTimerRunning,
+      canPop: !grip.isHangTimerActive,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
         grip.stopHangTimer();
@@ -40,7 +40,7 @@ class GripHangDetailScreen extends StatelessWidget {
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () {
-              if (grip.isHangTimerRunning) {
+              if (grip.isHangTimerActive) {
                 grip.stopHangTimer();
               }
               if (activeSession?.sessionType == SessionType.hang &&

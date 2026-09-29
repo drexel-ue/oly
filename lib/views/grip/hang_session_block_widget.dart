@@ -34,7 +34,7 @@ class _HangSessionBlockWidgetState extends State<HangSessionBlockWidget> {
       if (!activeSession.isMinimized) {
         final GripHangProvider grip =
             Provider.of<GripHangProvider>(context, listen: false);
-        if (grip.isHangTimerRunning) {
+        if (grip.isHangTimerActive) {
           grip.stopHangTimer();
         }
       }
@@ -146,8 +146,12 @@ class _HangSessionBlockWidgetState extends State<HangSessionBlockWidget> {
     } catch (_) {}
 
     final bool isRunning = grip.isHangTimerRunning;
+    final bool isPrep = grip.isHangPrepCountdown;
+    final bool isActive = grip.isHangTimerActive;
     final int currentSeconds = grip.currentHangSeconds;
     final int targetSeconds = _selectedMode.standardGoalSeconds;
+    final int prepRemaining = grip.hangPrepSecondsRemaining;
+    final int prepTotal = grip.hangPrepDelaySeconds > 0 ? grip.hangPrepDelaySeconds : 5;
     final double progress =
         targetSeconds > 0 ? (currentSeconds / targetSeconds).clamp(0, 1) : 0;
 
@@ -169,12 +173,12 @@ class _HangSessionBlockWidgetState extends State<HangSessionBlockWidget> {
         color: AppTheme.surfaceCard,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: isRunning
+          color: isActive
               ? AppTheme.primaryAmber
               : Colors.white.withValues(alpha: 0.08),
-          width: isRunning ? 2.0 : 1.0,
+          width: isActive ? 2.0 : 1.0,
         ),
-        boxShadow: isRunning
+        boxShadow: isActive
             ? <BoxShadow>[
                 BoxShadow(
                   color: AppTheme.primaryAmber.withValues(alpha: 0.25),
@@ -220,10 +224,12 @@ class _HangSessionBlockWidgetState extends State<HangSessionBlockWidget> {
                         ),
                       ),
                       Text(
-                        'Target Goal: ${_formatSeconds(targetSeconds)}',
+                        isPrep
+                            ? 'Get onto bar & establish grip'
+                            : 'Target Goal: ${_formatSeconds(targetSeconds)}',
                         style: GoogleFonts.outfit(
                           fontSize: 12,
-                          color: AppTheme.textSecondary,
+                          color: isPrep ? AppTheme.primaryAmber : AppTheme.textSecondary,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -231,7 +237,31 @@ class _HangSessionBlockWidgetState extends State<HangSessionBlockWidget> {
                   ),
                 ],
               ),
-              if (bestForMode > 0)
+              if (isPrep)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryAmber.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppTheme.primaryAmber.withValues(alpha: 0.4)),
+                  ),
+                  child: Row(
+                    children: <Widget>[
+                      const Icon(Icons.hourglass_top_rounded,
+                          size: 14, color: AppTheme.primaryAmber),
+                      const SizedBox(width: 4),
+                      Text(
+                        'GET READY',
+                        style: GoogleFonts.outfit(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.primaryAmber,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              else if (bestForMode > 0)
                 Container(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -261,7 +291,7 @@ class _HangSessionBlockWidgetState extends State<HangSessionBlockWidget> {
           const SizedBox(height: 16),
 
           // Hang Mode Selector Tabs (Two-Hand vs Left vs Right)
-          if (!isRunning)
+          if (!isActive)
             Container(
               decoration: BoxDecoration(
                 color: AppTheme.surfaceElevated,
@@ -284,10 +314,10 @@ class _HangSessionBlockWidgetState extends State<HangSessionBlockWidget> {
                 ],
               ),
             ),
-          if (!isRunning) const SizedBox(height: 12),
+          if (!isActive) const SizedBox(height: 12),
 
           // Scapular Style Toggle
-          if (!isRunning)
+          if (!isActive)
             Row(
               children: <Widget>[
                 Text(
@@ -338,7 +368,54 @@ class _HangSessionBlockWidgetState extends State<HangSessionBlockWidget> {
                 ),
               ],
             ),
-          const SizedBox(height: 16),
+          if (!isActive) const SizedBox(height: 12),
+
+          // Get-Ready Prep Delay Row
+          if (!isActive)
+            Row(
+              children: <Widget>[
+                const Icon(
+                  Icons.hourglass_top_rounded,
+                  size: 14,
+                  color: AppTheme.textSecondary,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  'Prep Delay: ',
+                  style: GoogleFonts.outfit(
+                    fontSize: 12,
+                    color: AppTheme.textSecondary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                ...<int>[0, 3, 5, 10].map((delay) {
+                  final bool isSelected = grip.hangPrepDelaySeconds == delay;
+                  final String label = delay == 0 ? 'Off' : '${delay}s';
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 6),
+                    child: ChoiceChip(
+                      visualDensity: VisualDensity.compact,
+                      labelPadding: const EdgeInsets.symmetric(horizontal: 4),
+                      label: Text(label, style: GoogleFonts.outfit(fontSize: 11)),
+                      selected: isSelected,
+                      selectedColor: AppTheme.primaryAmber,
+                      backgroundColor: Colors.white.withValues(alpha: 0.05),
+                      labelStyle: TextStyle(
+                        color: isSelected ? Colors.black : AppTheme.textSecondary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      onSelected: (sel) {
+                        if (sel) {
+                          grip.setPrepDelaySeconds(delay);
+                        }
+                      },
+                    ),
+                  );
+                }),
+              ],
+            ),
+          if (!isActive) const SizedBox(height: 16),
 
           // PR Alert Banner
           if (isNewPr)
@@ -366,84 +443,189 @@ class _HangSessionBlockWidgetState extends State<HangSessionBlockWidget> {
               ),
             ),
 
-          // Stopwatch Display
-          Center(
-            child: Column(
-              children: <Widget>[
-                Text(
-                  formattedTime,
-                  style: GoogleFonts.outfit(
-                    fontSize: 54,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 2,
-                    color: isRunning
-                        ? (isNewPr ? AppTheme.primaryAmber : Colors.white)
-                        : AppTheme.textPrimary,
-                  ),
-                ),
-                Text(
-                  '${(progress * 100).toInt()}% of ${_selectedMode.displayName} Goal',
-                  style: GoogleFonts.outfit(
-                    fontSize: 12,
-                    color: AppTheme.textSecondary,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(6),
-                  child: LinearProgressIndicator(
-                    value: progress,
-                    minHeight: 10,
-                    backgroundColor: Colors.white12,
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      progress >= 1.0
-                          ? AppTheme.successGreen
-                          : AppTheme.primaryAmber,
+          // Prep Countdown Display vs Normal Stopwatch Display
+          if (isPrep)
+            Center(
+              child: Column(
+                children: <Widget>[
+                  Text(
+                    '$prepRemaining',
+                    style: GoogleFonts.outfit(
+                      fontSize: 60,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 2,
+                      color: AppTheme.primaryAmber,
                     ),
                   ),
-                ),
-              ],
+                  Text(
+                    'GET ONTO BAR',
+                    style: GoogleFonts.outfit(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.5,
+                      color: AppTheme.primaryAmber,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryAmber.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: AppTheme.primaryAmber.withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: Text(
+                      'Grip bar • Active scapula depression • Micro-bend elbows',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.inter(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.primaryAmber,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(6),
+                    child: LinearProgressIndicator(
+                      value: (prepRemaining / prepTotal).clamp(0.0, 1.0),
+                      minHeight: 8,
+                      backgroundColor: Colors.white12,
+                      valueColor: const AlwaysStoppedAnimation<Color>(
+                        AppTheme.primaryAmber,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            )
+          else
+            Center(
+              child: Column(
+                children: <Widget>[
+                  Text(
+                    formattedTime,
+                    style: GoogleFonts.outfit(
+                      fontSize: 54,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 2,
+                      color: isRunning
+                          ? (isNewPr ? AppTheme.primaryAmber : Colors.white)
+                          : AppTheme.textPrimary,
+                    ),
+                  ),
+                  Text(
+                    '${(progress * 100).toInt()}% of ${_selectedMode.displayName} Goal',
+                    style: GoogleFonts.outfit(
+                      fontSize: 12,
+                      color: AppTheme.textSecondary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(6),
+                    child: LinearProgressIndicator(
+                      value: progress,
+                      minHeight: 10,
+                      backgroundColor: Colors.white12,
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        progress >= 1.0
+                            ? AppTheme.successGreen
+                            : AppTheme.primaryAmber,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
           const SizedBox(height: 16),
 
-          // Milestone Indicators
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: <int>[30, 60, 120, 180, 240, 300].map((sec) {
-              final bool reached = currentSeconds >= sec;
-              return Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                decoration: BoxDecoration(
-                  color: reached
-                      ? AppTheme.primaryAmber.withValues(alpha: 0.2)
-                      : AppTheme.surfaceElevated,
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(
-                    color: reached ? AppTheme.primaryAmber : Colors.white10,
-                  ),
-                ),
-                child: Text(
-                  sec >= 60 ? '${sec ~/ 60}m' : '${sec}s',
-                  style: GoogleFonts.outfit(
-                    fontSize: 11,
-                    fontWeight:
-                        reached ? FontWeight.bold : FontWeight.w500,
+          // Milestone Indicators (when not in prep)
+          if (!isPrep)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: <int>[30, 60, 120, 180, 240, 300].map((sec) {
+                final bool reached = currentSeconds >= sec;
+                return Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                  decoration: BoxDecoration(
                     color: reached
-                        ? AppTheme.primaryAmber
-                        : AppTheme.textSecondary,
+                        ? AppTheme.primaryAmber.withValues(alpha: 0.2)
+                        : AppTheme.surfaceElevated,
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(
+                      color: reached ? AppTheme.primaryAmber : Colors.white10,
+                    ),
                   ),
-                ),
-              );
-            }).toList(),
-          ),
-          const SizedBox(height: 20),
+                  child: Text(
+                    sec >= 60 ? '${sec ~/ 60}m' : '${sec}s',
+                    style: GoogleFonts.outfit(
+                      fontSize: 11,
+                      fontWeight:
+                          reached ? FontWeight.bold : FontWeight.w500,
+                      color: reached
+                          ? AppTheme.primaryAmber
+                          : AppTheme.textSecondary,
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          if (!isPrep) const SizedBox(height: 20),
 
           // Control Buttons
           Row(
             children: <Widget>[
-              if (!isRunning) ...<Widget>[
+              if (isPrep) ...<Widget>[
+                Expanded(
+                  child: OlyPressable(
+                    onPressed: grip.skipHangPrep,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: <Color>[AppTheme.primaryAmber, Colors.deepOrange],
+                        ),
+                        borderRadius: BorderRadius.circular(14),
+                        boxShadow: <BoxShadow>[
+                          BoxShadow(
+                            color: AppTheme.primaryAmber.withValues(alpha: 0.35),
+                            blurRadius: 10,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: Center(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                            const Icon(Icons.bolt, color: Colors.black, size: 22),
+                            const SizedBox(width: 6),
+                            Text(
+                              'HANG NOW (SKIP DELAY)',
+                              style: GoogleFonts.outfit(
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                                letterSpacing: 0.8,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                IconButton(
+                  icon: const Icon(Icons.close, color: Colors.white70),
+                  tooltip: 'Cancel',
+                  onPressed: () => _resetHang(grip, activeSession),
+                ),
+              ] else if (!isRunning) ...<Widget>[
                 Expanded(
                   child: OlyPressable(
                     onPressed: () => _startHang(grip, activeSession, targetSeconds),

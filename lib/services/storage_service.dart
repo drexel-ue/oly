@@ -78,6 +78,7 @@ class StorageService {
   static const String _keyIllnessRecords = 'oly_illness_records_v1';
   static const String _keyGtgConfig = 'oly_gtg_config_v1';
   static const String _keyGtgLogs = 'oly_gtg_logs_v1';
+  static const String _keyHangPrepDelay = 'oly_hang_prep_delay_seconds_v1';
 
   final SharedPreferences _prefs;
 
@@ -1635,5 +1636,13 @@ class StorageService {
   Future<void> saveGtgLogs(List<GtgSetLog> logs) async {
     final String jsonStr = jsonEncode(logs.map((l) => l.toJson()).toList());
     await _prefs.setString(_keyGtgLogs, jsonStr);
+  }
+
+  int loadHangPrepDelaySeconds() {
+    return _prefs.getInt(_keyHangPrepDelay) ?? 5;
+  }
+
+  Future<void> saveHangPrepDelaySeconds(int seconds) async {
+    await _prefs.setInt(_keyHangPrepDelay, seconds);
   }
 }

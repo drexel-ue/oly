@@ -453,9 +453,14 @@ class _GreaseTheGrooveScreenState extends State<GreaseTheGrooveScreen> {
 
   Widget _buildLiveHangTimerCard(BuildContext context, GtgProvider gtg) {
     final bool isRunning = gtg.isHangTimerRunning;
+    final bool isPrep = gtg.isHangPrepCountdown;
+    final bool isActive = gtg.isHangTimerActive;
     final int remaining = gtg.hangSecondsRemaining;
     final int target = gtg.hangTargetSeconds;
     final double progress = target > 0 ? (target - remaining) / target : 0.0;
+    final int prepRemaining = gtg.hangPrepSecondsRemaining;
+    final int prepTotal = gtg.prepDelaySeconds > 0 ? gtg.prepDelaySeconds : 5;
+    final double prepProgress = (prepRemaining / prepTotal).clamp(0.0, 1.0);
 
     return GlassContainer(
       padding: const EdgeInsets.all(18),
@@ -487,15 +492,17 @@ class _GreaseTheGrooveScreenState extends State<GreaseTheGrooveScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: AppTheme.accentElectricCyan.withValues(alpha: 0.15),
+                  color: isPrep
+                      ? AppTheme.primaryAmber.withValues(alpha: 0.15)
+                      : AppTheme.accentElectricCyan.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  'Micro-Bend Flexion',
+                  isPrep ? 'GET ONTO BAR' : 'Micro-Bend Flexion',
                   style: GoogleFonts.inter(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
-                    color: AppTheme.accentElectricCyan,
+                    color: isPrep ? AppTheme.primaryAmber : AppTheme.accentElectricCyan,
                   ),
                 ),
               ),
@@ -512,11 +519,15 @@ class _GreaseTheGrooveScreenState extends State<GreaseTheGrooveScreen> {
                   width: 130,
                   height: 130,
                   child: CircularProgressIndicator(
-                    value: isRunning ? progress : 1.0,
+                    value: isPrep
+                        ? prepProgress
+                        : (isRunning ? progress : 1.0),
                     strokeWidth: 8,
                     backgroundColor: Colors.white10,
                     valueColor: AlwaysStoppedAnimation<Color>(
-                      isRunning ? AppTheme.accentElectricCyan : Colors.white24,
+                      isPrep
+                          ? AppTheme.primaryAmber
+                          : (isRunning ? AppTheme.accentElectricCyan : Colors.white24),
                     ),
                   ),
                 ),
@@ -524,20 +535,26 @@ class _GreaseTheGrooveScreenState extends State<GreaseTheGrooveScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
                     Text(
-                      isRunning ? '$remaining' : '$_selectedHangPreset',
+                      isPrep
+                          ? '$prepRemaining'
+                          : (isRunning ? '$remaining' : '$_selectedHangPreset'),
                       style: GoogleFonts.outfit(
                         fontSize: 42,
                         fontWeight: FontWeight.w900,
-                        color: isRunning ? AppTheme.accentElectricCyan : Colors.white,
+                        color: isPrep
+                            ? AppTheme.primaryAmber
+                            : (isRunning ? AppTheme.accentElectricCyan : Colors.white),
                       ),
                     ),
                     Text(
-                      isRunning ? 'SECONDS' : 'TARGET SEC',
+                      isPrep
+                          ? 'GET ON BAR'
+                          : (isRunning ? 'SECONDS' : 'TARGET SEC'),
                       style: GoogleFonts.inter(
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
                         letterSpacing: 1,
-                        color: AppTheme.textSecondary,
+                        color: isPrep ? AppTheme.primaryAmber : AppTheme.textSecondary,
                       ),
                     ),
                   ],
@@ -547,8 +564,40 @@ class _GreaseTheGrooveScreenState extends State<GreaseTheGrooveScreen> {
           ),
           const SizedBox(height: 16),
 
-          // Preset Chips (20s, 30s, 45s, 60s)
-          if (!isRunning) ...<Widget>[
+          // Prep Countdown Prompt Banner
+          if (isPrep) ...<Widget>[
+            Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryAmber.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: AppTheme.primaryAmber.withValues(alpha: 0.35),
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    const Icon(Icons.accessibility_new, size: 16, color: AppTheme.primaryAmber),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Step up to bar • Set active scapula & micro-bend',
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.primaryAmber,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 14),
+          ],
+
+          // Preset Chips & Prep Delay Chips (only when timer is idle)
+          if (!isActive) ...<Widget>[
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <int>[20, 30, 45, 60].map((sec) {
@@ -576,69 +625,170 @@ class _GreaseTheGrooveScreenState extends State<GreaseTheGrooveScreen> {
                 );
               }).toList(),
             ),
+            const SizedBox(height: 10),
+
+            // Get-Ready Prep Delay Row
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                const Icon(
+                  Icons.hourglass_top_rounded,
+                  size: 14,
+                  color: AppTheme.textSecondary,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  'Prep Delay:',
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.textSecondary,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                ...<int>[0, 3, 5, 10].map((delay) {
+                  final bool isSelected = gtg.prepDelaySeconds == delay;
+                  final String label = delay == 0 ? 'Off' : '${delay}s';
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 3),
+                    child: ChoiceChip(
+                      visualDensity: VisualDensity.compact,
+                      labelPadding: const EdgeInsets.symmetric(horizontal: 6),
+                      label: Text(label),
+                      selected: isSelected,
+                      selectedColor: AppTheme.primaryAmber.withValues(alpha: 0.25),
+                      backgroundColor: Colors.white.withValues(alpha: 0.04),
+                      labelStyle: GoogleFonts.outfit(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: isSelected ? AppTheme.primaryAmber : Colors.white54,
+                      ),
+                      side: BorderSide(
+                        color: isSelected
+                            ? AppTheme.primaryAmber
+                            : Colors.white.withValues(alpha: 0.08),
+                      ),
+                      onSelected: (_) {
+                        gtg.setPrepDelaySeconds(delay);
+                      },
+                    ),
+                  );
+                }),
+              ],
+            ),
             const SizedBox(height: 14),
           ],
 
-          // Start / Stop Timer Buttons
-          Row(
-            children: <Widget>[
-              Expanded(
-                child: OlyPressable(
-                  onPressed: () {
-                    if (isRunning) {
-                      gtg.stopActiveHangTimer(logPartial: true);
-                    } else {
-                      gtg.startActiveHangTimer(seconds: _selectedHangPreset);
-                    }
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    decoration: BoxDecoration(
-                      color: isRunning
-                          ? Colors.redAccent.withValues(alpha: 0.85)
-                          : AppTheme.accentElectricCyan,
-                      borderRadius: BorderRadius.circular(14),
-                      boxShadow: <BoxShadow>[
-                        BoxShadow(
-                          color: (isRunning ? Colors.redAccent : AppTheme.accentElectricCyan)
-                              .withValues(alpha: 0.35),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4),
+          // Timer Buttons: Prep vs Normal Start/Stop
+          if (isPrep) ...<Widget>[
+            Row(
+              children: <Widget>[
+                Expanded(
+                  child: OlyPressable(
+                    onPressed: gtg.skipHangPrep,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: <Color>[AppTheme.primaryAmber, Colors.deepOrange],
                         ),
-                      ],
-                    ),
-                    alignment: Alignment.center,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        Icon(
-                          isRunning ? Icons.stop : Icons.play_arrow,
-                          color: isRunning ? Colors.white : Colors.black,
-                          size: 22,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          isRunning ? 'Stop & Log Hang' : 'Start Active Hang',
-                          style: GoogleFonts.outfit(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w800,
-                            color: isRunning ? Colors.white : Colors.black,
+                        borderRadius: BorderRadius.circular(14),
+                        boxShadow: <BoxShadow>[
+                          BoxShadow(
+                            color: AppTheme.primaryAmber.withValues(alpha: 0.35),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
+                      alignment: Alignment.center,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          const Icon(Icons.bolt, color: Colors.black, size: 22),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Hang Now (Skip Delay)',
+                            style: GoogleFonts.outfit(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-              if (isRunning) ...<Widget>[
                 const SizedBox(width: 10),
                 IconButton(
-                  icon: const Icon(Icons.refresh, color: Colors.white70),
+                  tooltip: 'Cancel',
+                  icon: const Icon(Icons.close, color: Colors.white70),
                   onPressed: () => gtg.resetActiveHangTimer(),
                 ),
               ],
-            ],
-          ),
+            ),
+          ] else ...<Widget>[
+            Row(
+              children: <Widget>[
+                Expanded(
+                  child: OlyPressable(
+                    onPressed: () {
+                      if (isRunning) {
+                        gtg.stopActiveHangTimer(logPartial: true);
+                      } else {
+                        gtg.startActiveHangTimer(seconds: _selectedHangPreset);
+                      }
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      decoration: BoxDecoration(
+                        color: isRunning
+                            ? Colors.redAccent.withValues(alpha: 0.85)
+                            : AppTheme.accentElectricCyan,
+                        borderRadius: BorderRadius.circular(14),
+                        boxShadow: <BoxShadow>[
+                          BoxShadow(
+                            color: (isRunning ? Colors.redAccent : AppTheme.accentElectricCyan)
+                                .withValues(alpha: 0.35),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      alignment: Alignment.center,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          Icon(
+                            isRunning ? Icons.stop : Icons.play_arrow,
+                            color: isRunning ? Colors.white : Colors.black,
+                            size: 22,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            isRunning ? 'Stop & Log Hang' : 'Start Active Hang',
+                            style: GoogleFonts.outfit(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w800,
+                              color: isRunning ? Colors.white : Colors.black,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                if (isRunning) ...<Widget>[
+                  const SizedBox(width: 10),
+                  IconButton(
+                    icon: const Icon(Icons.refresh, color: Colors.white70),
+                    onPressed: () => gtg.resetActiveHangTimer(),
+                  ),
+                ],
+              ],
+            ),
+          ],
         ],
       ),
     );
@@ -1017,6 +1167,7 @@ class _GreaseTheGrooveScreenState extends State<GreaseTheGrooveScreen> {
     int tempMax = gtg.config.pullUpMax;
     int tempHangGoal = gtg.config.dailyHangSecondsGoal;
     int tempPullUpGoal = gtg.config.dailyPullUpGoal;
+    int tempPrepDelay = gtg.config.prepDelaySeconds;
 
     showModalBottomSheet<void>(
       context: context,
@@ -1029,106 +1180,144 @@ class _GreaseTheGrooveScreenState extends State<GreaseTheGrooveScreen> {
           builder: (modalContext, setModalState) {
             return Padding(
               padding: const EdgeInsets.all(22),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: <Widget>[
-                  Text(
-                    'Grease the Groove Targets',
-                    style: GoogleFonts.outfit(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Max Pull-Up Slider
-                  Text(
-                    'Current 1-Set Max Pull-Ups: $tempMax reps',
-                    style: GoogleFonts.inter(fontSize: 13, color: Colors.white70),
-                  ),
-                  Slider(
-                    value: tempMax.toDouble(),
-                    min: 1,
-                    max: 35,
-                    divisions: 34,
-                    activeColor: AppTheme.primaryAmber,
-                    inactiveColor: Colors.white10,
-                    onChanged: (val) {
-                      setModalState(() => tempMax = val.toInt());
-                    },
-                  ),
-                  Text(
-                    'Prescribed Submax Set: ${(tempMax * 0.45).clamp(1, 30).round()} reps',
-                    style: GoogleFonts.inter(fontSize: 12, color: AppTheme.primaryAmber),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Daily Goal Presets
-                  Text(
-                    'Daily Pull-Up Goal: $tempPullUpGoal reps',
-                    style: GoogleFonts.inter(fontSize: 13, color: Colors.white70),
-                  ),
-                  Slider(
-                    value: tempPullUpGoal.toDouble(),
-                    min: 10,
-                    max: 100,
-                    divisions: 18,
-                    activeColor: AppTheme.primaryAmber,
-                    inactiveColor: Colors.white10,
-                    onChanged: (val) {
-                      setModalState(() => tempPullUpGoal = val.toInt());
-                    },
-                  ),
-                  const SizedBox(height: 16),
-
-                  Text(
-                    'Daily Active Hang Goal: ${tempHangGoal}s (${(tempHangGoal / 60).toStringAsFixed(1)} min)',
-                    style: GoogleFonts.inter(fontSize: 13, color: Colors.white70),
-                  ),
-                  Slider(
-                    value: tempHangGoal.toDouble(),
-                    min: 60,
-                    max: 600,
-                    divisions: 18,
-                    activeColor: AppTheme.accentElectricCyan,
-                    inactiveColor: Colors.white10,
-                    onChanged: (val) {
-                      setModalState(() => tempHangGoal = val.toInt());
-                    },
-                  ),
-                  const SizedBox(height: 18),
-
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primaryAmber,
-                      foregroundColor: Colors.black,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: <Widget>[
+                    Text(
+                      'Grease the Groove Targets',
+                      style: GoogleFonts.outfit(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
                       ),
                     ),
-                    onPressed: () {
-                      gtg.updateConfig(
-                        gtg.config.copyWith(
-                          pullUpMax: tempMax,
-                          targetPullUpReps: (tempMax * 0.45).clamp(1, 30).round(),
-                          dailyPullUpGoal: tempPullUpGoal,
-                          dailyHangSecondsGoal: tempHangGoal,
-                        ),
-                      );
-                      setState(() {
-                        _selectedPullUpReps = (tempMax * 0.45).clamp(1, 30).round();
-                      });
-                      Navigator.pop(ctx);
-                    },
-                    child: Text(
-                      'Save Settings',
-                      style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 16),
+                    const SizedBox(height: 16),
+
+                    // Max Pull-Up Slider
+                    Text(
+                      'Current 1-Set Max Pull-Ups: $tempMax reps',
+                      style: GoogleFonts.inter(fontSize: 13, color: Colors.white70),
                     ),
-                  ),
-                ],
+                    Slider(
+                      value: tempMax.toDouble(),
+                      min: 1,
+                      max: 35,
+                      divisions: 34,
+                      activeColor: AppTheme.primaryAmber,
+                      inactiveColor: Colors.white10,
+                      onChanged: (val) {
+                        setModalState(() => tempMax = val.toInt());
+                      },
+                    ),
+                    Text(
+                      'Prescribed Submax Set: ${(tempMax * 0.45).clamp(1, 30).round()} reps',
+                      style: GoogleFonts.inter(fontSize: 12, color: AppTheme.primaryAmber),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Daily Goal Presets
+                    Text(
+                      'Daily Pull-Up Goal: $tempPullUpGoal reps',
+                      style: GoogleFonts.inter(fontSize: 13, color: Colors.white70),
+                    ),
+                    Slider(
+                      value: tempPullUpGoal.toDouble(),
+                      min: 10,
+                      max: 100,
+                      divisions: 18,
+                      activeColor: AppTheme.primaryAmber,
+                      inactiveColor: Colors.white10,
+                      onChanged: (val) {
+                        setModalState(() => tempPullUpGoal = val.toInt());
+                      },
+                    ),
+                    const SizedBox(height: 16),
+
+                    Text(
+                      'Daily Active Hang Goal: ${tempHangGoal}s (${(tempHangGoal / 60).toStringAsFixed(1)} min)',
+                      style: GoogleFonts.inter(fontSize: 13, color: Colors.white70),
+                    ),
+                    Slider(
+                      value: tempHangGoal.toDouble(),
+                      min: 60,
+                      max: 600,
+                      divisions: 18,
+                      activeColor: AppTheme.accentElectricCyan,
+                      inactiveColor: Colors.white10,
+                      onChanged: (val) {
+                        setModalState(() => tempHangGoal = val.toInt());
+                      },
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Get-Ready Prep Delay
+                    Text(
+                      'Hang Timer Get-Ready Delay: ${tempPrepDelay == 0 ? "Off" : "${tempPrepDelay}s"}',
+                      style: GoogleFonts.inter(fontSize: 13, color: Colors.white70),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: <int>[0, 3, 5, 10].map((delay) {
+                        final bool isSelected = tempPrepDelay == delay;
+                        final String label = delay == 0 ? 'Off' : '${delay}s';
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: ChoiceChip(
+                            label: Text(label),
+                            selected: isSelected,
+                            selectedColor: AppTheme.primaryAmber.withValues(alpha: 0.25),
+                            backgroundColor: Colors.white.withValues(alpha: 0.05),
+                            labelStyle: GoogleFonts.outfit(
+                              fontWeight: FontWeight.bold,
+                              color: isSelected ? AppTheme.primaryAmber : Colors.white60,
+                            ),
+                            side: BorderSide(
+                              color: isSelected
+                                  ? AppTheme.primaryAmber
+                                  : Colors.white.withValues(alpha: 0.1),
+                            ),
+                            onSelected: (_) {
+                              setModalState(() => tempPrepDelay = delay);
+                            },
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 20),
+
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primaryAmber,
+                        foregroundColor: Colors.black,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                      onPressed: () {
+                        gtg.updateConfig(
+                          gtg.config.copyWith(
+                            pullUpMax: tempMax,
+                            targetPullUpReps: (tempMax * 0.45).clamp(1, 30).round(),
+                            dailyPullUpGoal: tempPullUpGoal,
+                            dailyHangSecondsGoal: tempHangGoal,
+                            prepDelaySeconds: tempPrepDelay,
+                          ),
+                        );
+                        setState(() {
+                          _selectedPullUpReps = (tempMax * 0.45).clamp(1, 30).round();
+                        });
+                        Navigator.pop(ctx);
+                      },
+                      child: Text(
+                        'Save Settings',
+                        style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 16),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             );
           },

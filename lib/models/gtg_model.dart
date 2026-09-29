@@ -33,6 +33,7 @@ class GtgConfig {
     this.remindersEnabled = true,
     this.microElbowBendDefault = true,
     this.activeScapulaDefault = true,
+    this.prepDelaySeconds = 5,
   });
 
   factory fromJson(Map<String, dynamic> json) {
@@ -50,6 +51,7 @@ class GtgConfig {
       remindersEnabled: json['remindersEnabled'] as bool? ?? true,
       microElbowBendDefault: json['microElbowBendDefault'] as bool? ?? true,
       activeScapulaDefault: json['activeScapulaDefault'] as bool? ?? true,
+      prepDelaySeconds: json['prepDelaySeconds'] as int? ?? 5,
     );
   }
 
@@ -66,6 +68,7 @@ class GtgConfig {
   final bool remindersEnabled;
   final bool microElbowBendDefault;
   final bool activeScapulaDefault;
+  final int prepDelaySeconds;
 
   /// Optimal submaximal pull-up reps calculated as 40-50% of 1-set max
   int get calculatedSubmaxReps => (pullUpMax * 0.45).clamp(1, 30).round();
@@ -84,6 +87,7 @@ class GtgConfig {
         'remindersEnabled': remindersEnabled,
         'microElbowBendDefault': microElbowBendDefault,
         'activeScapulaDefault': activeScapulaDefault,
+        'prepDelaySeconds': prepDelaySeconds,
       };
 
   GtgConfig copyWith({
@@ -100,6 +104,7 @@ class GtgConfig {
     bool? remindersEnabled,
     bool? microElbowBendDefault,
     bool? activeScapulaDefault,
+    int? prepDelaySeconds,
   }) {
     return GtgConfig(
       pullUpMax: pullUpMax ?? this.pullUpMax,
@@ -117,6 +122,7 @@ class GtgConfig {
           microElbowBendDefault ?? this.microElbowBendDefault,
       activeScapulaDefault:
           activeScapulaDefault ?? this.activeScapulaDefault,
+      prepDelaySeconds: prepDelaySeconds ?? this.prepDelaySeconds,
     );
   }
 }

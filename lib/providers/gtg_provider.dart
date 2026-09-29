@@ -22,7 +22,10 @@ class GtgProvider extends ChangeNotifier {
 
   // Live Active Hang Timer State
   Timer? _liveHangTimer;
+  Timer? _prepCountdownTimer;
   bool _isHangTimerRunning = false;
+  bool _isHangPrepCountdown = false;
+  int _hangPrepSecondsRemaining = 0;
   int _hangSecondsRemaining = 30;
   int _hangTargetSeconds = 30;
 
@@ -30,8 +33,17 @@ class GtgProvider extends ChangeNotifier {
   GtgConfig get config => _config;
   List<GtgSetLog> get logs => List<GtgSetLog>.unmodifiable(_logs);
   bool get isHangTimerRunning => _isHangTimerRunning;
+  bool get isHangPrepCountdown => _isHangPrepCountdown;
+  bool get isHangTimerActive => _isHangTimerRunning || _isHangPrepCountdown;
+  int get hangPrepSecondsRemaining => _hangPrepSecondsRemaining;
   int get hangSecondsRemaining => _hangSecondsRemaining;
   int get hangTargetSeconds => _hangTargetSeconds;
+  int get prepDelaySeconds => _config.prepDelaySeconds;
+
+  Future<void> setPrepDelaySeconds(int seconds) async {
+    final GtgConfig updated = _config.copyWith(prepDelaySeconds: seconds);
+    await updateConfig(updated);
+  }
 
   void _loadFromStorage() {
     _config = _storageService.loadGtgConfig();
@@ -195,9 +207,12 @@ class GtgProvider extends ChangeNotifier {
 
   // --- LIVE ACTIVE SCAPULAR HANG TIMER ---
 
-  void startActiveHangTimer({int? seconds}) {
+  void startActiveHangTimer({int? seconds, int? prepSeconds}) {
+    _prepCountdownTimer?.cancel();
+    _prepCountdownTimer = null;
     _liveHangTimer?.cancel();
     _liveHangTimer = null;
+
     if (seconds != null) {
       _hangTargetSeconds = seconds;
       _hangSecondsRemaining = seconds;
@@ -205,9 +220,49 @@ class GtgProvider extends ChangeNotifier {
       _hangSecondsRemaining =
           _hangTargetSeconds > 0 ? _hangTargetSeconds : _config.targetHangSeconds;
     }
+
+    final int delay = prepSeconds ?? _config.prepDelaySeconds;
+    if (delay > 0) {
+      _isHangPrepCountdown = true;
+      _isHangTimerRunning = false;
+      _hangPrepSecondsRemaining = delay;
+      HapticFeedback.mediumImpact();
+      notifyListeners();
+
+      _prepCountdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+        if (_hangPrepSecondsRemaining > 1) {
+          _hangPrepSecondsRemaining--;
+          HapticFeedback.selectionClick();
+          notifyListeners();
+        } else {
+          timer.cancel();
+          _prepCountdownTimer = null;
+          _isHangPrepCountdown = false;
+          _startActualHangCountdown();
+        }
+      });
+    } else {
+      _isHangPrepCountdown = false;
+      _startActualHangCountdown();
+    }
+  }
+
+  void skipHangPrep() {
+    if (_isHangPrepCountdown) {
+      _prepCountdownTimer?.cancel();
+      _prepCountdownTimer = null;
+      _isHangPrepCountdown = false;
+      _startActualHangCountdown();
+    }
+  }
+
+  void _startActualHangCountdown() {
     _isHangTimerRunning = true;
+    HapticFeedback.heavyImpact();
+    _notificationService.playChronoPulse();
     notifyListeners();
 
+    _liveHangTimer?.cancel();
     _liveHangTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_hangSecondsRemaining > 1) {
         _hangSecondsRemaining--;
@@ -226,13 +281,17 @@ class GtgProvider extends ChangeNotifier {
         );
 
         _notificationService.triggerIntenseVibration();
-        _notificationService.playChronoPulse();
+        _notificationService.playPlatformChime();
         notifyListeners();
       }
     });
   }
 
   void stopActiveHangTimer({bool logPartial = false}) {
+    _prepCountdownTimer?.cancel();
+    _prepCountdownTimer = null;
+    _isHangPrepCountdown = false;
+
     _liveHangTimer?.cancel();
     _liveHangTimer = null;
     _isHangTimerRunning = false;
@@ -251,6 +310,10 @@ class GtgProvider extends ChangeNotifier {
   }
 
   void pauseActiveHangTimer() {
+    _prepCountdownTimer?.cancel();
+    _prepCountdownTimer = null;
+    _isHangPrepCountdown = false;
+
     _liveHangTimer?.cancel();
     _liveHangTimer = null;
     _isHangTimerRunning = false;
@@ -264,6 +327,10 @@ class GtgProvider extends ChangeNotifier {
   }
 
   void resetActiveHangTimer() {
+    _prepCountdownTimer?.cancel();
+    _prepCountdownTimer = null;
+    _isHangPrepCountdown = false;
+
     _liveHangTimer?.cancel();
     _liveHangTimer = null;
     _isHangTimerRunning = false;
@@ -273,6 +340,8 @@ class GtgProvider extends ChangeNotifier {
 
   @override
   void dispose() {
+    _prepCountdownTimer?.cancel();
+    _prepCountdownTimer = null;
     _liveHangTimer?.cancel();
     _liveHangTimer = null;
     super.dispose();

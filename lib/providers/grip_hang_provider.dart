@@ -19,7 +19,11 @@ class GripHangProvider extends ChangeNotifier {
 
   // Active Hang Timer State
   Timer? _hangTimer;
+  Timer? _prepCountdownTimer;
   bool _isHangTimerRunning = false;
+  bool _isHangPrepCountdown = false;
+  int _hangPrepSecondsRemaining = 0;
+  int _hangPrepDelaySeconds = 5;
   int _currentHangSeconds = 0;
   HangMode _currentHangMode = HangMode.twoHand;
   HangStyle _currentHangStyle = HangStyle.activeScapular;
@@ -32,9 +36,19 @@ class GripHangProvider extends ChangeNotifier {
       List<HangSessionLog>.unmodifiable(_hangLogs);
 
   bool get isHangTimerRunning => _isHangTimerRunning;
+  bool get isHangPrepCountdown => _isHangPrepCountdown;
+  bool get isHangTimerActive => _isHangTimerRunning || _isHangPrepCountdown;
+  int get hangPrepSecondsRemaining => _hangPrepSecondsRemaining;
+  int get hangPrepDelaySeconds => _hangPrepDelaySeconds;
   int get currentHangSeconds => _currentHangSeconds;
   HangMode get currentHangMode => _currentHangMode;
   HangStyle get currentHangStyle => _currentHangStyle;
+
+  Future<void> setPrepDelaySeconds(int seconds) async {
+    _hangPrepDelaySeconds = seconds;
+    await _storageService.saveHangPrepDelaySeconds(seconds);
+    notifyListeners();
+  }
 
   DynamometerEntry? get latestDynamometerEntry =>
       _dynamometerEntries.isNotEmpty ? _dynamometerEntries.first : null;
@@ -46,6 +60,7 @@ class GripHangProvider extends ChangeNotifier {
 
     _hangLogs = _storageService.loadHangSessionLogs();
     _hangLogs.sort((a, b) => b.date.compareTo(a.date));
+    _hangPrepDelaySeconds = _storageService.loadHangPrepDelaySeconds();
     notifyListeners();
   }
 
@@ -183,21 +198,66 @@ class GripHangProvider extends ChangeNotifier {
     HangMode mode = HangMode.twoHand,
     HangStyle style = HangStyle.activeScapular,
     void Function(int seconds)? onTick,
+    int? prepSeconds,
   }) {
     _currentHangMode = mode;
     _currentHangStyle = style;
+    _onHangTick = onTick;
+    _prepCountdownTimer?.cancel();
+    _prepCountdownTimer = null;
+    _hangTimer?.cancel();
+    _hangTimer = null;
+
+    final int delay = prepSeconds ?? _hangPrepDelaySeconds;
+    if (delay > 0) {
+      _isHangPrepCountdown = true;
+      _isHangTimerRunning = false;
+      _hangPrepSecondsRemaining = delay;
+      HapticFeedback.mediumImpact();
+      notifyListeners();
+
+      _prepCountdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+        if (_hangPrepSecondsRemaining > 1) {
+          _hangPrepSecondsRemaining--;
+          HapticFeedback.selectionClick();
+          notifyListeners();
+        } else {
+          timer.cancel();
+          _prepCountdownTimer = null;
+          _isHangPrepCountdown = false;
+          _startActualStopwatch();
+        }
+      });
+    } else {
+      _isHangPrepCountdown = false;
+      _startActualStopwatch();
+    }
+  }
+
+  void skipHangPrep() {
+    if (_isHangPrepCountdown) {
+      _prepCountdownTimer?.cancel();
+      _prepCountdownTimer = null;
+      _isHangPrepCountdown = false;
+      _startActualStopwatch();
+    }
+  }
+
+  void _startActualStopwatch() {
     _currentHangSeconds = 0;
     _isHangTimerRunning = true;
-    _onHangTick = onTick;
-    _hangTimer?.cancel();
+    HapticFeedback.heavyImpact();
+    _notificationService.playChronoPulse();
+    _onHangTick?.call(0);
+    notifyListeners();
 
+    _hangTimer?.cancel();
     _hangTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       _currentHangSeconds++;
       _checkHangMilestones(_currentHangSeconds, _currentHangMode);
       _onHangTick?.call(_currentHangSeconds);
       notifyListeners();
     });
-    notifyListeners();
   }
 
   void _checkHangMilestones(int seconds, HangMode mode) {
@@ -210,6 +270,10 @@ class GripHangProvider extends ChangeNotifier {
   }
 
   int stopHangTimer() {
+    _prepCountdownTimer?.cancel();
+    _prepCountdownTimer = null;
+    _isHangPrepCountdown = false;
+
     _hangTimer?.cancel();
     _hangTimer = null;
     _onHangTick = null;
@@ -220,6 +284,10 @@ class GripHangProvider extends ChangeNotifier {
   }
 
   void resetHangTimer() {
+    _prepCountdownTimer?.cancel();
+    _prepCountdownTimer = null;
+    _isHangPrepCountdown = false;
+
     _hangTimer?.cancel();
     _hangTimer = null;
     _onHangTick = null;
@@ -230,6 +298,8 @@ class GripHangProvider extends ChangeNotifier {
 
   @override
   void dispose() {
+    _prepCountdownTimer?.cancel();
+    _prepCountdownTimer = null;
     _hangTimer?.cancel();
     _hangTimer = null;
     _onHangTick = null;

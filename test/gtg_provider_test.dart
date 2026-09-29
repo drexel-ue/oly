@@ -33,6 +33,12 @@ class MockNotificationService extends Fake implements NotificationService {
     cancelled = true;
     scheduled = false;
   }
+
+  @override
+  Future<void> playChronoPulse() async {}
+
+  @override
+  Future<void> playTimerBeepSound({OlySoundTone tone = OlySoundTone.platformChime}) async {}
 }
 
 void main() {
@@ -77,6 +83,7 @@ void main() {
         remindersEnabled: false,
         microElbowBendDefault: false,
         activeScapulaDefault: false,
+        prepDelaySeconds: 10,
       );
 
       final Map<String, dynamic> json = original.toJson();
@@ -95,6 +102,7 @@ void main() {
       expect(restored.remindersEnabled, isFalse);
       expect(restored.microElbowBendDefault, isFalse);
       expect(restored.activeScapulaDefault, isFalse);
+      expect(restored.prepDelaySeconds, equals(10));
     });
 
     test('GtgSetLog properly flags micro-bend elbow engagement and scapular retraction', () {
@@ -207,12 +215,20 @@ void main() {
       expect(gtg.currentStreakDays, equals(1));
     });
 
-    test('Active hang timer starts, pauses, and resets', () {
+    test('Active hang timer starts prep countdown, skips prep, and pauses/resets', () {
       gtg.setHangTarget(45);
       expect(gtg.hangTargetSeconds, equals(45));
       expect(gtg.hangSecondsRemaining, equals(45));
+      expect(gtg.prepDelaySeconds, equals(5));
 
       gtg.startActiveHangTimer();
+      expect(gtg.isHangPrepCountdown, isTrue);
+      expect(gtg.hangPrepSecondsRemaining, equals(5));
+      expect(gtg.isHangTimerActive, isTrue);
+      expect(gtg.isHangTimerRunning, isFalse);
+
+      gtg.skipHangPrep();
+      expect(gtg.isHangPrepCountdown, isFalse);
       expect(gtg.isHangTimerRunning, isTrue);
 
       gtg.pauseActiveHangTimer();
@@ -220,6 +236,22 @@ void main() {
 
       gtg.resetActiveHangTimer();
       expect(gtg.hangSecondsRemaining, equals(45));
+    });
+
+    test('Active hang timer starts immediately when prepSeconds is 0', () {
+      gtg.startActiveHangTimer(prepSeconds: 0);
+      expect(gtg.isHangPrepCountdown, isFalse);
+      expect(gtg.isHangTimerRunning, isTrue);
+      gtg.resetActiveHangTimer();
+    });
+
+    test('Configures and persists prepDelaySeconds in GtgConfig', () async {
+      await gtg.setPrepDelaySeconds(10);
+      expect(gtg.prepDelaySeconds, equals(10));
+      expect(gtg.config.prepDelaySeconds, equals(10));
+
+      final GtgProvider reloaded = GtgProvider(storage);
+      expect(reloaded.prepDelaySeconds, equals(10));
     });
   });
 }

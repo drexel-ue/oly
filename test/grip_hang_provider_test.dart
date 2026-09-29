@@ -1,8 +1,17 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oly/models/grip_hang_model.dart';
 import 'package:oly/providers/grip_hang_provider.dart';
+import 'package:oly/services/notification_service.dart';
 import 'package:oly/services/storage_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+class MockNotificationService extends Fake implements NotificationService {
+  @override
+  Future<void> playChronoPulse() async {}
+
+  @override
+  Future<void> playTimerBeepSound({OlySoundTone tone = OlySoundTone.platformChime}) async {}
+}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -35,13 +44,15 @@ void main() {
 
   group('GripHangProvider State & CNS Baseline Tests', () {
     late StorageService storage;
+    late MockNotificationService mockNotifications;
     late GripHangProvider gripHangProvider;
 
     setUp(() async {
       SharedPreferences.setMockInitialValues(<String, Object>{});
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       storage = StorageService(prefs);
-      gripHangProvider = GripHangProvider(storage);
+      mockNotifications = MockNotificationService();
+      gripHangProvider = GripHangProvider(storage, notificationService: mockNotifications);
     });
 
     test('Initializes with empty entries and default CNS score', () {
@@ -68,7 +79,8 @@ void main() {
       expect(gripHangProvider.cnsStatusText, equals('Fresh & High CNS Output'));
 
       // Check persistence
-      final GripHangProvider reloaded = GripHangProvider(storage);
+      final GripHangProvider reloaded =
+          GripHangProvider(storage, notificationService: mockNotifications);
       expect(reloaded.dynamometerEntries.length, equals(1));
       expect(reloaded.latestDynamometerEntry!.maxForceKg, equals(52));
     });
@@ -92,7 +104,8 @@ void main() {
       ];
       await storage.saveDynamometerEntries(history);
 
-      final GripHangProvider providerWithHistory = GripHangProvider(storage);
+      final GripHangProvider providerWithHistory =
+          GripHangProvider(storage, notificationService: mockNotifications);
       expect(providerWithHistory.rollingBaselineMaxForceKg, equals(60));
 
       // Add a low score today showing fatigue (e.g. 48kg vs 60kg baseline = 80%)
@@ -152,11 +165,20 @@ void main() {
       expect(gripHangProvider.leftHandGoalProgressRatio, closeTo(0.25, 0.01));
     });
 
-    test('Controls live hang stopwatch timer lifecycle', () {
+    test('Controls live hang stopwatch timer lifecycle with prep countdown and skip', () {
+      expect(gripHangProvider.hangPrepDelaySeconds, equals(5));
+
       gripHangProvider.startHangTimer(
         mode: HangMode.singleHandRight,
       );
 
+      expect(gripHangProvider.isHangPrepCountdown, isTrue);
+      expect(gripHangProvider.hangPrepSecondsRemaining, equals(5));
+      expect(gripHangProvider.isHangTimerActive, isTrue);
+      expect(gripHangProvider.isHangTimerRunning, isFalse);
+
+      gripHangProvider.skipHangPrep();
+      expect(gripHangProvider.isHangPrepCountdown, isFalse);
       expect(gripHangProvider.isHangTimerRunning, isTrue);
       expect(gripHangProvider.currentHangMode, equals(HangMode.singleHandRight));
 
@@ -166,6 +188,25 @@ void main() {
 
       gripHangProvider.resetHangTimer();
       expect(gripHangProvider.currentHangSeconds, equals(0));
+    });
+
+    test('Live hang stopwatch timer starts immediately when prepSeconds is 0', () {
+      gripHangProvider.startHangTimer(
+        prepSeconds: 0,
+      );
+
+      expect(gripHangProvider.isHangPrepCountdown, isFalse);
+      expect(gripHangProvider.isHangTimerRunning, isTrue);
+      gripHangProvider.resetHangTimer();
+    });
+
+    test('Configures and persists prepDelaySeconds for grip hangs', () async {
+      await gripHangProvider.setPrepDelaySeconds(3);
+      expect(gripHangProvider.hangPrepDelaySeconds, equals(3));
+
+      final GripHangProvider reloaded =
+          GripHangProvider(storage, notificationService: mockNotifications);
+      expect(reloaded.hangPrepDelaySeconds, equals(3));
     });
   });
 }
