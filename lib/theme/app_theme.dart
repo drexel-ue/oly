@@ -4,8 +4,10 @@ import 'package:oly/widgets/motion/oly_page_route.dart';
 
 class AppTheme {
   static const Color darkBackground = Color(0xFF090A0D); // Deep Obsidian
+  static const Color backgroundColor = darkBackground;
   static const Color canvasObsidian = Color(0xFF090A0D);
   static const Color surfaceCard = Color(0xFF14161E); // Dark Carbon
+  static const Color surfaceColor = surfaceCard;
   static const Color surfaceElevated = Color(0xFF1C1F2B);
   static const Color surfaceGlass = Color(0xDD151722);
   static const Color borderColor = Color(0xFF282C3A);
@@ -16,6 +18,7 @@ class AppTheme {
 
   static const Color primaryAmber = Color(0xFFFF9F0A); // Neon Amber
   static const Color secondaryCyan = Color(0xFF00D2FF); // Neon Cyan
+  static const Color accentElectricCyan = Color(0xFF00D2FF); // Neon Electric Cyan
   static const Color accentBlue = Color(0xFF00D2FF); // Neon Cyan / Accent Blue
   static const Color successGreen = Color(0xFF30D158); // Neon Green
   static const Color warningOrange = Color(0xFFFF5E00);
@@ -31,6 +34,7 @@ class AppTheme {
 
   static const Color textPrimary = Color(0xFFF2F4F8);
   static const Color textSecondary = Color(0xFF8E95A5);
+  static const Color textTertiary = Color(0xFF6B7280);
 
   // Standard Gradients
   static const LinearGradient metallicObsidianGradient = LinearGradient(

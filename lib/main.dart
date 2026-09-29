@@ -12,6 +12,7 @@ import 'package:oly/providers/c25k_provider.dart';
 import 'package:oly/providers/fasting_provider.dart';
 import 'package:oly/providers/goal_provider.dart';
 import 'package:oly/providers/grip_hang_provider.dart';
+import 'package:oly/providers/gtg_provider.dart';
 import 'package:oly/providers/illness_provider.dart';
 import 'package:oly/providers/injury_provider.dart';
 import 'package:oly/providers/lift_provider.dart';
@@ -126,6 +127,9 @@ void main() async {
         ),
         ChangeNotifierProvider<C25kProvider>(
           create: (_) => C25kProvider(storageService),
+        ),
+        ChangeNotifierProvider<GtgProvider>(
+          create: (_) => GtgProvider(storageService),
         ),
         ChangeNotifierProvider<ActiveSessionProvider>(
           create: (_) => ActiveSessionProvider(),

@@ -16,6 +16,7 @@ import 'package:oly/models/fran_workout_log.dart';
 import 'package:oly/models/goal_model.dart';
 import 'package:oly/models/grace_workout_log.dart';
 import 'package:oly/models/grip_hang_model.dart';
+import 'package:oly/models/gtg_model.dart';
 import 'package:oly/models/helen_workout_log.dart';
 import 'package:oly/models/illness_model.dart';
 import 'package:oly/models/injury_model.dart';
@@ -75,6 +76,8 @@ class StorageService {
   static const String _keyC25kCurrentProgress = 'oly_c25k_current_progress_v1';
   static const String _keyWaterUnitPreference = 'oly_water_unit_preference_v1';
   static const String _keyIllnessRecords = 'oly_illness_records_v1';
+  static const String _keyGtgConfig = 'oly_gtg_config_v1';
+  static const String _keyGtgLogs = 'oly_gtg_logs_v1';
 
   final SharedPreferences _prefs;
 
@@ -1592,5 +1595,45 @@ class StorageService {
   Future<void> saveC25kProgress(int week, int day) async {
     final String jsonStr = jsonEncode(<String, int>{'week': week, 'day': day});
     await _prefs.setString(_keyC25kCurrentProgress, jsonStr);
+  }
+
+  // --- GREASE THE GROOVE (GTG) STORAGE ---
+  GtgConfig loadGtgConfig() {
+    final String? jsonStr = _prefs.getString(_keyGtgConfig);
+    if (jsonStr == null || jsonStr.isEmpty) {
+      return const GtgConfig();
+    }
+    try {
+      final Map<String, dynamic> map =
+          jsonDecode(jsonStr) as Map<String, dynamic>;
+      return GtgConfig.fromJson(map);
+    } catch (_) {
+      return const GtgConfig();
+    }
+  }
+
+  Future<void> saveGtgConfig(GtgConfig config) async {
+    final String jsonStr = jsonEncode(config.toJson());
+    await _prefs.setString(_keyGtgConfig, jsonStr);
+  }
+
+  List<GtgSetLog> loadGtgLogs() {
+    final String? jsonStr = _prefs.getString(_keyGtgLogs);
+    if (jsonStr == null || jsonStr.isEmpty) {
+      return <GtgSetLog>[];
+    }
+    try {
+      final List<dynamic> list = jsonDecode(jsonStr) as List<dynamic>;
+      return list
+          .map((dynamic e) => GtgSetLog.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } catch (_) {
+      return <GtgSetLog>[];
+    }
+  }
+
+  Future<void> saveGtgLogs(List<GtgSetLog> logs) async {
+    final String jsonStr = jsonEncode(logs.map((l) => l.toJson()).toList());
+    await _prefs.setString(_keyGtgLogs, jsonStr);
   }
 }

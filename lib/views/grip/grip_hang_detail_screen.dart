@@ -7,6 +7,7 @@ import 'package:oly/providers/grip_hang_provider.dart';
 import 'package:oly/theme/app_theme.dart';
 import 'package:oly/views/grip/dynamometer_entry_sheet.dart';
 import 'package:oly/views/grip/hang_session_block_widget.dart';
+import 'package:oly/views/gtg/grease_the_groove_screen.dart';
 import 'package:oly/widgets/motion/oly_entry_reveal.dart';
 import 'package:oly/widgets/motion/oly_pressable.dart';
 import 'package:provider/provider.dart';
@@ -93,6 +94,77 @@ class GripHangDetailScreen extends StatelessWidget {
               const OlyEntryReveal(
                 index: 2,
                 child: HangSessionBlockWidget(),
+              ),
+              const SizedBox(height: 16),
+
+              // Grease the Groove Protocol Quick Access Banner
+              OlyEntryReveal(
+                index: 3,
+                child: OlyPressable(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute<void>(
+                        builder: (_) => const GreaseTheGrooveScreen(),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: AppTheme.surfaceElevated,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: AppTheme.primaryAmber.withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: Row(
+                      children: <Widget>[
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: AppTheme.primaryAmber.withValues(alpha: 0.15),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.electric_bolt_rounded,
+                            color: AppTheme.primaryAmber,
+                            size: 20,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              Text(
+                                'Grease the Groove Protocol',
+                                style: GoogleFonts.outfit(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'Active Scapular Hangs (Micro-Bend) • Submax Pull-Ups',
+                                style: GoogleFonts.inter(
+                                  fontSize: 11,
+                                  color: AppTheme.accentElectricCyan,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Icon(
+                          Icons.chevron_right_rounded,
+                          color: AppTheme.primaryAmber,
+                          size: 20,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ),
               const SizedBox(height: 20),
 

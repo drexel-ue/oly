@@ -27,6 +27,7 @@ import 'package:oly/views/warmup_session_screen.dart';
 import 'package:oly/views/wod_hub_screen.dart';
 import 'package:oly/views/workout_session_screen.dart';
 import 'package:oly/widgets/athlete_summary_overview_card.dart';
+import 'package:oly/widgets/gtg_dashboard_card.dart';
 import 'package:oly/widgets/motion/glass_container.dart';
 import 'package:oly/widgets/motion/kinetic_counter.dart';
 import 'package:oly/widgets/motion/oly_entry_reveal.dart';
@@ -354,6 +355,13 @@ class DashboardScreen extends StatelessWidget {
                     ),
                   ],
                 ),
+              ),
+              const SizedBox(height: 12),
+
+              // Grease the Groove Daily Protocol (Active Scapular Hangs & Submax Pull-Ups)
+              const OlyEntryReveal(
+                index: 8,
+                child: GtgDashboardCard(),
               ),
               const SizedBox(height: 12),
 

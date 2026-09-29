@@ -317,6 +317,9 @@ class NotificationService {
 
   static const List<int> _hydrationNotificationIds = <int>[701, 702, 703, 704, 705, 706];
   static const List<int> _coffeeNotificationIds = <int>[751, 752, 753];
+  static const List<int> _gtgNotificationIds = <int>[
+    801, 802, 803, 804, 805, 806, 807, 808, 809, 810, 811, 812
+  ];
 
   /// Schedule paced water notifications across waking hours to reach the daily target
   Future<void> scheduleFastingHydrationReminders({
@@ -541,6 +544,127 @@ class NotificationService {
 
   Future<void> cancelCoffeeReminders() async {
     for (final int id in _coffeeNotificationIds) {
+      try {
+        await _notifications.cancel(id);
+      } catch (_) {}
+    }
+  }
+
+  // --- GREASE THE GROOVE (GTG) INTERVAL REMINDERS ---
+
+  /// Schedule periodic Grease the Groove reminders across waking hours
+  Future<void> scheduleGtgReminders({
+    required int intervalMinutes,
+    required int startHour,
+    required int startMinute,
+    required int endHour,
+    required int endMinute,
+    required int targetPullUpReps,
+    required int targetHangSeconds,
+    bool microElbowBend = true,
+  }) async {
+    await init();
+    await cancelGtgReminders();
+
+    final List<Map<String, dynamic>> slots = <Map<String, dynamic>>[];
+    int currentTotalMinutes = startHour * 60 + startMinute;
+    final int endTotalMinutes = endHour * 60 + endMinute;
+    int idIndex = 0;
+
+    while (currentTotalMinutes <= endTotalMinutes &&
+        idIndex < _gtgNotificationIds.length) {
+      final int hour = currentTotalMinutes ~/ 60;
+      final int minute = currentTotalMinutes % 60;
+      final int notifId = _gtgNotificationIds[idIndex];
+
+      final bool isHangFocus = idIndex.isEven;
+      final String title = isHangFocus
+          ? '🧗 GtG: Active Scapular Hang ($targetHangSeconds s)'
+          : '💪 GtG: Submax Pull-Ups ($targetPullUpReps reps)';
+      final String body = isHangFocus
+          ? 'Depress scapulae down with a slight elbow bend for tendon armor. Accumulate volume without fatigue.'
+          : 'Knock out $targetPullUpReps crisp, strict pull-ups. Stop well shy of failure to build neural power.';
+
+      slots.add(<String, dynamic>{
+        'id': notifId,
+        'hour': hour,
+        'minute': minute,
+        'title': title,
+        'body': body,
+      });
+
+      idIndex++;
+      currentTotalMinutes += intervalMinutes;
+    }
+
+    const AndroidNotificationDetails androidDetails =
+        AndroidNotificationDetails(
+      'oly_gtg_channel',
+      'Grease the Groove Reminders',
+      channelDescription:
+          'Paced submaximal active hang and pull-up interval prompts',
+      sound: RawResourceAndroidNotificationSound('oly_chrono_pulse'),
+      importance: Importance.high,
+      priority: Priority.high,
+    );
+
+    const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentSound: true,
+      presentBadge: false,
+      sound: 'oly_chrono_pulse.caf',
+      interruptionLevel: InterruptionLevel.timeSensitive,
+    );
+
+    const NotificationDetails details = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
+
+    final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
+
+    for (final Map<String, dynamic> slot in slots) {
+      try {
+        final int id = slot['id'] as int;
+        final int hour = slot['hour'] as int;
+        final int minute = slot['minute'] as int;
+        final String title = slot['title'] as String;
+        final String body = slot['body'] as String;
+
+        tz.TZDateTime scheduledDate = tz.TZDateTime(
+          tz.local,
+          now.year,
+          now.month,
+          now.day,
+          hour,
+          minute,
+        );
+
+        if (scheduledDate.isBefore(now)) {
+          scheduledDate = scheduledDate.add(const Duration(days: 1));
+        }
+
+        await _notifications.zonedSchedule(
+          id,
+          title,
+          body,
+          scheduledDate,
+          details,
+          androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+          uiLocalNotificationDateInterpretation:
+              UILocalNotificationDateInterpretation.absoluteTime,
+          matchDateTimeComponents: DateTimeComponents.time,
+        );
+      } catch (e) {
+        if (kDebugMode) {
+          debugPrint('Error scheduling GtG alert: $e');
+        }
+      }
+    }
+  }
+
+  Future<void> cancelGtgReminders() async {
+    for (final int id in _gtgNotificationIds) {
       try {
         await _notifications.cancel(id);
       } catch (_) {}
