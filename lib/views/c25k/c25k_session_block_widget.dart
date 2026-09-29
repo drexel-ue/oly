@@ -34,6 +34,12 @@ class C25kSessionBlockWidget extends StatelessWidget {
     final C25kWorkout workout =
         C25kCurriculum.getWorkout(targetWeek, targetDay);
 
+    final bool isCurrentTarget =
+        c25k.currentWeek == targetWeek && c25k.currentDay == targetDay;
+    final bool isCompletedBefore = c25k.sessionLogs.any(
+      (l) => l.week == targetWeek && l.day == targetDay && l.isCompleted,
+    );
+
     return Container(
       decoration: BoxDecoration(
         color: AppTheme.surfaceCard,
@@ -77,13 +83,48 @@ class C25kSessionBlockWidget extends StatelessWidget {
                           color: AppTheme.secondaryCyan,
                         ),
                       ),
-                      Text(
-                        workout.title,
-                        style: GoogleFonts.outfit(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.textPrimary,
-                        ),
+                      Row(
+                        children: <Widget>[
+                          Text(
+                            workout.title,
+                            style: GoogleFonts.outfit(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: AppTheme.textPrimary,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isCurrentTarget
+                                  ? AppTheme.secondaryCyan.withValues(alpha: 0.2)
+                                  : (isCompletedBefore
+                                      ? Colors.green.withValues(alpha: 0.2)
+                                      : Colors.white10),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              isCurrentTarget
+                                  ? 'Up Next'
+                                  : (isCompletedBefore
+                                      ? 'Completed'
+                                      : 'Run $targetDay of 3'),
+                              style: GoogleFonts.outfit(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: isCurrentTarget
+                                    ? AppTheme.secondaryCyan
+                                    : (isCompletedBefore
+                                        ? Colors.greenAccent
+                                        : AppTheme.textSecondary),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),

@@ -194,7 +194,14 @@ class GoalProvider extends ChangeNotifier {
     final GoalTrack? c25kGoal = getGoal('goal_c25k');
     if (c25kGoal != null &&
         c25kGoal.scheduleConfig.isScheduledForWeekday(weekday)) {
-      final C25kWorkout workout = c25kWorkout ?? C25kCurriculum.getWorkout(1, 1);
+      int defaultRunDay = 1;
+      if (weekday == DateTime.thursday) {
+        defaultRunDay = 2;
+      } else if (weekday == DateTime.saturday) {
+        defaultRunDay = 3;
+      }
+      final C25kWorkout workout =
+          c25kWorkout ?? C25kCurriculum.getWorkout(1, defaultRunDay);
       blocks.add(
         ComposedSessionBlock(
           id: 'block_c25k_w${workout.week}d${workout.day}',

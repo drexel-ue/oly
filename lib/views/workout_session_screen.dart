@@ -1051,6 +1051,12 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
         programProvider.currentWeek;
     final Map<String, double> maxes = liftProvider.currentMaxes;
 
+    final int c25kDayNum = widget.dayTemplate.dayNumber;
+    final bool isC25kScheduled =
+        c25kDayNum == 1 || c25kDayNum == 4 || c25kDayNum == 6;
+    final int targetC25kRunDay =
+        c25kDayNum == 4 ? 2 : (c25kDayNum == 6 ? 3 : 1);
+
     return PopScope(
       canPop: !_isLiveMode || _isDraftEmpty(),
       onPopInvokedWithResult: (didPop, result) async {
@@ -1441,12 +1447,15 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                         ),
                       ],
 
-                      // Composed Goal Track: C25K Running Engine Block
-                      if (c25kProvider != null) ...<Widget>[
+                      // Composed Goal Track: C25K Running Engine Block (Scheduled on Mon Day 1, Thu Day 4, Sat Day 6)
+                      if (c25kProvider != null && isC25kScheduled) ...<Widget>[
                         const SizedBox(height: 16),
                         OlyEntryReveal(
                           index: widget.dayTemplate.phases.length + 2,
-                          child: const C25kSessionBlockWidget(),
+                          child: C25kSessionBlockWidget(
+                            week: c25kProvider.currentWeek,
+                            day: targetC25kRunDay,
+                          ),
                         ),
                       ],
 
