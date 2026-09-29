@@ -342,21 +342,21 @@ class BodybuildingExercise {
         ],
       ),
 
-      // --- QUADS (2) ---
       BodybuildingExercise(
         id: 'bb_squat',
-        name: 'Barbell Back Squat / Hack Squat',
+        name: 'Barbell Front Squat / Olympic Squat',
         bodypart: BodypartCategory.quads,
-        role: 'Compound Squat',
-        targetMuscles: 'Vastus Lateralis, Vastus Medialis (VMO), Glutes',
+        role: 'Compound Front Squat',
+        targetMuscles:
+            'Vastus Lateralis, Vastus Medialis (VMO), Rectus Abdominis, Glutes',
         setsReps: '4 Sets of 8-10 Reps',
         whyItWorks:
-            'The cornerstone lower body compound. Deep knee flexion stimulates maximum quadriceps muscle recruitment and systemic hypertrophy.',
+            'The anterior barbell rack forces an upright torso, shifting maximum mechanical tension onto the quads while requiring immense thoracic extension and anterior core bracing with minimal lumbar shear.',
         cues: <String>[
-          'Brace core with 360° intra-abdominal pressure',
-          'Break hips and knees together, driving knees forward over toes',
-          'Reach at least parallel depth with upright posture',
-          'Drive out of the hole by pushing floor away through midfoot',
+          'Clean grip with fingertips or cross-arm rack with high elbows parallel to floor',
+          'Brace anterior core tight; keep chest proud and tall throughout the rep',
+          'Descend deep between hips, driving knees forward over toes',
+          'Drive straight up out of the hole, keeping elbows elevated to prevent forward dump',
         ],
       ),
       BodybuildingExercise(

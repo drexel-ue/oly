@@ -488,12 +488,13 @@ class GoalTrack {
             description: '30-45° upper chest clavicular fibers',
           ),
           GoalMilestone(
-            id: 'bb_barbell_squat_140',
-            title: 'Barbell Back Squat 140 kg',
-            targetValue: 140,
-            currentValue: 95,
+            id: 'bb_front_squat_120',
+            title: 'Barbell Front Squat 120 kg',
+            targetValue: 120,
+            currentValue: 85,
             unit: 'kg',
-            description: 'Parallel or below quadriceps compound builder',
+            description:
+                'Upright torso quad isolation with clean or cross-arm rack',
           ),
           GoalMilestone(
             id: 'bb_romanian_deadlift_120',

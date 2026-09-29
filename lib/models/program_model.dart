@@ -747,15 +747,15 @@ class ProgramCycle {
         ],
       ),
 
-      // Day 2 (Tue): Lower A - Squat Focus (Hip Primer, Squat, Hinge, Calves & Decompression)
+      // Day 2 (Tue): Lower A - Front Squat Focus (Hip Primer, Front Squat, Hinge & Anti-Rotation)
       DayTemplate(
         dayNumber: 2,
-        title: 'Day 2: Lower A - Squat Focus (Primer, Squat, Hinge & Anti-Rotation)',
+        title: 'Day 2: Lower A - Front Squat Focus (Primer, Front Squat, Hinge & Anti-Rotation)',
         subtitle:
-            'Banded Hip Rotations, Back Squat, Romanian Deadlift, Leg Extension, Calf Raise, Pallof Press, Elephant Walks',
+            'Banded Hip Rotations, Front Squat, Romanian Deadlift, Leg Extension, Calf Raise, Pallof Press, Elephant Walks',
         phases: <PhaseTemplate>[
           PhaseTemplate(
-            name: 'Phase 1 - Hip Capsule Primer & Heavy Squat',
+            name: 'Phase 1 - Hip Capsule Primer & Front Squat Quad Overload',
             exercises: <ExerciseTemplate>[
               ExerciseTemplate(
                 name: 'Banded Internal Hip Rotations',
@@ -766,12 +766,12 @@ class ProgramCycle {
                     'Anchor band to rig at knee height; rotate femur internally to prime hip capsule.',
               ),
               ExerciseTemplate(
-                name: 'Barbell Back Squat',
-                liftId: 'back_squat',
+                name: 'Barbell Front Squat',
+                liftId: 'front_squat',
                 setScheme: '4 Sets of 8 Reps',
-                fixedWeightKg: 100,
+                fixedWeightKg: 85,
                 notes:
-                    'Deep knee flexion, upright chest, full quadriceps sweep.',
+                    'High elbows, upright torso, deep knee flexion, maximum quad isolation.',
               ),
             ],
           ),

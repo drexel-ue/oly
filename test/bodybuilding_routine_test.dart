@@ -221,7 +221,7 @@ void main() {
           bbGoal.milestones.map((m) => m.id).toList();
       expect(milestoneIds, contains('bb_bench_press_100'));
       expect(milestoneIds, contains('bb_incline_db_35'));
-      expect(milestoneIds, contains('bb_barbell_squat_140'));
+      expect(milestoneIds, contains('bb_front_squat_120'));
       expect(milestoneIds, contains('bb_romanian_deadlift_120'));
       expect(milestoneIds, contains('bb_lat_pulldown_85'));
       expect(milestoneIds, contains('bb_overhead_press_60'));
