@@ -79,10 +79,11 @@ class WorkoutWeightHelper {
     final String nameLower = name.toLowerCase();
     final String schemeLower = (setScheme ?? '').toLowerCase();
 
-    // If scheme explicitly specifies "Reps" without any "Hold" or "sec", it's reps-based
+    // If scheme explicitly specifies "Reps" without any "Hold", "sec", or "min", it's reps-based
     if (schemeLower.contains('reps') &&
         !schemeLower.contains('hold') &&
-        !schemeLower.contains('sec')) {
+        !schemeLower.contains('sec') &&
+        !schemeLower.contains('min')) {
       return false;
     }
 
@@ -96,12 +97,16 @@ class WorkoutWeightHelper {
         nameLower.contains('plank') ||
         nameLower.contains('wall sit') ||
         nameLower.contains('pails') ||
-        nameLower.contains('rails')) {
+        nameLower.contains('rails') ||
+        nameLower.contains('walk') ||
+        nameLower.contains('stretch') ||
+        nameLower.contains('breath')) {
       return true;
     }
 
     if (schemeLower.contains('hold') ||
         schemeLower.contains('sec') ||
+        schemeLower.contains('min') ||
         RegExp(r'\b\d+\s*s\b', caseSensitive: false).hasMatch(schemeLower)) {
       return true;
     }
@@ -109,20 +114,30 @@ class WorkoutWeightHelper {
     return false;
   }
 
-  /// Extracts the target reps or hold seconds count from setScheme (e.g. '4 Sets of 2 Reps' -> 2, '3 Sets of 30s Hold' -> 30)
+  /// Extracts the target reps or hold seconds count from setScheme (e.g. '4 Sets of 2 Reps' -> 2, '3 Sets of 30s Hold' -> 30, '1 Set of 25 Mins' -> 1500)
   static int extractRepsCount(String setScheme) {
-    // 1. Check for hold / seconds duration first (e.g. "30s Hold", "90s", "45s", "60 sec")
+    // 1. Check for minutes duration (e.g. "25 Mins", "35 Mins", "10 min")
+    final RegExpMatch? minMatch = RegExp(
+      r'(\d+)\s*(?:min|mins|minutes|\bMins\b)',
+      caseSensitive: false,
+    ).firstMatch(setScheme);
+    if (minMatch != null) {
+      final int minutes = int.tryParse(minMatch.group(1)!) ?? 1;
+      return minutes * 60;
+    }
+
+    // 2. Check for hold / seconds duration (e.g. "30s Hold", "90s", "45s Stretch", "60 sec")
     final RegExpMatch? timeMatch = RegExp(
-      r'(\d+)\s*(?:s\b|sec|seconds|\s*s\s+Hold)',
+      r'(\d+)\s*(?:s\b|sec|seconds|\s*s\s+Hold|\s*s\s+Stretch)',
       caseSensitive: false,
     ).firstMatch(setScheme);
     if (timeMatch != null) {
       return int.tryParse(timeMatch.group(1)!) ?? 1;
     }
 
-    // 2. Check for standard reps (e.g. "8 Reps")
+    // 3. Check for standard reps or breaths (e.g. "8 Reps", "30 Breaths")
     final RegExpMatch? repMatch = RegExp(
-      r'(\d+)\s+Reps',
+      r'(\d+)\s+(?:Reps|Breaths)',
       caseSensitive: false,
     ).firstMatch(setScheme);
     if (repMatch != null) {

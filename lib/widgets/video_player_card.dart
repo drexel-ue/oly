@@ -16,6 +16,7 @@ import 'package:oly/widgets/helen_wod_card.dart';
 import 'package:oly/widgets/jackie_wod_card.dart';
 import 'package:oly/widgets/kettlebell_mile_card.dart';
 import 'package:oly/widgets/mobility_exercise_swap_modal.dart';
+import 'package:oly/widgets/motion/glass_container.dart';
 import 'package:oly/widgets/rest_timer_widget.dart';
 import 'package:oly/widgets/workout_set_edit_dialog.dart';
 import 'package:oly/widgets/workout_weight_dialog.dart';
@@ -604,19 +605,15 @@ class _VideoPlayerCardState extends State<VideoPlayerCard> {
         ex.category == MobilityCategory.foamRolling;
     final bool isCardio = ex.category == MobilityCategory.cardioConditioning;
 
-    return Container(
+    return GlassContainer(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppTheme.surfaceCard,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppTheme.borderColor),
-        boxShadow: <BoxShadow>[
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
-            blurRadius: 16,
-            offset: const Offset(0, 8),
-          ),
-        ],
+      borderRadius: BorderRadius.circular(24),
+      ambientGlowColor: isCardio
+          ? AppTheme.secondaryCyan
+          : (isMobility ? AppTheme.accentBlue : AppTheme.primaryAmber),
+      ambientGlowRadius: 1,
+      border: Border.all(
+        color: Colors.white.withValues(alpha: 0.12),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

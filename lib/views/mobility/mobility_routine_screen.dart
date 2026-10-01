@@ -757,13 +757,13 @@ class _MobilityRoutineScreenState extends State<MobilityRoutineScreen>
         ];
 
       case DateTime.saturday:
-        dayTitle = 'C25K Long Base Run + Loaded Oly Mobility Flow';
+        dayTitle = 'Aerobic Base Flush & Loaded Joint Mobility Flow';
         focusArea = 'Aerobic endurance, technique retention with zero joint strain, loaded athletic mobility';
         exercises = <Map<String, String>>[
           {
-            'name': 'C25K Long Base Run',
-            'setsReps': 'Week milestone run',
-            'cues': 'Aerobic endurance and pacing.',
+            'name': 'Low-Impact Aerobic Flush / Run',
+            'setsReps': '20-30 Mins Aerobic Zone 1/2',
+            'cues': 'Aerobic endurance, conversational pacing, nasal breathing.',
             'video': '',
           },
           {

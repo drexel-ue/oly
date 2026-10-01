@@ -8,6 +8,7 @@ import 'package:oly/models/death_by_burpees_log.dart';
 import 'package:oly/models/dt_workout_log.dart';
 import 'package:oly/models/fasting_session_model.dart';
 import 'package:oly/models/fran_workout_log.dart';
+import 'package:oly/models/goal_model.dart';
 import 'package:oly/models/grace_workout_log.dart';
 import 'package:oly/models/helen_workout_log.dart';
 import 'package:oly/models/illness_model.dart';
@@ -21,6 +22,7 @@ import 'package:oly/providers/active_session_provider.dart';
 import 'package:oly/providers/body_comp_provider.dart';
 import 'package:oly/providers/c25k_provider.dart';
 import 'package:oly/providers/fasting_provider.dart';
+import 'package:oly/providers/goal_provider.dart';
 import 'package:oly/providers/grip_hang_provider.dart';
 import 'package:oly/providers/illness_provider.dart';
 import 'package:oly/providers/injury_provider.dart';
@@ -1060,6 +1062,10 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     try {
       illnessProvider = Provider.of<IllnessProvider>(context);
     } catch (_) {}
+    GoalProvider? goalProvider;
+    try {
+      goalProvider = Provider.of<GoalProvider>(context);
+    } catch (_) {}
 
     final int week = widget.previewWeek ??
         widget.initialDraft?.weekNumber ??
@@ -1067,8 +1073,11 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     final Map<String, double> maxes = liftProvider.currentMaxes;
 
     final int c25kDayNum = widget.dayTemplate.dayNumber;
-    final bool isC25kScheduled =
-        c25kDayNum == 1 || c25kDayNum == 4 || c25kDayNum == 6;
+    final GoalTrack? c25kGoal = goalProvider?.getGoal('goal_c25k');
+    final bool isC25kGoalActive = c25kGoal != null &&
+        c25kGoal.scheduleConfig.isScheduledForWeekday(DateTime.now().weekday);
+    final bool isC25kScheduled = isC25kGoalActive &&
+        (c25kDayNum == 1 || c25kDayNum == 4 || c25kDayNum == 6);
     final int targetC25kRunDay =
         c25kDayNum == 4 ? 2 : (c25kDayNum == 6 ? 3 : 1);
 

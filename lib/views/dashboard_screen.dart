@@ -1306,7 +1306,7 @@ class DashboardScreen extends StatelessWidget {
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: () {
-                    if (day.isActiveRecovery) {
+                    if (day.isActiveRecovery && !isBodybuilding) {
                       final LiftProvider lifts = Provider.of<LiftProvider>(
                         context,
                         listen: false,
@@ -1318,6 +1318,8 @@ class DashboardScreen extends StatelessWidget {
                         lastSession: program.sessions.isNotEmpty
                             ? program.sessions.first
                             : null,
+                        trainingTrack: program.activeTrack,
+                        dayTemplate: day,
                       );
                       Navigator.push(
                         context,
@@ -1368,7 +1370,7 @@ class DashboardScreen extends StatelessWidget {
               Expanded(
                 child: ElevatedButton.icon(
                   onPressed: () {
-                    if (day.isActiveRecovery) {
+                    if (day.isActiveRecovery && !isBodybuilding) {
                       final LiftProvider lifts = Provider.of<LiftProvider>(
                         context,
                         listen: false,
@@ -1380,6 +1382,8 @@ class DashboardScreen extends StatelessWidget {
                         lastSession: program.sessions.isNotEmpty
                             ? program.sessions.first
                             : null,
+                        trainingTrack: program.activeTrack,
+                        dayTemplate: day,
                       );
                       Navigator.push(
                         context,
@@ -1921,7 +1925,9 @@ class DashboardScreen extends StatelessWidget {
         return StatefulBuilder(
           builder: (context, setStateModal) {
             final List<DayTemplate> previewDays =
-                ProgramCycle.getBuiltInProgram(week: selectedWeek);
+                program.activeTrack == TrainingTrack.bodybuilding
+                    ? ProgramCycle.getBodybuildingProgram()
+                    : ProgramCycle.getBuiltInProgram(week: selectedWeek);
             final DayTemplate day = previewDays.firstWhere(
               (d) => d.dayNumber == selectedDayNum,
               orElse: () => previewDays.first,
@@ -2041,7 +2047,10 @@ class DashboardScreen extends StatelessWidget {
                         children: previewDays.map((d) {
                           final bool isSel = selectedDayNum == d.dayNumber;
                           String label;
-                          if (d.dayNumber == 1) {
+                          if (program.activeTrack ==
+                              TrainingTrack.bodybuilding) {
+                            label = 'Day ${d.dayNumber}';
+                          } else if (d.dayNumber == 1) {
                             label = 'Day 1';
                           } else if (d.dayNumber == 2) {
                             label = 'Recovery';
@@ -2135,7 +2144,9 @@ class DashboardScreen extends StatelessWidget {
                             child: OutlinedButton.icon(
                               onPressed: () {
                                 Navigator.pop(ctx);
-                                if (day.isActiveRecovery) {
+                                if (day.isActiveRecovery &&
+                                    program.activeTrack !=
+                                        TrainingTrack.bodybuilding) {
                                   final LiftProvider lifts =
                                       Provider.of<LiftProvider>(
                                         context,
@@ -2152,6 +2163,8 @@ class DashboardScreen extends StatelessWidget {
                                         lastSession: program.sessions.isNotEmpty
                                             ? program.sessions.first
                                             : null,
+                                        trainingTrack: program.activeTrack,
+                                        dayTemplate: day,
                                       );
                                   Navigator.push(
                                     context,
@@ -2202,7 +2215,9 @@ class DashboardScreen extends StatelessWidget {
                             child: ElevatedButton.icon(
                               onPressed: () {
                                 Navigator.pop(ctx);
-                                if (day.isActiveRecovery) {
+                                if (day.isActiveRecovery &&
+                                    program.activeTrack !=
+                                        TrainingTrack.bodybuilding) {
                                   final LiftProvider lifts =
                                       Provider.of<LiftProvider>(
                                         context,
@@ -2219,6 +2234,8 @@ class DashboardScreen extends StatelessWidget {
                                         lastSession: program.sessions.isNotEmpty
                                             ? program.sessions.first
                                             : null,
+                                        trainingTrack: program.activeTrack,
+                                        dayTemplate: day,
                                       );
                                   Navigator.push(
                                     context,
@@ -2251,9 +2268,14 @@ class DashboardScreen extends StatelessWidget {
                               ),
                               style: ElevatedButton.styleFrom(
                                 minimumSize: const Size(0, 48),
-                                backgroundColor: day.isActiveRecovery
+                                backgroundColor: (day.isActiveRecovery &&
+                                        program.activeTrack !=
+                                            TrainingTrack.bodybuilding)
                                     ? AppTheme.secondaryCyan
-                                    : AppTheme.primaryAmber,
+                                    : (program.activeTrack ==
+                                            TrainingTrack.bodybuilding
+                                        ? const Color(0xFFA855F7)
+                                        : AppTheme.primaryAmber),
                                 foregroundColor: Colors.black,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),

@@ -1012,6 +1012,49 @@ class MobilityExerciseModel {
         defaultReps: 25,
         videoUrl: 'https://www.youtube.com/watch?v=omuAtS7zOa0',
       ),
+      MobilityExerciseModel(
+        id: 'deep_squat_pry',
+        name: 'Deep Squat Pry with Kettlebell',
+        focusArea: MobilityFocusArea.hipCapsule,
+        category: MobilityCategory.mobilityDrill,
+        description: 'Pries hips and adductors open in full deep squat, restoring pelvic resting comfort.',
+        cues: <String>[
+          'Descend into deepest comfortable squat holding light kettlebell or elbows inside knees.',
+          'Use elbows to pry knees outward while keeping chest tall.',
+          'Shift weight gently from foot to foot to explore ankle dorsiflexion.',
+        ],
+        durationSeconds: 45,
+        videoUrl: _youtubeSearchUrl('Deep Squat Pry Kettlebell'),
+      ),
+      MobilityExerciseModel(
+        id: 'doorway_pec_stretch',
+        name: 'Doorway Pec Stretch & Scapular Slides',
+        focusArea: MobilityFocusArea.thoracicSpine,
+        category: MobilityCategory.mobilityDrill,
+        description: 'Opens anterior chest and shoulder capsule after heavy bench and incline pressing.',
+        cues: <String>[
+          'Place forearms against doorframe at 90 degrees.',
+          'Step gently forward until deep stretch in pectoral fibers.',
+          'Keep core engaged and avoid hyperextending lumbar spine.',
+        ],
+        durationSeconds: 45,
+        videoUrl: _youtubeSearchUrl('Doorway Pec Stretch'),
+      ),
+      MobilityExerciseModel(
+        id: 'bb_banded_hip_rotations',
+        name: 'Banded Internal Hip Rotations',
+        focusArea: MobilityFocusArea.hipCapsule,
+        category: MobilityCategory.mobilityDrill,
+        description: 'Restores femoral head centering and internal rotation in hip capsule.',
+        cues: <String>[
+          'Anchor light resistance band to rig at knee height.',
+          'Rotate femur internally against elastic tension with steady pelvis.',
+          'Hold 2-second isometric contraction at end-range.',
+        ],
+        defaultSets: 2,
+        defaultReps: 15,
+        videoUrl: _youtubeSearchUrl('Banded Internal Hip Rotation'),
+      ),
     ];
   }
 }

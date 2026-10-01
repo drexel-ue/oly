@@ -1,5 +1,6 @@
 import 'package:oly/models/lift_model.dart';
 import 'package:oly/models/mobility_exercise_model.dart';
+import 'package:oly/models/program_model.dart';
 import 'package:oly/models/workout_session.dart';
 import 'package:oly/providers/lift_provider.dart';
 
@@ -33,14 +34,188 @@ class RecoveryEngineService {
   static GeneratedRecoveryRoutine generateRoutine({
     required List<LiftRatioAnalysis> ratioAnalyses,
     required WorkoutSession? lastSession,
+    TrainingTrack? trainingTrack,
+    DayTemplate? dayTemplate,
     List<MobilityExerciseModel>? customCatalog,
   }) {
     final List<MobilityExerciseModel> catalog =
         customCatalog ?? MobilityExerciseModel.defaultExercises();
+
+    // 1. If a specific DayTemplate with phases is supplied, adapt directly
+    if (dayTemplate != null && dayTemplate.phases.isNotEmpty) {
+      final List<RecoveryPhaseGroup> phaseGroups = <RecoveryPhaseGroup>[];
+      int phaseNum = 1;
+
+      for (final PhaseTemplate phase in dayTemplate.phases) {
+        final List<MobilityExerciseModel> phaseExercises =
+            <MobilityExerciseModel>[];
+
+        for (final ExerciseTemplate ex in phase.exercises) {
+          MobilityExerciseModel? match;
+          final String cleanId =
+              ex.liftId.toLowerCase().replaceFirst('bb_', '');
+          final String exNameLower = ex.name.toLowerCase();
+
+          for (final MobilityExerciseModel catEx in catalog) {
+            final String catId = catEx.id.toLowerCase().replaceFirst('bb_', '');
+            if (catId == cleanId ||
+                catEx.id.toLowerCase() == ex.liftId.toLowerCase()) {
+              match = catEx;
+              break;
+            }
+          }
+          if (match == null) {
+            for (final MobilityExerciseModel catEx in catalog) {
+              final String catNameLower = catEx.name.toLowerCase();
+              if (catNameLower.contains(exNameLower) ||
+                  exNameLower.contains(catNameLower)) {
+                match = catEx;
+                break;
+              }
+            }
+          }
+
+          if (match != null) {
+            phaseExercises.add(match);
+          } else {
+            MobilityFocusArea focus = MobilityFocusArea.hipCapsule;
+            if (exNameLower.contains('couch') ||
+                exNameLower.contains('quad')) {
+              focus = MobilityFocusArea.quadriceps;
+            } else if (exNameLower.contains('pec') ||
+                exNameLower.contains('chest') ||
+                exNameLower.contains('doorway') ||
+                exNameLower.contains('dislocate') ||
+                exNameLower.contains('face pull')) {
+              focus = MobilityFocusArea.thoracicSpine;
+            } else if (exNameLower.contains('elephant') ||
+                exNameLower.contains('jefferson') ||
+                exNameLower.contains('hamstring') ||
+                exNameLower.contains('spine')) {
+              focus = MobilityFocusArea.posteriorChain;
+            } else if (exNameLower.contains('walk') ||
+                exNameLower.contains('cardio') ||
+                exNameLower.contains('breath')) {
+              focus = MobilityFocusArea.cardio;
+            } else if (exNameLower.contains('wrist') ||
+                exNameLower.contains('pull-up') ||
+                exNameLower.contains('arm') ||
+                exNameLower.contains('elbow')) {
+              focus = MobilityFocusArea.arms;
+            }
+
+            final String videoUrl =
+                'https://www.youtube.com/results?search_query=${Uri.encodeComponent(ex.name)}';
+
+            phaseExercises.add(
+              MobilityExerciseModel(
+                id: ex.liftId,
+                name: ex.name,
+                focusArea: focus,
+                category: MobilityCategory.mobilityDrill,
+                description: ex.notes ?? '${ex.name} - ${ex.setScheme}',
+                cues: ex.notes != null
+                    ? <String>[
+                        ex.notes!,
+                        'Perform under strict control with deep diaphragmatic breathing.',
+                      ]
+                    : <String>[
+                        'Perform with controlled cadence and deep breathing.',
+                      ],
+                durationSeconds: exNameLower.contains('walk')
+                    ? 1500
+                    : (exNameLower.contains('breath') ? 600 : 90),
+                videoUrl: videoUrl,
+              ),
+            );
+          }
+        }
+
+        phaseGroups.add(
+          RecoveryPhaseGroup(
+            phaseNumber: phaseNum++,
+            title: phase.name,
+            subtitle: dayTemplate.title,
+            exercises: phaseExercises,
+          ),
+        );
+      }
+
+      final List<MobilityExerciseModel> allExercises =
+          phaseGroups.expand((g) => g.exercises).toList();
+
+      final List<String> reasons = <String>[
+        '${dayTemplate.title}: Tailored active recovery and fascial flossing.',
+        if (dayTemplate.subtitle.isNotEmpty) dayTemplate.subtitle,
+      ];
+
+      return GeneratedRecoveryRoutine(
+        phaseGroups: phaseGroups,
+        exercises: allExercises,
+        diagnosticReasons: reasons,
+        totalEstimatedMinutes: 30,
+      );
+    }
+
+    // 2. Bodybuilding Track Fallback (if no specific dayTemplate provided)
+    if (trainingTrack == TrainingTrack.bodybuilding) {
+      final List<MobilityExerciseModel> p1 = catalog
+          .where((e) => e.id == 'walking')
+          .toList();
+      final List<MobilityExerciseModel> p2 = catalog
+          .where((e) => e.id == 'elephant_walk' || e.id == 'couch_stretch')
+          .toList();
+      final List<MobilityExerciseModel> p3 = catalog
+          .where((e) =>
+              e.id == 'jefferson_curl' ||
+              e.id == 'dumbbell_wrist_curls' ||
+              e.id == 'pullup_isometric_hold')
+          .toList();
+      final List<MobilityExerciseModel> p4 = catalog
+          .where((e) => e.id == 'barbell_dead_hang' || e.id == 'breathwork')
+          .toList();
+
+      final List<RecoveryPhaseGroup> bbGroups = <RecoveryPhaseGroup>[
+        RecoveryPhaseGroup(
+          phaseNumber: 1,
+          title: 'Phase 1: Low-Impact Aerobic Flush',
+          subtitle: 'Restorative Walk / Incline Treadmill (Zone 1)',
+          exercises: p1,
+        ),
+        RecoveryPhaseGroup(
+          phaseNumber: 2,
+          title: 'Phase 2: Soft-Tissue & Fascial Flossing',
+          subtitle: 'Elephant Walks & Couch Stretch for Hip/Hamstring Length',
+          exercises: p2,
+        ),
+        RecoveryPhaseGroup(
+          phaseNumber: 3,
+          title: 'Phase 3: Joint Armor & Tendon Remodeling',
+          subtitle: 'Jefferson Curls, Forearm Armor & Pull-Up Isometric Hold',
+          exercises: p3,
+        ),
+        RecoveryPhaseGroup(
+          phaseNumber: 4,
+          title: 'Phase 4: Passive Decompression & Down-Regulation',
+          subtitle: 'Passive Bar Hangs & Wim Hof Breathwork Reset',
+          exercises: p4,
+        ),
+      ];
+
+      return GeneratedRecoveryRoutine(
+        phaseGroups: bbGroups,
+        exercises: bbGroups.expand((g) => g.exercises).toList(),
+        diagnosticReasons: <String>[
+          'Bodybuilding Hypertrophy Recovery: Soft-tissue flossing, tendon remodeling, and spinal decompression for Trainer Winny system.',
+        ],
+        totalEstimatedMinutes: 35,
+      );
+    }
+
     final Set<MobilityFocusArea> targetFocusAreas = <MobilityFocusArea>{};
     final List<String> diagnosticReasons = <String>[];
 
-    // 1. Inspect Ratio Balance Chart Gaps
+    // 3. Inspect Ratio Balance Chart Gaps (Olympic Lifting track default)
     final List<LiftRatioAnalysis> underdeveloped = ratioAnalyses
         .where((a) => a.status == 'Underdeveloped')
         .toList();

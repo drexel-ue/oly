@@ -828,39 +828,79 @@ class ProgramCycle {
         ],
       ),
 
-      // Day 3 (Wed): Mid-Week Restoration & Tendon Recovery
+      // Day 3 (Wed): Mid-Week Hypertrophy Restoration & Joint Armor
       DayTemplate(
         dayNumber: 3,
-        title: 'Day 3: Mid-Week Restoration & Tendon Recovery',
-        subtitle: 'Active Recovery, Joint Flossing, Hydration & Zone 1 Walking',
+        title: 'Day 3: Mid-Week Hypertrophy Restoration & Joint Armor',
+        subtitle:
+            'Couch Stretch, Banded Hip Primer, Doorway Pec Opener, Forearm Armor & Restorative Walk',
         isActiveRecovery: true,
         phases: <PhaseTemplate>[
           PhaseTemplate(
-            name: 'Restoration & Cellular Recovery',
+            name: 'Phase 1 - Low-Stress Aerobic Flush & Circulation',
             exercises: <ExerciseTemplate>[
               ExerciseTemplate(
-                name: 'Restorative Outdoor Walk',
+                name: 'Restorative Walk / Incline Treadmill Flush',
                 liftId: 'walking',
-                setScheme: '1 Set of 45 Reps',
+                setScheme: '1 Set of 25 Mins',
                 fixedWeightKg: 0,
                 notes:
-                    'Gentle zone 1 aerobic recovery, blood flow, and lymphatic drainage.',
+                    'Low-intensity zone 1 walking to flush metabolites and deliver nutrient-rich blood flow to recovering muscle tissue.',
               ),
+            ],
+          ),
+          PhaseTemplate(
+            name: 'Phase 2 - Anterior Hip & Quad Length (Post-Squat)',
+            exercises: <ExerciseTemplate>[
               ExerciseTemplate(
                 name: 'Couch Stretch (Quad & Hip Flexor)',
                 liftId: 'bb_couch_stretch',
                 setScheme: '2 Sets of 90s Hold',
                 fixedWeightKg: 0,
                 notes:
-                    'Restorative hold against wall; restores hip extension after heavy squatting.',
+                    'Shin flush to wall; restores hip extension and relieves patellar tendon strain from heavy squats and leg extensions.',
               ),
+              ExerciseTemplate(
+                name: 'Banded Internal Hip Rotations / 90/90 Flow',
+                liftId: 'bb_banded_hip_rotations',
+                setScheme: '2 Sets of 15 Reps per side',
+                fixedWeightKg: 0,
+                notes:
+                    'Restores femoral head centering and internal rotation in hip capsule.',
+              ),
+            ],
+          ),
+          PhaseTemplate(
+            name: 'Phase 3 - Chest, Scapular & Forearm Tendon Armor',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Doorway Pec Stretch & Scapular Wall Slides',
+                liftId: 'doorway_pec_stretch',
+                setScheme: '3 Sets of 45s Stretch',
+                fixedWeightKg: 0,
+                notes:
+                    'Relieves anterior shoulder capsule tightness and pec minor shortening after heavy benching.',
+              ),
+              ExerciseTemplate(
+                name: 'Barbell Wrist Curls (Flexion & Extension)',
+                liftId: 'bb_barbell_wrist_curls',
+                setScheme: '3 Sets of 15 Reps',
+                fixedWeightKg: 15,
+                notes:
+                    "Resolves golfer's elbow / medial epicondylitis and strengthens forearm tendons after curls.",
+              ),
+            ],
+          ),
+          PhaseTemplate(
+            name: 'Phase 4 - Autonomic Down-Regulation',
+            exercises: <ExerciseTemplate>[
               ExerciseTemplate(
                 name: 'Wim Hof Guided Breathwork',
                 liftId: 'breathwork',
-                setScheme: '3 Sets of 30 Reps',
+                setScheme: '3 Sets of 30 Breaths',
                 fixedWeightKg: 0,
                 notes:
-                    'Circadian and autonomic nervous system reset.',
+                    'Down-regulates sympathetic fight-or-flight into parasympathetic anabolic recovery.',
               ),
             ],
           ),
@@ -1029,62 +1069,145 @@ class ProgramCycle {
         ],
       ),
 
-      // Day 6 (Sat): Aerobic Endurance & Standalone C25K Run
+      // Day 6 (Sat): Hypertrophy Recovery, Tendon Armor & Fascial Flossing
       DayTemplate(
         dayNumber: 6,
-        title: 'Day 6: Aerobic Endurance & Standalone C25K Run',
-        subtitle: 'C25K Run 3, Lower Body Joint Flossing & Hip Mobility Flow',
+        title: 'Day 6: Hypertrophy Recovery, Tendon Armor & Fascial Flossing',
+        subtitle:
+            'Elephant Walks, Jefferson Curls, Couch Stretch, Band Dislocates & Restorative Walk',
         isActiveRecovery: true,
         phases: <PhaseTemplate>[
           PhaseTemplate(
-            name: 'Aerobic Run & Joint Flossing',
+            name: 'Phase 1 - Low-Impact Aerobic Flush & Circulation',
             exercises: <ExerciseTemplate>[
               ExerciseTemplate(
-                name: 'C25K Standalone Run',
-                liftId: 'running',
-                setScheme: '1 Set of 30 Reps',
+                name: 'Restorative Walk / Incline Treadmill Flush',
+                liftId: 'walking',
+                setScheme: '1 Set of 25 Mins',
                 fixedWeightKg: 0,
                 notes:
-                    'Low-stress aerobic endurance running without upper body fatigue.',
+                    'Gentle zone 1 aerobic recovery, blood flow, and lymphatic drainage without joint impact.',
+              ),
+            ],
+          ),
+          PhaseTemplate(
+            name: 'Phase 2 - Posterior Chain Decompression & Spine Flossing',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Elephant Walks (Hamstring & Fascial Flossing)',
+                liftId: 'bb_elephant_walks',
+                setScheme: '3 Sets of 30 Reps',
+                fixedWeightKg: 0,
+                notes:
+                    'Dynamically flosses hamstrings, calves, and lumbar fascia after heavy squats and RDLs.',
               ),
               ExerciseTemplate(
-                name: 'Restorative Outdoor Walk',
-                liftId: 'walking',
-                setScheme: '1 Set of 30 Reps',
+                name: 'Jefferson Curls (Light Spinal Flexion)',
+                liftId: 'bb_jefferson_curls',
+                setScheme: '3 Sets of 8 Reps',
+                fixedWeightKg: 15,
+                notes:
+                    'Light barbell articulation; rolls spine vertebra by vertebra to decompress intervertebral discs.',
+              ),
+            ],
+          ),
+          PhaseTemplate(
+            name: 'Phase 3 - Shoulder Armor & Elbow Tendon Remodeling',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Cable Face Pulls / Band Pull-Aparts',
+                liftId: 'face_pulls',
+                setScheme: '3 Sets of 15 Reps',
+                fixedWeightKg: 20,
+                notes:
+                    'Scapular retractors, rear deltoids, and rotator cuff reinforcement for pressing posture.',
+              ),
+              ExerciseTemplate(
+                name: 'Pull-Up Isometric Hold (Elbow Tendon Armor)',
+                liftId: 'pullup_isometric_hold',
+                setScheme: '3 Sets of 25s Hold',
                 fixedWeightKg: 0,
                 notes:
-                    'Cool down and lymphatic clearance.',
+                    'Static isometric hold at 90° elbow flexion; remodels tendon collagen and protects medial epicondyle.',
+              ),
+            ],
+          ),
+          PhaseTemplate(
+            name: 'Phase 4 - Pelvic Settle & Hip Capsule Recovery',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Couch Stretch (Quad & Hip Flexor)',
+                liftId: 'bb_couch_stretch',
+                setScheme: '2 Sets of 90s Hold',
+                fixedWeightKg: 0,
+                notes:
+                    'Restores anterior hip length after unilateral Bulgarian split squats and hip thrusts.',
+              ),
+              ExerciseTemplate(
+                name: 'Deep Squat Pry with Hip Shift',
+                liftId: 'deep_squat_pry',
+                setScheme: '2 Sets of 45s Hold',
+                fixedWeightKg: 12,
+                notes:
+                    'Use light kettlebell/elbows to open adductors and restore deep squat resting comfort.',
               ),
             ],
           ),
         ],
       ),
 
-      // Day 7 (Sun): Active Restoration & Circadian Reset
+      // Day 7 (Sun): Full Systemic Reset, Decompression & Fasting
       DayTemplate(
         dayNumber: 7,
-        title: 'Day 7: Active Restoration & Fasting',
-        subtitle: 'Restorative Walking, Circadian Sun & Wim Hof Breathwork',
+        title: 'Day 7: Full Systemic Reset, Decompression & Fasting',
+        subtitle:
+            'Passive Bar Hangs, Restorative Walk, 90/90 Hip Flow, Circadian Sun & Wim Hof Breathwork',
         isActiveRecovery: true,
         phases: <PhaseTemplate>[
           PhaseTemplate(
-            name: 'Restoration & Cellular Recovery',
+            name: 'Phase 1 - Restorative Circulation & Circadian Flow',
             exercises: <ExerciseTemplate>[
               ExerciseTemplate(
                 name: 'Restorative Outdoor Walk',
                 liftId: 'walking',
-                setScheme: '1 Set of 45 Reps',
+                setScheme: '1 Set of 35 Mins',
                 fixedWeightKg: 0,
                 notes:
-                    'Gentle zone 1 aerobic recovery, blood flow, and lymphatic drainage.',
+                    'Gentle zone 1 aerobic recovery, sunlight exposure, and lymphatic drainage.',
               ),
+            ],
+          ),
+          PhaseTemplate(
+            name: 'Phase 2 - Full-Body Passive Decompression',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Passive Bar Hang Decompression',
+                liftId: 'barbell_dead_hang',
+                setScheme: '3 Sets of 35s Hold',
+                fixedWeightKg: 0,
+                notes:
+                    'Pure passive gravity traction to decompress lumbar spine, thoracic vertebrae, and shoulder joints.',
+              ),
+              ExerciseTemplate(
+                name: 'Hip 90/90 Internal & External Rotation Flow',
+                liftId: 'hip_90_90_switches',
+                setScheme: '2 Sets of 60s per side',
+                fixedWeightKg: 0,
+                notes:
+                    'Gentle, hands-free hip flow to restore full internal/external rotation.',
+              ),
+            ],
+          ),
+          PhaseTemplate(
+            name: 'Phase 3 - Autonomic Down-Regulation & Fasting Reset',
+            exercises: <ExerciseTemplate>[
               ExerciseTemplate(
                 name: 'Wim Hof Guided Breathwork',
                 liftId: 'breathwork',
-                setScheme: '3 Sets of 30 Reps',
+                setScheme: '3 Sets of 30 Breaths',
                 fixedWeightKg: 0,
                 notes:
-                    'Circadian and autonomic nervous system reset.',
+                    'Deep parasympathetic oxygenation and autonomic nervous system reset.',
               ),
             ],
           ),

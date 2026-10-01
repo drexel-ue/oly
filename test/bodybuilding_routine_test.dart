@@ -10,6 +10,7 @@ import 'package:oly/providers/c25k_provider.dart';
 import 'package:oly/providers/fasting_provider.dart';
 import 'package:oly/providers/goal_provider.dart';
 import 'package:oly/providers/grip_hang_provider.dart';
+import 'package:oly/providers/gtg_provider.dart';
 import 'package:oly/providers/injury_provider.dart';
 import 'package:oly/providers/lift_provider.dart';
 import 'package:oly/providers/nutrition_provider.dart';
@@ -39,6 +40,7 @@ void main() {
     late C25kProvider c25kProvider;
     late BreathingProvider breathingProvider;
     late FastingProvider fastingProvider;
+    late GtgProvider gtgProvider;
     late ActiveSessionProvider activeSessionProvider;
 
     setUp(() async {
@@ -57,6 +59,7 @@ void main() {
       c25kProvider = C25kProvider(storage);
       breathingProvider = BreathingProvider(storage);
       fastingProvider = FastingProvider(storage);
+      gtgProvider = GtgProvider(storage);
       activeSessionProvider = ActiveSessionProvider();
     });
 
@@ -186,9 +189,9 @@ void main() {
       expect(days[4].dayNumber, equals(5));
       expect(days[4].title, contains('Lower B'));
 
-      // Day 6: Aerobic Endurance
+      // Day 6: Hypertrophy Recovery
       expect(days[5].dayNumber, equals(6));
-      expect(days[5].title, contains('Aerobic Endurance'));
+      expect(days[5].title, contains('Hypertrophy Recovery'));
       expect(days[5].isActiveRecovery, isTrue);
 
       // Day 7: Active Restoration
@@ -330,6 +333,7 @@ void main() {
             ChangeNotifierProvider<C25kProvider>.value(value: c25kProvider),
             ChangeNotifierProvider<BreathingProvider>.value(value: breathingProvider),
             ChangeNotifierProvider<FastingProvider>.value(value: fastingProvider),
+            ChangeNotifierProvider<GtgProvider>.value(value: gtgProvider),
             ChangeNotifierProvider<ActiveSessionProvider>.value(value: activeSessionProvider),
           ],
           child: const MaterialApp(

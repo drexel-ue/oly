@@ -10,6 +10,7 @@ import 'package:oly/views/workout_session_screen.dart';
 import 'package:oly/widgets/motion/glass_container.dart';
 import 'package:oly/widgets/motion/oly_entry_reveal.dart';
 import 'package:oly/widgets/motion/oly_pressable.dart';
+import 'package:oly/widgets/workout_weight_dialog.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -1102,7 +1103,10 @@ class _BodybuildingRoutineScreenState extends State<BodybuildingRoutineScreen>
                     ),
                   );
                 },
-                icon: const Icon(Icons.play_arrow, size: 18),
+                icon: const Icon(
+                  Icons.play_arrow,
+                  size: 18,
+                ),
                 label: Text(
                   'Start Live Workout Session',
                   style: GoogleFonts.outfit(
@@ -1127,53 +1131,74 @@ class _BodybuildingRoutineScreenState extends State<BodybuildingRoutineScreen>
 
         const SizedBox(height: 18),
 
-        // Phases & Exercises
+        // Phases & Exercises (Matching Active Day Session Card Style)
         ...currentDay.phases.map((phase) {
-          return Container(
-            margin: const EdgeInsets.only(bottom: 14),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppTheme.surfaceCard,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppTheme.borderColor),
-            ),
+          final Color phaseAccent = currentDay.isActiveRecovery
+              ? AppTheme.secondaryCyan
+              : hypertrophyViolet;
+
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                Text(
-                  phase.name,
-                  style: GoogleFonts.outfit(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: hypertrophyViolet,
+                Padding(
+                  padding: const EdgeInsets.only(left: 4, bottom: 12),
+                  child: Row(
+                    children: <Widget>[
+                      Container(
+                        width: 3,
+                        height: 14,
+                        decoration: BoxDecoration(
+                          color: phaseAccent,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        phase.name.toUpperCase(),
+                        style: GoogleFonts.outfit(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 1.2,
+                          color: phaseAccent,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 10),
                 ...phase.exercises.map((ex) {
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 8),
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: AppTheme.surfaceElevated,
-                      borderRadius: BorderRadius.circular(12),
+                  final bool isTimed = WorkoutWeightHelper.isTimedExercise(
+                    ex.name,
+                    ex.setScheme,
+                  );
+
+                  return GlassContainer(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.all(16),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.10),
                     ),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
                         Container(
                           margin: const EdgeInsets.only(top: 2),
-                          padding: const EdgeInsets.all(6),
+                          padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: hypertrophyViolet.withValues(alpha: 0.15),
+                            color: phaseAccent.withValues(alpha: 0.15),
                             shape: BoxShape.circle,
                           ),
-                          child: const Icon(
-                            Icons.fitness_center,
-                            size: 14,
-                            color: hypertrophyViolet,
+                          child: Icon(
+                            isTimed
+                                ? Icons.timer_outlined
+                                : Icons.fitness_center,
+                            size: 16,
+                            color: phaseAccent,
                           ),
                         ),
-                        const SizedBox(width: 10),
+                        const SizedBox(width: 12),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1181,22 +1206,23 @@ class _BodybuildingRoutineScreenState extends State<BodybuildingRoutineScreen>
                               Text(
                                 ex.name,
                                 style: GoogleFonts.outfit(
-                                  fontSize: 14,
+                                  fontSize: 15,
                                   fontWeight: FontWeight.bold,
                                   color: AppTheme.textPrimary,
                                 ),
                               ),
+                              const SizedBox(height: 2),
                               Text(
                                 ex.setScheme,
                                 style: GoogleFonts.inter(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,
-                                  color: hypertrophyViolet,
+                                  color: phaseAccent,
                                 ),
                               ),
-                              if (ex.notes != null)
+                              if (ex.notes != null && ex.notes!.isNotEmpty)
                                 Padding(
-                                  padding: const EdgeInsets.only(top: 2),
+                                  padding: const EdgeInsets.only(top: 4),
                                   child: Text(
                                     ex.notes!,
                                     style: GoogleFonts.inter(
@@ -1211,12 +1237,15 @@ class _BodybuildingRoutineScreenState extends State<BodybuildingRoutineScreen>
                         if (ex.fixedWeightKg != null && ex.fixedWeightKg! > 0)
                           Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
+                              horizontal: 10,
                               vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: AppTheme.darkBackground,
+                              color: AppTheme.surfaceElevated,
                               borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: AppTheme.borderColor,
+                              ),
                             ),
                             child: Text(
                               '${ex.fixedWeightKg!.toStringAsFixed(0)} kg',

@@ -280,32 +280,32 @@ class GoalProvider extends ChangeNotifier {
 
       switch (weekday) {
         case DateTime.monday:
-          title = 'Push Focus (Chest, Delts & Triceps)';
-          subtitle = 'Bench Press, Incline DB, OHP, Lateral Raises & Tricep Pushdowns';
-          minutes = 45;
-        case DateTime.tuesday:
-          title = 'Pull Focus (Back, Rear Delts, Arms & Abs)';
-          subtitle = 'Lat Pulldown, Rows, Face Pulls, Curls & Cable Crunch';
-          minutes = 45;
-        case DateTime.wednesday:
-          title = 'Legs & Calves (Quads, Hamstrings & Calves)';
-          subtitle = 'Squat, RDL, Leg Extensions, Leg Curls & Calf Raises';
+          title = 'Upper A (Heavy Horizontal, Shoulders, Forearms & Rotation)';
+          subtitle = 'Bench Press, Lat Pulldowns, OHP, Curls, Pushdowns & Wrist Curls';
           minutes = 50;
+        case DateTime.tuesday:
+          title = 'Lower A (Front Squat, Romanian Deadlift & Anti-Rotation)';
+          subtitle = 'Front Squats, RDLs, Leg Extensions, Leg Curls, Calves & Pallof Press';
+          minutes = 50;
+        case DateTime.wednesday:
+          title = 'Mid-Week Hypertrophy Restoration & Joint Armor';
+          subtitle = 'Couch Stretch, Banded Hip Primer, Pec Opener, Forearm Armor & Restorative Walk';
+          minutes = 30;
         case DateTime.thursday:
-          title = 'Upper Hypertrophy & Long Head Triceps';
-          subtitle = 'Incline DB Press, Cable Rows, DB Pullover & Arms';
+          title = 'Upper B (Incline Upper Chest, Mid-Back & Anti-Extension)';
+          subtitle = 'Incline DB Press, Rows, Lateral Raises, Hammer Curls & Face Pulls';
           minutes = 45;
         case DateTime.friday:
-          title = 'Lower Body & Core Hypertrophy';
-          subtitle = 'Hack Squats, DB RDL, Seated Leg Curls & Calves';
+          title = 'Lower B (Unilateral Legs, Posterior Chain, Glute Thrust & Core)';
+          subtitle = 'Bulgarian Squats, Single-Leg RDL, Hip Thrust, Seated Calf & Jefferson Curls';
           minutes = 45;
         case DateTime.saturday:
-          title = 'Arms & Shoulder Specialization';
-          subtitle = 'Barbell Curls, Hammer Curls, Tricep Pushdown & Lateral Delts';
-          minutes = 40;
+          title = 'Hypertrophy Recovery, Tendon Armor & Fascial Flossing';
+          subtitle = 'Elephant Walks, Jefferson Curls, Couch Stretch, Band Dislocates & Restorative Walk';
+          minutes = 35;
         case DateTime.sunday:
-          title = 'Active Restoration & Fasting';
-          subtitle = 'Zone 1 Walking & Wim Hof Guided Breathwork';
+          title = 'Full Systemic Reset, Decompression & Fasting';
+          subtitle = 'Passive Bar Hangs, Restorative Walk, 90/90 Hip Flow & Wim Hof Breathwork';
           minutes = 30;
       }
 

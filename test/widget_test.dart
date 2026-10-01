@@ -7,6 +7,7 @@ import 'package:oly/providers/breathing_provider.dart';
 import 'package:oly/providers/c25k_provider.dart';
 import 'package:oly/providers/goal_provider.dart';
 import 'package:oly/providers/grip_hang_provider.dart';
+import 'package:oly/providers/gtg_provider.dart';
 import 'package:oly/providers/injury_provider.dart';
 import 'package:oly/providers/lift_provider.dart';
 import 'package:oly/providers/nutrition_provider.dart';
@@ -39,6 +40,7 @@ void main() {
           ChangeNotifierProvider(create: (_) => GoalProvider(storage)),
           ChangeNotifierProvider(create: (_) => GripHangProvider(storage)),
           ChangeNotifierProvider(create: (_) => C25kProvider(storage)),
+          ChangeNotifierProvider(create: (_) => GtgProvider(storage)),
           ChangeNotifierProvider(create: (_) => ActiveSessionProvider()),
         ],
         child: const OlyApp(),

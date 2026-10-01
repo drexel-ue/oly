@@ -50,7 +50,27 @@ class GtgProvider extends ChangeNotifier {
     _logs = _storageService.loadGtgLogs();
     _hangSecondsRemaining = _config.targetHangSeconds;
     _hangTargetSeconds = _config.targetHangSeconds;
+    if (_config.remindersEnabled) {
+      _syncReminders();
+    }
     notifyListeners();
+  }
+
+  void _syncReminders() {
+    if (_config.remindersEnabled) {
+      _notificationService.scheduleGtgReminders(
+        intervalMinutes: _config.intervalMinutes,
+        startHour: _config.startHour,
+        startMinute: _config.startMinute,
+        endHour: _config.endHour,
+        endMinute: _config.endMinute,
+        targetPullUpReps: _config.targetPullUpReps,
+        targetHangSeconds: _config.targetHangSeconds,
+        microElbowBend: _config.microElbowBendDefault,
+      );
+    } else {
+      _notificationService.cancelGtgReminders();
+    }
   }
 
   // --- TODAY'S METRICS ---
@@ -172,22 +192,7 @@ class GtgProvider extends ChangeNotifier {
   Future<void> updateConfig(GtgConfig newConfig) async {
     _config = newConfig;
     await _storageService.saveGtgConfig(_config);
-
-    if (_config.remindersEnabled) {
-      await _notificationService.scheduleGtgReminders(
-        intervalMinutes: _config.intervalMinutes,
-        startHour: _config.startHour,
-        startMinute: _config.startMinute,
-        endHour: _config.endHour,
-        endMinute: _config.endMinute,
-        targetPullUpReps: _config.targetPullUpReps,
-        targetHangSeconds: _config.targetHangSeconds,
-        microElbowBend: _config.microElbowBendDefault,
-      );
-    } else {
-      await _notificationService.cancelGtgReminders();
-    }
-
+    _syncReminders();
     notifyListeners();
   }
 

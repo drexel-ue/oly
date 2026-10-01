@@ -10,6 +10,7 @@ import 'package:oly/models/helen_workout_log.dart';
 import 'package:oly/models/jackie_workout_log.dart';
 import 'package:oly/models/kettlebell_mile_log.dart';
 import 'package:oly/models/mobility_exercise_model.dart';
+import 'package:oly/models/program_model.dart';
 import 'package:oly/models/recovery_session_model.dart';
 import 'package:oly/models/workout_session.dart';
 import 'package:oly/providers/lift_provider.dart';
@@ -431,11 +432,15 @@ class RecoveryProvider extends ChangeNotifier {
   GeneratedRecoveryRoutine getRoutine({
     required List<LiftRatioAnalysis> ratioAnalyses,
     required WorkoutSession? lastSession,
+    TrainingTrack? trainingTrack,
+    DayTemplate? dayTemplate,
     List<MobilityExerciseModel>? customCatalog,
   }) {
     return RecoveryEngineService.generateRoutine(
       ratioAnalyses: ratioAnalyses,
       lastSession: lastSession,
+      trainingTrack: trainingTrack,
+      dayTemplate: dayTemplate,
       customCatalog: customCatalog,
     );
   }

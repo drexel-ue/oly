@@ -149,6 +149,63 @@ class NotificationService {
           ],
         ),
         DarwinNotificationCategory(
+          'oly_coffee_category',
+          actions: <DarwinNotificationAction>[
+            DarwinNotificationAction.plain(
+              'action_log_coffee',
+              '☕ Log Coffee (240 mL)',
+              options: <DarwinNotificationActionOption>{
+                DarwinNotificationActionOption.foreground,
+              },
+            ),
+            DarwinNotificationAction.plain(
+              'action_open_fasting',
+              'Open Fasting',
+              options: <DarwinNotificationActionOption>{
+                DarwinNotificationActionOption.foreground,
+              },
+            ),
+          ],
+        ),
+        DarwinNotificationCategory(
+          'oly_gtg_pullup_category',
+          actions: <DarwinNotificationAction>[
+            DarwinNotificationAction.plain(
+              'action_log_gtg_reps',
+              '💪 Log Reps',
+              options: <DarwinNotificationActionOption>{
+                DarwinNotificationActionOption.foreground,
+              },
+            ),
+            DarwinNotificationAction.plain(
+              'action_open_gtg',
+              'Open GtG Hub',
+              options: <DarwinNotificationActionOption>{
+                DarwinNotificationActionOption.foreground,
+              },
+            ),
+          ],
+        ),
+        DarwinNotificationCategory(
+          'oly_gtg_hang_category',
+          actions: <DarwinNotificationAction>[
+            DarwinNotificationAction.plain(
+              'action_log_gtg_hang',
+              '🧗 Log Hang',
+              options: <DarwinNotificationActionOption>{
+                DarwinNotificationActionOption.foreground,
+              },
+            ),
+            DarwinNotificationAction.plain(
+              'action_start_gtg_hang',
+              '⏱️ Start Hang',
+              options: <DarwinNotificationActionOption>{
+                DarwinNotificationActionOption.foreground,
+              },
+            ),
+          ],
+        ),
+        DarwinNotificationCategory(
           'oly_gtg_category',
           actions: <DarwinNotificationAction>[
             DarwinNotificationAction.plain(
@@ -159,8 +216,15 @@ class NotificationService {
               },
             ),
             DarwinNotificationAction.plain(
+              'action_log_gtg_hang',
+              '🧗 Log Hang',
+              options: <DarwinNotificationActionOption>{
+                DarwinNotificationActionOption.foreground,
+              },
+            ),
+            DarwinNotificationAction.plain(
               'action_start_gtg_hang',
-              '🧗 Start Hang',
+              '⏱️ Start Hang',
               options: <DarwinNotificationActionOption>{
                 DarwinNotificationActionOption.foreground,
               },
@@ -171,8 +235,34 @@ class NotificationService {
           'oly_rest_timer_category',
           actions: <DarwinNotificationAction>[
             DarwinNotificationAction.plain(
+              'action_add_rest_30s',
+              '⏱️ +30s Rest',
+              options: <DarwinNotificationActionOption>{
+                DarwinNotificationActionOption.foreground,
+              },
+            ),
+            DarwinNotificationAction.plain(
               'action_workout_ready',
               '⚡ Ready to Lift',
+              options: <DarwinNotificationActionOption>{
+                DarwinNotificationActionOption.foreground,
+              },
+            ),
+          ],
+        ),
+        DarwinNotificationCategory(
+          'oly_breathwork_category',
+          actions: <DarwinNotificationAction>[
+            DarwinNotificationAction.plain(
+              'action_start_breathwork',
+              '🌬️ Start Breathwork',
+              options: <DarwinNotificationActionOption>{
+                DarwinNotificationActionOption.foreground,
+              },
+            ),
+            DarwinNotificationAction.plain(
+              'action_open_recover',
+              'Open Recover',
               options: <DarwinNotificationActionOption>{
                 DarwinNotificationActionOption.foreground,
               },
@@ -383,6 +473,11 @@ class NotificationService {
             priority: Priority.high,
             sound: RawResourceAndroidNotificationSound(resolvedTone.id),
             actions: const <AndroidNotificationAction>[
+              AndroidNotificationAction(
+                'action_add_rest_30s',
+                '⏱️ +30s Rest',
+                showsUserInterface: true,
+              ),
               AndroidNotificationAction(
                 'action_workout_ready',
                 '⚡ Ready to Lift',
@@ -618,6 +713,20 @@ class NotificationService {
       'Fasting Coffee Alerts',
       channelDescription: 'Strategic coffee timing to assist fasting & athletic sleep',
       sound: RawResourceAndroidNotificationSound('oly_iron_gong'),
+      importance: Importance.high,
+      priority: Priority.high,
+      actions: <AndroidNotificationAction>[
+        AndroidNotificationAction(
+          'action_log_coffee',
+          '☕ Log Coffee (240 mL)',
+          showsUserInterface: true,
+        ),
+        AndroidNotificationAction(
+          'action_open_fasting',
+          'Open Fasting',
+          showsUserInterface: true,
+        ),
+      ],
     );
 
     const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
@@ -626,6 +735,7 @@ class NotificationService {
       presentBadge: false,
       sound: 'oly_iron_gong.caf',
       interruptionLevel: InterruptionLevel.timeSensitive,
+      categoryIdentifier: 'oly_coffee_category',
     );
 
     const NotificationDetails details = NotificationDetails(
@@ -728,48 +838,12 @@ class NotificationService {
         'title': title,
         'body': body,
         'payload': payload,
+        'isHangFocus': isHangFocus,
       });
 
       idIndex++;
       currentTotalMinutes += intervalMinutes;
     }
-
-    const AndroidNotificationDetails androidDetails =
-        AndroidNotificationDetails(
-      'oly_gtg_channel',
-      'Grease the Groove Reminders',
-      channelDescription:
-          'Paced submaximal active hang and pull-up interval prompts',
-      sound: RawResourceAndroidNotificationSound('oly_chrono_pulse'),
-      importance: Importance.high,
-      priority: Priority.high,
-      actions: <AndroidNotificationAction>[
-        AndroidNotificationAction(
-          'action_log_gtg_reps',
-          '💪 Log Reps',
-          showsUserInterface: true,
-        ),
-        AndroidNotificationAction(
-          'action_start_gtg_hang',
-          '🧗 Start Hang',
-          showsUserInterface: true,
-        ),
-      ],
-    );
-
-    const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
-      presentAlert: true,
-      presentSound: true,
-      presentBadge: false,
-      sound: 'oly_chrono_pulse.caf',
-      interruptionLevel: InterruptionLevel.timeSensitive,
-      categoryIdentifier: 'oly_gtg_category',
-    );
-
-    const NotificationDetails details = NotificationDetails(
-      android: androidDetails,
-      iOS: iosDetails,
-    );
 
     final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
 
@@ -781,6 +855,54 @@ class NotificationService {
         final String title = slot['title'] as String;
         final String body = slot['body'] as String;
         final String payload = slot['payload'] as String;
+        final bool isHang = slot['isHangFocus'] as bool? ?? false;
+
+        final NotificationDetails details = NotificationDetails(
+          android: AndroidNotificationDetails(
+            'oly_gtg_channel',
+            'Grease the Groove Reminders',
+            channelDescription:
+                'Paced submaximal active hang and pull-up interval prompts',
+            sound: const RawResourceAndroidNotificationSound('oly_chrono_pulse'),
+            importance: Importance.high,
+            priority: Priority.high,
+            actions: isHang
+                ? const <AndroidNotificationAction>[
+                    AndroidNotificationAction(
+                      'action_log_gtg_hang',
+                      '🧗 Log Hang',
+                      showsUserInterface: true,
+                    ),
+                    AndroidNotificationAction(
+                      'action_start_gtg_hang',
+                      '⏱️ Start Hang',
+                      showsUserInterface: true,
+                    ),
+                  ]
+                : const <AndroidNotificationAction>[
+                    AndroidNotificationAction(
+                      'action_log_gtg_reps',
+                      '💪 Log Reps',
+                      showsUserInterface: true,
+                    ),
+                    AndroidNotificationAction(
+                      'action_open_gtg',
+                      'Open GtG Hub',
+                      showsUserInterface: true,
+                    ),
+                  ],
+          ),
+          iOS: DarwinNotificationDetails(
+            presentAlert: true,
+            presentSound: true,
+            presentBadge: false,
+            sound: 'oly_chrono_pulse.caf',
+            interruptionLevel: InterruptionLevel.timeSensitive,
+            categoryIdentifier: isHang
+                ? 'oly_gtg_hang_category'
+                : 'oly_gtg_pullup_category',
+          ),
+        );
 
         tz.TZDateTime scheduledDate = tz.TZDateTime(
           tz.local,
@@ -835,8 +957,10 @@ class NotificationService {
     }
   }
 
-  /// Schedule an immediate 5-second test notification with action buttons and deep link
-  Future<void> scheduleTestLockScreenNotification() async {
+  // --- IMMEDIATE 5-SECOND TEST NOTIFICATIONS ---
+
+  /// Test Circadian Hydration Notification (739 mL)
+  Future<void> scheduleTestHydrationNotification() async {
     await init();
     try {
       final tz.TZDateTime scheduledDate =
@@ -873,24 +997,300 @@ class NotificationService {
         categoryIdentifier: 'oly_hydration_category',
       );
 
-      const NotificationDetails details = NotificationDetails(
-        android: androidDetails,
-        iOS: iosDetails,
-      );
-
       await _notifications.zonedSchedule(
         999,
-        '💧 Test Lock Screen Alert (739 mL)',
-        'Lock screen test! Press and hold (long-press) this banner to view Quick Actions or tap to open Fuel.',
+        '💧 Test Hydration Alert (739 mL)',
+        'Lock screen test! Long-press this banner for Quick Actions or tap to open Fuel.',
         scheduledDate,
-        details,
-        payload: 'oly://fuel/water?amount=739&slot=test',
+        const NotificationDetails(android: androidDetails, iOS: iosDetails),
+        payload: 'oly://fuel/water?amount=739&slot=test_water',
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
         uiLocalNotificationDateInterpretation:
             UILocalNotificationDateInterpretation.absoluteTime,
       );
     } catch (e) {
-      debugPrint('Error scheduling test notification: $e');
+      debugPrint('Error scheduling test hydration notification: $e');
+    }
+  }
+
+  /// Legacy alias for scheduleTestHydrationNotification
+  Future<void> scheduleTestLockScreenNotification() =>
+      scheduleTestHydrationNotification();
+
+  /// Test Rest Timer Over Notification (with +30s Rest & Ready to Lift)
+  Future<void> scheduleTestRestTimerNotification() async {
+    await init();
+    try {
+      final tz.TZDateTime scheduledDate =
+          tz.TZDateTime.now(tz.local).add(const Duration(seconds: 5));
+
+      OlySoundTone tone = OlySoundTone.platformChime;
+      try {
+        final SharedPreferences prefs = await SharedPreferences.getInstance();
+        final String? savedId = prefs.getString('oly_sound_tone_v1');
+        tone = OlySoundTone.fromId(savedId);
+      } catch (_) {}
+
+      final AndroidNotificationDetails androidDetails =
+          AndroidNotificationDetails(
+        'oly_rest_timer',
+        'Rest Timer Alerts',
+        channelDescription: 'Alarm alerts when rest timer reaches 0s',
+        importance: Importance.max,
+        priority: Priority.high,
+        sound: RawResourceAndroidNotificationSound(tone.id),
+        actions: const <AndroidNotificationAction>[
+          AndroidNotificationAction(
+            'action_add_rest_30s',
+            '⏱️ +30s Rest',
+            showsUserInterface: true,
+          ),
+          AndroidNotificationAction(
+            'action_workout_ready',
+            '⚡ Ready to Lift',
+            showsUserInterface: true,
+          ),
+        ],
+      );
+
+      final DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
+        presentAlert: true,
+        presentSound: true,
+        presentBadge: true,
+        sound: tone.iosSound,
+        interruptionLevel: InterruptionLevel.timeSensitive,
+        categoryIdentifier: 'oly_rest_timer_category',
+      );
+
+      await _notifications.zonedSchedule(
+        998,
+        '⏰ Rest Over: Platform Ready!',
+        'Rest interval complete. Long-press to add +30s rest or tap to resume workout.',
+        scheduledDate,
+        NotificationDetails(android: androidDetails, iOS: iosDetails),
+        payload: 'oly://workout/active?restComplete=true',
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
+      );
+    } catch (e) {
+      debugPrint('Error scheduling test rest timer notification: $e');
+    }
+  }
+
+  /// Test Fasting Coffee Primer Notification (with Quick Log & Open Fasting)
+  Future<void> scheduleTestCoffeeNotification() async {
+    await init();
+    try {
+      final tz.TZDateTime scheduledDate =
+          tz.TZDateTime.now(tz.local).add(const Duration(seconds: 5));
+
+      const AndroidNotificationDetails androidDetails =
+          AndroidNotificationDetails(
+        'oly_coffee_channel',
+        'Fasting Coffee Alerts',
+        channelDescription: 'Strategic coffee timing to assist fasting & athletic sleep',
+        sound: RawResourceAndroidNotificationSound('oly_iron_gong'),
+        importance: Importance.max,
+        priority: Priority.high,
+        actions: <AndroidNotificationAction>[
+          AndroidNotificationAction(
+            'action_log_coffee',
+            '☕ Log Coffee (240 mL)',
+            showsUserInterface: true,
+          ),
+          AndroidNotificationAction(
+            'action_open_fasting',
+            'Open Fasting',
+            showsUserInterface: true,
+          ),
+        ],
+      );
+
+      const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
+        presentAlert: true,
+        presentSound: true,
+        presentBadge: true,
+        sound: 'oly_iron_gong.caf',
+        interruptionLevel: InterruptionLevel.timeSensitive,
+        categoryIdentifier: 'oly_coffee_category',
+      );
+
+      await _notifications.zonedSchedule(
+        997,
+        '☕ Fasting Coffee Primer (240 mL)',
+        'Pre-workout caffeine mobilization window. Long-press to quick-log 240 mL coffee.',
+        scheduledDate,
+        const NotificationDetails(android: androidDetails, iOS: iosDetails),
+        payload: 'oly://fuel/fasting?slot=test_coffee',
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
+      );
+    } catch (e) {
+      debugPrint('Error scheduling test coffee notification: $e');
+    }
+  }
+
+  /// Test GtG Submax Pull-Ups Notification (with Quick Log Reps & Open GtG)
+  Future<void> scheduleTestGtgPullUpNotification() async {
+    await init();
+    try {
+      final tz.TZDateTime scheduledDate =
+          tz.TZDateTime.now(tz.local).add(const Duration(seconds: 5));
+
+      const AndroidNotificationDetails androidDetails =
+          AndroidNotificationDetails(
+        'oly_gtg_channel',
+        'Grease the Groove Reminders',
+        channelDescription: 'Paced submaximal active hang and pull-up interval prompts',
+        sound: RawResourceAndroidNotificationSound('oly_chrono_pulse'),
+        importance: Importance.max,
+        priority: Priority.high,
+        actions: <AndroidNotificationAction>[
+          AndroidNotificationAction(
+            'action_log_gtg_reps',
+            '💪 Log Reps',
+            showsUserInterface: true,
+          ),
+          AndroidNotificationAction(
+            'action_open_gtg',
+            'Open GtG Hub',
+            showsUserInterface: true,
+          ),
+        ],
+      );
+
+      const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
+        presentAlert: true,
+        presentSound: true,
+        presentBadge: true,
+        sound: 'oly_chrono_pulse.caf',
+        interruptionLevel: InterruptionLevel.timeSensitive,
+        categoryIdentifier: 'oly_gtg_pullup_category',
+      );
+
+      await _notifications.zonedSchedule(
+        996,
+        '💪 GtG: Submax Pull-Ups (5 Reps)',
+        'Neural drive prompt. Long-press to quick-log 5 pull-ups or tap to open GtG Hub.',
+        scheduledDate,
+        const NotificationDetails(android: androidDetails, iOS: iosDetails),
+        payload: 'oly://gtg/pullups?reps=5',
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
+      );
+    } catch (e) {
+      debugPrint('Error scheduling test GtG pull-up notification: $e');
+    }
+  }
+
+  /// Test GtG Active Scapular Hang Notification (with Quick Log Hang & Start Hang)
+  Future<void> scheduleTestGtgHangNotification() async {
+    await init();
+    try {
+      final tz.TZDateTime scheduledDate =
+          tz.TZDateTime.now(tz.local).add(const Duration(seconds: 5));
+
+      const AndroidNotificationDetails androidDetails =
+          AndroidNotificationDetails(
+        'oly_gtg_channel',
+        'Grease the Groove Reminders',
+        channelDescription: 'Paced submaximal active hang and pull-up interval prompts',
+        sound: RawResourceAndroidNotificationSound('oly_chrono_pulse'),
+        importance: Importance.max,
+        priority: Priority.high,
+        actions: <AndroidNotificationAction>[
+          AndroidNotificationAction(
+            'action_log_gtg_hang',
+            '🧗 Log Hang',
+            showsUserInterface: true,
+          ),
+          AndroidNotificationAction(
+            'action_start_gtg_hang',
+            '⏱️ Start Hang',
+            showsUserInterface: true,
+          ),
+        ],
+      );
+
+      const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
+        presentAlert: true,
+        presentSound: true,
+        presentBadge: true,
+        sound: 'oly_chrono_pulse.caf',
+        interruptionLevel: InterruptionLevel.timeSensitive,
+        categoryIdentifier: 'oly_gtg_hang_category',
+      );
+
+      await _notifications.zonedSchedule(
+        995,
+        '🧗 GtG: Active Scapular Hang (45s)',
+        'Scapular retraction interval. Long-press to quick-log 45s or start hang timer.',
+        scheduledDate,
+        const NotificationDetails(android: androidDetails, iOS: iosDetails),
+        payload: 'oly://gtg/hang?target=45',
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
+      );
+    } catch (e) {
+      debugPrint('Error scheduling test GtG hang notification: $e');
+    }
+  }
+
+  /// Test Wim Hof Breathwork Notification (with Start Breathwork & Open Recover)
+  Future<void> scheduleTestBreathworkNotification() async {
+    await init();
+    try {
+      final tz.TZDateTime scheduledDate =
+          tz.TZDateTime.now(tz.local).add(const Duration(seconds: 5));
+
+      const AndroidNotificationDetails androidDetails =
+          AndroidNotificationDetails(
+        'oly_breathwork_channel',
+        'Breathwork Reminders',
+        channelDescription: 'Guided Wim Hof and parasympathetic breath resets',
+        sound: RawResourceAndroidNotificationSound('oly_platform_chime'),
+        importance: Importance.max,
+        priority: Priority.high,
+        actions: <AndroidNotificationAction>[
+          AndroidNotificationAction(
+            'action_start_breathwork',
+            '🌬️ Start Breathwork',
+            showsUserInterface: true,
+          ),
+          AndroidNotificationAction(
+            'action_open_recover',
+            'Open Recover',
+            showsUserInterface: true,
+          ),
+        ],
+      );
+
+      const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
+        presentAlert: true,
+        presentSound: true,
+        presentBadge: true,
+        sound: 'oly_platform_chime.caf',
+        interruptionLevel: InterruptionLevel.timeSensitive,
+        categoryIdentifier: 'oly_breathwork_category',
+      );
+
+      await _notifications.zonedSchedule(
+        994,
+        '🌬️ Wim Hof Breathwork Reset',
+        'Parasympathetic recovery flow. Long-press to start guided breathwork session.',
+        scheduledDate,
+        const NotificationDetails(android: androidDetails, iOS: iosDetails),
+        payload: 'oly://recover/breathwork',
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
+      );
+    } catch (e) {
+      debugPrint('Error scheduling test breathwork notification: $e');
     }
   }
 }

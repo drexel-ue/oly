@@ -10,6 +10,7 @@ import 'package:oly/providers/active_session_provider.dart';
 import 'package:oly/providers/body_comp_provider.dart';
 import 'package:oly/providers/breathing_provider.dart';
 import 'package:oly/providers/fasting_provider.dart';
+import 'package:oly/providers/gtg_provider.dart';
 import 'package:oly/providers/injury_provider.dart';
 import 'package:oly/providers/lift_provider.dart';
 import 'package:oly/providers/nutrition_provider.dart';
@@ -227,6 +228,9 @@ void main() {
           ),
           ChangeNotifierProvider<ActiveSessionProvider>(
             create: (_) => sessionProvider ?? ActiveSessionProvider(),
+          ),
+          ChangeNotifierProvider<GtgProvider>(
+            create: (_) => GtgProvider(storage),
           ),
         ],
         child: const MaterialApp(

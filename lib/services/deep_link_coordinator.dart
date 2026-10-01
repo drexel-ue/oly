@@ -183,12 +183,35 @@ class DeepLinkCoordinator {
           double.tryParse(uri.queryParameters['amount'] ?? '');
 
       // Handle Lock Screen Quick Action: Instant 1-tap water log
-      if (actionId == 'action_log_water' && amount != null && amount > 0) {
+      if (actionId == 'action_log_water') {
         final BuildContext? targetContext = _getSafeActiveContext();
         if (targetContext != null && targetContext.mounted) {
-          _quickLogWater(targetContext, amount);
+          _quickLogWater(targetContext, amount ?? 250);
         }
         _tabSwitcher?.call(2);
+        return;
+      }
+
+      // Handle Lock Screen Quick Action: Instant coffee log
+      if (actionId == 'action_log_coffee') {
+        final BuildContext? targetContext = _getSafeActiveContext();
+        if (targetContext != null && targetContext.mounted) {
+          _quickLogCoffee(targetContext);
+        }
+        _tabSwitcher?.call(2, null, () {
+          final BuildContext? activeContext = _getSafeActiveContext();
+          if (activeContext == null || !activeContext.mounted) return;
+          FastingCircadianSheet.show(activeContext);
+        });
+        return;
+      }
+
+      if (actionId == 'action_open_fasting') {
+        _tabSwitcher?.call(2, null, () {
+          final BuildContext? activeContext = _getSafeActiveContext();
+          if (activeContext == null || !activeContext.mounted) return;
+          FastingCircadianSheet.show(activeContext);
+        });
         return;
       }
 
@@ -259,16 +282,55 @@ class DeepLinkCoordinator {
           targetContext.read<ActiveSessionProvider>();
       final ProgramProvider program = targetContext.read<ProgramProvider>();
 
-      if (session.isActive || program.hasActiveDraft) {
-        final ActiveWorkoutDraft? draft = program.activeDraft;
-        final DayTemplate matchingDay = draft != null
-            ? program.days.firstWhere(
-                (d) => d.dayNumber == draft.dayNumber,
-                orElse: () => program.currentDayTemplate,
-              )
-            : program.currentDayTemplate;
+      if (actionId == 'action_add_rest_30s') {
+        final int current = session.restSecondsRemaining;
+        final int nextRemaining = current > 0 ? current + 30 : 30;
+        session.startRestTimer(seconds: nextRemaining);
+        await HapticFeedback.heavyImpact();
+        if (targetContext.mounted) {
+          ScaffoldMessenger.of(targetContext).showSnackBar(
+            const SnackBar(
+              content: Text(
+                '⏱️ Added +30s to Rest Timer!',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              backgroundColor: AppTheme.primaryAmber,
+              behavior: SnackBarBehavior.floating,
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
+      } else if (actionId == 'action_workout_ready') {
+        session.resetRestTimer();
+        await HapticFeedback.heavyImpact();
+        if (targetContext.mounted) {
+          ScaffoldMessenger.of(targetContext).showSnackBar(
+            const SnackBar(
+              content: Text(
+                '⚡ Ready to Lift! Platform active.',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              backgroundColor: AppTheme.accentElectricCyan,
+              behavior: SnackBarBehavior.floating,
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
+      }
 
-        Navigator.of(targetContext).push(
+      final ActiveWorkoutDraft? draft = program.activeDraft;
+      final DayTemplate matchingDay = draft != null
+          ? program.days.firstWhere(
+              (d) => d.dayNumber == draft.dayNumber,
+              orElse: () => program.currentDayTemplate,
+            )
+          : program.currentDayTemplate;
+
+      _tabSwitcher?.call(0, null, () {
+        final BuildContext? activeContext = _getSafeActiveContext();
+        if (activeContext == null || !activeContext.mounted) return;
+
+        Navigator.of(activeContext).push(
           MaterialPageRoute<void>(
             builder: (_) => WorkoutSessionScreen(
               dayTemplate: matchingDay,
@@ -277,9 +339,7 @@ class DeepLinkCoordinator {
             ),
           ),
         );
-      } else {
-        _tabSwitcher?.call(0);
-      }
+      });
       return;
     }
 
@@ -289,7 +349,9 @@ class DeepLinkCoordinator {
         final BuildContext? activeContext = _getSafeActiveContext();
         if (activeContext == null || !activeContext.mounted) return;
 
-        if (segments.contains('breathwork') || domain == 'breathing') {
+        if (actionId == 'action_start_breathwork' ||
+            segments.contains('breathwork') ||
+            domain == 'breathing') {
           final BreathingProvider breathing =
               activeContext.read<BreathingProvider>();
           Navigator.of(activeContext).push(
@@ -345,6 +407,41 @@ class DeepLinkCoordinator {
       AppLogService.instance.error(
         'DEEP_LINK',
         'Error quick logging water: $e',
+      );
+    }
+  }
+
+  void _quickLogCoffee(BuildContext context) {
+    HapticFeedback.heavyImpact();
+    try {
+      final NutritionProvider nutrition = context.read<NutritionProvider>();
+      final FastingProvider fasting = context.read<FastingProvider>();
+
+      // 240 mL (~8 oz) black coffee counted toward fluid hydration
+      const double coffeeMl = 240;
+      nutrition.addWaterMl(coffeeMl);
+      fasting.syncWaterFromFuel(nutrition.currentDayLog.waterMl.round());
+
+      AppLogService.instance.info(
+        'DEEP_LINK',
+        'Quick logged 240 mL coffee from lock screen',
+      );
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            '☕ Quick Logged 240 mL Coffee (Hydration Credit)!',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          backgroundColor: AppTheme.primaryAmber,
+          behavior: SnackBarBehavior.floating,
+          duration: Duration(seconds: 3),
+        ),
+      );
+    } catch (e) {
+      AppLogService.instance.error(
+        'DEEP_LINK',
+        'Error quick logging coffee: $e',
       );
     }
   }

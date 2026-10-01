@@ -24,6 +24,7 @@ import 'package:oly/providers/c25k_provider.dart';
 import 'package:oly/providers/fasting_provider.dart';
 import 'package:oly/providers/goal_provider.dart';
 import 'package:oly/providers/grip_hang_provider.dart';
+import 'package:oly/providers/gtg_provider.dart';
 import 'package:oly/providers/injury_provider.dart';
 import 'package:oly/providers/lift_provider.dart';
 import 'package:oly/providers/nutrition_provider.dart';
@@ -157,6 +158,7 @@ void main() {
   late GoalProvider goalProvider;
   late GripHangProvider gripHangProvider;
   late C25kProvider c25kProvider;
+  late GtgProvider gtgProvider;
   late ActiveSessionProvider activeSessionProvider;
 
   setUpAll(() async {
@@ -234,6 +236,7 @@ void main() {
     goalProvider = GoalProvider(storage);
     gripHangProvider = GripHangProvider(storage);
     c25kProvider = C25kProvider(storage);
+    gtgProvider = GtgProvider(storage);
   });
 
   GlobalKey boundaryKey = GlobalKey();
@@ -255,6 +258,7 @@ void main() {
         ChangeNotifierProvider.value(value: goalProvider),
         ChangeNotifierProvider.value(value: gripHangProvider),
         ChangeNotifierProvider.value(value: c25kProvider),
+        ChangeNotifierProvider.value(value: gtgProvider),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
