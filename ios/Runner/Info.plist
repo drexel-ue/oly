@@ -76,5 +76,18 @@
 			<string>remote-notification</string>
 			<string>audio</string>
 		</array>
+		<key>CFBundleURLTypes</key>
+		<array>
+			<dict>
+				<key>CFBundleTypeRole</key>
+				<string>Editor</string>
+				<key>CFBundleURLName</key>
+				<string>com.lamontlabs.oly</string>
+				<key>CFBundleURLSchemes</key>
+				<array>
+					<string>oly</string>
+				</array>
+			</dict>
+		</array>
 	</dict>
 </plist>

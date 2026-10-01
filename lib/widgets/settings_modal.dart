@@ -304,6 +304,77 @@ class _SettingsModalState extends State<SettingsModal> {
                         );
                       }).toList(),
                     ),
+                    const SizedBox(height: 14),
+                    // Test Lock Screen Alert (5s)
+                    InkWell(
+                      onTap: () async {
+                        await HapticFeedback.mediumImpact();
+                        await NotificationService().scheduleTestLockScreenNotification();
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                '⚡ Alert scheduled in 5s! Lock your iPhone now to test.',
+                                style: GoogleFonts.outfit(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              backgroundColor: AppTheme.accentElectricCyan,
+                              duration: const Duration(seconds: 5),
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                        }
+                      },
+                      borderRadius: BorderRadius.circular(10),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: AppTheme.accentElectricCyan.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: AppTheme.accentElectricCyan.withValues(alpha: 0.35),
+                          ),
+                        ),
+                        child: Row(
+                          children: <Widget>[
+                            const Icon(
+                              Icons.notification_important_rounded,
+                              size: 16,
+                              color: AppTheme.accentElectricCyan,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: <Widget>[
+                                  Text(
+                                    'Test Lock Screen Notification (5s)',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Triggers banner with sound & Quick Actions. Lock phone to view.',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 11,
+                                      color: AppTheme.textSecondary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const Icon(
+                              Icons.arrow_forward_ios_rounded,
+                              size: 13,
+                              color: AppTheme.accentElectricCyan,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ],

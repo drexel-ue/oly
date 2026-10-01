@@ -21,6 +21,7 @@ import 'package:oly/providers/program_provider.dart';
 import 'package:oly/providers/recovery_provider.dart';
 import 'package:oly/providers/settings_provider.dart';
 import 'package:oly/services/app_log_service.dart';
+import 'package:oly/services/deep_link_coordinator.dart';
 import 'package:oly/services/notification_service.dart';
 import 'package:oly/services/recovery_engine_service.dart';
 import 'package:oly/services/storage_service.dart';
@@ -146,6 +147,7 @@ class OlyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: DeepLinkCoordinator.instance.navigatorKey,
       title: 'OLY',
       theme: AppTheme.darkTheme,
       debugShowCheckedModeBanner: false,
@@ -210,21 +212,35 @@ class _MainNavigationContainerState extends State<MainNavigationContainer> {
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex;
+    DeepLinkCoordinator.instance.registerTabSwitcher(_switchTab);
+    DeepLinkCoordinator.instance.processPendingDeepLink(context);
   }
 
-  void _switchTab(int index, [int? subIndex]) {
+  @override
+  void dispose() {
+    DeepLinkCoordinator.instance.unregisterTabSwitcher();
+    super.dispose();
+  }
+
+  void _switchTab(int index, [int? subIndex, VoidCallback? onComplete]) {
     if (index >= 0 && index < 4) {
-      if (index == _currentIndex && subIndex == null) return;
-      setState(() {
-        final int distance = (index - _currentIndex).abs();
-        _direction = index > _currentIndex ? 1 : (index < _currentIndex ? -1 : 0);
-        // Distance scaling: 38px for 1-tab hop, up to 62px for 3-tab leap
-        _horizontalVelocity = 38.0 + (distance - 1).clamp(0, 3) * 12.0;
-        _currentIndex = index;
-        if (index == 3 && subIndex != null) {
-          _analyticsInitialTab = subIndex;
-        }
-      });
+      if (index != _currentIndex || subIndex != null) {
+        setState(() {
+          final int distance = (index - _currentIndex).abs();
+          _direction = index > _currentIndex ? 1 : (index < _currentIndex ? -1 : 0);
+          // Distance scaling: 38px for 1-tab hop, up to 62px for 3-tab leap
+          _horizontalVelocity = 38.0 + (distance - 1).clamp(0, 3) * 12.0;
+          _currentIndex = index;
+          if (index == 3 && subIndex != null) {
+            _analyticsInitialTab = subIndex;
+          }
+        });
+      }
+      if (onComplete != null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) => onComplete());
+      }
+    } else if (onComplete != null) {
+      onComplete();
     }
   }
 

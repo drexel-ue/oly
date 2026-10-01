@@ -208,7 +208,9 @@ class _RestTimerWidgetState extends State<RestTimerWidget>
       listen: false,
     );
 
-    NotificationService().cancelTimerNotification();
+    if (isForeground) {
+      NotificationService().cancelTimerNotification();
+    }
 
     bool handledByActiveSession = false;
     try {

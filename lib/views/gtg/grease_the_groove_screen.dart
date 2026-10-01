@@ -9,7 +9,16 @@ import 'package:oly/widgets/motion/oly_pressable.dart';
 import 'package:provider/provider.dart';
 
 class GreaseTheGrooveScreen extends StatefulWidget {
-  const new({super.key});
+  const new({
+    super.key,
+    this.autoStartHang = false,
+    this.initialHangSeconds,
+    this.initialPullUpReps,
+  });
+
+  final bool autoStartHang;
+  final int? initialHangSeconds;
+  final int? initialPullUpReps;
 
   @override
   State<GreaseTheGrooveScreen> createState() => _GreaseTheGrooveScreenState();
@@ -26,9 +35,16 @@ class _GreaseTheGrooveScreenState extends State<GreaseTheGrooveScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final GtgProvider gtg = Provider.of<GtgProvider>(context, listen: false);
       setState(() {
-        _selectedPullUpReps = gtg.config.targetPullUpReps;
-        _selectedHangPreset = gtg.config.targetHangSeconds;
+        _selectedPullUpReps =
+            widget.initialPullUpReps ?? gtg.config.targetPullUpReps;
+        _selectedHangPreset =
+            widget.initialHangSeconds ?? gtg.config.targetHangSeconds;
       });
+      if (widget.autoStartHang && !gtg.isHangTimerActive) {
+        gtg.startActiveHangTimer(
+          seconds: widget.initialHangSeconds ?? gtg.config.targetHangSeconds,
+        );
+      }
     });
   }
 

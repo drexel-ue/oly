@@ -6,6 +6,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
+import 'package:oly/services/app_log_service.dart';
+import 'package:oly/services/deep_link_coordinator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
@@ -123,10 +125,64 @@ class NotificationService {
 
     const AndroidInitializationSettings androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
-    const DarwinInitializationSettings iosSettings =
-        DarwinInitializationSettings();
 
-    const InitializationSettings initSettings = InitializationSettings(
+    final DarwinInitializationSettings iosSettings =
+        DarwinInitializationSettings(
+      notificationCategories: <DarwinNotificationCategory>[
+        DarwinNotificationCategory(
+          'oly_hydration_category',
+          actions: <DarwinNotificationAction>[
+            DarwinNotificationAction.plain(
+              'action_log_water',
+              '💧 Quick Log',
+              options: <DarwinNotificationActionOption>{
+                DarwinNotificationActionOption.foreground,
+              },
+            ),
+            DarwinNotificationAction.plain(
+              'action_open_fuel',
+              'Open Fuel',
+              options: <DarwinNotificationActionOption>{
+                DarwinNotificationActionOption.foreground,
+              },
+            ),
+          ],
+        ),
+        DarwinNotificationCategory(
+          'oly_gtg_category',
+          actions: <DarwinNotificationAction>[
+            DarwinNotificationAction.plain(
+              'action_log_gtg_reps',
+              '💪 Log Reps',
+              options: <DarwinNotificationActionOption>{
+                DarwinNotificationActionOption.foreground,
+              },
+            ),
+            DarwinNotificationAction.plain(
+              'action_start_gtg_hang',
+              '🧗 Start Hang',
+              options: <DarwinNotificationActionOption>{
+                DarwinNotificationActionOption.foreground,
+              },
+            ),
+          ],
+        ),
+        DarwinNotificationCategory(
+          'oly_rest_timer_category',
+          actions: <DarwinNotificationAction>[
+            DarwinNotificationAction.plain(
+              'action_workout_ready',
+              '⚡ Ready to Lift',
+              options: <DarwinNotificationActionOption>{
+                DarwinNotificationActionOption.foreground,
+              },
+            ),
+          ],
+        ),
+      ],
+    );
+
+    final InitializationSettings initSettings = InitializationSettings(
       android: androidSettings,
       iOS: iosSettings,
     );
@@ -135,9 +191,59 @@ class NotificationService {
       await _notifications.initialize(
         initSettings,
         onDidReceiveNotificationResponse: (response) {
-          debugPrint('Notification tapped: ${response.payload}');
+          AppLogService.instance.info(
+            'NOTIFICATION',
+            'Notification tapped: id=${response.id}, actionId=${response.actionId}, payload=${response.payload}',
+          );
+          debugPrint(
+            'Notification tapped: id=${response.id}, actionId=${response.actionId}, payload=${response.payload}',
+          );
+          if (response.payload != null && response.payload!.isNotEmpty) {
+            DeepLinkCoordinator.instance.handlePayload(
+              response.payload!,
+              actionId: response.actionId,
+            );
+          }
         },
       );
+
+      // Check if app was launched directly from tapping a notification (Cold Start)
+      final NotificationAppLaunchDetails? launchDetails =
+          await _notifications.getNotificationAppLaunchDetails();
+      if (launchDetails != null && launchDetails.didNotificationLaunchApp) {
+        final NotificationResponse? response =
+            launchDetails.notificationResponse;
+        if (response != null &&
+            response.payload != null &&
+            response.payload!.isNotEmpty) {
+          AppLogService.instance.info(
+            'NOTIFICATION',
+            'App launched from notification cold start: ${response.payload} (action: ${response.actionId})',
+          );
+          debugPrint(
+            'App launched from notification cold start: ${response.payload}',
+          );
+          DeepLinkCoordinator.instance.handlePayload(
+            response.payload!,
+            actionId: response.actionId,
+          );
+        }
+      }
+
+      // Request explicit permissions on iOS to ensure banner, sound, and badge are allowed
+      try {
+        await _notifications
+            .resolvePlatformSpecificImplementation<
+                IOSFlutterLocalNotificationsPlugin>()
+            ?.requestPermissions(
+              alert: true,
+              badge: true,
+              sound: true,
+            );
+      } catch (e) {
+        debugPrint('Error requesting iOS notification permissions: $e');
+      }
+
       _initialized = true;
     } catch (e) {
       debugPrint('Notification init error: $e');
@@ -276,6 +382,13 @@ class NotificationService {
             importance: Importance.max,
             priority: Priority.high,
             sound: RawResourceAndroidNotificationSound(resolvedTone.id),
+            actions: const <AndroidNotificationAction>[
+              AndroidNotificationAction(
+                'action_workout_ready',
+                '⚡ Ready to Lift',
+                showsUserInterface: true,
+              ),
+            ],
           );
 
       final DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
@@ -284,6 +397,7 @@ class NotificationService {
         presentBadge: true,
         sound: resolvedTone.iosSound,
         interruptionLevel: InterruptionLevel.timeSensitive,
+        categoryIdentifier: 'oly_rest_timer_category',
       );
 
       final NotificationDetails details = NotificationDetails(
@@ -297,6 +411,7 @@ class NotificationService {
         body,
         scheduledDate,
         details,
+        payload: 'oly://workout/active?restComplete=true',
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
         uiLocalNotificationDateInterpretation:
             UILocalNotificationDateInterpretation.absoluteTime,
@@ -392,6 +507,18 @@ class NotificationService {
       'Hydration Reminders',
       channelDescription: 'Paced hydration reminders to hit daily water goal',
       sound: RawResourceAndroidNotificationSound('oly_iron_gong'),
+      actions: <AndroidNotificationAction>[
+        AndroidNotificationAction(
+          'action_log_water',
+          '💧 Quick Log',
+          showsUserInterface: true,
+        ),
+        AndroidNotificationAction(
+          'action_open_fuel',
+          'Open Fuel',
+          showsUserInterface: true,
+        ),
+      ],
     );
 
     const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
@@ -399,6 +526,8 @@ class NotificationService {
       presentSound: true,
       presentBadge: false,
       sound: 'oly_iron_gong.caf',
+      categoryIdentifier: 'oly_hydration_category',
+      interruptionLevel: InterruptionLevel.timeSensitive,
     );
 
     const NotificationDetails details = NotificationDetails(
@@ -435,6 +564,7 @@ class NotificationService {
           body,
           scheduledDate,
           details,
+          payload: 'oly://fuel/water?amount=$portionMl&slot=$id',
           androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
           uiLocalNotificationDateInterpretation:
               UILocalNotificationDateInterpretation.absoluteTime,
@@ -495,6 +625,7 @@ class NotificationService {
       presentSound: true,
       presentBadge: false,
       sound: 'oly_iron_gong.caf',
+      interruptionLevel: InterruptionLevel.timeSensitive,
     );
 
     const NotificationDetails details = NotificationDetails(
@@ -531,6 +662,7 @@ class NotificationService {
           body,
           scheduledDate,
           details,
+          payload: 'oly://fuel/fasting?slot=$id',
           androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
           uiLocalNotificationDateInterpretation:
               UILocalNotificationDateInterpretation.absoluteTime,
@@ -585,12 +717,17 @@ class NotificationService {
           ? 'Depress scapulae down with a slight elbow bend for tendon armor. Accumulate volume without fatigue.'
           : 'Knock out $targetPullUpReps crisp, strict pull-ups. Stop well shy of failure to build neural power.';
 
+      final String payload = isHangFocus
+          ? 'oly://gtg/hang?target=$targetHangSeconds'
+          : 'oly://gtg/pullups?reps=$targetPullUpReps';
+
       slots.add(<String, dynamic>{
         'id': notifId,
         'hour': hour,
         'minute': minute,
         'title': title,
         'body': body,
+        'payload': payload,
       });
 
       idIndex++;
@@ -606,6 +743,18 @@ class NotificationService {
       sound: RawResourceAndroidNotificationSound('oly_chrono_pulse'),
       importance: Importance.high,
       priority: Priority.high,
+      actions: <AndroidNotificationAction>[
+        AndroidNotificationAction(
+          'action_log_gtg_reps',
+          '💪 Log Reps',
+          showsUserInterface: true,
+        ),
+        AndroidNotificationAction(
+          'action_start_gtg_hang',
+          '🧗 Start Hang',
+          showsUserInterface: true,
+        ),
+      ],
     );
 
     const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
@@ -614,6 +763,7 @@ class NotificationService {
       presentBadge: false,
       sound: 'oly_chrono_pulse.caf',
       interruptionLevel: InterruptionLevel.timeSensitive,
+      categoryIdentifier: 'oly_gtg_category',
     );
 
     const NotificationDetails details = NotificationDetails(
@@ -630,6 +780,7 @@ class NotificationService {
         final int minute = slot['minute'] as int;
         final String title = slot['title'] as String;
         final String body = slot['body'] as String;
+        final String payload = slot['payload'] as String;
 
         tz.TZDateTime scheduledDate = tz.TZDateTime(
           tz.local,
@@ -650,6 +801,7 @@ class NotificationService {
           body,
           scheduledDate,
           details,
+          payload: payload,
           androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
           uiLocalNotificationDateInterpretation:
               UILocalNotificationDateInterpretation.absoluteTime,
@@ -680,6 +832,65 @@ class NotificationService {
       }
     } catch (e) {
       debugPrint('Vibration error: $e');
+    }
+  }
+
+  /// Schedule an immediate 5-second test notification with action buttons and deep link
+  Future<void> scheduleTestLockScreenNotification() async {
+    await init();
+    try {
+      final tz.TZDateTime scheduledDate =
+          tz.TZDateTime.now(tz.local).add(const Duration(seconds: 5));
+
+      const AndroidNotificationDetails androidDetails =
+          AndroidNotificationDetails(
+        'oly_hydration_channel',
+        'Hydration Reminders',
+        channelDescription: 'Paced hydration reminders to hit daily water goal',
+        sound: RawResourceAndroidNotificationSound('oly_iron_gong'),
+        importance: Importance.max,
+        priority: Priority.high,
+        actions: <AndroidNotificationAction>[
+          AndroidNotificationAction(
+            'action_log_water',
+            '💧 Quick Log',
+            showsUserInterface: true,
+          ),
+          AndroidNotificationAction(
+            'action_open_fuel',
+            'Open Fuel',
+            showsUserInterface: true,
+          ),
+        ],
+      );
+
+      const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
+        presentAlert: true,
+        presentSound: true,
+        presentBadge: true,
+        sound: 'oly_iron_gong.caf',
+        interruptionLevel: InterruptionLevel.timeSensitive,
+        categoryIdentifier: 'oly_hydration_category',
+      );
+
+      const NotificationDetails details = NotificationDetails(
+        android: androidDetails,
+        iOS: iosDetails,
+      );
+
+      await _notifications.zonedSchedule(
+        999,
+        '💧 Test Lock Screen Alert (739 mL)',
+        'Lock screen test! Press and hold (long-press) this banner to view Quick Actions or tap to open Fuel.',
+        scheduledDate,
+        details,
+        payload: 'oly://fuel/water?amount=739&slot=test',
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
+      );
+    } catch (e) {
+      debugPrint('Error scheduling test notification: $e');
     }
   }
 }

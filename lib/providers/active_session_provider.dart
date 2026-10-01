@@ -320,8 +320,8 @@ class ActiveSessionProvider extends ChangeNotifier with WidgetsBindingObserver {
         _restSecondsRemaining = 0;
         _isRestTimerRunning = false;
         _restTargetEndTime = null;
-        _notificationService.cancelTimerNotification();
         if (_isAppInForeground) {
+          _notificationService.cancelTimerNotification();
           _notificationService.triggerIntenseVibration();
           _notificationService.playTimerBeepSound();
         }
