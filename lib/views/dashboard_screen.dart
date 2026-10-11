@@ -480,20 +480,26 @@ class DashboardScreen extends StatelessWidget {
   Widget _buildCycleCard(BuildContext context, ProgramProvider program) {
     final bool isMobility = program.isMobilityTrack;
     final bool isBodybuilding = program.isBodybuildingTrack;
-    final bool isRetest = !isMobility && !isBodybuilding && program.isRetestWeek;
+    final bool isAtg = program.isAtgTrack;
+    final bool isRetest =
+        !isMobility && !isBodybuilding && !isAtg && program.isRetestWeek;
     final String weekTitle = isBodybuilding
         ? 'Trainer Winny: 9 Bodyparts, 19 Exercises'
-        : (isMobility
-            ? 'Dane Miller & ATG Joint Armor'
-            : (isRetest
-                ? 'Week 5: 1RM RETEST WEEK'
-                : 'Week ${program.currentWeek} of 4: ${program.currentWeek == 4 ? "Deload & Prep" : program.currentWeek == 3 ? "Peak Loading" : "Base Loading"}'));
+        : (isAtg
+            ? 'ATG Standards: Full-Body Joint Armor & Density'
+            : (isMobility
+                ? 'Dane Miller & ATG Joint Armor'
+                : (isRetest
+                    ? 'Week 5: 1RM RETEST WEEK'
+                    : 'Week ${program.currentWeek} of 4: ${program.currentWeek == 4 ? "Deload & Prep" : program.currentWeek == 3 ? "Peak Loading" : "Base Loading"}')));
 
     final Color glowColor = isBodybuilding
         ? const Color(0xFFA855F7)
-        : (isMobility
-            ? AppTheme.accentEmerald
-            : (isRetest ? Colors.redAccent : AppTheme.primaryAmber));
+        : (isAtg
+            ? AppTheme.accentElectricCyan
+            : (isMobility
+                ? AppTheme.accentEmerald
+                : (isRetest ? Colors.redAccent : AppTheme.primaryAmber)));
 
     return GlassContainer(
       padding: const EdgeInsets.all(18),
@@ -501,125 +507,21 @@ class DashboardScreen extends StatelessWidget {
       gradient: LinearGradient(
         colors: isBodybuilding
             ? <Color>[const Color(0xFF28113B), const Color(0xFF131318)]
-            : (isMobility
-                ? <Color>[const Color(0xFF0F291E), const Color(0xFF131318)]
-                : (isRetest
-                    ? <Color>[const Color(0xFF5A0000), const Color(0xFF1E0000)]
-                    : <Color>[AppTheme.surfaceElevated, AppTheme.surfaceCard])),
+            : (isAtg
+                ? <Color>[const Color(0xFF092535), const Color(0xFF131318)]
+                : (isMobility
+                    ? <Color>[const Color(0xFF0F291E), const Color(0xFF131318)]
+                    : (isRetest
+                        ? <Color>[const Color(0xFF5A0000), const Color(0xFF1E0000)]
+                        : <Color>[AppTheme.surfaceElevated, AppTheme.surfaceCard]))),
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          // Track Switcher Segment (Olympic vs Mobility vs Bodybuilding)
-          Container(
-            padding: const EdgeInsets.all(3),
-            decoration: BoxDecoration(
-              color: AppTheme.darkBackground.withValues(alpha: 0.7),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppTheme.borderColor),
-            ),
-            child: Row(
-              children: <Widget>[
-                Expanded(
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () {
-                      if (program.activeTrack != TrainingTrack.olympic) {
-                        program.setTrainingTrack(TrainingTrack.olympic);
-                      }
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 6),
-                      decoration: BoxDecoration(
-                        color: program.activeTrack == TrainingTrack.olympic
-                            ? AppTheme.primaryAmber
-                            : Colors.transparent,
-                        borderRadius: BorderRadius.circular(9),
-                      ),
-                      child: Center(
-                        child: Text(
-                          '🏋️ Olympic',
-                          style: GoogleFonts.outfit(
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            color: program.activeTrack == TrainingTrack.olympic
-                                ? Colors.black
-                                : AppTheme.textSecondary,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 4),
-                Expanded(
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () {
-                      if (program.activeTrack != TrainingTrack.mobility) {
-                        program.setTrainingTrack(TrainingTrack.mobility);
-                      }
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 6),
-                      decoration: BoxDecoration(
-                        color: program.activeTrack == TrainingTrack.mobility
-                            ? AppTheme.accentEmerald
-                            : Colors.transparent,
-                        borderRadius: BorderRadius.circular(9),
-                      ),
-                      child: Center(
-                        child: Text(
-                          '🧘 Mobility',
-                          style: GoogleFonts.outfit(
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            color: program.activeTrack == TrainingTrack.mobility
-                                ? Colors.black
-                                : AppTheme.textSecondary,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 4),
-                Expanded(
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () {
-                      if (program.activeTrack != TrainingTrack.bodybuilding) {
-                        program.setTrainingTrack(TrainingTrack.bodybuilding);
-                      }
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 6),
-                      decoration: BoxDecoration(
-                        color: program.activeTrack == TrainingTrack.bodybuilding
-                            ? const Color(0xFFA855F7)
-                            : Colors.transparent,
-                        borderRadius: BorderRadius.circular(9),
-                      ),
-                      child: Center(
-                        child: Text(
-                          '💪 Bodybuilding',
-                          style: GoogleFonts.outfit(
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            color: program.activeTrack == TrainingTrack.bodybuilding
-                                ? Colors.white
-                                : AppTheme.textSecondary,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
+          // Sleek Track Selector Dropdown
+          _buildTrackDropdown(context, program, glowColor),
           const SizedBox(height: 14),
 
           Row(
@@ -628,9 +530,11 @@ class DashboardScreen extends StatelessWidget {
               Text(
                 isBodybuilding
                     ? 'ACTIVE FOCUS: BODYBUILDING (19 EXERCISES)'
-                    : (isMobility
-                        ? 'ACTIVE FOCUS: MOBILITY & HYPERTROPHY'
-                        : 'CYCLE ${program.currentCycle} PERIODIZATION'),
+                    : (isAtg
+                        ? 'ACTIVE FOCUS: ATG STANDARDS & BULLETPROOF'
+                        : (isMobility
+                            ? 'ACTIVE FOCUS: MOBILITY & HYPERTROPHY'
+                            : 'CYCLE ${program.currentCycle} PERIODIZATION')),
                 style: GoogleFonts.outfit(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
@@ -644,22 +548,30 @@ class DashboardScreen extends StatelessWidget {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: glowColor.withValues(alpha: (isMobility || isBodybuilding) ? 0.2 : 1.0),
+                  color: glowColor.withValues(
+                    alpha: (isMobility || isBodybuilding || isAtg) ? 0.2 : 1.0,
+                  ),
                   borderRadius: BorderRadius.circular(12),
-                  border: (isMobility || isBodybuilding)
+                  border: (isMobility || isBodybuilding || isAtg)
                       ? Border.all(color: glowColor.withValues(alpha: 0.5))
                       : null,
                 ),
                 child: Text(
                   isBodybuilding
                       ? 'BODYBUILDING'
-                      : (isMobility
-                          ? 'ACTIVE FOCUS'
-                          : (isRetest ? 'RETEST ACTIVE' : 'W${program.currentWeek}')),
+                      : (isAtg
+                          ? 'STANDARDS'
+                          : (isMobility
+                              ? 'ACTIVE FOCUS'
+                              : (isRetest
+                                  ? 'RETEST ACTIVE'
+                                  : 'W${program.currentWeek}'))),
                   style: GoogleFonts.outfit(
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
-                    color: (isMobility || isBodybuilding) ? glowColor : Colors.black,
+                    color: (isMobility || isBodybuilding || isAtg)
+                        ? glowColor
+                        : Colors.black,
                   ),
                 ),
               ),
@@ -678,13 +590,15 @@ class DashboardScreen extends StatelessWidget {
           Text(
             isBodybuilding
                 ? 'Trainer Winny System • 9 Muscle Groups • Maximum Gains'
-                : (isMobility
-                    ? 'Olympic lifts deprioritized • Weekly loaded mobility & joint hypertrophy'
-                    : (isRetest
-                        ? 'Retest 1RM baselines to reset your training percentages'
-                        : (program.currentWeek % 2 != 0
-                            ? 'Snatch Emphasis (2:1 Alternating Focus)'
-                            : 'Clean & Jerk Emphasis (1:2 Alternating Focus)'))),
+                : (isAtg
+                    ? '12 Quantifiable Standards • End-Range Joint Armor • Density Timers'
+                    : (isMobility
+                        ? 'Olympic lifts deprioritized • Weekly loaded mobility & joint hypertrophy'
+                        : (isRetest
+                            ? 'Retest 1RM baselines to reset your training percentages'
+                            : (program.currentWeek % 2 != 0
+                                ? 'Snatch Emphasis (2:1 Alternating Focus)'
+                                : 'Clean & Jerk Emphasis (1:2 Alternating Focus)')))),
             style: GoogleFonts.inter(
               fontSize: 12,
               fontWeight: FontWeight.w600,
@@ -693,7 +607,7 @@ class DashboardScreen extends StatelessWidget {
           ),
           const SizedBox(height: 12),
 
-          if (isMobility || isBodybuilding) ...<Widget>[
+          if (isMobility || isBodybuilding || isAtg) ...<Widget>[
             // 7 Days of the week selector pills (Mon..Sun)
             Row(
               children: List.generate(7, (index) {
@@ -719,7 +633,7 @@ class DashboardScreen extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(vertical: 6),
                         decoration: BoxDecoration(
                           color: isSelected
-                              ? AppTheme.accentEmerald
+                              ? glowColor
                               : AppTheme.surfaceCard,
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(
@@ -733,7 +647,9 @@ class DashboardScreen extends StatelessWidget {
                               fontSize: 11,
                               fontWeight: FontWeight.bold,
                               color: isSelected
-                                  ? (isBodybuilding ? Colors.white : Colors.black)
+                                  ? ((isBodybuilding || isAtg)
+                                      ? Colors.white
+                                      : Colors.black)
                                   : AppTheme.textSecondary,
                             ),
                           ),
@@ -752,7 +668,12 @@ class DashboardScreen extends StatelessWidget {
                   MaterialPageRoute<void>(
                     builder: (_) => isBodybuilding
                         ? const BodybuildingRoutineScreen()
-                        : const MobilityRoutineScreen(),
+                        : (isAtg
+                            ? WorkoutSessionScreen(
+                                dayTemplate: program.currentDayTemplate,
+                                isPreviewMode: true,
+                              )
+                            : const MobilityRoutineScreen()),
                   ),
                 );
               },
@@ -770,7 +691,9 @@ class DashboardScreen extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
                     Icon(
-                      isBodybuilding ? Icons.fitness_center : Icons.accessibility_new,
+                      isBodybuilding
+                          ? Icons.fitness_center
+                          : (isAtg ? Icons.shield_outlined : Icons.accessibility_new),
                       color: glowColor,
                       size: 18,
                     ),
@@ -779,7 +702,9 @@ class DashboardScreen extends StatelessWidget {
                       child: Text(
                         isBodybuilding
                             ? 'View 19 Exercises Guide & Inspo Video'
-                            : 'View Mobility Standards & Inspiration Videos',
+                            : (isAtg
+                                ? 'Preview ATG Standards & Joint Density Split'
+                                : 'View Mobility Standards & Inspiration Videos'),
                         style: GoogleFonts.outfit(
                           fontSize: 13,
                           fontWeight: FontWeight.bold,
@@ -867,6 +792,352 @@ class DashboardScreen extends StatelessWidget {
             ),
           ],
         ],
+      ),
+    );
+  }
+
+  Widget _buildTrackDropdown(
+    BuildContext context,
+    ProgramProvider program,
+    Color glowColor,
+  ) {
+    final (String trackTitle, String trackIcon, String trackTag) = switch (program.activeTrack) {
+      TrainingTrack.atgStandards => ('ATG Standards', '🦵', 'JOINT ARMOR'),
+      TrainingTrack.olympic => ('Olympic Weightlifting', '🏋️', 'EXPLOSIVE POWER'),
+      TrainingTrack.mobility => ('Mobility & Hypertrophy', '🧘', 'RESTORATIVE FLOW'),
+      TrainingTrack.bodybuilding => ('Bodybuilding (Winny Split)', '💪', 'HYPERTROPHY'),
+    };
+
+    return OlyPressable(
+      onPressed: () => _showTrackSelectionModal(context, program),
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          color: AppTheme.darkBackground.withValues(alpha: 0.85),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: glowColor.withValues(alpha: 0.35)),
+          boxShadow: <BoxShadow>[
+            BoxShadow(
+              color: glowColor.withValues(alpha: 0.08),
+              blurRadius: 10,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: <Widget>[
+            Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                color: glowColor.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: glowColor.withValues(alpha: 0.4)),
+              ),
+              child: Center(
+                child: Text(
+                  trackIcon,
+                  style: const TextStyle(fontSize: 18),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Row(
+                    children: <Widget>[
+                      Text(
+                        'TRAINING TRACK',
+                        style: GoogleFonts.outfit(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1.2,
+                          color: AppTheme.textTertiary,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 1,
+                        ),
+                        decoration: BoxDecoration(
+                          color: glowColor.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          trackTag,
+                          style: GoogleFonts.outfit(
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
+                            color: glowColor,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    trackTitle,
+                    style: GoogleFonts.outfit(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.textPrimary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: AppTheme.surfaceCard,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppTheme.borderColor),
+              ),
+              child: Icon(
+                Icons.unfold_more_rounded,
+                color: glowColor,
+                size: 18,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showTrackSelectionModal(
+    BuildContext context,
+    ProgramProvider program,
+  ) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return Container(
+          padding: const EdgeInsets.all(22),
+          decoration: const BoxDecoration(
+            color: AppTheme.darkBackground,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: AppTheme.borderColor,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 18),
+                Row(
+                  children: <Widget>[
+                    const Icon(
+                      Icons.tune_rounded,
+                      color: AppTheme.textPrimary,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Select Training Track',
+                      style: GoogleFonts.outfit(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.textPrimary,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Switch your active periodization and workout programming',
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    color: AppTheme.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: 18),
+                _buildTrackOptionTile(
+                  context: context,
+                  program: program,
+                  track: TrainingTrack.atgStandards,
+                  title: 'ATG Standards',
+                  subtitle:
+                      'Math-based % BW standards, end-range joint armor & density timers',
+                  tag: 'Joint Armor',
+                  icon: '🦵',
+                  color: AppTheme.accentElectricCyan,
+                ),
+                const SizedBox(height: 10),
+                _buildTrackOptionTile(
+                  context: context,
+                  program: program,
+                  track: TrainingTrack.olympic,
+                  title: 'Olympic Weightlifting',
+                  subtitle:
+                      'Snatch, Clean & Jerk, heavy squats and pulls periodization',
+                  tag: 'Explosive Power',
+                  icon: '🏋️',
+                  color: AppTheme.primaryAmber,
+                ),
+                const SizedBox(height: 10),
+                _buildTrackOptionTile(
+                  context: context,
+                  program: program,
+                  track: TrainingTrack.mobility,
+                  title: 'Mobility & Hypertrophy',
+                  subtitle:
+                      'Dane Miller joint prep, hip capsule flows, restorative loaded mobility',
+                  tag: 'Restorative Flow',
+                  icon: '🧘',
+                  color: AppTheme.accentEmerald,
+                ),
+                const SizedBox(height: 10),
+                _buildTrackOptionTile(
+                  context: context,
+                  program: program,
+                  track: TrainingTrack.bodybuilding,
+                  title: 'Bodybuilding (Winny Split)',
+                  subtitle:
+                      'Trainer Winny PPL split, 9 muscle groups, aesthetic hypertrophy',
+                  tag: 'Hypertrophy',
+                  icon: '💪',
+                  color: const Color(0xFFA855F7),
+                ),
+                const SizedBox(height: 12),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildTrackOptionTile({
+    required BuildContext context,
+    required ProgramProvider program,
+    required TrainingTrack track,
+    required String title,
+    required String subtitle,
+    required String tag,
+    required String icon,
+    required Color color,
+  }) {
+    final bool isSelected = program.activeTrack == track;
+
+    return OlyPressable(
+      onPressed: () {
+        if (!isSelected) {
+          program.setTrainingTrack(track);
+        }
+        Navigator.pop(context);
+      },
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? color.withValues(alpha: 0.12)
+              : AppTheme.surfaceCard,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: isSelected ? color : AppTheme.borderColor,
+            width: isSelected ? 1.5 : 1.0,
+          ),
+        ),
+        child: Row(
+          children: <Widget>[
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? color.withValues(alpha: 0.25)
+                    : AppTheme.surfaceElevated,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: isSelected
+                      ? color.withValues(alpha: 0.6)
+                      : AppTheme.borderColor,
+                ),
+              ),
+              child: Center(
+                child: Text(
+                  icon,
+                  style: const TextStyle(fontSize: 22),
+                ),
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Row(
+                    children: <Widget>[
+                      Text(
+                        title,
+                        style: GoogleFonts.outfit(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: isSelected ? color : AppTheme.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 1,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? color.withValues(alpha: 0.2)
+                              : AppTheme.surfaceElevated,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          tag,
+                          style: GoogleFonts.outfit(
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
+                            color: isSelected ? color : AppTheme.textTertiary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    subtitle,
+                    style: GoogleFonts.inter(
+                      fontSize: 11,
+                      color: AppTheme.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Icon(
+              isSelected
+                  ? Icons.check_circle_rounded
+                  : Icons.radio_button_unchecked_rounded,
+              color: isSelected ? color : AppTheme.textTertiary,
+              size: 22,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1097,13 +1368,16 @@ class DashboardScreen extends StatelessWidget {
   ) {
     final bool isMobility = program.isMobilityTrack;
     final bool isBodybuilding = program.isBodybuildingTrack;
+    final bool isAtg = program.isAtgTrack;
     final Color trackAccent = isBodybuilding
         ? const Color(0xFFA855F7)
-        : (isMobility
-            ? AppTheme.accentEmerald
-            : (day.isActiveRecovery
-                ? AppTheme.secondaryCyan
-                : AppTheme.primaryAmber));
+        : (isAtg
+            ? AppTheme.accentElectricCyan
+            : (isMobility
+                ? AppTheme.accentEmerald
+                : (day.isActiveRecovery
+                    ? AppTheme.secondaryCyan
+                    : AppTheme.primaryAmber)));
 
     return GlassContainer(
       padding: const EdgeInsets.all(18),
@@ -1118,16 +1392,22 @@ class DashboardScreen extends StatelessWidget {
               Text(
                 isBodybuilding
                     ? "TODAY'S BODYBUILDING SESSION"
-                    : (isMobility
-                        ? "TODAY'S MOBILITY & HYPERTROPHY"
-                        : "TODAY'S WORKOUT"),
+                    : (isAtg
+                        ? "TODAY'S ATG STANDARDS SESSION"
+                        : (isMobility
+                            ? "TODAY'S MOBILITY & HYPERTROPHY"
+                            : "TODAY'S WORKOUT")),
                 style: GoogleFonts.outfit(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 1,
                   color: isBodybuilding
                       ? const Color(0xFFA855F7)
-                      : (isMobility ? AppTheme.accentEmerald : AppTheme.textSecondary),
+                      : (isAtg
+                          ? AppTheme.accentElectricCyan
+                          : (isMobility
+                              ? AppTheme.accentEmerald
+                              : AppTheme.textSecondary)),
                 ),
               ),
               if (day.isActiveRecovery)
@@ -1157,7 +1437,7 @@ class DashboardScreen extends StatelessWidget {
             children: program.days.map((d) {
               final bool isSelected = program.currentDay == d.dayNumber;
               String label;
-              if (isMobility || isBodybuilding) {
+              if (isMobility || isBodybuilding || isAtg) {
                 const List<String> weekdayLabels = <String>[
                   'Mon',
                   'Tue',
@@ -1249,10 +1529,18 @@ class DashboardScreen extends StatelessWidget {
                     _buildGoalTrackChip(
                       icon: isBodybuilding
                           ? Icons.fitness_center
-                          : (isMobility ? Icons.accessibility_new : Icons.fitness_center),
+                          : (isAtg
+                              ? Icons.shield_outlined
+                              : (isMobility
+                                  ? Icons.accessibility_new
+                                  : Icons.fitness_center)),
                       label: isBodybuilding
                           ? 'Bodybuilding (19 Exercises)'
-                          : (isMobility ? 'Mobility & Hypertrophy' : 'Olympic Lifting'),
+                          : (isAtg
+                              ? 'ATG Standards (Bulletproof)'
+                              : (isMobility
+                                  ? 'Mobility & Hypertrophy'
+                                  : 'Olympic Lifting')),
                       color: trackAccent,
                     ),
                   ],
@@ -1927,7 +2215,13 @@ class DashboardScreen extends StatelessWidget {
             final List<DayTemplate> previewDays =
                 program.activeTrack == TrainingTrack.bodybuilding
                     ? ProgramCycle.getBodybuildingProgram()
-                    : ProgramCycle.getBuiltInProgram(week: selectedWeek);
+                    : (program.activeTrack == TrainingTrack.mobility
+                        ? ProgramCycle.getMobilityProgram()
+                        : (program.activeTrack == TrainingTrack.atgStandards
+                            ? ProgramCycle.getAtgStandardsProgram()
+                            : ProgramCycle.getBuiltInProgram(
+                                week: selectedWeek,
+                              )));
             final DayTemplate day = previewDays.firstWhere(
               (d) => d.dayNumber == selectedDayNum,
               orElse: () => previewDays.first,
@@ -2048,7 +2342,11 @@ class DashboardScreen extends StatelessWidget {
                           final bool isSel = selectedDayNum == d.dayNumber;
                           String label;
                           if (program.activeTrack ==
-                              TrainingTrack.bodybuilding) {
+                                  TrainingTrack.bodybuilding ||
+                              program.activeTrack ==
+                                  TrainingTrack.atgStandards ||
+                              program.activeTrack ==
+                                  TrainingTrack.mobility) {
                             label = 'Day ${d.dayNumber}';
                           } else if (d.dayNumber == 1) {
                             label = 'Day 1';
@@ -2077,8 +2375,14 @@ class DashboardScreen extends StatelessWidget {
                                 decoration: BoxDecoration(
                                   color: isSel
                                       ? (d.isActiveRecovery
-                                            ? AppTheme.secondaryCyan
-                                            : AppTheme.primaryAmber)
+                                          ? AppTheme.secondaryCyan
+                                          : (program.activeTrack ==
+                                                  TrainingTrack.atgStandards
+                                              ? AppTheme.accentElectricCyan
+                                              : (program.activeTrack ==
+                                                      TrainingTrack.bodybuilding
+                                                  ? const Color(0xFFA855F7)
+                                                  : AppTheme.primaryAmber)))
                                       : AppTheme.surfaceCard,
                                   borderRadius: BorderRadius.circular(10),
                                   border: Border.all(
@@ -2146,7 +2450,9 @@ class DashboardScreen extends StatelessWidget {
                                 Navigator.pop(ctx);
                                 if (day.isActiveRecovery &&
                                     program.activeTrack !=
-                                        TrainingTrack.bodybuilding) {
+                                        TrainingTrack.bodybuilding &&
+                                    program.activeTrack !=
+                                        TrainingTrack.atgStandards) {
                                   final LiftProvider lifts =
                                       Provider.of<LiftProvider>(
                                         context,
@@ -2217,7 +2523,9 @@ class DashboardScreen extends StatelessWidget {
                                 Navigator.pop(ctx);
                                 if (day.isActiveRecovery &&
                                     program.activeTrack !=
-                                        TrainingTrack.bodybuilding) {
+                                        TrainingTrack.bodybuilding &&
+                                    program.activeTrack !=
+                                        TrainingTrack.atgStandards) {
                                   final LiftProvider lifts =
                                       Provider.of<LiftProvider>(
                                         context,
@@ -2270,12 +2578,17 @@ class DashboardScreen extends StatelessWidget {
                                 minimumSize: const Size(0, 48),
                                 backgroundColor: (day.isActiveRecovery &&
                                         program.activeTrack !=
-                                            TrainingTrack.bodybuilding)
+                                            TrainingTrack.bodybuilding &&
+                                        program.activeTrack !=
+                                            TrainingTrack.atgStandards)
                                     ? AppTheme.secondaryCyan
                                     : (program.activeTrack ==
                                             TrainingTrack.bodybuilding
                                         ? const Color(0xFFA855F7)
-                                        : AppTheme.primaryAmber),
+                                        : (program.activeTrack ==
+                                                TrainingTrack.atgStandards
+                                            ? AppTheme.accentElectricCyan
+                                            : AppTheme.primaryAmber)),
                                 foregroundColor: Colors.black,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),

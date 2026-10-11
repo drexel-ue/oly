@@ -296,6 +296,9 @@ class ActivityExpenditureService {
     if (track == TrainingTrack.bodybuilding) {
       return 5;
     }
+    if (track == TrainingTrack.atgStandards) {
+      return 4.8;
+    }
     if (track == TrainingTrack.mobility) {
       return 3;
     }
@@ -367,6 +370,8 @@ class ActivityExpenditureService {
           return 5;
         case TrainingTrack.mobility:
           return 3;
+        case TrainingTrack.atgStandards:
+          return 4.8;
         case TrainingTrack.olympic:
           return 6.2;
       }
@@ -401,6 +406,8 @@ class ActivityExpenditureService {
           return 5;
         case TrainingTrack.mobility:
           return 3;
+        case TrainingTrack.atgStandards:
+          return 4.8;
         case TrainingTrack.olympic:
           return 6.2;
       }
@@ -417,6 +424,8 @@ class ActivityExpenditureService {
         return 'Bodybuilding (${session.displayTitle})';
       case TrainingTrack.mobility:
         return 'Mobility (${session.displayTitle})';
+      case TrainingTrack.atgStandards:
+        return 'ATG Standards (${session.displayTitle})';
       case TrainingTrack.olympic:
         return 'Olympic Lifting (${session.displayTitle})';
     }
@@ -474,7 +483,9 @@ class ActivityExpenditureService {
         ? (metDurationSum / exerciseDurSum)
         : (session.inferredTrack == TrainingTrack.bodybuilding
             ? 5
-            : (session.inferredTrack == TrainingTrack.mobility ? 3 : 6.2));
+            : (session.inferredTrack == TrainingTrack.mobility
+                ? 3
+                : (session.inferredTrack == TrainingTrack.atgStandards ? 4.8 : 6.2)));
     final double sessionMet = double.parse(rawMet.toStringAsFixed(1));
 
     // If session duration in seconds is explicitly provided and longer than exercise sum,

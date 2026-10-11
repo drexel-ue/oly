@@ -170,11 +170,18 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
       }
     }
 
+    final BodyCompProvider bodyComp = Provider.of<BodyCompProvider>(
+      context,
+      listen: false,
+    );
+    final double? athleteBwKg = bodyComp.latestEntry?.weightKg;
+
     for (final PhaseTemplate phase in widget.dayTemplate.phases) {
       for (final ExerciseTemplate exercise in phase.exercises) {
         final double targetKg = exercise.calculateTargetWeight(
           week: week,
           currentMaxes: maxes,
+          athleteBodyweightKg: athleteBwKg,
         );
 
         if (!_weightControllers.containsKey(exercise.name)) {
@@ -504,9 +511,14 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
             );
           },
           onResetToOriginal: () {
+            final double? bwKg = Provider.of<BodyCompProvider>(
+              context,
+              listen: false,
+            ).latestEntry?.weightKg;
             final double originalTargetKg = exercise.calculateTargetWeight(
               week: currentWeek,
               currentMaxes: liftProvider.currentMaxes,
+              athleteBodyweightKg: bwKg,
             );
 
             setState(() {
@@ -560,11 +572,16 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
 
     final String displayName =
         _swappedExerciseNames[exercise.name] ?? exercise.name;
+    final double? bwKg = Provider.of<BodyCompProvider>(
+      context,
+      listen: false,
+    ).latestEntry?.weightKg;
     final double currentWeightKg =
         double.tryParse(_weightControllers[exercise.name]?.text ?? '0') ??
         exercise.calculateTargetWeight(
           week: currentWeek,
           currentMaxes: liftProvider.currentMaxes,
+          athleteBodyweightKg: bwKg,
         );
 
     final List<CompletedSet>? currentSets = _exerciseSets[exercise.name];
@@ -988,6 +1005,8 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
         ) ||
         programProvider.activeTrack == TrainingTrack.bodybuilding) {
       trackName = TrainingTrack.bodybuilding.name;
+    } else if (programProvider.activeTrack == TrainingTrack.atgStandards) {
+      trackName = TrainingTrack.atgStandards.name;
     } else if (programProvider.activeTrack == TrainingTrack.mobility ||
         widget.dayTemplate.isActiveRecovery) {
       trackName = TrainingTrack.mobility.name;

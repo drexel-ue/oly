@@ -7,7 +7,8 @@ class ProgramProvider extends ChangeNotifier {
   new(this._storage) {
     _cycle = _storage.loadProgramCycle();
     if (_cycle.activeTrack == TrainingTrack.mobility ||
-        _cycle.activeTrack == TrainingTrack.bodybuilding) {
+        _cycle.activeTrack == TrainingTrack.bodybuilding ||
+        _cycle.activeTrack == TrainingTrack.atgStandards) {
       final int todayWeekday = DateTime.now().weekday;
       _cycle.currentDay = todayWeekday.clamp(1, 7);
     }
@@ -15,7 +16,9 @@ class ProgramProvider extends ChangeNotifier {
         ? ProgramCycle.getBodybuildingProgram()
         : (_cycle.activeTrack == TrainingTrack.mobility
             ? ProgramCycle.getMobilityProgram()
-            : ProgramCycle.getBuiltInProgram(week: _cycle.currentWeek));
+            : (_cycle.activeTrack == TrainingTrack.atgStandards
+                ? ProgramCycle.getAtgStandardsProgram()
+                : ProgramCycle.getBuiltInProgram(week: _cycle.currentWeek)));
     _sessions = _storage.loadWorkoutSessions();
     _activeDraft = _storage.loadActiveWorkoutDraft();
   }
@@ -31,12 +34,15 @@ class ProgramProvider extends ChangeNotifier {
   bool get isMobilityTrack => _cycle.activeTrack == TrainingTrack.mobility;
   bool get isBodybuildingTrack =>
       _cycle.activeTrack == TrainingTrack.bodybuilding;
+  bool get isAtgTrack => _cycle.activeTrack == TrainingTrack.atgStandards;
 
   List<DayTemplate> get days {
     if (isBodybuildingTrack) {
       return ProgramCycle.getBodybuildingProgram();
     } else if (isMobilityTrack) {
       return ProgramCycle.getMobilityProgram();
+    } else if (isAtgTrack) {
+      return ProgramCycle.getAtgStandardsProgram();
     } else {
       return ProgramCycle.getBuiltInProgram(week: _cycle.currentWeek);
     }
@@ -49,7 +55,10 @@ class ProgramProvider extends ChangeNotifier {
   int get currentDay => _cycle.currentDay;
   int get currentCycle => _cycle.currentCycle;
   bool get isRetestWeek =>
-      !isMobilityTrack && !isBodybuildingTrack && _cycle.currentWeek == 5;
+      !isMobilityTrack &&
+      !isBodybuildingTrack &&
+      !isAtgTrack &&
+      _cycle.currentWeek == 5;
 
   double get totalVolumeKg => _sessions.fold(
     0,
@@ -90,7 +99,8 @@ class ProgramProvider extends ChangeNotifier {
   void setTrainingTrack(TrainingTrack track) {
     _cycle.activeTrack = track;
     if (track == TrainingTrack.mobility ||
-        track == TrainingTrack.bodybuilding) {
+        track == TrainingTrack.bodybuilding ||
+        track == TrainingTrack.atgStandards) {
       final int todayWeekday = DateTime.now().weekday;
       _cycle.currentDay = todayWeekday.clamp(1, 7);
     } else {

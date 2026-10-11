@@ -145,6 +145,12 @@ class WorkoutSession {
       if (t == 'bodybuilding' || t.contains('bodybuild')) {
         return TrainingTrack.bodybuilding;
       }
+      if (t == 'atgstandards' ||
+          t == 'atg' ||
+          t.contains('atg') ||
+          t.contains('standard')) {
+        return TrainingTrack.atgStandards;
+      }
       if (t == 'mobility') {
         return TrainingTrack.mobility;
       }
@@ -153,9 +159,27 @@ class WorkoutSession {
       }
     }
 
+    if (jointStrainTags != null) {
+      for (final String tag in jointStrainTags!) {
+        final String lower = tag.toLowerCase();
+        if (lower.contains('atg') ||
+            lower.contains('knee_ability') ||
+            lower.contains('standards')) {
+          return TrainingTrack.atgStandards;
+        }
+      }
+    }
+
     // Check notes / title hints
     final String combinedText =
         '${sessionTitle ?? ''} ${notes ?? ''}'.toLowerCase();
+    if (combinedText.contains('atg') ||
+        combinedText.contains('standards') ||
+        combinedText.contains('bulletproof') ||
+        combinedText.contains('vmo armor') ||
+        combinedText.contains('poliquin')) {
+      return TrainingTrack.atgStandards;
+    }
     if (combinedText.contains('bodybuilding') ||
         combinedText.contains('upper a') ||
         combinedText.contains('upper b') ||
@@ -176,10 +200,27 @@ class WorkoutSession {
     int bbScore = 0;
     int olyScore = 0;
     int mobilityScore = 0;
+    int atgScore = 0;
 
     for (final ExerciseLog log in logs) {
       final String id = log.liftId.toLowerCase();
       final String name = log.exerciseName.toLowerCase();
+
+      if (id.contains('poliquin') ||
+          id.contains('jefferson_curl') ||
+          id.contains('tibialis') ||
+          id.contains('atg_split_squat') ||
+          id.contains('seated_good_morning') ||
+          id.contains('nordic') ||
+          id.contains('kot_squat') ||
+          id.contains('ql_extension') ||
+          id.contains('cross_bench') ||
+          name.contains('atg') ||
+          name.contains('poliquin') ||
+          name.contains('jefferson') ||
+          name.contains('tibialis')) {
+        atgScore += 2;
+      }
 
       if (id.startsWith('bb_') ||
           id.contains('curl') ||
@@ -224,6 +265,9 @@ class WorkoutSession {
       }
     }
 
+    if (atgScore > 0 && atgScore >= bbScore && atgScore >= olyScore) {
+      return TrainingTrack.atgStandards;
+    }
     if (olyScore > 0 && olyScore >= bbScore) {
       return TrainingTrack.olympic;
     }
@@ -268,6 +312,25 @@ class WorkoutSession {
             return 'Day 7: Full Body Flush';
           default:
             return 'Day $dayNumber: Bodybuilding';
+        }
+      case TrainingTrack.atgStandards:
+        switch (dayNumber) {
+          case 1:
+            return 'Day 1: Anterior Knee & VMO Armor';
+          case 2:
+            return 'Day 2: Hip Range & Posterior Chain';
+          case 3:
+            return 'Day 3: Active ROKP & Ankle Transformation';
+          case 4:
+            return 'Day 4: Deep Squat & Vertical Press/Pull';
+          case 5:
+            return 'Day 5: Posterior Armor & Trunk Integrity';
+          case 6:
+            return 'Day 6: Athletic Power & Elasticity';
+          case 7:
+            return 'Day 7: Full System Recovery';
+          default:
+            return 'Day $dayNumber: ATG Standards';
         }
       case TrainingTrack.mobility:
         return 'Day $dayNumber: Mobility Flow';

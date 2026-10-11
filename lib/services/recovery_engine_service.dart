@@ -212,6 +212,64 @@ class RecoveryEngineService {
       );
     }
 
+    // 2b. ATG Standards Track Fallback (if no specific dayTemplate provided)
+    if (trainingTrack == TrainingTrack.atgStandards) {
+      final List<MobilityExerciseModel> p1 = catalog
+          .where((e) => e.id == 'walking' || e.id == 'reverse_sled')
+          .toList();
+      final List<MobilityExerciseModel> p2 = catalog
+          .where((e) =>
+              e.id == 'slant_board_calf_stretch' || e.id == 'couch_stretch')
+          .toList();
+      final List<MobilityExerciseModel> p3 = catalog
+          .where((e) =>
+              e.id == 'tibialis_raise' ||
+              e.id == 'jefferson_curl' ||
+              e.id == 'hip_90_90_switch')
+          .toList();
+      final List<MobilityExerciseModel> p4 = catalog
+          .where((e) => e.id == 'elephant_walk' || e.id == 'breathwork')
+          .toList();
+
+      final List<RecoveryPhaseGroup> atgGroups = <RecoveryPhaseGroup>[
+        RecoveryPhaseGroup(
+          phaseNumber: 1,
+          title: 'Phase 1: Reverse Sled / ROKP Flush',
+          subtitle: 'Backward Walking for Patellar Capillary Flow',
+          exercises: p1.isNotEmpty
+              ? p1
+              : catalog.where((e) => e.id == 'walking').toList(),
+        ),
+        RecoveryPhaseGroup(
+          phaseNumber: 2,
+          title: 'Phase 2: Ankle & Hip Capsule Restoration',
+          subtitle: 'Slant Board Dorsiflexion & Wall Couch Stretch',
+          exercises: p2,
+        ),
+        RecoveryPhaseGroup(
+          phaseNumber: 3,
+          title: 'Phase 3: Joint Armor & Connective Tissue',
+          subtitle: 'Tibialis Anterior & Segmented Jefferson Curls',
+          exercises: p3,
+        ),
+        RecoveryPhaseGroup(
+          phaseNumber: 4,
+          title: 'Phase 4: Parasympathetic Decompression',
+          subtitle: 'Elephant Walk Hamstring Lockouts & Breathwork',
+          exercises: p4,
+        ),
+      ];
+
+      return GeneratedRecoveryRoutine(
+        phaseGroups: atgGroups,
+        exercises: atgGroups.expand((g) => g.exercises).toList(),
+        diagnosticReasons: <String>[
+          'ATG Standards Bulletproof Recovery: ROKP capillary blood flow, ankle dorsiflexion, and connective tissue remodeling.',
+        ],
+        totalEstimatedMinutes: 30,
+      );
+    }
+
     final Set<MobilityFocusArea> targetFocusAreas = <MobilityFocusArea>{};
     final List<String> diagnosticReasons = <String>[];
 

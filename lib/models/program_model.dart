@@ -2,6 +2,7 @@ enum TrainingTrack {
   olympic,
   mobility,
   bodybuilding,
+  atgStandards,
 }
 
 class ExerciseTemplate {
@@ -14,6 +15,7 @@ class ExerciseTemplate {
     this.fixedPercentage,
     this.fixedWeightKg,
     this.weeklyWeightIncrementKg,
+    this.bodyweightPercentage,
     this.notes,
   });
 
@@ -30,6 +32,7 @@ class ExerciseTemplate {
       fixedWeightKg: (json['fixedWeightKg'] as num?)?.toDouble(),
       weeklyWeightIncrementKg: (json['weeklyWeightIncrementKg'] as num?)
           ?.toDouble(),
+      bodyweightPercentage: (json['bodyweightPercentage'] as num?)?.toDouble(),
       notes: json['notes'] as String?,
     );
   }
@@ -44,15 +47,27 @@ class ExerciseTemplate {
   fixedWeightKg; // Explicit fixed weight (e.g. 0.0 for bodyweight, 20.0 for light bar)
   final double?
   weeklyWeightIncrementKg; // Weekly progressive load (e.g. 2.5kg / ~5-10lbs)
+  final double?
+  bodyweightPercentage; // % of athlete bodyweight (e.g. 50% for ATG Split Squat, 25% for Jefferson Curl)
   final String? notes;
 
-  // Calculate suggested working weight for a specific week given current 1RMs map
+  // Calculate suggested working weight for a specific week given current 1RMs map and athlete bodyweight in kg
   double calculateTargetWeight({
     required int week,
     required Map<String, double> currentMaxes,
+    double? athleteBodyweightKg,
   }) {
     if (fixedWeightKg != null) {
       return fixedWeightKg!;
+    }
+
+    if (bodyweightPercentage != null) {
+      // Dynamic bodyweight calculation from BodyCompProvider
+      final double bw = (athleteBodyweightKg != null && athleteBodyweightKg > 0)
+          ? athleteBodyweightKg
+          : 85.0; // Fallback athlete bodyweight if unlogged
+      final double calculated = bw * (bodyweightPercentage! / 100.0);
+      return (calculated * 2).round() / 2.0; // Round to nearest 0.5 kg
     }
 
     final String refLiftId = anchorLiftId ?? liftId;
@@ -88,6 +103,7 @@ class ExerciseTemplate {
       'fixedPercentage': fixedPercentage,
       'fixedWeightKg': fixedWeightKg,
       'weeklyWeightIncrementKg': weeklyWeightIncrementKg,
+      'bodyweightPercentage': bodyweightPercentage,
       'notes': notes,
     };
   }
@@ -238,7 +254,9 @@ class ProgramCycle {
           ? TrainingTrack.olympic
           : (json['activeTrack'] == 'bodybuilding'
               ? TrainingTrack.bodybuilding
-              : TrainingTrack.mobility),
+              : (json['activeTrack'] == 'atgStandards' || json['activeTrack'] == 'atg'
+                  ? TrainingTrack.atgStandards
+                  : TrainingTrack.mobility)),
       completedSessionIds:
           (json['completedSessionIds'] as List<dynamic>?)
               ?.map((dynamic e) => e as String)
@@ -1208,6 +1226,635 @@ class ProgramCycle {
                 fixedWeightKg: 0,
                 notes:
                     'Deep parasympathetic oxygenation and autonomic nervous system reset.',
+              ),
+            ],
+          ),
+        ],
+      ),
+    ];
+  }
+
+  static List<DayTemplate> getAtgStandardsProgram() {
+    return <DayTemplate>[
+      // Day 1 (Mon): Anterior Knee & VMO Armor
+      DayTemplate(
+        dayNumber: 1,
+        title: 'Day 1: Anterior Knee & VMO Armor',
+        subtitle:
+            'Heavy Sled, Poliquin Step-Up, Jefferson Curl, Tibialis, Incline Press, Face Pull & Couch Stretch',
+        phases: <PhaseTemplate>[
+          PhaseTemplate(
+            name: 'Phase 1 - Knee Capillary Blood Flow & Foot Prep',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Reverse Sled / Deadmill (ROKP)',
+                liftId: 'reverse_sled',
+                setScheme: '3 Sets of 120m Heavy',
+                fixedWeightKg: 0,
+                notes:
+                    'Heavy backward walking; pump maximum pain-free knee capillary blood flow.',
+              ),
+              ExerciseTemplate(
+                name: 'Plantar Fascia Stretch',
+                liftId: 'plantar_fascia_stretch',
+                setScheme: '2 Sets of 120s Hold',
+                fixedWeightKg: 0,
+                notes:
+                    'Toes extended against floor/wedge; deep plantar tissue lengthening.',
+              ),
+              ExerciseTemplate(
+                name: 'Tibialis Stretch',
+                liftId: 'tibialis_stretch',
+                setScheme: '2 Sets of 120s Hold',
+                fixedWeightKg: 0,
+                notes: 'Sit on heels with ankles in full plantar flexion.',
+              ),
+            ],
+          ),
+          PhaseTemplate(
+            name: 'Phase 2 - Main Knee Armor Density Block',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Poliquin Step-Up (45° Slant)',
+                liftId: 'poliquin_step_up',
+                setScheme: '5 Sets of 20 Reps @ 21X1',
+                bodyweightPercentage: 66,
+                notes:
+                    'ATG Standard: 20 reps with 66% BW on back, 3-4" box, heel elevated >=45°.',
+              ),
+            ],
+          ),
+          PhaseTemplate(
+            name: 'Phase 3 - Posterior Chain & Lower Leg Armor',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Jefferson Curl',
+                liftId: 'jefferson_curl',
+                setScheme: '5 Sets of 10 Reps @ 3330',
+                bodyweightPercentage: 25,
+                notes:
+                    'ATG Standard: 10 reps with 25% BW, segmented spine curl with wrists below toes.',
+              ),
+              ExerciseTemplate(
+                name: 'Tibialis Anterior Raises',
+                liftId: 'tibialis_raise',
+                setScheme: '3 Sets of 20 Reps @ 11X2',
+                bodyweightPercentage: 12.5,
+                notes:
+                    'ATG Standard: 12.5% BW dumbbell tib raise or strict wall reps; pause at top.',
+              ),
+              ExerciseTemplate(
+                name: 'Hanging Leg Raise',
+                liftId: 'hanging_leg_raise',
+                setScheme: '3 Sets of 10 Reps @ 20X0',
+                fixedWeightKg: 0,
+                notes:
+                    'ATG Standard: Toes to bar with controlled descent.',
+              ),
+            ],
+          ),
+          PhaseTemplate(
+            name: 'Phase 4 - Upper Armor & Hip Opening',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: '45° Incline Dumbbell Press',
+                liftId: 'incline_dumbbell_press',
+                setScheme: '4 Sets of 10 Reps @ 22X0',
+                bodyweightPercentage: 33,
+                notes: 'ATG Standard: 33% BW per hand x 10 reps.',
+              ),
+              ExerciseTemplate(
+                name: 'Cable Face Pull',
+                liftId: 'face_pull',
+                setScheme: '4 Sets of 10 Reps @ 2022',
+                bodyweightPercentage: 33,
+                notes:
+                    'ATG Standard: 33% BW load x 10 reps, 2s peak scapular retraction.',
+              ),
+              ExerciseTemplate(
+                name: 'Wall Couch Stretch',
+                liftId: 'couch_stretch',
+                setScheme: '2 Sets of 90s per side',
+                fixedWeightKg: 0,
+                notes:
+                    'Shin flush to wall, glute squeezed, upright vertical torso.',
+              ),
+            ],
+          ),
+        ],
+      ),
+
+      // Day 2 (Tue): Hip Range & Posterior Chain
+      DayTemplate(
+        dayNumber: 2,
+        title: 'Day 2: Hip Range & Posterior Chain',
+        subtitle:
+            'ATG Split Squat, Seated Good Morning, Single-Leg Calf, ATG Dips, External Rotations & Pancake',
+        phases: <PhaseTemplate>[
+          PhaseTemplate(
+            name: 'Phase 1 - Foot, Sled & Hip Primer',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Standing Calf Stretch',
+                liftId: 'calf_stretch',
+                setScheme: '2 Sets of 120s per side',
+                fixedWeightKg: 0,
+                notes:
+                    'Straight-leg upper gastrocnemius stretch against wall or slant board.',
+              ),
+              ExerciseTemplate(
+                name: 'Sled Push / Pull',
+                liftId: 'sled_push_pull',
+                setScheme: '3 Sets of 20m Heavy',
+                fixedWeightKg: 0,
+                notes: 'Heavy push forward, pull backward.',
+              ),
+              ExerciseTemplate(
+                name: 'Relaxed Lunge',
+                liftId: 'relaxed_lunge',
+                setScheme: '3 Sets of 60s per side',
+                fixedWeightKg: 0,
+                notes: 'Deep passive hip flexor sink.',
+              ),
+            ],
+          ),
+          PhaseTemplate(
+            name: 'Phase 2 - Main Hip Density Block',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'ATG Split Squat',
+                liftId: 'atg_split_squat',
+                setScheme: '5 Sets of 5 Reps per side @ 33X0',
+                bodyweightPercentage: 25,
+                notes:
+                    'ATG Standard: 25% BW per hand on flat ground (50% BW total); front hamstring covers calf completely.',
+              ),
+            ],
+          ),
+          PhaseTemplate(
+            name: 'Phase 3 - Loaded Hip Hinge & Calf Armor',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Seated Good Morning',
+                liftId: 'seated_good_morning',
+                setScheme: '5 Sets of 10 Reps @ 31X1',
+                bodyweightPercentage: 50,
+                notes:
+                    'ATG Standard: 50% BW barbell on back; abs to bench with zero lower back rounding.',
+              ),
+              ExerciseTemplate(
+                name: 'Single-Leg Calf Raise',
+                liftId: 'single_leg_calf_raise',
+                setScheme: '3 Sets of 10 Reps @ 11X2',
+                bodyweightPercentage: 25,
+                notes:
+                    'ATG Standard: 25% BW DB in hand x 10 reps with 2s bottom stretch.',
+              ),
+              ExerciseTemplate(
+                name: 'Garhammer Raise',
+                liftId: 'garhammer_raise',
+                setScheme: '3 Sets of 10 Reps @ 11X2',
+                fixedWeightKg: 0,
+                notes:
+                    'ATG Standard: Level 2 knee curl starting from 90° flexion.',
+              ),
+            ],
+          ),
+          PhaseTemplate(
+            name: 'Phase 4 - Upper Body Armor & Adductor Opening',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Full-Range ATG Dips',
+                liftId: 'atg_dips',
+                setScheme: '4 Sets of up to 12 Reps @ 22X0',
+                fixedWeightKg: 0,
+                notes:
+                    'ATG Standard: 12 strict bodyweight reps with deep bicep-to-forearm compression.',
+              ),
+              ExerciseTemplate(
+                name: 'Seated External Rotations',
+                liftId: 'external_rotations',
+                setScheme: '4 Sets of 12 Reps @ 32X0',
+                bodyweightPercentage: 10,
+                notes:
+                    'ATG Standard: 10% BW dumbbell resting on elevated knee.',
+              ),
+              ExerciseTemplate(
+                name: 'Butterfly Stretch against Wall',
+                liftId: 'butterfly_stretch',
+                setScheme: '1 Set of 120s Hold',
+                fixedWeightKg: 0,
+                notes: 'Back flush to wall, knees pressed flat to floor.',
+              ),
+              ExerciseTemplate(
+                name: 'Seated Pancake',
+                liftId: 'seated_pancake',
+                setScheme: '1 Set of 120s Hold',
+                fixedWeightKg: 0,
+                notes: 'Wide straddle forward fold chest to floor.',
+              ),
+            ],
+          ),
+        ],
+      ),
+
+      // Day 3 (Wed): Active ROKP & Ankle Transformation (Active Recovery)
+      DayTemplate(
+        dayNumber: 3,
+        title: 'Day 3: Active ROKP & Ankle Transformation',
+        subtitle:
+            'Reverse Sled ROKP, 9-Min Calf Stretch, Seated Soleus Pauses, Tibialis & 90/90 Flow',
+        isActiveRecovery: true,
+        phases: <PhaseTemplate>[
+          PhaseTemplate(
+            name: 'Phase 1 - Capillary Flushing & Blood Flow',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Reverse Sled / Deadmill (ROKP)',
+                liftId: 'reverse_sled',
+                setScheme: '1 Set of 12 Mins Continuous',
+                fixedWeightKg: 0,
+                notes:
+                    'Continuous backward walking; pump pain-free synovial fluid and capillary recovery.',
+              ),
+            ],
+          ),
+          PhaseTemplate(
+            name: 'Phase 2 - Ankle Transformation Protocol',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Slant Board Calf Stretch',
+                liftId: 'slant_board_calf_stretch',
+                setScheme: '3 Sets of 90s per side',
+                fixedWeightKg: 0,
+                notes:
+                    'Full 9 minutes total calf lengthening; drive knee over toes without heel lifting.',
+              ),
+              ExerciseTemplate(
+                name: 'Seated Calf Machine (Soleus Raise)',
+                liftId: 'seated_calf_raise',
+                setScheme: '4 Sets of 4 Reps w/ 4s Pauses',
+                bodyweightPercentage: 25,
+                notes:
+                    'Bent-knee soleus isolation; 4s isometric pause at bottom stretch.',
+              ),
+              ExerciseTemplate(
+                name: 'Dumbbell Tibialis Raises',
+                liftId: 'tibialis_raise',
+                setScheme: '4 Sets of 15 Reps',
+                bodyweightPercentage: 12.5,
+                notes:
+                    'Full dorsiflexion squeeze to strengthen the primary ankle decelerator.',
+              ),
+              ExerciseTemplate(
+                name: 'Wall Couch Stretch',
+                liftId: 'couch_stretch',
+                setScheme: '4 Sets of 30s per side',
+                fixedWeightKg: 0,
+                notes: 'Wall anchored quad and hip flexor reset.',
+              ),
+              ExerciseTemplate(
+                name: 'Patrick Step-Up (Bodyweight)',
+                liftId: 'patrick_step_up',
+                setScheme: '4 Sets of 10 Reps',
+                fixedWeightKg: 0,
+                notes:
+                    'Smooth, pain-free controlled ankle dorsiflexion tracking.',
+              ),
+            ],
+          ),
+          PhaseTemplate(
+            name: 'Phase 3 - Hip Capsule Decompression',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: '90/90 Hip Switches & Pigeon Flow',
+                liftId: 'hip_90_90_switch',
+                setScheme: '1 Set of 180s per side',
+                fixedWeightKg: 0,
+                notes:
+                    'Hands-free internal and external rotation hip capsule flow.',
+              ),
+            ],
+          ),
+        ],
+      ),
+
+      // Day 4 (Thu): Deep Squat & Vertical Press/Pull
+      DayTemplate(
+        dayNumber: 4,
+        title: 'Day 4: Deep Squat & Vertical Press/Pull',
+        subtitle:
+            'Sled Drive, ATG Deep Squat, Nordic Curls, Cable Hip Flexors, Shoulder Press & Chin-Ups',
+        phases: <PhaseTemplate>[
+          PhaseTemplate(
+            name: 'Phase 1 - Sled Drive & Hip Prep',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Plantar Fascia Stretch',
+                liftId: 'plantar_fascia_stretch',
+                setScheme: '2 Sets of 120s Hold',
+                fixedWeightKg: 0,
+                notes: 'Ankle and foot arch prep.',
+              ),
+              ExerciseTemplate(
+                name: 'Sled Drive',
+                liftId: 'sled_drive',
+                setScheme: '3 Sets of 40m Heavy',
+                fixedWeightKg: 0,
+                notes:
+                    'Forward sprint drive against heavy sled resistance.',
+              ),
+              ExerciseTemplate(
+                name: 'Single-Leg Elevated Pike',
+                liftId: 'elevated_pike',
+                setScheme: '3 Sets of 60s per side',
+                fixedWeightKg: 0,
+                notes: 'Elevated single-leg hamstring stretch.',
+              ),
+            ],
+          ),
+          PhaseTemplate(
+            name: 'Phase 2 - Full-Depth Squat Armor',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'ATG Squat / VMO Squat',
+                liftId: 'atg_squat',
+                setScheme: '5 Sets of 20 Reps @ 22X1',
+                bodyweightPercentage: 25,
+                notes:
+                    'ATG Standard: 25% BW x 20 reps; full ankle-to-hamstring coverage, upright torso.',
+              ),
+            ],
+          ),
+          PhaseTemplate(
+            name: 'Phase 3 - Hamstring Armor & Hip Flexor Isolation',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Nordic Hamstring Curls',
+                liftId: 'nordic_hamstring_curl',
+                setScheme: '5 Sets of 10 Reps @ 41X0',
+                fixedWeightKg: 0,
+                notes:
+                    'ATG Standard: 10 full-range reps or strict eccentric descent without hip flexion.',
+              ),
+              ExerciseTemplate(
+                name: 'Low-Cable Pull-In',
+                liftId: 'low_cable_pull_in',
+                setScheme: '3 Sets of 20 Reps @ 10X0',
+                bodyweightPercentage: 50,
+                notes:
+                    'ATG Standard: 50% BW x 20 reps; strengthen deep psoas hip flexors.',
+              ),
+              ExerciseTemplate(
+                name: 'Tibialis Anterior Raises',
+                liftId: 'tibialis_raise',
+                setScheme: '3 Sets of 20 Reps @ 11X2',
+                bodyweightPercentage: 12.5,
+              ),
+            ],
+          ),
+          PhaseTemplate(
+            name: 'Phase 4 - Vertical Press & Pull Armor',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'ATG DB Shoulder Press',
+                liftId: 'atg_shoulder_press',
+                setScheme: '4 Sets of 10 Reps @ 22X0',
+                bodyweightPercentage: 25,
+                notes:
+                    'ATG Standard: 25% BW per hand x 10 reps (50% BW total).',
+              ),
+              ExerciseTemplate(
+                name: 'ATG Full-Range Chin-Ups',
+                liftId: 'atg_chin_up',
+                setScheme: '4 Sets of up to 10 Reps @ 21X1',
+                fixedWeightKg: 0,
+                notes: 'ATG Standard: 10 dead-hang to chest-to-bar reps.',
+              ),
+              ExerciseTemplate(
+                name: 'Wall Couch Stretch',
+                liftId: 'couch_stretch',
+                setScheme: '2 Sets of 90s per side',
+                fixedWeightKg: 0,
+              ),
+            ],
+          ),
+        ],
+      ),
+
+      // Day 5 (Fri): Posterior Armor & Trunk Integrity
+      DayTemplate(
+        dayNumber: 5,
+        title: 'Day 5: Posterior Armor & Trunk Integrity',
+        subtitle:
+            'ATG Romanian Deadlift, KOT/Sissy Squat, L-Sit Hold, QL Extensions, Cross-Bench Pullover & Trap 3',
+        phases: <PhaseTemplate>[
+          PhaseTemplate(
+            name: 'Phase 1 - Foot & Posterior Flush',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Standing Calf Stretch',
+                liftId: 'calf_stretch',
+                setScheme: '2 Sets of 120s per side',
+                fixedWeightKg: 0,
+              ),
+              ExerciseTemplate(
+                name: 'Sled Push / Pull',
+                liftId: 'sled_push_pull',
+                setScheme: '1 Set of 60m Heavy each way',
+                fixedWeightKg: 0,
+              ),
+            ],
+          ),
+          PhaseTemplate(
+            name: 'Phase 2 - Posterior Chain & Knee Extension Pairing',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'ATG Romanian Deadlift',
+                liftId: 'atg_rdl',
+                setScheme: '5 Sets of 10 Reps @ 11X1',
+                bodyweightPercentage: 100,
+                notes:
+                    'ATG Standard: 100% BW x 10 reps; flat back with deep hamstring stretch below parallel.',
+              ),
+              ExerciseTemplate(
+                name: 'KOT Squat / Sissy Squats',
+                liftId: 'kot_squat',
+                setScheme: '5 Sets of 20 Reps @ 31X0',
+                fixedWeightKg: 0,
+                notes:
+                    'ATG Standard: Bodyweight x 20 reps, shins parallel to floor or knees to floor with pad.',
+              ),
+            ],
+          ),
+          PhaseTemplate(
+            name: 'Phase 3 - Core & Lateral Trunk Armor',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'L-Sit Hold',
+                liftId: 'l_sit_hold',
+                setScheme: '3 Sets of 15s Hold',
+                fixedWeightKg: 0,
+                notes:
+                    'ATG Standard: 15 seconds flat ground palms down hold.',
+              ),
+              ExerciseTemplate(
+                name: 'QL Extensions',
+                liftId: 'ql_extension',
+                setScheme: '3 Sets of 10 Reps per side',
+                bodyweightPercentage: 25,
+                notes:
+                    'ATG Standard: 25% BW x 10 reps on 45° back extension bench.',
+              ),
+              ExerciseTemplate(
+                name: 'Single-Leg Calf Raise',
+                liftId: 'single_leg_calf_raise',
+                setScheme: '3 Sets of 10 Reps @ 11X2',
+                bodyweightPercentage: 25,
+              ),
+            ],
+          ),
+          PhaseTemplate(
+            name: 'Phase 4 - Scapular Armor & Cool-Down',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Cross-Bench Pullover',
+                liftId: 'cross_bench_pullover',
+                setScheme: '4 Sets of 10 Reps @ 22X0',
+                bodyweightPercentage: 25,
+                notes:
+                    'ATG Standard: 25% BW x 10 reps; hips and elbows dropped below bench.',
+              ),
+              ExerciseTemplate(
+                name: 'Trap-3 Raise',
+                liftId: 'trap_3_raise',
+                setScheme: '4 Sets of 10 Reps @ 30X3',
+                bodyweightPercentage: 5,
+                notes: '3-second peak isometric hold at 45° angle.',
+              ),
+              ExerciseTemplate(
+                name: 'Seated Pancake',
+                liftId: 'seated_pancake',
+                setScheme: '1 Set of 120s Hold',
+                fixedWeightKg: 0,
+              ),
+              ExerciseTemplate(
+                name: 'Butterfly Stretch against Wall',
+                liftId: 'butterfly_stretch',
+                setScheme: '1 Set of 120s Hold',
+                fixedWeightKg: 0,
+              ),
+            ],
+          ),
+        ],
+      ),
+
+      // Day 6 (Sat): Athletic Power & Elasticity (Active Recovery)
+      DayTemplate(
+        dayNumber: 6,
+        title: 'Day 6: Athletic Power & Elasticity',
+        subtitle:
+            'Reverse Sled Flush, KOT Calf Raise, Tendon Pogo/Jump Landing Drills, Tibialis & Couch Stretch',
+        isActiveRecovery: true,
+        phases: <PhaseTemplate>[
+          PhaseTemplate(
+            name: 'Phase 1 - Sled Blood Flow',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Reverse Sled / Deadmill (ROKP)',
+                liftId: 'reverse_sled',
+                setScheme: '1 Set of 10 Mins Continuous',
+                fixedWeightKg: 0,
+                notes:
+                    'Low-impact backward walking; joint decompression.',
+              ),
+            ],
+          ),
+          PhaseTemplate(
+            name: 'Phase 2 - Athletic Qualities Protocol',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Athletic Tendon Drills / Pogo Bounces',
+                liftId: 'athletic_qualities',
+                setScheme: '3 Sets of 30s Drills',
+                fixedWeightKg: 0,
+                notes:
+                    'Low-impact elastic tendon bouncing, pogo hops, or C25K running interval.',
+              ),
+              ExerciseTemplate(
+                name: 'Single-Leg KOT Calf Raise',
+                liftId: 'kot_calf_raise',
+                setScheme: '3 Sets of 10 Reps',
+                bodyweightPercentage: 25,
+                notes:
+                    'ATG Standard: 25% BW x 10 reps with knee bent over toes.',
+              ),
+              ExerciseTemplate(
+                name: 'Dumbbell Tibialis Raises',
+                liftId: 'tibialis_raise',
+                setScheme: '3 Sets of 20 Reps',
+                bodyweightPercentage: 12.5,
+              ),
+            ],
+          ),
+          PhaseTemplate(
+            name: 'Phase 3 - Tissue Lengthening',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Wall Couch Stretch',
+                liftId: 'couch_stretch',
+                setScheme: '2 Sets of 120s per side',
+                fixedWeightKg: 0,
+              ),
+              ExerciseTemplate(
+                name: '90/90 Hip Switches & Pigeon Flow',
+                liftId: 'hip_90_90_switch',
+                setScheme: '2 Sets of 120s per side',
+                fixedWeightKg: 0,
+              ),
+            ],
+          ),
+        ],
+      ),
+
+      // Day 7 (Sun): Full System Recovery & Joint Restoration (Active Recovery)
+      DayTemplate(
+        dayNumber: 7,
+        title: 'Day 7: Full System Recovery & Joint Restoration',
+        subtitle:
+            'Aerobic Walk/Sled Flush, Elephant Walk Hamstring Release, Wall Butterfly & Seated Pancake',
+        isActiveRecovery: true,
+        phases: <PhaseTemplate>[
+          PhaseTemplate(
+            name: 'Phase 1 - Decompression & Parasympathetic Reset',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Aerobic Walk / Light Sled',
+                liftId: 'walking',
+                setScheme: '1 Set of 15 Mins',
+                fixedWeightKg: 0,
+                notes:
+                    'Gentle aerobic flush; nasal diaphragmatic breathing.',
+              ),
+              ExerciseTemplate(
+                name: 'Elephant Walk',
+                liftId: 'elephant_walk',
+                setScheme: '2 Sets of 45 Reps',
+                fixedWeightKg: 0,
+                notes:
+                    'Palms flat on floor, alternating knee extensions to decompress hamstrings.',
+              ),
+              ExerciseTemplate(
+                name: 'Butterfly Stretch against Wall',
+                liftId: 'butterfly_stretch',
+                setScheme: '1 Set of 180s Hold',
+                fixedWeightKg: 0,
+              ),
+              ExerciseTemplate(
+                name: 'Seated Pancake',
+                liftId: 'seated_pancake',
+                setScheme: '1 Set of 180s Hold',
+                fixedWeightKg: 0,
               ),
             ],
           ),

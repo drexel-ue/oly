@@ -309,7 +309,7 @@ void main() {
       expect(find.text('DAY 1 OF 7'), findsOneWidget);
     });
 
-    testWidgets('DashboardScreen renders 3-way track switcher and switches to bodybuilding',
+    testWidgets('DashboardScreen renders track dropdown switcher and switches to bodybuilding',
         (tester) async {
       tester.view.physicalSize = const Size(1080, 2400);
       tester.view.devicePixelRatio = 1.0;
@@ -344,17 +344,23 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      // Ensure cycle card is visible
-      await tester.ensureVisible(find.text('💪 Bodybuilding'));
+      // Ensure track dropdown is visible
+      await tester.ensureVisible(find.text('TRAINING TRACK'));
       await tester.pumpAndSettle();
 
-      // Verify the 3-way track switcher segments
-      expect(find.text('🏋️ Olympic'), findsOneWidget);
-      expect(find.text('🧘 Mobility'), findsOneWidget);
-      expect(find.text('💪 Bodybuilding'), findsOneWidget);
+      // Open the track selection modal
+      await tester.tap(find.text('TRAINING TRACK'));
+      await tester.pumpAndSettle();
 
-      // Tap Bodybuilding track
-      await tester.tap(find.text('💪 Bodybuilding'));
+      // Verify the track options in modal
+      expect(find.text('Select Training Track'), findsOneWidget);
+      expect(find.text('ATG Standards'), findsOneWidget);
+      expect(find.text('Olympic Weightlifting'), findsWidgets);
+      expect(find.text('Mobility & Hypertrophy'), findsWidgets);
+      expect(find.text('Bodybuilding (Winny Split)'), findsOneWidget);
+
+      // Tap Bodybuilding track option
+      await tester.tap(find.text('Bodybuilding (Winny Split)'));
       await tester.pumpAndSettle();
 
       expect(programProvider.isBodybuildingTrack, isTrue);
