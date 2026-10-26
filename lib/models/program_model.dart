@@ -3,6 +3,7 @@ enum TrainingTrack {
   mobility,
   bodybuilding,
   atgStandards,
+  emomEight,
 }
 
 class ExerciseTemplate {
@@ -243,6 +244,8 @@ class ProgramCycle {
     this.currentDay = 1,
     this.activeTrack = TrainingTrack.mobility,
     List<String>? completedSessionIds,
+    this.isEmomRestDay = false,
+    this.emomRestDayDate,
   }) : completedSessionIds = completedSessionIds ?? <String>[];
 
   factory fromJson(Map<String, dynamic> json) {
@@ -256,19 +259,25 @@ class ProgramCycle {
               ? TrainingTrack.bodybuilding
               : (json['activeTrack'] == 'atgStandards' || json['activeTrack'] == 'atg'
                   ? TrainingTrack.atgStandards
-                  : TrainingTrack.mobility)),
+                  : (json['activeTrack'] == 'emomEight' || json['activeTrack'] == 'emom'
+                      ? TrainingTrack.emomEight
+                      : TrainingTrack.mobility))),
       completedSessionIds:
           (json['completedSessionIds'] as List<dynamic>?)
               ?.map((dynamic e) => e as String)
               .toList() ??
           <String>[],
+      isEmomRestDay: json['isEmomRestDay'] as bool? ?? false,
+      emomRestDayDate: json['emomRestDayDate'] as String?,
     );
   }
   int currentCycle;
   int currentWeek; // 1..4 = training weeks, 5 = 1RM Retest Week
-  int currentDay; // 1..4 (Olympic) or 1..7 (Mobility)
+  int currentDay; // 1..4 (Olympic), 1..7 (Mobility/BB/ATG), 1..8 (EMOM 8)
   TrainingTrack activeTrack;
   List<String> completedSessionIds;
+  bool isEmomRestDay;
+  String? emomRestDayDate;
 
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
@@ -277,6 +286,8 @@ class ProgramCycle {
       'currentDay': currentDay,
       'activeTrack': activeTrack.name,
       'completedSessionIds': completedSessionIds,
+      'isEmomRestDay': isEmomRestDay,
+      'emomRestDayDate': emomRestDayDate,
     };
   }
 
@@ -1349,7 +1360,7 @@ class ProgramCycle {
         dayNumber: 2,
         title: 'Day 2: Hip Range & Posterior Chain',
         subtitle:
-            'ATG Split Squat, Seated Good Morning, Single-Leg Calf, ATG Dips, External Rotations & Pancake',
+            'ATG Split Squat, Seated Good Morning, Single-Leg Calf, ATG Dips, Rotations, Forearm Armor & Pancake',
         phases: <PhaseTemplate>[
           PhaseTemplate(
             name: 'Phase 1 - Foot, Sled & Hip Primer',
@@ -1438,6 +1449,22 @@ class ProgramCycle {
                 bodyweightPercentage: 10,
                 notes:
                     'ATG Standard: 10% BW dumbbell resting on elevated knee.',
+              ),
+              ExerciseTemplate(
+                name: 'Forearm Pronation & Supination',
+                liftId: 'forearm_pronation_supination',
+                setScheme: '3 Sets of 15 Reps per side @ 2020',
+                fixedWeightKg: 4,
+                notes:
+                    'Using ATG Wrist Bar, sledgehammer, or offset dumbbell; elbow at 90° on bench, slow controlled rotation.',
+              ),
+              ExerciseTemplate(
+                name: 'Dumbbell Wrist Extension',
+                liftId: 'dumbbell_wrist_extension',
+                setScheme: '3 Sets of 15 Reps @ 3010',
+                fixedWeightKg: 6,
+                notes:
+                    'Forearms flat across bench/thighs palms down; 3s eccentric lower; balances dip compression and protects lateral epicondyle.',
               ),
               ExerciseTemplate(
                 name: 'Butterfly Stretch against Wall',
@@ -1544,7 +1571,7 @@ class ProgramCycle {
         dayNumber: 4,
         title: 'Day 4: Deep Squat & Vertical Press/Pull',
         subtitle:
-            'Sled Drive, ATG Deep Squat, Nordic Curls, Cable Hip Flexors, Shoulder Press & Chin-Ups',
+            'Sled Drive, ATG Deep Squat, Nordic Curls, Cable Hip Flexors, Shoulder Press, Chin-Ups & Wrist Flexion',
         phases: <PhaseTemplate>[
           PhaseTemplate(
             name: 'Phase 1 - Sled Drive & Hip Prep',
@@ -1632,6 +1659,14 @@ class ProgramCycle {
                 notes: 'ATG Standard: 10 dead-hang to chest-to-bar reps.',
               ),
               ExerciseTemplate(
+                name: 'Dumbbell Wrist Flexion',
+                liftId: 'dumbbell_wrist_flexion',
+                setScheme: '3 Sets of 15 Reps @ 21X1',
+                fixedWeightKg: 8,
+                notes:
+                    'Forearms flat across bench palms up; roll dumbbell to fingertips, curl into full wrist contraction to remodel medial epicondyle tendons.',
+              ),
+              ExerciseTemplate(
                 name: 'Wall Couch Stretch',
                 liftId: 'couch_stretch',
                 setScheme: '2 Sets of 90s per side',
@@ -1647,7 +1682,7 @@ class ProgramCycle {
         dayNumber: 5,
         title: 'Day 5: Posterior Armor & Trunk Integrity',
         subtitle:
-            'ATG Romanian Deadlift, KOT/Sissy Squat, L-Sit Hold, QL Extensions, Cross-Bench Pullover & Trap 3',
+            'ATG Romanian Deadlift, KOT/Sissy Squat, Floor Wrist Prep, L-Sit Hold, QL Extensions, Pullover & Trap 3',
         phases: <PhaseTemplate>[
           PhaseTemplate(
             name: 'Phase 1 - Foot & Posterior Flush',
@@ -1690,6 +1725,14 @@ class ProgramCycle {
           PhaseTemplate(
             name: 'Phase 3 - Core & Lateral Trunk Armor',
             exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Quadruped Floor Wrist Loading',
+                liftId: 'quadruped_wrist_loading',
+                setScheme: '2 Sets of 60s Flow',
+                fixedWeightKg: 0,
+                notes:
+                    'Palms flat (fingers forward, backward) & backs of hands on floor; gentle bodyweight rock to prepare carpal tunnel & wrists for L-sit.',
+              ),
               ExerciseTemplate(
                 name: 'L-Sit Hold',
                 liftId: 'l_sit_hold',
@@ -1855,6 +1898,438 @@ class ProgramCycle {
                 liftId: 'seated_pancake',
                 setScheme: '1 Set of 180s Hold',
                 fixedWeightKg: 0,
+              ),
+            ],
+          ),
+        ],
+      ),
+    ];
+  }
+
+  static List<DayTemplate> getEmomEightProgram() {
+    return <DayTemplate>[
+      // Day 1: Vertical Pull (Pull-ups / Chin-ups)
+      DayTemplate(
+        dayNumber: 1,
+        title: 'Day 1: Vertical Pull (Pull-ups / Chin-ups)',
+        subtitle:
+            'Scapular Depressions, Dead Hang Decompression & 10–30m EMOM Density',
+        phases: <PhaseTemplate>[
+          PhaseTemplate(
+            name: 'Phase 1 - Scapular Primer & Shoulder Prep',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Scapular Pull-ups & Dead Hang',
+                liftId: 'scapular_pull_ups',
+                setScheme: '2 Sets of 10 Reps + 30s Hang',
+                fixedWeightKg: 0,
+                notes:
+                    'Active shoulder depression to fire lower traps and serratus before loading.',
+              ),
+              ExerciseTemplate(
+                name: 'Band Pull-Aparts',
+                liftId: 'band_pull_apart',
+                setScheme: '2 Sets of 15 Reps',
+                fixedWeightKg: 0,
+                notes:
+                    'Rear delt and rhomboid activation. Squeeze shoulder blades together.',
+              ),
+            ],
+          ),
+          PhaseTemplate(
+            name: 'Phase 2 - Primary EMOM (Vertical Pull)',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Pull-ups / Chin-ups (1–10 Method)',
+                liftId: 'emom_pull_ups',
+                setScheme: '10–30 Min EMOM (1–10 Reps/Min)',
+                fixedWeightKg: 0,
+                notes:
+                    'Submaximal quality volume every minute on the minute. Target 1-10 reps per round without training to failure early. '
+                    'Progression: Weighted pull-ups or gymnastics ring pull-ups. '
+                    'Regression: Foot-assisted on bench or resistance band looped on bar.',
+              ),
+            ],
+          ),
+          PhaseTemplate(
+            name: 'Phase 3 - Decompression & Lat Reset',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Passive Bar Hang / Decompression',
+                liftId: 'active_hang',
+                setScheme: '2 Sets of 60s Hold',
+                fixedWeightKg: 0,
+                notes:
+                    'Decompress spine, expand thoracic cavity, and stretch lats.',
+              ),
+            ],
+          ),
+        ],
+      ),
+
+      // Day 2: Downward Push (Parallel Bar Dips)
+      DayTemplate(
+        dayNumber: 2,
+        title: 'Day 2: Downward Push (Parallel Bar Dips)',
+        subtitle:
+            'Wrist Rotations, Scapular Dips & 10–30m EMOM Tricep/Chest Volume',
+        phases: <PhaseTemplate>[
+          PhaseTemplate(
+            name: 'Phase 1 - Wrist & Shoulder Capsule Prep',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Wrist Extension/Flexion Rocks',
+                liftId: 'wrist_mobility',
+                setScheme: '2 Sets of 15 Rocks',
+                fixedWeightKg: 0,
+                notes: 'Palms flat on floor; rock gently forward over fingers.',
+              ),
+              ExerciseTemplate(
+                name: 'Scapular Dip Shrugs',
+                liftId: 'scapular_dips',
+                setScheme: '2 Sets of 10 Reps',
+                fixedWeightKg: 0,
+                notes: 'Straight arms on dip bars; depress and elevate scapula.',
+              ),
+            ],
+          ),
+          PhaseTemplate(
+            name: 'Phase 2 - Primary EMOM (Downward Push)',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Parallel Bar Dips (1–10 Method)',
+                liftId: 'emom_dips',
+                setScheme: '10–30 Min EMOM (1–10 Reps/Min)',
+                fixedWeightKg: 0,
+                notes:
+                    'Clean depth with upper arms reaching parallel. Crisp lockouts without hyperextending elbows. '
+                    'Progression: Weighted dips (+belt) or gymnastics ring dips. '
+                    'Regression: Foot-assisted on bench or resistance band looped across bars.',
+              ),
+            ],
+          ),
+          PhaseTemplate(
+            name: 'Phase 3 - Anterior Shoulder & Pec Release',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Doorway / Ring Chest Opener',
+                liftId: 'ring_chest_stretch',
+                setScheme: '2 Sets of 45s Hold',
+                fixedWeightKg: 0,
+                notes:
+                    'Expand ribcage and release anterior delts and pectoralis major.',
+              ),
+            ],
+          ),
+        ],
+      ),
+
+      // Day 3: Knee Dominant / Squat (Squats)
+      DayTemplate(
+        dayNumber: 3,
+        title: 'Day 3: Knee Dominant / Squat (Full Depth Squats)',
+        subtitle:
+            'Ankle Dorsiflexion, Hip IR & High-Density EMOM Squat Volume',
+        phases: <PhaseTemplate>[
+          PhaseTemplate(
+            name: 'Phase 1 - Ankle Dorsiflexion & Hip Capsule Primer',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Slant Board Calf Stretch',
+                liftId: 'slant_board_calf_stretch',
+                setScheme: '2 Sets of 45s Hold',
+                fixedWeightKg: 0,
+                notes: 'Drive knee forward over toes to open deep dorsiflexion.',
+              ),
+              ExerciseTemplate(
+                name: 'Deep Squat Pry / Hip Opener',
+                liftId: 'deep_squat_pry',
+                setScheme: '2 Sets of 60s Pry',
+                fixedWeightKg: 0,
+                notes: 'Sit in deep bottom position, pry knees outward with elbows.',
+              ),
+            ],
+          ),
+          PhaseTemplate(
+            name: 'Phase 2 - Primary EMOM (Knee-Dominant Squats)',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Squats (1–10 Method)',
+                liftId: 'emom_squats',
+                setScheme: '10–30 Min EMOM (1–10 Reps/Min)',
+                fixedWeightKg: 0,
+                notes:
+                    'Full range of motion with hips descending below knees. High cardiovascular & leg pump density. '
+                    'Progression: Dual kettlebell front rack squats or goblet squats. '
+                    'Regression: Bodyweight air squats or box squats.',
+              ),
+            ],
+          ),
+          PhaseTemplate(
+            name: 'Phase 3 - Quad & Hip Flexor Flush',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Wall Couch Stretch',
+                liftId: 'couch_stretch',
+                setScheme: '2 Sets of 45s per side',
+                fixedWeightKg: 0,
+                notes:
+                    'Glute squeeze on trail leg to open tight hip flexors and rectus femoris.',
+              ),
+            ],
+          ),
+        ],
+      ),
+
+      // Day 4: Horizontal Pull (Inverted Rows)
+      DayTemplate(
+        dayNumber: 4,
+        title: 'Day 4: Horizontal Pull (Inverted Rows)',
+        subtitle:
+            'Scapular Retraction, Rhomboid Armor & 10–30m EMOM Mid-Back Volume',
+        phases: <PhaseTemplate>[
+          PhaseTemplate(
+            name: 'Phase 1 - Scapular Retraction & Thoracic Extension',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Prone Y-T-W Scapular Raises',
+                liftId: 'ytw_scapular_raises',
+                setScheme: '2 Sets of 10 Reps each',
+                fixedWeightKg: 0,
+                notes:
+                    'Activate lower traps, rhomboids, and mid-trapezius without shrugging.',
+              ),
+            ],
+          ),
+          PhaseTemplate(
+            name: 'Phase 2 - Primary EMOM (Horizontal Pull)',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Inverted Rows (1–10 Method)',
+                liftId: 'emom_inverted_rows',
+                setScheme: '10–30 Min EMOM (1–10 Reps/Min)',
+                fixedWeightKg: 0,
+                notes:
+                    'Barbell or gymnastic rings. Maintain a rigid plank from ankles to crown. '
+                    'Progression: Feet elevated on box/bench or weighted vest. '
+                    'Regression: Higher strap/bar angle (incline row) or bent knees.',
+              ),
+            ],
+          ),
+          PhaseTemplate(
+            name: 'Phase 3 - Lat & Thoracic Decompression',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: "Child's Pose with Lateral Lat Reach",
+                liftId: 'childs_pose_reach',
+                setScheme: '2 Sets of 45s Hold per side',
+                fixedWeightKg: 0,
+                notes:
+                    'Sink hips back onto heels, reach diagonally to expand lateral ribcage.',
+              ),
+            ],
+          ),
+        ],
+      ),
+
+      // Day 5: Horizontal Push (Push-ups)
+      DayTemplate(
+        dayNumber: 5,
+        title: 'Day 5: Horizontal Push (Push-ups)',
+        subtitle:
+            'Wrist Extension, Serratus Activation & 10–30m EMOM Chest/Core Volume',
+        phases: <PhaseTemplate>[
+          PhaseTemplate(
+            name: 'Phase 1 - Serratus Anterior & Wrist Primer',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Scapular Push-ups (Push-up Plus)',
+                liftId: 'scapular_push_ups',
+                setScheme: '2 Sets of 12 Reps',
+                fixedWeightKg: 0,
+                notes:
+                    'Protract scapula firmly at the top to prime the serratus anterior.',
+              ),
+            ],
+          ),
+          PhaseTemplate(
+            name: 'Phase 2 - Primary EMOM (Horizontal Push)',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Push-ups (1–10 Method)',
+                liftId: 'emom_push_ups',
+                setScheme: '10–30 Min EMOM (1–10 Reps/Min)',
+                fixedWeightKg: 0,
+                notes:
+                    'Elbows tracked at ~45 degrees, rigid glute/abdominal brace. Chest touches deck each rep. '
+                    'Progression: Deficit push-ups (hands on blocks), ring push-ups, or weighted vest. '
+                    'Regression: Hands-elevated incline push-ups or knee push-ups.',
+              ),
+            ],
+          ),
+          PhaseTemplate(
+            name: 'Phase 3 - Pec & Bicep Tendon Release',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Prone Floor Pec & Bicep Stretch',
+                liftId: 'floor_pec_stretch',
+                setScheme: '2 Sets of 45s Hold per side',
+                fixedWeightKg: 0,
+                notes:
+                    'Arm at 90 degrees; roll torso gently away from pinned shoulder.',
+              ),
+            ],
+          ),
+        ],
+      ),
+
+      // Day 6: Unilateral Leg (Walking / Reverse Lunges)
+      DayTemplate(
+        dayNumber: 6,
+        title: 'Day 6: Unilateral Leg (Walking / Reverse Lunges)',
+        subtitle:
+            'Single-Leg Knee Stability, Pelvic Alignment & 10–30m EMOM Leg Density',
+        phases: <PhaseTemplate>[
+          PhaseTemplate(
+            name: 'Phase 1 - Ankle Dorsiflexion & Glute Medius Primer',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Patrick Step-Up / Controlled Tap',
+                liftId: 'patrick_step_up',
+                setScheme: '2 Sets of 10 Reps per side',
+                fixedWeightKg: 0,
+                notes:
+                    'Pure knee over toe tracking to fire VMO and warm up patellar tendon.',
+              ),
+            ],
+          ),
+          PhaseTemplate(
+            name: 'Phase 2 - Primary EMOM (Unilateral Leg)',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Walking / Reverse Lunges (1–10 Method)',
+                liftId: 'emom_lunges',
+                setScheme: '10–30 Min EMOM (1–10 Reps/Round)',
+                fixedWeightKg: 0,
+                notes:
+                    'Upright torso, vertical front shin, back knee gently touches floor. '
+                    'Progression: Dual kettlebell/dumbbell farmer lunges or deficit reverse lunges. '
+                    'Regression: Static split squats or hand-assisted lunges.',
+              ),
+            ],
+          ),
+          PhaseTemplate(
+            name: 'Phase 3 - Hip Capsule & Glute Restoration',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: '90/90 Hip Switches & Pigeon Flow',
+                liftId: 'hip_90_90_switch',
+                setScheme: '2 Sets of 60s per side',
+                fixedWeightKg: 0,
+                notes:
+                    'Decompress hip capsule and release external rotators after unilateral work.',
+              ),
+            ],
+          ),
+        ],
+      ),
+
+      // Day 7: Vertical Push (Pike Push-ups / Overhead Press)
+      DayTemplate(
+        dayNumber: 7,
+        title: 'Day 7: Vertical Push (Pike Push-ups / Overhead Press)',
+        subtitle:
+            'Thoracic Mobility, Deltoid Power & 10–30m EMOM Overhead Density',
+        phases: <PhaseTemplate>[
+          PhaseTemplate(
+            name: 'Phase 1 - Overhead Thoracic & Scapular Elevation',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Downward Dog to Upward Dog Flow',
+                liftId: 'downward_dog_flow',
+                setScheme: '2 Sets of 8 Flows',
+                fixedWeightKg: 0,
+                notes:
+                    'Drive head between shoulders in downward dog to open thoracic extension.',
+              ),
+            ],
+          ),
+          PhaseTemplate(
+            name: 'Phase 2 - Primary EMOM (Vertical Push)',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Pike Push-ups / Overhead Press (1–10 Method)',
+                liftId: 'emom_pike_push_ups',
+                setScheme: '10–30 Min EMOM (1–10 Reps/Min)',
+                fixedWeightKg: 0,
+                notes:
+                    'Inverted tripod head descent, hips stacked high over shoulders. '
+                    'Progression: Feet-elevated box pike push-ups, wall handstand push-ups, or DB overhead press. '
+                    'Regression: Hands-elevated incline pike push-ups or high-angle push-ups.',
+              ),
+            ],
+          ),
+          PhaseTemplate(
+            name: 'Phase 3 - Overhead Lat & Thoracic Release',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Overhead Wall Lat & Tricep Stretch',
+                liftId: 'wall_lat_stretch',
+                setScheme: '2 Sets of 45s Hold',
+                fixedWeightKg: 0,
+                notes:
+                    'Elbows on wall, hands behind neck, sink chest toward floor.',
+              ),
+            ],
+          ),
+        ],
+      ),
+
+      // Day 8: Hip Hinge / Posterior Chain (Romanian Deadlifts / Swings)
+      DayTemplate(
+        dayNumber: 8,
+        title: 'Day 8: Hip Hinge / Posterior Chain (RDLs / Swings)',
+        subtitle:
+            'Hamstring Flexibility, Spinal Erector Armor & 10–30m EMOM Posterior Chain',
+        phases: <PhaseTemplate>[
+          PhaseTemplate(
+            name: 'Phase 1 - Hamstring Floss & Glute Primer',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Elephant Walks',
+                liftId: 'elephant_walk',
+                setScheme: '2 Sets of 20 Alternating Reps',
+                fixedWeightKg: 0,
+                notes:
+                    'Alternate knee extensions with hands on floor to floss sciatic nerve and hamstrings.',
+              ),
+            ],
+          ),
+          PhaseTemplate(
+            name: 'Phase 2 - Primary EMOM (Hip Hinge / Posterior Chain)',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Romanian Deadlifts / KB Hinges (1–10 Method)',
+                liftId: 'emom_hinges',
+                setScheme: '10–30 Min EMOM (1–10 Reps/Min)',
+                fixedWeightKg: 0,
+                notes:
+                    'Hips back, soft knee flexion, rigid neutral spine. Glute drive on lockout. '
+                    'Progression: Dual kettlebell / barbell Romanian deadlifts or explosive KB swings. '
+                    'Regression: Bodyweight good mornings or resistance band hip hinges.',
+              ),
+            ],
+          ),
+          PhaseTemplate(
+            name: 'Phase 3 - Lumbar & Hamstring Decompression',
+            exercises: <ExerciseTemplate>[
+              ExerciseTemplate(
+                name: 'Jefferson Curl (Light Bodyweight/Plate)',
+                liftId: 'jefferson_curl',
+                setScheme: '2 Sets of 5 Slow Reps',
+                fixedWeightKg: 0,
+                notes:
+                    'Segmented vertebral spinal flexion to restore spinal length and decompress erectors.',
               ),
             ],
           ),

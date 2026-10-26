@@ -802,6 +802,7 @@ class DashboardScreen extends StatelessWidget {
     Color glowColor,
   ) {
     final (String trackTitle, String trackIcon, String trackTag) = switch (program.activeTrack) {
+      TrainingTrack.emomEight => ('EMOM 8 (1 Exercise/Day)', '⏱️', 'MINIMALIST DENSITY'),
       TrainingTrack.atgStandards => ('ATG Standards', '🦵', 'JOINT ARMOR'),
       TrainingTrack.olympic => ('Olympic Weightlifting', '🏋️', 'EXPLOSIVE POWER'),
       TrainingTrack.mobility => ('Mobility & Hypertrophy', '🧘', 'RESTORATIVE FLOW'),
@@ -968,6 +969,18 @@ class DashboardScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 18),
+                _buildTrackOptionTile(
+                  context: context,
+                  program: program,
+                  track: TrainingTrack.emomEight,
+                  title: 'EMOM 8 (1 Exercise / Day)',
+                  subtitle:
+                      'Minimalist 10–30 min EMOM density, 8 fundamental movement patterns, submaximal volume',
+                  tag: 'Minimalist Density',
+                  icon: '⏱️',
+                  color: const Color(0xFFFF9100),
+                ),
+                const SizedBox(height: 10),
                 _buildTrackOptionTile(
                   context: context,
                   program: program,
@@ -1369,15 +1382,18 @@ class DashboardScreen extends StatelessWidget {
     final bool isMobility = program.isMobilityTrack;
     final bool isBodybuilding = program.isBodybuildingTrack;
     final bool isAtg = program.isAtgTrack;
-    final Color trackAccent = isBodybuilding
-        ? const Color(0xFFA855F7)
-        : (isAtg
-            ? AppTheme.accentElectricCyan
-            : (isMobility
-                ? AppTheme.accentEmerald
-                : (day.isActiveRecovery
-                    ? AppTheme.secondaryCyan
-                    : AppTheme.primaryAmber)));
+    final bool isEmom = program.isEmomTrack;
+    final Color trackAccent = isEmom
+        ? const Color(0xFFFF9100)
+        : (isBodybuilding
+            ? const Color(0xFFA855F7)
+            : (isAtg
+                ? AppTheme.accentElectricCyan
+                : (isMobility
+                    ? AppTheme.accentEmerald
+                    : (day.isActiveRecovery
+                        ? AppTheme.secondaryCyan
+                        : AppTheme.primaryAmber))));
 
     return GlassContainer(
       padding: const EdgeInsets.all(18),
@@ -1390,27 +1406,52 @@ class DashboardScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
               Text(
-                isBodybuilding
-                    ? "TODAY'S BODYBUILDING SESSION"
-                    : (isAtg
-                        ? "TODAY'S ATG STANDARDS SESSION"
-                        : (isMobility
-                            ? "TODAY'S MOBILITY & HYPERTROPHY"
-                            : "TODAY'S WORKOUT")),
+                isEmom
+                    ? (program.isEmomRestDay
+                        ? 'EMOM 8 • REST & RECOVERY ACTIVE'
+                        : "TODAY'S EMOM 8 SESSION")
+                    : (isBodybuilding
+                        ? "TODAY'S BODYBUILDING SESSION"
+                        : (isAtg
+                            ? "TODAY'S ATG STANDARDS SESSION"
+                            : (isMobility
+                                ? "TODAY'S MOBILITY & HYPERTROPHY"
+                                : "TODAY'S WORKOUT"))),
                 style: GoogleFonts.outfit(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 1,
-                  color: isBodybuilding
-                      ? const Color(0xFFA855F7)
-                      : (isAtg
-                          ? AppTheme.accentElectricCyan
-                          : (isMobility
-                              ? AppTheme.accentEmerald
-                              : AppTheme.textSecondary)),
+                  color: isEmom
+                      ? const Color(0xFFFF9100)
+                      : (isBodybuilding
+                          ? const Color(0xFFA855F7)
+                          : (isAtg
+                              ? AppTheme.accentElectricCyan
+                              : (isMobility
+                                  ? AppTheme.accentEmerald
+                                  : AppTheme.textSecondary))),
                 ),
               ),
-              if (day.isActiveRecovery)
+              if (isEmom && program.isEmomRestDay)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: trackAccent.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    'Rest Day',
+                    style: GoogleFonts.inter(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: trackAccent,
+                    ),
+                  ),
+                )
+              else if (day.isActiveRecovery)
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 8,
@@ -1437,7 +1478,21 @@ class DashboardScreen extends StatelessWidget {
             children: program.days.map((d) {
               final bool isSelected = program.currentDay == d.dayNumber;
               String label;
-              if (isMobility || isBodybuilding || isAtg) {
+              if (isEmom) {
+                const List<String> emomPills = <String>[
+                  'Pull',
+                  'Dip',
+                  'Squat',
+                  'Row',
+                  'Push',
+                  'Lunge',
+                  'Pike',
+                  'Hinge',
+                ];
+                label = (d.dayNumber >= 1 && d.dayNumber <= 8)
+                    ? '${d.dayNumber}. ${emomPills[d.dayNumber - 1]}'
+                    : 'D${d.dayNumber}';
+              } else if (isMobility || isBodybuilding || isAtg) {
                 const List<String> weekdayLabels = <String>[
                   'Mon',
                   'Tue',
@@ -1714,7 +1769,129 @@ class DashboardScreen extends StatelessWidget {
               ),
             ],
           ),
+          if (isEmom && program.isEmomRestDay) ...<Widget>[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: trackAccent.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: trackAccent.withValues(alpha: 0.35),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Row(
+                    children: <Widget>[
+                      Icon(
+                        Icons.self_improvement_rounded,
+                        color: trackAccent,
+                        size: 22,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Rest & Recovery Mode Active',
+                        style: GoogleFonts.outfit(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: trackAccent,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Your scheduled session "${day.title}" is paused and queued for your next training day. Today is dedicated to parasympathetic recovery and tissue remodelling.',
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      color: AppTheme.textSecondary,
+                      height: 1.4,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: <Widget>[
+                      _buildRestDayChip('🚶 20m Aerobic Flush'),
+                      _buildRestDayChip('🧘 Passive Bar Hang'),
+                      _buildRestDayChip('🌬️ Box Breathwork'),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+          if (isEmom) ...<Widget>[
+            const SizedBox(height: 10),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () {
+                  final bool willBeRest = !program.isEmomRestDay;
+                  program.toggleEmomRestDay();
+                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        willBeRest
+                            ? 'Today marked as Rest Day. ${day.title} shifted to tomorrow.'
+                            : 'Rest Day cancelled. Resumed ${day.title}.',
+                      ),
+                      backgroundColor: trackAccent,
+                      duration: const Duration(seconds: 3),
+                    ),
+                  );
+                },
+                icon: Icon(
+                  program.isEmomRestDay
+                      ? Icons.play_circle_outline
+                      : Icons.snooze_rounded,
+                  color: trackAccent,
+                  size: 18,
+                ),
+                label: Text(
+                  program.isEmomRestDay
+                      ? 'Resume Workout / Cancel Rest Day'
+                      : 'Take Rest Day (Shift Cycle +1)',
+                  style: GoogleFonts.outfit(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: trackAccent,
+                  ),
+                ),
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size(0, 42),
+                  side: BorderSide(color: trackAccent.withValues(alpha: 0.6)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ],
+      ),
+    );
+  }
+
+  Widget _buildRestDayChip(String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceElevated,
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: AppTheme.borderColor),
+      ),
+      child: Text(
+        label,
+        style: GoogleFonts.inter(
+          fontSize: 11,
+          color: AppTheme.textPrimary,
+          fontWeight: FontWeight.w500,
+        ),
       ),
     );
   }
@@ -2219,9 +2396,11 @@ class DashboardScreen extends StatelessWidget {
                         ? ProgramCycle.getMobilityProgram()
                         : (program.activeTrack == TrainingTrack.atgStandards
                             ? ProgramCycle.getAtgStandardsProgram()
-                            : ProgramCycle.getBuiltInProgram(
-                                week: selectedWeek,
-                              )));
+                            : (program.activeTrack == TrainingTrack.emomEight
+                                ? ProgramCycle.getEmomEightProgram()
+                                : ProgramCycle.getBuiltInProgram(
+                                    week: selectedWeek,
+                                  ))));
             final DayTemplate day = previewDays.firstWhere(
               (d) => d.dayNumber == selectedDayNum,
               orElse: () => previewDays.first,
@@ -2341,7 +2520,21 @@ class DashboardScreen extends StatelessWidget {
                         children: previewDays.map((d) {
                           final bool isSel = selectedDayNum == d.dayNumber;
                           String label;
-                          if (program.activeTrack ==
+                          if (program.activeTrack == TrainingTrack.emomEight) {
+                            const List<String> emomPills = <String>[
+                              'Pull',
+                              'Dip',
+                              'Squat',
+                              'Row',
+                              'Push',
+                              'Lunge',
+                              'Pike',
+                              'Hinge',
+                            ];
+                            label = (d.dayNumber >= 1 && d.dayNumber <= 8)
+                                ? '${d.dayNumber}. ${emomPills[d.dayNumber - 1]}'
+                                : 'D${d.dayNumber}';
+                          } else if (program.activeTrack ==
                                   TrainingTrack.bodybuilding ||
                               program.activeTrack ==
                                   TrainingTrack.atgStandards ||
@@ -2382,7 +2575,10 @@ class DashboardScreen extends StatelessWidget {
                                               : (program.activeTrack ==
                                                       TrainingTrack.bodybuilding
                                                   ? const Color(0xFFA855F7)
-                                                  : AppTheme.primaryAmber)))
+                                                  : (program.activeTrack ==
+                                                          TrainingTrack.emomEight
+                                                      ? const Color(0xFFFF9100)
+                                                      : AppTheme.primaryAmber))))
                                       : AppTheme.surfaceCard,
                                   borderRadius: BorderRadius.circular(10),
                                   border: Border.all(
@@ -2452,7 +2648,9 @@ class DashboardScreen extends StatelessWidget {
                                     program.activeTrack !=
                                         TrainingTrack.bodybuilding &&
                                     program.activeTrack !=
-                                        TrainingTrack.atgStandards) {
+                                        TrainingTrack.atgStandards &&
+                                    program.activeTrack !=
+                                        TrainingTrack.emomEight) {
                                   final LiftProvider lifts =
                                       Provider.of<LiftProvider>(
                                         context,
@@ -2525,7 +2723,9 @@ class DashboardScreen extends StatelessWidget {
                                     program.activeTrack !=
                                         TrainingTrack.bodybuilding &&
                                     program.activeTrack !=
-                                        TrainingTrack.atgStandards) {
+                                        TrainingTrack.atgStandards &&
+                                    program.activeTrack !=
+                                        TrainingTrack.emomEight) {
                                   final LiftProvider lifts =
                                       Provider.of<LiftProvider>(
                                         context,
@@ -2580,7 +2780,9 @@ class DashboardScreen extends StatelessWidget {
                                         program.activeTrack !=
                                             TrainingTrack.bodybuilding &&
                                         program.activeTrack !=
-                                            TrainingTrack.atgStandards)
+                                            TrainingTrack.atgStandards &&
+                                        program.activeTrack !=
+                                            TrainingTrack.emomEight)
                                     ? AppTheme.secondaryCyan
                                     : (program.activeTrack ==
                                             TrainingTrack.bodybuilding
@@ -2588,7 +2790,10 @@ class DashboardScreen extends StatelessWidget {
                                         : (program.activeTrack ==
                                                 TrainingTrack.atgStandards
                                             ? AppTheme.accentElectricCyan
-                                            : AppTheme.primaryAmber)),
+                                            : (program.activeTrack ==
+                                                    TrainingTrack.emomEight
+                                                ? const Color(0xFFFF9100)
+                                                : AppTheme.primaryAmber))),
                                 foregroundColor: Colors.black,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),

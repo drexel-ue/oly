@@ -270,6 +270,69 @@ class RecoveryEngineService {
       );
     }
 
+    // 2c. EMOM 8 Track Fallback
+    if (trainingTrack == TrainingTrack.emomEight) {
+      final List<MobilityExerciseModel> p1 = catalog
+          .where((e) =>
+              e.id == 'kettlebell_mile' ||
+              e.id == 'farmers_walk_mile' ||
+              e.id == 'zone2_cardio_row')
+          .toList();
+      final List<MobilityExerciseModel> p2 = catalog
+          .where((e) =>
+              e.id == 'barbell_dead_hang' ||
+              e.id == 'doorway_pec_stretch' ||
+              e.id == 'quadruped_wrist_loading')
+          .toList();
+      final List<MobilityExerciseModel> p3 = catalog
+          .where((e) =>
+              e.id == 'couch_stretch' ||
+              e.id == 'hip_90_90_switch' ||
+              e.id == 'slant_board_calf_stretch')
+          .toList();
+      final List<MobilityExerciseModel> p4 = catalog
+          .where((e) => e.id == 'elephant_walk' || e.id == 'deep_squat_pry')
+          .toList();
+
+      final List<RecoveryPhaseGroup> emomGroups = <RecoveryPhaseGroup>[
+        RecoveryPhaseGroup(
+          phaseNumber: 1,
+          title: 'Phase 1: Restorative Aerobic Flush',
+          subtitle: 'Low-Impact Movement for Systemic Circulation',
+          exercises: p1.isNotEmpty
+              ? p1
+              : catalog.take(1).toList(),
+        ),
+        RecoveryPhaseGroup(
+          phaseNumber: 2,
+          title: 'Phase 2: Upper Decompression & Scapular Reset',
+          subtitle: 'Passive Bar Hang & Shoulder Capsule Opening',
+          exercises: p2,
+        ),
+        RecoveryPhaseGroup(
+          phaseNumber: 3,
+          title: 'Phase 3: Lower Body & Hip Capsule Flow',
+          subtitle: 'Wall Couch Stretch & 90/90 Rotation',
+          exercises: p3,
+        ),
+        RecoveryPhaseGroup(
+          phaseNumber: 4,
+          title: 'Phase 4: Parasympathetic Decompression',
+          subtitle: 'Elephant Walk & Deep Squat Pry',
+          exercises: p4,
+        ),
+      ];
+
+      return GeneratedRecoveryRoutine(
+        phaseGroups: emomGroups,
+        exercises: emomGroups.expand((g) => g.exercises).toList(),
+        diagnosticReasons: <String>[
+          'EMOM 8 Active Recovery: Low-impact aerobic flush, shoulder hanging decompression, hip mobility, and parasympathetic breathwork.',
+        ],
+        totalEstimatedMinutes: 25,
+      );
+    }
+
     final Set<MobilityFocusArea> targetFocusAreas = <MobilityFocusArea>{};
     final List<String> diagnosticReasons = <String>[];
 

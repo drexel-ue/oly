@@ -1007,6 +1007,11 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
       trackName = TrainingTrack.bodybuilding.name;
     } else if (programProvider.activeTrack == TrainingTrack.atgStandards) {
       trackName = TrainingTrack.atgStandards.name;
+    } else if (programProvider.activeTrack == TrainingTrack.emomEight ||
+        widget.dayTemplate.phases.any(
+          (p) => p.exercises.any((e) => e.liftId.startsWith('emom_')),
+        )) {
+      trackName = TrainingTrack.emomEight.name;
     } else if (programProvider.activeTrack == TrainingTrack.mobility ||
         widget.dayTemplate.isActiveRecovery) {
       trackName = TrainingTrack.mobility.name;

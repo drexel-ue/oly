@@ -151,6 +151,12 @@ class WorkoutSession {
           t.contains('standard')) {
         return TrainingTrack.atgStandards;
       }
+      if (t == 'emomeight' ||
+          t == 'emom' ||
+          t.contains('emom') ||
+          t.contains('1-10')) {
+        return TrainingTrack.emomEight;
+      }
       if (t == 'mobility') {
         return TrainingTrack.mobility;
       }
@@ -173,6 +179,11 @@ class WorkoutSession {
     // Check notes / title hints
     final String combinedText =
         '${sessionTitle ?? ''} ${notes ?? ''}'.toLowerCase();
+    if (combinedText.contains('emom') ||
+        combinedText.contains('1-10 method') ||
+        combinedText.contains('1 exercise')) {
+      return TrainingTrack.emomEight;
+    }
     if (combinedText.contains('atg') ||
         combinedText.contains('standards') ||
         combinedText.contains('bulletproof') ||
@@ -205,6 +216,10 @@ class WorkoutSession {
     for (final ExerciseLog log in logs) {
       final String id = log.liftId.toLowerCase();
       final String name = log.exerciseName.toLowerCase();
+
+      if (id.startsWith('emom_')) {
+        return TrainingTrack.emomEight;
+      }
 
       if (id.contains('poliquin') ||
           id.contains('jefferson_curl') ||
@@ -331,6 +346,27 @@ class WorkoutSession {
             return 'Day 7: Full System Recovery';
           default:
             return 'Day $dayNumber: ATG Standards';
+        }
+      case TrainingTrack.emomEight:
+        switch (dayNumber) {
+          case 1:
+            return 'Day 1: Vertical Pull (Pull-ups)';
+          case 2:
+            return 'Day 2: Downward Push (Dips)';
+          case 3:
+            return 'Day 3: Knee Dominant (Squats)';
+          case 4:
+            return 'Day 4: Horizontal Pull (Rows)';
+          case 5:
+            return 'Day 5: Horizontal Push (Push-ups)';
+          case 6:
+            return 'Day 6: Unilateral Leg (Lunges)';
+          case 7:
+            return 'Day 7: Vertical Push (Pike Push-ups)';
+          case 8:
+            return 'Day 8: Hip Hinge (RDLs / Swings)';
+          default:
+            return 'Day $dayNumber: EMOM 8';
         }
       case TrainingTrack.mobility:
         return 'Day $dayNumber: Mobility Flow';

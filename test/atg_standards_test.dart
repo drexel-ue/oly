@@ -88,7 +88,7 @@ void main() {
           .firstWhere((e) => e.liftId == 'jefferson_curl');
       expect(jCurl.bodyweightPercentage, equals(25));
 
-      // Day 2: Hip Range & Posterior Chain
+      // Day 2: Hip Range & Posterior Chain (includes forearm rotation & wrist extension)
       expect(atgDays[1].title, contains('Hip Range & Posterior Chain'));
       final ExerciseTemplate splitSquat = atgDays[1]
           .phases
@@ -96,15 +96,35 @@ void main() {
           .firstWhere((e) => e.liftId == 'atg_split_squat');
       expect(splitSquat.bodyweightPercentage, equals(25));
 
+      final List<String> day2LiftIds = atgDays[1]
+          .phases
+          .expand((p) => p.exercises)
+          .map((e) => e.liftId)
+          .toList();
+      expect(day2LiftIds, contains('forearm_pronation_supination'));
+      expect(day2LiftIds, contains('dumbbell_wrist_extension'));
+
       // Day 3: Active ROKP & Ankle Transformation
       expect(atgDays[2].isActiveRecovery, isTrue);
       expect(atgDays[2].title, contains('Ankle Transformation'));
 
-      // Day 4: Deep Squat & Vertical Press/Pull
+      // Day 4: Deep Squat & Vertical Press/Pull (includes wrist flexion)
       expect(atgDays[3].title, contains('Deep Squat'));
+      final List<String> day4LiftIds = atgDays[3]
+          .phases
+          .expand((p) => p.exercises)
+          .map((e) => e.liftId)
+          .toList();
+      expect(day4LiftIds, contains('dumbbell_wrist_flexion'));
 
-      // Day 5: Posterior Armor & Trunk Integrity
+      // Day 5: Posterior Armor & Trunk Integrity (includes floor wrist prep)
       expect(atgDays[4].title, contains('Posterior Armor'));
+      final List<String> day5LiftIds = atgDays[4]
+          .phases
+          .expand((p) => p.exercises)
+          .map((e) => e.liftId)
+          .toList();
+      expect(day5LiftIds, contains('quadruped_wrist_loading'));
 
       // Day 6 & 7: Active recovery / athletic bounce
       expect(atgDays[5].isActiveRecovery, isTrue);

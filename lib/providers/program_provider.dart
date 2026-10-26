@@ -11,6 +11,15 @@ class ProgramProvider extends ChangeNotifier {
         _cycle.activeTrack == TrainingTrack.atgStandards) {
       final int todayWeekday = DateTime.now().weekday;
       _cycle.currentDay = todayWeekday.clamp(1, 7);
+    } else if (_cycle.activeTrack == TrainingTrack.emomEight) {
+      final String todayStr = DateTime.now().toIso8601String().substring(0, 10);
+      if (_cycle.isEmomRestDay &&
+          _cycle.emomRestDayDate != null &&
+          _cycle.emomRestDayDate != todayStr) {
+        _cycle.isEmomRestDay = false;
+        _cycle.emomRestDayDate = null;
+      }
+      _cycle.currentDay = _cycle.currentDay.clamp(1, 8);
     }
     _days = _cycle.activeTrack == TrainingTrack.bodybuilding
         ? ProgramCycle.getBodybuildingProgram()
@@ -18,7 +27,11 @@ class ProgramProvider extends ChangeNotifier {
             ? ProgramCycle.getMobilityProgram()
             : (_cycle.activeTrack == TrainingTrack.atgStandards
                 ? ProgramCycle.getAtgStandardsProgram()
-                : ProgramCycle.getBuiltInProgram(week: _cycle.currentWeek)));
+                : (_cycle.activeTrack == TrainingTrack.emomEight
+                    ? ProgramCycle.getEmomEightProgram()
+                    : ProgramCycle.getBuiltInProgram(
+                        week: _cycle.currentWeek,
+                      ))));
     _sessions = _storage.loadWorkoutSessions();
     _activeDraft = _storage.loadActiveWorkoutDraft();
   }
@@ -35,6 +48,8 @@ class ProgramProvider extends ChangeNotifier {
   bool get isBodybuildingTrack =>
       _cycle.activeTrack == TrainingTrack.bodybuilding;
   bool get isAtgTrack => _cycle.activeTrack == TrainingTrack.atgStandards;
+  bool get isEmomTrack => _cycle.activeTrack == TrainingTrack.emomEight;
+  bool get isEmomRestDay => _cycle.isEmomRestDay;
 
   List<DayTemplate> get days {
     if (isBodybuildingTrack) {
@@ -43,6 +58,8 @@ class ProgramProvider extends ChangeNotifier {
       return ProgramCycle.getMobilityProgram();
     } else if (isAtgTrack) {
       return ProgramCycle.getAtgStandardsProgram();
+    } else if (isEmomTrack) {
+      return ProgramCycle.getEmomEightProgram();
     } else {
       return ProgramCycle.getBuiltInProgram(week: _cycle.currentWeek);
     }
@@ -58,6 +75,7 @@ class ProgramProvider extends ChangeNotifier {
       !isMobilityTrack &&
       !isBodybuildingTrack &&
       !isAtgTrack &&
+      !isEmomTrack &&
       _cycle.currentWeek == 5;
 
   double get totalVolumeKg => _sessions.fold(
@@ -103,10 +121,25 @@ class ProgramProvider extends ChangeNotifier {
         track == TrainingTrack.atgStandards) {
       final int todayWeekday = DateTime.now().weekday;
       _cycle.currentDay = todayWeekday.clamp(1, 7);
+    } else if (track == TrainingTrack.emomEight) {
+      _cycle.currentDay = _cycle.currentDay.clamp(1, 8);
     } else {
       _cycle.currentDay = 1;
     }
     _days = days;
+    _storage.saveProgramCycle(_cycle);
+    notifyListeners();
+  }
+
+  void toggleEmomRestDay({bool? forceState}) {
+    final bool newState = forceState ?? !_cycle.isEmomRestDay;
+    _cycle.isEmomRestDay = newState;
+    if (newState) {
+      _cycle.emomRestDayDate =
+          DateTime.now().toIso8601String().substring(0, 10);
+    } else {
+      _cycle.emomRestDayDate = null;
+    }
     _storage.saveProgramCycle(_cycle);
     notifyListeners();
   }
@@ -138,7 +171,7 @@ class ProgramProvider extends ChangeNotifier {
       _cycle.currentWeek = 1;
     }
     _cycle.currentDay = 1;
-    _days = ProgramCycle.getBuiltInProgram(week: _cycle.currentWeek);
+    _days = days;
     await _storage.saveProgramCycle(_cycle);
     notifyListeners();
   }
@@ -147,7 +180,7 @@ class ProgramProvider extends ChangeNotifier {
     _cycle.currentCycle++;
     _cycle.currentWeek = 1;
     _cycle.currentDay = 1;
-    _days = ProgramCycle.getBuiltInProgram(week: _cycle.currentWeek);
+    _days = days;
     await _storage.saveProgramCycle(_cycle);
     notifyListeners();
   }
@@ -159,10 +192,19 @@ class ProgramProvider extends ChangeNotifier {
     }
 
     // Auto advance day & week after logging a live workout
-    if (_cycle.currentDay < _days.length) {
+    if (isEmomTrack) {
+      if (_cycle.currentDay < 8) {
+        _cycle.currentDay++;
+      } else {
+        _cycle.currentDay = 1;
+        _cycle.currentCycle++;
+      }
+      _cycle.isEmomRestDay = false;
+      _cycle.emomRestDayDate = null;
+    } else if (_cycle.currentDay < _days.length) {
       _cycle.currentDay++;
     } else {
-      // Completed Day 6 -> Roll over to Week + 1, Day 1
+      // Completed Day -> Roll over to Week + 1, Day 1
       _cycle.currentDay = 1;
       if (_cycle.currentWeek < 5) {
         _cycle.currentWeek++;
@@ -173,7 +215,7 @@ class ProgramProvider extends ChangeNotifier {
       }
     }
 
-    _days = ProgramCycle.getBuiltInProgram(week: _cycle.currentWeek);
+    _days = days;
     await _storage.saveWorkoutSessions(_sessions);
     await _storage.saveProgramCycle(_cycle);
     await clearActiveDraft();
@@ -194,7 +236,7 @@ class ProgramProvider extends ChangeNotifier {
 
   Future<void> reload() async {
     _cycle = _storage.loadProgramCycle();
-    _days = ProgramCycle.getBuiltInProgram(week: _cycle.currentWeek);
+    _days = days;
     _sessions = _storage.loadWorkoutSessions();
     _activeDraft = _storage.loadActiveWorkoutDraft();
     notifyListeners();
