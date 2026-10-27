@@ -74,10 +74,25 @@ class WorkoutWeightHelper {
     return null;
   }
 
+  /// Determines if an exercise is an EMOM interval protocol.
+  static bool isEmomExercise(String name, [String? setScheme, String? liftId]) {
+    final String nameLower = name.toLowerCase();
+    final String schemeLower = (setScheme ?? '').toLowerCase();
+    final String idLower = (liftId ?? '').toLowerCase();
+    return idLower.startsWith('emom_') ||
+        nameLower.contains('emom') ||
+        schemeLower.contains('emom');
+  }
+
   /// Determines if an exercise is an isometric hold or timed duration exercise.
   static bool isTimedExercise(String name, [String? setScheme]) {
     final String nameLower = name.toLowerCase();
     final String schemeLower = (setScheme ?? '').toLowerCase();
+
+    // EMOM is an interval rep protocol, NOT an isometric hold
+    if (nameLower.contains('emom') || schemeLower.contains('emom')) {
+      return false;
+    }
 
     // If scheme explicitly specifies "Reps" without any "Hold", "sec", or "min", it's reps-based
     if (schemeLower.contains('reps') &&
@@ -116,6 +131,29 @@ class WorkoutWeightHelper {
 
   /// Extracts the target reps or hold seconds count from setScheme (e.g. '4 Sets of 2 Reps' -> 2, '3 Sets of 30s Hold' -> 30, '1 Set of 25 Mins' -> 1500)
   static int extractRepsCount(String setScheme) {
+    final String schemeLower = setScheme.toLowerCase();
+
+    // 0. Check for EMOM rep targets (e.g. "10–30 Min EMOM (1–10 Reps/Min)" -> 5 reps, or "5 Reps/Min")
+    if (schemeLower.contains('emom')) {
+      final RegExpMatch? repRangeMatch = RegExp(
+        r'(\d+)\s*(?:–|-)\s*(\d+)\s*Reps?',
+        caseSensitive: false,
+      ).firstMatch(setScheme);
+      if (repRangeMatch != null) {
+        final int low = int.tryParse(repRangeMatch.group(1)!) ?? 1;
+        final int high = int.tryParse(repRangeMatch.group(2)!) ?? 10;
+        return ((low + high) ~/ 2).clamp(1, 10);
+      }
+      final RegExpMatch? singleRepMatch = RegExp(
+        r'(\d+)\s*Reps?',
+        caseSensitive: false,
+      ).firstMatch(setScheme);
+      if (singleRepMatch != null) {
+        return int.tryParse(singleRepMatch.group(1)!) ?? 5;
+      }
+      return 5;
+    }
+
     // 1. Check for minutes duration (e.g. "25 Mins", "35 Mins", "10 min")
     final RegExpMatch? minMatch = RegExp(
       r'(\d+)\s*(?:min|mins|minutes|\bMins\b)',

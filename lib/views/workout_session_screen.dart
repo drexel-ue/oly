@@ -44,6 +44,7 @@ import 'package:oly/views/helen_wod_screen.dart';
 import 'package:oly/views/jackie_wod_screen.dart';
 import 'package:oly/views/warmup_session_screen.dart';
 import 'package:oly/widgets/add_movement_modal_sheet.dart';
+import 'package:oly/widgets/emom_timer_card.dart';
 import 'package:oly/widgets/empty_add_movement_card.dart';
 import 'package:oly/widgets/exercise_swap_modal.dart';
 import 'package:oly/widgets/hold_stopwatch_card.dart';
@@ -192,10 +193,20 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
 
         if (!_exerciseSets.containsKey(exercise.name)) {
           int setNum = 3;
-          final RegExpMatch? match = RegExp(r'(\d+)\s+Sets')
-              .firstMatch(exercise.setScheme);
-          if (match != null) {
-            setNum = int.tryParse(match.group(1)!) ?? 3;
+          final bool isEmom = WorkoutWeightHelper.isEmomExercise(
+            exercise.name,
+            exercise.setScheme,
+            exercise.liftId,
+          );
+
+          if (isEmom) {
+            setNum = 20; // Default 20 rounds for EMOM 8 density sessions
+          } else {
+            final RegExpMatch? match = RegExp(r'(\d+)\s+Sets')
+                .firstMatch(exercise.setScheme);
+            if (match != null) {
+              setNum = int.tryParse(match.group(1)!) ?? 3;
+            }
           }
 
           final int reps = exercise.setScheme.isNotEmpty
@@ -683,7 +694,22 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     final CompletedSet currentSet = sets[setIndex];
     final String displayName =
         _swappedExerciseNames[exerciseName] ?? exerciseName;
-    final bool isTimedHold = WorkoutWeightHelper.isTimedExercise(displayName);
+    ExerciseTemplate? template;
+    for (final PhaseTemplate phase in widget.dayTemplate.phases) {
+      for (final ExerciseTemplate ex in phase.exercises) {
+        if (ex.name == exerciseName) {
+          template = ex;
+          break;
+        }
+      }
+    }
+    final bool isEmom = WorkoutWeightHelper.isEmomExercise(
+      exerciseName,
+      template?.setScheme,
+      template?.liftId,
+    );
+    final bool isTimedHold = !isEmom &&
+        WorkoutWeightHelper.isTimedExercise(displayName, template?.setScheme);
 
     showModalBottomSheet<void>(
       context: context,
@@ -1659,11 +1685,21 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                   ),
                 ),
               ),
-              // Embedded Rest Timer at bottom
-              RestTimerWidget(
-                notesFocusNode: _notesFocusNode,
-                initiallyMinimized: true,
-              ),
+              // Embedded Rest Timer at bottom (hidden if active session is an EMOM workout to avoid timer conflicts)
+              if (programProvider.activeTrack != TrainingTrack.emomEight &&
+                  !widget.dayTemplate.phases.any(
+                    (p) => p.exercises.any(
+                      (e) => WorkoutWeightHelper.isEmomExercise(
+                        e.name,
+                        e.setScheme,
+                        e.liftId,
+                      ),
+                    ),
+                  ))
+                RestTimerWidget(
+                  notesFocusNode: _notesFocusNode,
+                  initiallyMinimized: true,
+                ),
             ],
           ),
         ),
@@ -1719,10 +1755,16 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
             final int targetReps = sets.isNotEmpty
                 ? sets.first.reps
                 : WorkoutWeightHelper.extractRepsCount(exercise.setScheme);
-            final bool isTimedHold = WorkoutWeightHelper.isTimedExercise(
-              displayName,
+            final bool isEmom = WorkoutWeightHelper.isEmomExercise(
+              exercise.name,
               exercise.setScheme,
+              exercise.liftId,
             );
+            final bool isTimedHold = !isEmom &&
+                WorkoutWeightHelper.isTimedExercise(
+                  displayName,
+                  exercise.setScheme,
+                );
             final int activeSetIndex = sets.indexWhere((s) => !s.isCompleted);
             final int currentActiveIndex = activeSetIndex != -1
                 ? activeSetIndex
@@ -1944,11 +1986,17 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                                 ? ((double.tryParse(weightCtrl?.text ?? '0') ?? 0.0) > 0
                                     ? '${settings.formatWeight(double.tryParse(weightCtrl?.text ?? '0') ?? 0.0)} × ${targetReps}s Hold'
                                     : '${targetReps}s Hold')
-                                : '${settings.formatWeight(double.tryParse(weightCtrl?.text ?? '0') ?? 0.0)} × $targetReps ${targetReps == 1 ? 'rep' : 'reps'}',
+                                : (isEmom
+                                    ? ((double.tryParse(weightCtrl?.text ?? '0') ?? 0.0) > 0
+                                        ? '${settings.formatWeight(double.tryParse(weightCtrl?.text ?? '0') ?? 0.0)} × $targetReps reps/min'
+                                        : '$targetReps reps/min EMOM')
+                                    : '${settings.formatWeight(double.tryParse(weightCtrl?.text ?? '0') ?? 0.0)} × $targetReps ${targetReps == 1 ? 'rep' : 'reps'}'),
                             style: GoogleFonts.outfit(
                               fontSize: 13,
                               fontWeight: FontWeight.bold,
-                              color: AppTheme.textPrimary,
+                              color: isEmom
+                                  ? const Color(0xFFFF9100)
+                                  : AppTheme.textPrimary,
                             ),
                           ),
                           const Spacer(),
@@ -2018,6 +2066,76 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                     },
                   ),
                   const SizedBox(height: 10),
+
+                  // Dedicated Interval Timer for EMOM Workouts
+                  if (isEmom && sets.isNotEmpty) ...<Widget>[
+                    EmomTimerCard(
+                      exerciseName: displayName,
+                      targetRepsPerMin: targetReps,
+                      activeRoundIndex: currentActiveIndex,
+                      totalRounds: sets.length,
+                      isAllCompleted: isAllCompleted,
+                      currentWeightKg:
+                          double.tryParse(weightCtrl?.text ?? '0') ?? 0.0,
+                      onRoundCompleted: ({
+                        required roundIndex,
+                        required reps,
+                        required weight,
+                      }) {
+                        if (roundIndex >= 0 && roundIndex < sets.length) {
+                          final CompletedSet cur = sets[roundIndex];
+                          setState(() {
+                            sets[roundIndex] = CompletedSet(
+                              setIndex: cur.setIndex,
+                              weight: weight,
+                              reps: reps,
+                              rpe: cur.rpe,
+                              completedAt: DateTime.now(),
+                            );
+                          });
+                          _persistDraft();
+                        }
+                      },
+                      onTotalRoundsChanged: (newTotalRounds) {
+                        setState(() {
+                          if (newTotalRounds > sets.length) {
+                            final double exWeight =
+                                double.tryParse(weightCtrl?.text ?? '0') ?? 0.0;
+                            for (int i = sets.length; i < newTotalRounds; i++) {
+                              sets.add(
+                                CompletedSet(
+                                  setIndex: i + 1,
+                                  weight: exWeight,
+                                  reps: targetReps,
+                                  isCompleted: false,
+                                ),
+                              );
+                            }
+                          } else if (newTotalRounds < sets.length) {
+                            sets.removeRange(newTotalRounds, sets.length);
+                          }
+                        });
+                        _persistDraft();
+                      },
+                      onTargetRepsChanged: (newTargetReps) {
+                        setState(() {
+                          for (int i = 0; i < sets.length; i++) {
+                            if (!sets[i].isCompleted) {
+                              sets[i] = CompletedSet(
+                                setIndex: sets[i].setIndex,
+                                weight: sets[i].weight,
+                                reps: newTargetReps,
+                                rpe: sets[i].rpe,
+                                isCompleted: sets[i].isCompleted,
+                                completedAt: sets[i].completedAt,
+                              );
+                            }
+                          }
+                        });
+                        _persistDraft();
+                      },
+                    ),
+                  ],
 
                   // Interactive Stopwatch & Time Input for Isometric Holds
                   if (isTimedHold && sets.isNotEmpty) ...<Widget>[
@@ -2109,28 +2227,40 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                                 ? (setItem.weight > 0
                                     ? 'Set ${setItem.setIndex}: ${settings.formatWeight(setItem.weight, includeUnit: false)} × ${setItem.reps}s'
                                     : 'Set ${setItem.setIndex}: ${setItem.reps}s')
-                                : 'Set ${setItem.setIndex}: ${settings.formatWeight(setItem.weight, includeUnit: false)} × ${setItem.reps}',
+                                : (isEmom
+                                    ? (setItem.weight > 0
+                                        ? 'Min ${setItem.setIndex}: ${settings.formatWeight(setItem.weight, includeUnit: false)} × ${setItem.reps}'
+                                        : 'Min ${setItem.setIndex}: ${setItem.reps} reps')
+                                    : 'Set ${setItem.setIndex}: ${settings.formatWeight(setItem.weight, includeUnit: false)} × ${setItem.reps}'),
                             style: GoogleFonts.outfit(
                               fontSize: 13,
                               fontWeight: FontWeight.bold,
                               color: setItem.isCompleted
                                   ? Colors.black
                                   : (isActiveSet
-                                      ? AppTheme.secondaryCyan
+                                      ? (isEmom
+                                          ? const Color(0xFFFF9100)
+                                          : AppTheme.secondaryCyan)
                                       : AppTheme.textPrimary),
                             ),
                           ),
                           side: BorderSide(
                             color: isActiveSet
-                                ? AppTheme.secondaryCyan
+                                ? (isEmom
+                                    ? const Color(0xFFFF9100)
+                                    : AppTheme.secondaryCyan)
                                 : (setItem.isCompleted
                                     ? Colors.transparent
                                     : AppTheme.borderColor),
                             width: isActiveSet ? 1.5 : 1.0,
                           ),
-                          selectedColor: AppTheme.primaryAmber,
+                          selectedColor: isEmom
+                              ? const Color(0xFFFF9100)
+                              : AppTheme.primaryAmber,
                           backgroundColor: isActiveSet
-                              ? AppTheme.secondaryCyan.withValues(alpha: 0.12)
+                              ? (isEmom
+                                  ? const Color(0xFFFF9100).withValues(alpha: 0.12)
+                                  : AppTheme.secondaryCyan.withValues(alpha: 0.12))
                               : AppTheme.surfaceCard,
                           onSelected: (_) =>
                               _toggleSetCompletion(exercise.name, index),
@@ -2148,9 +2278,11 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        isTimedHold
-                            ? 'Tap to complete • Long-press to edit hold duration'
-                            : 'Tap to complete • Long-press to edit weight & reps',
+                        isEmom
+                            ? 'Tap to mark minute complete • Long-press to edit minute reps'
+                            : (isTimedHold
+                                ? 'Tap to complete • Long-press to edit hold duration'
+                                : 'Tap to complete • Long-press to edit weight & reps'),
                         style: GoogleFonts.inter(
                           fontSize: 11,
                           color: AppTheme.textSecondary.withValues(alpha: 0.7),
